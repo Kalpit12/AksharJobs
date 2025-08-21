@@ -1,0 +1,5 @@
+# Add this line to your Windows hosts file:
+# C:\Windows\System32\drivers\etc\hosts
+
+127.0.0.1 resume-matcher.local
+127.0.0.1 www.resume-matcher.local

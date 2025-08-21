@@ -1,0 +1,39 @@
+:root {
+    --primary-dark: #16423C;
+    --secondary: #6A9C89;
+    --light: #C4DAD2;
+    --extra-light: #E9EFEC;
+    --text-dark: #2c2c2c;
+    --text-light: #ffffff;
+  }
+  
+  *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--extra-light);
+    font-family: 'Arial', sans-serif;
+  }
+  
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  button {
+    background-color: var(--primary-dark);
+    color: var(--text-light);
+    padding: 10px 15px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  button:hover {
+    background-color: var(--secondary);
+  }
+  

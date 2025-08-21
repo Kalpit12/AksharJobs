@@ -1,0 +1,422 @@
+.account-deactivation-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.account-deactivation-modal {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.account-deactivation-modal.confirmation {
+  max-width: 500px;
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+  padding: 25px 30px;
+  border-radius: 20px 20px 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease;
+}
+
+.close-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.modal-content {
+  padding: 30px;
+}
+
+/* Deactivation Warning Styles */
+.deactivation-warning {
+  text-align: center;
+}
+
+.warning-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.deactivation-warning h3 {
+  margin: 0 0 20px 0;
+  color: #dc3545;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.deactivation-warning p {
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.deactivation-warning ul {
+  text-align: left;
+  margin: 20px 0;
+  padding-left: 20px;
+}
+
+.deactivation-warning li {
+  color: #555;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.note {
+  background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+  border: 1px solid #ffeaa7;
+  border-radius: 10px;
+  padding: 15px;
+  margin: 20px 0;
+  color: #856404;
+}
+
+.note strong {
+  color: #856404;
+}
+
+.warning-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+/* Deactivation Form Styles */
+.deactivation-form {
+  text-align: left;
+}
+
+.deactivation-form h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.deactivation-form p {
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: white;
+  font-family: inherit;
+}
+
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #dc3545;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group textarea::placeholder {
+  color: #999;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+}
+
+/* Confirmation Styles */
+.confirmation-message {
+  text-align: center;
+}
+
+.confirmation-icon {
+  font-size: 48px;
+  color: #28a745;
+  margin-bottom: 20px;
+}
+
+.confirmation-message h3 {
+  margin: 0 0 15px 0;
+  color: #28a745;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.confirmation-message p {
+  color: #666;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.reactivation-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #90caf9;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.reactivation-info h4 {
+  margin: 0 0 10px 0;
+  color: #1565c0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.reactivation-info p {
+  color: #1976d2;
+  margin: 0 0 15px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* Button Styles */
+.btn-secondary,
+.btn-primary,
+.btn-warning {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-1px);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  color: white;
+}
+
+.btn-warning:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(220, 53, 69, 0.4);
+}
+
+.btn-warning:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .account-deactivation-modal {
+    width: 95%;
+    margin: 20px;
+  }
+  
+  .modal-header,
+  .modal-content {
+    padding: 20px;
+  }
+  
+  .warning-actions,
+  .form-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-secondary,
+  .btn-primary,
+  .btn-warning {
+    padding: 10px 20px;
+    font-size: 13px;
+    width: 100%;
+  }
+  
+  .deactivation-warning ul {
+    padding-left: 15px;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .account-deactivation-modal {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #ffffff;
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+  }
+  
+  .deactivation-warning h3 {
+    color: #ff6b6b;
+  }
+  
+  .deactivation-warning p {
+    color: #b0b0b0;
+  }
+  
+  .deactivation-warning li {
+    color: #b0b0b0;
+  }
+  
+  .note {
+    background: linear-gradient(135deg, #2d2d2d 0%, #333333 100%);
+    border-color: #404040;
+  }
+  
+  .note,
+  .note strong {
+    color: #ffd700;
+  }
+  
+  .deactivation-form h3 {
+    color: #ffffff;
+  }
+  
+  .deactivation-form p {
+    color: #b0b0b0;
+  }
+  
+  .form-group label {
+    color: #b0b0b0;
+  }
+  
+  .form-group select,
+  .form-group textarea {
+    background: #2d2d2d;
+    border-color: #404040;
+    color: #ffffff;
+  }
+  
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: #dc3545;
+  }
+  
+  .form-group textarea::placeholder {
+    color: #666;
+  }
+  
+  .confirmation-message h3 {
+    color: #4ade80;
+  }
+  
+  .confirmation-message p {
+    color: #b0b0b0;
+  }
+  
+  .reactivation-info {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    border-color: #404040;
+  }
+  
+  .reactivation-info h4 {
+    color: #90caf9;
+  }
+  
+  .reactivation-info p {
+    color: #64b5f6;
+  }
+}

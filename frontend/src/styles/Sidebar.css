@@ -1,0 +1,118 @@
+.sidebar {
+  width: 240px;
+  background-color: var(--primary-dark);
+  color: white;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin: 0;
+}
+
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+  display: block;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+.sidebar a:hover {
+  background: var(--secondary);
+}
+
+.sidebar a.active-link {
+  background-color: var(--secondary);
+  font-weight: bold;
+}
+.logout-btn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 15px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}
+
+.sidebar-header {
+  text-align: center;
+  padding: 15px;
+}
+
+.sidebar_profile-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  margin-bottom: 10px;
+}
+.sidebar_profile-image img{
+  width: 100%;
+  height: 100%;
+}
+
+/* Premium Badge Styling for Sidebar */
+.sidebar-header h3 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.sidebar-header .premium-badge {
+  background: linear-gradient(135deg, #0077B5, #005885);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 15px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: 
+    0 4px 15px rgba(0, 119, 181, 0.5),
+    0 2px 5px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  animation: premiumGlow 2s ease-in-out infinite alternate;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  min-width: 60px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes premiumGlow {
+  from {
+    box-shadow: 
+      0 4px 15px rgba(0, 119, 181, 0.5),
+      0 2px 5px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 0 20px rgba(0, 119, 181, 0.3);
+  }
+  to {
+    box-shadow: 
+      0 6px 20px rgba(0, 119, 181, 0.7),
+      0 3px 8px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 0 30px rgba(0, 119, 181, 0.6);
+  }
+}
+
+.sidebar-header .premium-badge:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #005885, #0077B5);
+  box-shadow: 
+    0 5px 15px rgba(0, 119, 181, 0.5),
+    0 2px 5px rgba(0, 0, 0, 0.3);
+}

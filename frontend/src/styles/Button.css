@@ -1,0 +1,13 @@
+button {
+    width: 100%;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--text-light);
+    background: var(--primary-dark);
+  }
+  
+  
+  .custom-button:hover {
+    background-color: var(--secondary);
+  }
+  

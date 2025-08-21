@@ -1,0 +1,197 @@
+.match_score_page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  width: 100vw;
+  padding-top: 80px; /* Account for fixed header */
+  animation: gradientShift 15s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+    25% { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }
+    50% { background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
+    75% { background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%); }
+}
+
+.match_score_container {
+  flex-grow: 1;
+  padding: 30px;
+  color: var(--text-dark);
+  overflow-y: auto;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: slideInUp 0.8s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.match_score_container h2 {
+  text-align: center;
+  color: var(--primary-dark);
+}
+
+/* Job Card */
+.match_score_job_card {
+  background-color: var(--secondary);
+  padding: 15px;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  margin-bottom: 20px;
+  color: var(--text-dark);
+}
+
+.match_score_job_card h3 {
+  margin-bottom: 10px;
+}
+
+/* Progress Bars */
+.match_score_bar {
+  margin-top: 10px;
+  background: var(--light);
+  padding: 8px;
+  border-radius: 8px;
+  font-weight: bold;
+  position: relative;
+}
+
+.match_score_bar p {
+  color: var(--primary-dark);
+  text-align: center;
+}
+
+.match_score_progress {
+  height: 8px;
+  border-radius: 4px;
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  background-color: var(--primary-dark);
+}
+
+/* ATS-Style Match Score Rings */
+.match_score_rings {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.match_score_ring {
+  text-align: center;
+}
+
+.ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Score Colors */
+.red {
+  background-color: #ff4c4c;
+}
+
+.yellow {
+  background-color: #ffc107;
+}
+
+.green {
+  background-color: #28a745;
+}
+
+/* Skills & Requirements Sections */
+.match_score_skills_section, 
+.match_score_requirements_section {
+  background-color: var(--light);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.match_score_skills_section h4, 
+.match_score_requirements_section h4 {
+  margin-bottom: 10px;
+  color: var(--primary-dark);
+}
+
+.match_score_bold,
+.match_score_skills_section p {
+  margin: 5px 0;
+  display: flex;
+  justify-content: start;
+  padding: 8px;
+  border-radius: 6px;
+  font-weight: bold;
+}
+
+.match_score_requirements_section strong,
+.match_score_skills_section strong {
+  padding-right: 10px;
+}
+
+/* Apply Button */
+.match_score_apply_button {
+  width: 100%;
+  margin-top: 10px;
+  background-color: var(--primary-dark);
+  color: var(--text-light);
+  padding: 10px 15px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+.match_score_apply_button:hover {
+  background-color: var(--secondary);
+}
+
+/* Disabled Apply Button */
+.match_score_apply_button_disabled {
+  background-color: gray !important;
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+.match_score_apply_button_disabled:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Skill Score Explanation */
+.match_score_explanation {
+  background-color: var(--light);
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.match_score_explanation h4 {
+  margin-bottom: 10px;
+  color: var(--primary-dark);
+  text-align: center;
+}
+
+.match_score_explanation p {
+  font-size: 14px;
+  line-height: 1.6;
+  text-align: justify;
+}

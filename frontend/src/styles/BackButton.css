@@ -1,0 +1,155 @@
+/* 🎨 Reusable Back Button Styles */
+
+.back_button_container {
+  position: absolute;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+/* Position variants */
+.back_button_container.top-left {
+  top: 30px;
+  left: 30px;
+}
+
+.back_button_container.top-center {
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.back_button_container.top-right {
+  top: 30px;
+  right: 30px;
+}
+
+.back_button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #667eea;
+  padding: 10px 16px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  font-family: inherit;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+
+.back_button:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  color: #764ba2;
+}
+
+.back_button:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.back_arrow {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #667eea;
+  transition: color 0.3s ease;
+}
+
+.back_text {
+  font-weight: 500;
+  color: #667eea;
+  transition: color 0.3s ease;
+}
+
+.back_button:hover .back_arrow,
+.back_button:hover .back_text {
+  color: #764ba2;
+}
+
+/* Dark theme variant */
+.back_button.dark {
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+.back_button.dark:hover {
+  background: rgba(0, 0, 0, 0.9);
+  color: #667eea;
+}
+
+.back_button.dark .back_arrow,
+.back_button.dark .back_text {
+  color: #ffffff;
+}
+
+.back_button.dark:hover .back_arrow,
+.back_button.dark:hover .back_text {
+  color: #667eea;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .back_button_container.top-left {
+    top: 20px;
+    left: 20px;
+  }
+  
+  .back_button_container.top-center {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .back_button_container.top-right {
+    top: 20px;
+    right: 20px;
+  }
+  
+  .back_button {
+    padding: 8px 14px;
+    font-size: 0.85rem;
+  }
+  
+  .back_text {
+    display: none;
+  }
+  
+  .back_arrow {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .back_button_container.top-left {
+    top: 15px;
+    left: 15px;
+  }
+  
+  .back_button_container.top-center {
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
+  .back_button_container.top-right {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .back_button {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+  }
+  
+  .back_arrow {
+    font-size: 1rem;
+  }
+}
