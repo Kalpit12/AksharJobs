@@ -198,6 +198,11 @@ const RecruiterMatrix = () => {
     return <div className="error">Error loading settings. Please refresh the page.</div>;
   }
 
+  // Additional safety check for empty objects
+  if (Object.keys(features).length === 0 || Object.keys(limits).length === 0) {
+    return <div className="error">Settings data is empty. Please refresh the page.</div>;
+  }
+
   return (
     <div className="recruiter-matrix">
       <div className="matrix-header">
@@ -209,41 +214,48 @@ const RecruiterMatrix = () => {
         <div className="features-section">
           <h3>Feature Controls</h3>
           <div className="features-grid">
-            {Object.entries(features).map(([key, feature]) => {
-              // Ensure feature has required properties
-              const safeFeature = {
-                enabled: feature?.enabled || false,
-                premiumOnly: feature?.premiumOnly || true
-              };
-              
-              return (
-                <div key={key} className="feature-card">
-                  <div className="feature-header">
-                    <h4>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
-                    <div className="feature-controls">
-                      <button
-                        className={`toggle-btn ${safeFeature.enabled ? 'enabled' : 'disabled'}`}
-                        onClick={() => toggleFeature(key, 'enabled')}
-                      >
-                        <FontAwesomeIcon icon={safeFeature.enabled ? faToggleOn : faToggleOff} />
-                        {safeFeature.enabled ? 'Enabled' : 'Disabled'}
-                      </button>
-                      
-                      <button
-                        className={`toggle-btn ${safeFeature.premiumOnly ? 'premium' : 'free'}`}
-                        onClick={() => toggleFeature(key, 'premiumOnly')}
-                      >
-                        {safeFeature.premiumOnly ? 'Premium Only' : 'Free Available'}
-                      </button>
+            {Object.entries(features)
+              .map(([key, feature]) => {
+                // Ensure feature has required properties and is not an empty object
+                if (!feature || typeof feature !== 'object' || Object.keys(feature).length === 0) {
+                  return null; // Skip rendering empty or invalid features
+                }
+                
+                const safeFeature = {
+                  enabled: feature?.enabled || false,
+                  premiumOnly: feature?.premiumOnly || true
+                };
+                
+                return (
+                  <div key={key} className="feature-card">
+                    <div className="feature-header">
+                      <h4>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</h4>
+                      <div className="feature-controls">
+                        <button
+                          className={`toggle-btn ${safeFeature.enabled ? 'enabled' : 'disabled'}`}
+                          onClick={() => toggleFeature(key, 'enabled')}
+                        >
+                          <FontAwesomeIcon icon={safeFeature.enabled ? faToggleOn : faToggleOff} />
+                          {safeFeature.enabled ? 'Enabled' : 'Disabled'}
+                        </button>
+                        
+                        <button
+                          className={`toggle-btn ${safeFeature.premiumOnly ? 'premium' : 'free'}`}
+                          onClick={() => toggleFeature(key, 'premiumOnly')}
+                        >
+                          {safeFeature.premiumOnly ? 'Premium Only' : 'Free Available'}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="feature-description">
+                      {getFeatureDescription(key)}
                     </div>
                   </div>
-                  
-                  <div className="feature-description">
-                    {getFeatureDescription(key)}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+              .filter(Boolean) // Remove any null values
+            }
           </div>
         </div>
 

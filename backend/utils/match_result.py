@@ -114,12 +114,27 @@ def extract_experience_years(experiences):
         try:
             start_year = exp.get("start_date", "")
             end_year = exp.get("end_date", "")
+            duration = exp.get("duration", "")
 
+            # If duration is provided, try to extract years from it
+            if duration and duration != "null":
+                # Look for patterns like "2 years", "6 months", "1 year 3 months"
+                import re
+                year_match = re.search(r'(\d+)\s*year', duration.lower())
+                month_match = re.search(r'(\d+)\s*month', duration.lower())
+                
+                if year_match:
+                    total_experience += int(year_match.group(1))
+                if month_match:
+                    total_experience += int(month_match.group(1)) / 12
+                continue
+
+            # If no duration, try to calculate from dates
             if not start_year or not end_year:  
                 continue  
 
             start_year = extract_month_year(start_year)
-            if end_year.lower() in ["ongoing", "present", "current"]:
+            if end_year.lower() in ["ongoing", "present", "current", "null"]:
                 end_year = current_date
             
             end_year = extract_month_year(end_year)
@@ -141,7 +156,8 @@ def extract_experience_years(experiences):
         except Exception as e:
             print(f"Skipping experience entry due to error: {e}")
             continue  
-    print("Total exp",total_experience)
+    
+    print("Total exp", total_experience)
     return total_experience
             
     
@@ -176,10 +192,15 @@ def get_score( candidate_exp, job_exp, candidate_edu, job_edu, candidate_skills,
     job_edu_level = edu_hierarchy.get(extract_education_level(job_edu), 1)
     edu_penalty = min(1, candidate_edu_level / job_edu_level)
 
-    skill_match=(len(job_skills & candidate_skills)/len(job_skills))
-    print("Experiecne",experience_penalty)
-    print("Education:",candidate_edu_level,job_edu_level,edu_penalty)
-    print("Skill",skill_match)
+    skill_match = 0
+    if job_skills and len(job_skills) > 0:
+        skill_match = len(job_skills & candidate_skills) / len(job_skills)
+    else:
+        skill_match = 0  # No skills required, so no penalty
+    
+    print("Experience", experience_penalty)
+    print("Education:", candidate_edu_level, job_edu_level, edu_penalty)
+    print("Skill", skill_match)
     
     result={
         "experience_score":round(experience_penalty*100,2),
@@ -202,26 +223,62 @@ def hybrid_score(sbert_score, resume_data, job_data):
     Returns:
         dict: A dictionary containing experience, education, skill scores, and missing skills.
     """
-    candidate_exp = extract_experience_years(resume_data.get("experience", []))
-    job_exp = int(re.search(r'\d+', job_data.get("experience_required", "0")).group()) if job_data.get("experience_required") else 0
-    print("Job exp",job_exp)
-    
-    candidate_edu = resume_data.get("education", [])
-    job_edu = job_data.get("education_required", "High School")
+    try:
+        candidate_exp = extract_experience_years(resume_data.get("experience", []))
+        print(f"Candidate experience: {candidate_exp}")
+        
+        # More robust job experience extraction
+        job_exp_text = job_data.get("experience_required", "0")
+        job_exp = 0
+        if job_exp_text:
+            # Try to extract numbers from various formats like "2 Years", "3-6 years", "5+ years"
+            import re
+            numbers = re.findall(r'\d+', job_exp_text)
+            if numbers:
+                # Take the first number found, or average if range like "3-6"
+                if len(numbers) >= 2:
+                    job_exp = (int(numbers[0]) + int(numbers[1])) // 2
+                else:
+                    job_exp = int(numbers[0])
+        print(f"Job experience required: {job_exp}")
+        
+        candidate_edu = resume_data.get("education", [])
+        job_edu = job_data.get("education_required", "High School")
 
-    candidate_skills = set(resume_data.get("skills"))
-    job_skills=(job_data.get("required_skills"))
-    job_skills = {skill.strip().lower() for skill in job_skills.split(",")}
-    
-    job_skills = {skill.lower() for skill in job_skills}
-    candidate_skills = {skill.lower() for skill in candidate_skills}
-    
-    print("Getting all scores and missing skills...")
-    # Rule-based score adjustment
-    result = get_score( candidate_exp, job_exp, candidate_edu, job_edu, candidate_skills,job_skills)
-
- 
-    return result 
+        candidate_skills = set(resume_data.get("skills", []))
+        job_skills_raw = job_data.get("required_skills", "")
+        
+        # Handle both string and list types for required_skills
+        if isinstance(job_skills_raw, str):
+            job_skills = {skill.strip().lower() for skill in job_skills_raw.split(",") if skill.strip()}
+        elif isinstance(job_skills_raw, list):
+            job_skills = {skill.strip().lower() for skill in job_skills_raw if skill.strip()}
+        else:
+            job_skills = set()
+        
+        candidate_skills = {skill.lower() for skill in candidate_skills if skill}
+        
+        print(f"Candidate skills: {candidate_skills}")
+        print(f"Job skills: {job_skills}")
+        print("Getting all scores and missing skills...")
+        
+        # Rule-based score adjustment
+        result = get_score(candidate_exp, job_exp, candidate_edu, job_edu, candidate_skills, job_skills)
+        print(f"Score result: {result}")
+        
+        return result
+        
+    except Exception as e:
+        print(f"Error in hybrid_score: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        # Return a default result to prevent crashes
+        return {
+            "experience_score": 0.0,
+            "education_score": 0.0,
+            "skill_score": 0.0,
+            "missing_skills": []
+        }
 
 # Example usage
 """resume_data = {

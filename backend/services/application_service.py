@@ -70,7 +70,13 @@ def process_application(user_id, job_id,status):
     print("SBERT",match_score)
     print("Percent", percent)
     
-    final_score=(0.5*percent)+(0.2*result_data.get("overall_match_score"))+(0.1*result_data.get("skills_match"))+(0.1*result_data.get("experience_match"))+(0.1*result_data.get("education_match"))
+    # Convert string values from Gemini API to numbers for calculation
+    overall_match_score = float(result_data.get("overall_match_score", "0")) if result_data.get("overall_match_score") else 0
+    skills_match = float(result_data.get("skills_match", "0")) if result_data.get("skills_match") else 0
+    experience_match = float(result_data.get("experience_match", "0")) if result_data.get("experience_match") else 0
+    education_match = float(result_data.get("education_match", "0")) if result_data.get("education_match") else 0
+    
+    final_score=(0.5*percent)+(0.2*overall_match_score)+(0.1*skills_match)+(0.1*experience_match)+(0.1*education_match)
     
     application_data = {
         "userId": user_id,
@@ -88,14 +94,16 @@ def process_application(user_id, job_id,status):
         "job_seeker_insights":result_data.get("job_seeker_insights"),
         "recruiter_insights":result_data.get("recruiter_insights"),
         "gemini_match_score":result_data.get("overall_match_score"),
-        "final_score":final_score
+        "final_score":final_score,
+        "ai_suggestions":result_data.get("job_seeker_insights", {}).get("improvement_suggestions", [])
     }
 
     app_id = ApplicationModel.save_application(application_data)
     print("Application processed.")
     return {"message": "Application processed",
         "applicationId": str(app_id),
-        "final_score":final_score
+        "final_score":final_score,
+        "ai_suggestions":result_data.get("job_seeker_insights", {}).get("improvement_suggestions", [])
         }
 
 

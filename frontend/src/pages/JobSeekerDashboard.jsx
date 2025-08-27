@@ -1,716 +1,690 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import Header from "../components/Header";
-import PremiumPrompt from "../components/PremiumPrompt";
-import JobSeekerCulturalFit from "../components/JobSeekerCulturalFit";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faUser, 
+  faBriefcase, 
+  faChartLine, 
+  faRocket, 
+  faEye, 
+  faHeart,
+  faMapMarkerAlt,
+  faMoneyBillWave,
+  faClock,
+  faHome,
+  faCheck,
+  faTimes,
+  faPlus,
+  faSearch,
+  faBell,
+  faCog,
+  faSignOutAlt,
+  faFileAlt,
+  faUserTie,
+  faClipboardList,
+  faBolt,
+  faStar,
+  faThumbsUp
+} from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from "../context/AuthContext";
+import ResumeUpload from '../components/ResumeUpload.jsx';
+import ResumeProfile from '../components/ResumeProfile.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import Header from '../components/Header.jsx';
+import LoadingSpinner from '../components/LoadingSpinner.jsx';
+import { buildApiUrl } from '../config/api';
 import "../styles/JobSeekerDashboard.css";
-import { Pie, Bar } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from "chart.js";
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const JobSeekerDashboard = () => {
-    const [recommendedTitles, setRecommendedTitles] = useState([]);
-    const [appliedJobs, setAppliedJobs] = useState(new Set());
-    const [jobsWithMatchScore, setJobsWithMatchScore] = useState(new Map());
-    const [jobTitles, setJobTitles] = useState([]);
-    const [applicationStats, setApplicationStats] = useState({
-        total: 0, applied: 0, shortlisted: 0, rejected: 0, accepted: 0
-    });
-    const [matchScoreStats, setMatchScoreStats] = useState({ high: 0, medium: 0, low: 0 });
-    const [loadingApply, setLoadingApply] = useState(new Map());
-    const [loadingMatch, setLoadingMatch] = useState(new Map());
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    
     const [userName, setUserName] = useState("");
     const [userImage, setUserImage] = useState("");
     const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-    const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
-    const [showCulturalFit, setShowCulturalFit] = useState(false);
-    const [selectedJobForCulturalFit, setSelectedJobForCulturalFit] = useState(null);
-    const navigate = useNavigate();
+    const [recommendedJobs, setRecommendedJobs] = useState([]);
+    const [recentApplications, setRecentApplications] = useState([]);
+    const [stats, setStats] = useState({
+        totalApplications: 0,
+        shortlisted: 0,
+        interviews: 0,
+        offers: 0
+    });
+    const [resumeData, setResumeData] = useState(null);
+    const [showResumeUpload, setShowResumeUpload] = useState(false);
+
     const defaultAvatar = "https://www.w3schools.com/w3images/avatar2.png";
 
-    const fetchJobListings = useCallback(async (titles) => {
-        try {
-            const response = await axios.get("http://127.0.0.1:5000/api/jobs/get_jobs");
-            if (response.data && Array.isArray(response.data)) {
-                const filteredJobs = response.data.filter(job =>
-                    titles.some(title => job.job_title.toLowerCase().includes(title.toLowerCase()))
-                );
-                setRecommendedTitles(filteredJobs.slice(0, 6));
-            }
-        } catch (error) {
-            console.error("Error fetching job listings:", error);
+    // Mock data for demonstration - replace with real API calls
+    const mockRecommendedJobs = [
+        {
+            id: 1,
+            title: "Senior Frontend Developer",
+            company: "TechCorp Solutions",
+            location: "Nairobi, Kenya",
+            salary: "KSh 150,000 - 250,000",
+            type: "Full-time",
+            remote: "Hybrid",
+            skills: ["React", "TypeScript", "Node.js"],
+            matchScore: 95,
+            posted: "2 days ago"
+        },
+        {
+            id: 2,
+            title: "Data Scientist",
+            company: "Innovate Kenya",
+            location: "Mombasa, Kenya",
+            salary: "KSh 200,000 - 350,000",
+            type: "Full-time",
+            remote: "Remote",
+            skills: ["Python", "Machine Learning", "SQL"],
+            matchScore: 88,
+            posted: "1 week ago"
+        },
+        {
+            id: 3,
+            title: "Product Manager",
+            company: "Startup Kenya",
+            location: "Nairobi, Kenya",
+            salary: "KSh 180,000 - 300,000",
+            type: "Full-time",
+            remote: "On-site",
+            skills: ["Product Strategy", "Agile", "User Research"],
+            matchScore: 82,
+            posted: "3 days ago"
         }
-    }, []);
+    ];
 
-    const fetchAppliedJobs = useCallback(async (userId) => {
-        try {
-            const response = await axios.get(`http://127.0.0.1:5000/api/applications/get_applications`, { params: { userId } });
-            console.log(response.data.applications)
-            if (!response.data || !Array.isArray(response.data.applications)) {
-                console.error("Error: Expected an array but got:", response.data);
-                return;
-            }
-
-            const appliedJobIds = new Set();
-            const matchScoreJobs = new Map();
-            const statusCounts = { total: 0, applied: 0, shortlisted: 0, rejected: 0, accepted: 0 };
-            const matchScoreCounts = { high: 0, medium: 0, low: 0 };
-
-            response.data.applications.forEach((app) => {
-                statusCounts.total++;
-                statusCounts[app.status] = (statusCounts[app.status] || 0) + 1;
-
-                if (app.status !== "") appliedJobIds.add(app.jobId);
-                if (app.overall_match_score && app.status === "") matchScoreJobs.set(app.jobId, app.overall_match_score);
-                // Categorizing Match Score for Bar Chart
-                if (app.final_score >= 80) matchScoreCounts.high++;
-                else if (app.final_score >= 50) matchScoreCounts.medium++;
-                else matchScoreCounts.low++;
-            });
-
-            setAppliedJobs(appliedJobIds);
-            setJobsWithMatchScore(matchScoreJobs);
-            setApplicationStats(statusCounts);
-            setMatchScoreStats(matchScoreCounts);
-        } catch (error) {
-            console.error("Error fetching application data:", error);
+    const mockRecentApplications = [
+        {
+            id: 1,
+            jobTitle: "Senior Frontend Developer",
+            company: "TechCorp Solutions",
+            status: "Shortlisted",
+            date: "2024-01-15",
+            matchScore: 95
+        },
+        {
+            id: 2,
+            jobTitle: "Data Scientist",
+            company: "Innovate Kenya",
+            status: "Applied",
+            date: "2024-01-12",
+            matchScore: 88
+        },
+        {
+            id: 3,
+            jobTitle: "Product Manager",
+            company: "Startup Kenya",
+            status: "Interview",
+            date: "2024-01-10",
+            matchScore: 82
         }
-    }, []);
-
-    const checkResumeStatus = useCallback(async () => {
-        const userId = localStorage.getItem("userId");
-        if (!userId) return console.error("User ID not found. Please log in again.");
-
-        // Always fetch user profile first, regardless of resume status
-        try {
-            console.log("Fetching user profile for userId:", userId);
-            const userResponse = await axios.get(`http://127.0.0.1:5000/api/auth/get_user?userId=${userId}`);
-            console.log("User profile response:", userResponse);
-            if (userResponse.data) {
-                console.log("User profile data:", userResponse.data);
-                setUserName(userResponse.data);
-                setUserImage(userResponse.data.profileImage || defaultAvatar);
-            } else {
-                console.log("No user data in response");
-            }
-        } catch (error) {
-            console.error("Error fetching user profile:", error);
-            // Set default values if user fetch fails
-            setUserName({
-                firstName: "Dev",
-                lastName: "Patel",
-                email: "dev.patel@example.com",
-                phoneNumber: "+1 (555) 123-4567",
-                linkedinProfile: "https://linkedin.com/in/devpatel"
-            });
-            setUserImage(defaultAvatar);
-        } finally {
-            setIsLoadingProfile(false);
-        }
-
-        try {
-            const response = await axios.get(`http://127.0.0.1:5000/api/resumes/get_resumes/${userId}`);
-            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-                const jobTitles = response.data[0]?.jobRecommended || [];
-                setRecommendedTitles(jobTitles);
-                console.log("Job titles from resume:", jobTitles);
-                setJobTitles(jobTitles || []);
-                if (jobTitles.length > 0) fetchJobListings(jobTitles);
-                await fetchAppliedJobs(userId);
-            } else {
-                console.log("No resume found, but staying on dashboard");
-                // Still fetch applied jobs even without resume
-                await fetchAppliedJobs(userId);
-            }
-
-        } catch (error) {
-            console.error("Error fetching resume data:", error);
-            // Still fetch applied jobs even if resume fetch fails
-            try {
-                await fetchAppliedJobs(userId);
-            } catch (fetchError) {
-                console.error("Error fetching applied jobs:", fetchError);
-            }
-        }
-
-        // Always set sample data for testing - remove this when you have real data
-        const sampleJobTitles = [
-            "Software Developer",
-            "Full Stack Engineer", 
-            "React Developer",
-            "Python Developer",
-            "Data Analyst",
-            "Product Manager"
-        ];
-        setJobTitles(sampleJobTitles);
-        
-        // Add sample job data for testing
-        const sampleJobs = [
-            {
-                _id: "sample1",
-                job_title: "Software Developer",
-                company_name: "Tech Corp",
-                location: "New York, NY",
-                salary_range: "$80,000 - $120,000",
-                job_type: "Full-time",
-                remote_option: "Hybrid",
-                required_skills: "JavaScript, React, Node.js, Python",
-                description: "We are looking for a talented software developer...",
-                education_required: "Bachelor's in Computer Science",
-                experience_required: "2-5 years",
-                responsibilities: "Develop and maintain web applications...",
-                application_deadline: "2024-12-31"
-            },
-            {
-                _id: "sample2", 
-                job_title: "Full Stack Engineer",
-                company_name: "Startup Inc",
-                location: "San Francisco, CA",
-                salary_range: "$100,000 - $150,000",
-                job_type: "Full-time",
-                remote_option: "Remote",
-                required_skills: "React, Node.js, MongoDB, AWS",
-                description: "Join our fast-growing startup...",
-                education_required: "Bachelor's degree",
-                experience_required: "3-7 years",
-                responsibilities: "Build scalable web applications...",
-                application_deadline: "2024-12-31"
-            }
-        ];
-        setRecommendedTitles(sampleJobs);
-        
-        // Add sample application stats for testing
-        setApplicationStats({
-            total: 3,
-            applied: 2,
-            shortlisted: 1,
-            rejected: 0,
-            accepted: 0
-        });
-        
-        setMatchScoreStats({
-            high: 1,
-            medium: 1,
-            low: 0
-        });
-        
-        // Add sample applied jobs for testing
-        setAppliedJobs(new Set(["sample1", "sample2"]));
-        
-        // Add sample jobs with match scores for testing
-        const sampleMatchScores = new Map();
-        sampleMatchScores.set("sample1", 85);
-        sampleMatchScores.set("sample2", 72);
-        setJobsWithMatchScore(sampleMatchScores);
-    }, [navigate, fetchJobListings, fetchAppliedJobs]);
+    ];
 
     useEffect(() => {
-        checkResumeStatus();
-        
-        // Show premium prompt for Basic users after a delay
-        setTimeout(() => {
+        // Load existing resume data
+        const fetchResumeData = async () => {
+            if (!user?.token) return;
+
             try {
-                const paymentData = localStorage.getItem('paymentData');
-                if (!paymentData) {
-                    setShowPremiumPrompt(true);
-                } else {
-                    const parsedData = JSON.parse(paymentData);
-                    if (parsedData.planName === 'Basic') {
-                        setShowPremiumPrompt(true);
+                const response = await fetch(buildApiUrl('/api/resumes/profile'), {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                        'Content-Type': 'application/json'
                     }
-                }
-            } catch (error) {
-                console.log('Error parsing payment data, showing premium prompt');
-                setShowPremiumPrompt(true);
-            }
-        }, 3000); // Show after 3 seconds
-        
-    }, [checkResumeStatus]);
-
-    const handleViewMatchScore = async (jobId) => {
-        setLoadingMatch((prev) => new Map(prev).set(jobId, true));
-        const userId = localStorage.getItem("userId");
-        try {
-            await axios.post(`http://127.0.0.1:5000/api/jobs/increase_views/${jobId}`);
-            console.log("View count updated successfully");
-        } catch (error) {
-            console.error("Failed to update job views:", error);
-        }
-        const matchRes = await axios.get(`http://127.0.0.1:5000/api/applications/get_applications`, { params: { userId, jobId } });
-
-        //  If no match data exists, create a new entry 
-        if (matchRes.status === 204) {
-            console.log("Entered")
-
-            try {
-                const response = await axios.post(
-                    "http://127.0.0.1:5000/api/applications/apply",
-                    { userId, jobId, status: "" },
-                    { headers: { Authorization: `Bearer ${localStorage.getItem("token")}`, "Content-Type": "application/json" } }
-                );
-                console.log("New application created:", response.data);
-
-
-            } catch (error) {
-                console.error(" Error creating match data:", error.response?.data || error.message);
-            }
-        }
-        setLoadingMatch((prev) => new Map(prev).set(jobId, false));
-        navigate(`/match-score/${jobId}`);
-    };
-
-    const handleCulturalFitAssessment = (job) => {
-        setSelectedJobForCulturalFit(job);
-        setShowCulturalFit(true);
-    };
-
-    const applyForJob = async (jobId) => {
-        setLoadingApply((prev) => new Map(prev).set(jobId, true));
-        const userId = localStorage.getItem("userId");
-        if (!userId) return console.error("You must be logged in to apply for jobs.");
-
-        try {
-            if (jobsWithMatchScore.has(jobId)) {
-                await axios.put(`http://127.0.0.1:5000/api/applications/update_status`, { userId, jobId, status: "applied" });
-            } else {
-                await axios.post(`http://127.0.0.1:5000/api/applications/apply`, { userId, jobId, status: "applied" });
-            }
-
-            try {
-                await axios.post(`http://127.0.0.1:5000/api/jobs/increase_views/${jobId}`);
-                console.log("View count updated successfully");
-            } catch (error) {
-                console.error("Failed to update job views:", error);
-            }
-            try {
-                await axios.post(`http://127.0.0.1:5000/api/jobs/apply/${jobId}`, {
-                    applicant_id: userId,
                 });
-                console.log("Applicant updated")
+
+                if (response.ok) {
+                    const data = await response.json();
+                    setResumeData(data.resume_data);
+                    console.log('Loaded existing resume data:', data.resume_data);
+                    
+                    // Update dashboard with real user data if available
+                    if (data.resume_data && data.resume_data.personal_info) {
+                        const personalInfo = data.resume_data.personal_info;
+                        if (personalInfo.name && personalInfo.name !== 'Welcome to AksharJobs!') {
+                            setUserName(personalInfo.name);
+                        }
+                        
+                        // Update stats based on real data if available
+                        if (data.resume_data.skills && data.resume_data.skills.length > 0) {
+                            setStats(prev => ({
+                                ...prev,
+                                skillsCount: data.resume_data.skills.length
+                            }));
+                        }
+                    }
+                } else if (response.status !== 404) {
+                    console.error('Failed to fetch resume data:', response.status);
+                }
             } catch (error) {
-                console.error("Failed to apply for job:", error);
+                console.error('Error fetching resume data:', error);
             }
+        };
 
-            setAppliedJobs((prev) => new Set([...prev, jobId]));
-            console.log("Application successful!");
-            fetchAppliedJobs(userId);
+        // Load user data from localStorage or context
+        const userEmail = localStorage.getItem('userEmail');
+        const userFirstName = localStorage.getItem('userFirstName');
+        const userLastName = localStorage.getItem('userLastName');
+        
+        if (userEmail && userFirstName && userLastName) {
+            const fullName = `${userFirstName} ${userLastName}`;
+            setUserName(fullName);
+        } else if (user?.firstName && user?.lastName) {
+            const fullName = `${user.firstName} ${user.lastName}`;
+            setUserName(fullName);
+        } else {
+            setUserName("User");
+        }
+        
+        setUserImage(defaultAvatar);
+        setRecentApplications(mockRecentApplications);
+        setStats({
+            totalApplications: 15,
+            shortlisted: 8,
+            interviews: 5,
+            offers: 2
+        });
+        
+        // Load data using the new functions
+        loadUserProfile();
+        loadRecommendedJobs();
+        setIsLoadingProfile(false);
+        
+        // Fetch existing resume data
+        fetchResumeData();
+    }, [user?.token]);
+
+    // Load user profile data
+    const loadUserProfile = async () => {
+        if (!user?.token) return;
+
+        try {
+            const response = await fetch(buildApiUrl('/api/resumes/profile'), {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setResumeData(data.resume_data);
+                console.log('Loaded user profile:', data.resume_data);
+                
+                // Update dashboard with real user data if available
+                if (data.resume_data && data.resume_data.personal_info) {
+                    const personalInfo = data.resume_data.personal_info;
+                    if (personalInfo.name && personalInfo.name !== 'Welcome to AksharJobs!') {
+                        setUserName(personalInfo.name);
+                    }
+                }
+            } else if (response.status !== 404) {
+                console.error('Failed to fetch user profile:', response.status);
+            }
         } catch (error) {
-            console.error("Application failed. Please try again.");
-            console.error("Application error:", error);
-        }
-        setLoadingApply((prev) => new Map(prev).set(jobId, false));
-    };
-
-    const pieData = {
-        labels: ["Applied", "Shortlisted", "Rejected", "Accepted"],
-        datasets: [
-            {
-                label: "Application Status",
-                data: [
-                    applicationStats.applied,
-                    applicationStats.shortlisted,
-                    applicationStats.rejected,
-                    applicationStats.accepted
-                ],
-                backgroundColor: [
-                    "rgba(0, 123, 255, 0.8)",
-                    "rgba(255, 193, 7, 0.8)",
-                    "rgba(220, 53, 69, 0.8)",
-                    "rgba(40, 167, 69, 0.8)"
-                ],
-                borderColor: [
-                    "rgba(0, 123, 255, 1)",
-                    "rgba(255, 193, 7, 1)",
-                    "rgba(220, 53, 69, 1)",
-                    "rgba(40, 167, 69, 1)"
-                ],
-                borderWidth: 2,
-                hoverBackgroundColor: [
-                    "rgba(0, 123, 255, 1)",
-                    "rgba(255, 193, 7, 1)",
-                    "rgba(220, 53, 69, 1)",
-                    "rgba(40, 167, 69, 1)"
-                ]
-            }
-        ]
-    };
-
-    const barData = {
-        labels: ["High Match (80-100%)", "Medium Match (50-79%)", "Low Match (0-49%)"],
-        datasets: [
-            {
-                label: "Number of Jobs",
-                data: [matchScoreStats.high, matchScoreStats.medium, matchScoreStats.low],
-                backgroundColor: [
-                    "rgba(40, 167, 69, 0.8)",
-                    "rgba(255, 193, 7, 0.8)",
-                    "rgba(220, 53, 69, 0.8)"
-                ],
-                borderColor: [
-                    "rgba(40, 167, 69, 1)",
-                    "rgba(255, 193, 7, 1)",
-                    "rgba(220, 53, 69, 1)"
-                ],
-                borderWidth: 2,
-                borderRadius: 8,
-                hoverBackgroundColor: [
-                    "rgba(40, 167, 69, 1)",
-                    "rgba(255, 193, 7, 1)",
-                    "rgba(220, 53, 69, 1)"
-                ]
-            }
-        ]
-    };
-
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: true,
-                position: "top",
-                labels: {
-                    padding: 20,
-                    usePointStyle: true,
-                    font: {
-                        size: 12,
-                        weight: '600'
-                    }
-                }
-            },
-            tooltip: {
-                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                titleColor: 'white',
-                bodyColor: 'white',
-                borderColor: 'rgba(255, 255, 255, 0.2)',
-                borderWidth: 1,
-                cornerRadius: 8,
-                displayColors: true
-            }
-        },
-        scales: {
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '500'
-                    }
-                }
-            },
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(0, 0, 0, 0.1)',
-                    drawBorder: false
-                },
-                ticks: {
-                    font: {
-                        size: 12,
-                        weight: '500'
-                    },
-                    padding: 10
-                }
-            }
-        },
-        barPercentage: 0.7,
-        categoryPercentage: 0.9,
-        elements: {
-            bar: {
-                borderRadius: 8
-            }
+            console.error('Error loading user profile:', error);
         }
     };
+
+    // Load recommended jobs
+    const loadRecommendedJobs = async () => {
+        if (!user?.token) return;
+
+        try {
+            // Get user ID from JWT token (decode it to get the user_id)
+            let userId;
+            try {
+                const tokenPayload = JSON.parse(atob(user.token.split('.')[1]));
+                userId = tokenPayload.user_id;
+            } catch (decodeError) {
+                console.warn('Failed to decode JWT token, trying alternative method');
+                // Fallback: try to get userId from user object directly
+                userId = user.id || user.userId || user._id;
+            }
+
+            if (userId) {
+                const jobsResponse = await fetch(buildApiUrl(`/api/jobs/recommended/${userId}`), {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${user.token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (jobsResponse.ok) {
+                    const jobsData = await jobsResponse.json();
+                    if (jobsData.recommendations && jobsData.recommendations.length > 0) {
+                        // Transform the backend job data to match frontend format
+                        const transformedJobs = jobsData.recommendations.map(job => {
+                            // Ensure skills is always an array
+                            let skills = [];
+                            if (job.required_skills && Array.isArray(job.required_skills)) {
+                                skills = job.required_skills;
+                            } else if (job.skills && Array.isArray(job.skills)) {
+                                skills = job.skills;
+                            } else if (job.required_skills || job.skills) {
+                                // Convert non-array skills to array
+                                const skillsData = job.required_skills || job.skills;
+                                if (typeof skillsData === 'string') {
+                                    skills = skillsData.split(',').map(s => s.trim());
+                                } else if (skillsData) {
+                                    skills = [String(skillsData)];
+                                }
+                            }
+                            
+                            return {
+                                id: job._id || job.id,
+                                title: job.title || job.job_title || 'Unknown Position',
+                                company: job.company || job.employer || 'Unknown Company',
+                                location: job.location || job.job_location || 'Location not specified',
+                                salary: job.salary || job.salary_range || 'Salary not specified',
+                                type: job.job_type || job.type || 'Full-time',
+                                remote: job.work_mode || job.remote || 'On-site',
+                                skills: skills,
+                                matchScore: job.match_score || 0,
+                                posted: job.posted_date || 'Recently posted'
+                            };
+                        });
+                        setRecommendedJobs(transformedJobs);
+                    } else {
+                        setRecommendedJobs(mockRecommendedJobs);
+                    }
+                } else {
+                    console.error('Failed to fetch recommended jobs:', jobsResponse.status);
+                    setRecommendedJobs(mockRecommendedJobs);
+                }
+            } else {
+                console.warn('Could not get user ID for job recommendations - using mock data');
+                setRecommendedJobs(mockRecommendedJobs);
+            }
+        } catch (error) {
+            console.error('Error loading recommended jobs:', error);
+            setRecommendedJobs(mockRecommendedJobs);
+        }
+    };
+
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
+
+    const handleResumeUploaded = (resumeData, aiRecommendations = null) => {
+        // Remove excessive debug logging
+        // console.log('🔍 handleResumeUploaded called with:');
+        // console.log('  - resumeData:', resumeData);
+        // console.log('  - aiRecommendations:', aiRecommendations);
+        // console.log('  - resumeData.skills:', resumeData?.skills);
+        // console.log('  - resumeData.skills type:', typeof resumeData?.skills);
+        
+        setResumeData(resumeData);
+        setShowResumeUpload(false);
+        
+        // Store AI recommendations if available
+        if (aiRecommendations) {
+            localStorage.setItem('ai_recommendations', JSON.stringify(aiRecommendations));
+        }
+        
+        // Refresh the page data
+        loadUserProfile();
+        loadRecommendedJobs();
+    };
+
+    const handleEditProfile = () => {
+        setShowResumeUpload(true);
+    };
+
+    const getStatusColor = (status) => {
+        switch (status.toLowerCase()) {
+            case 'shortlisted': return '#10b981';
+            case 'interview': return '#f59e0b';
+            case 'applied': return '#3b82f6';
+            case 'offered': return '#059669';
+            default: return '#6b7280';
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status.toLowerCase()) {
+            case 'shortlisted': return faCheck;
+            case 'interview': return faEye;
+            case 'applied': return faBriefcase;
+            case 'offered': return faHeart;
+            default: return faBriefcase;
+        }
+    };
+
+    if (isLoadingProfile) {
+        return (
+            <>
+                <Header />
+                <div className="dashboard_wrapper">
+                    <LoadingSpinner 
+                        type="rocket" 
+                        size="large" 
+                        text="Loading your dashboard..." 
+                        showText={true}
+                    />
+                </div>
+            </>
+        );
+    }
 
     return (
-        <div className="jobseeker_dashboard_wrapper">
+        <>
             <Header />
-                        <div className="jobseeker_dashboard_container">
-                
-                {/* Premium Prompt - Modern Design */}
-                {showPremiumPrompt && (
-                  <PremiumPrompt 
-                    userType="job_seeker"
-                    onClose={() => setShowPremiumPrompt(false)}
-                  />
-                )}
-                
-                <div className="jobseeker_user_profile">
-                    {isLoadingProfile ? (
-                        <div className="profile_loading">
-                            <div className="loading_spinner"></div>
-                            <p>Loading profile...</p>
+            <div className="dashboard_wrapper">
+                {/* Main Content */}
+            <main className="dashboard_main">
+                <div className="dashboard_container">
+                    {/* Welcome Section */}
+                    <section className="welcome_section">
+                        <div className="welcome_background">
+                            <div className="welcome_dots"></div>
+                            <div className="welcome_gradient"></div>
                         </div>
-                    ) : (
-                        <>
-                            <div className="profile_image_container">
-                                <img 
-                                    src={userImage || "/default-profile.png"} 
-                                    alt="Profile" 
-                                    className="jobseeker_profile_image"
-                                    onError={(e) => {
-                                        console.log("Image failed to load, using default");
-                                        e.target.src = "/default-profile.png";
-                                    }}
-                                />
-                                <div className="profile_status_badge">
-                                    <span className="status_dot"></span>
-                                    Active
+                        <div className="welcome_content">
+                            <div className="welcome_header">
+                                <div className="welcome_icon_wrapper">
+                                    <div className="welcome_icon">
+                                        <FontAwesomeIcon icon={faRocket} />
+                                        <div className="icon_glow"></div>
+                                    </div>
+                                </div>
+                                <div className="welcome_text">
+                                    <h1>Welcome Back <span className="highlight_name">{userName || "Kalpit Patel"}</span> 👋</h1>
+                                    {resumeData?.job_title ? (
+                                        <p className="job_title_display">
+                                            <FontAwesomeIcon icon={faBriefcase} className="job_title_icon" />
+                                            {resumeData.job_title}
+                                        </p>
+                                    ) : (
+                                        <p className="default_welcome">
+                                            Welcome to AksharJobs! Complete your profile to get started with AI-powered job matching.
+                                        </p>
+                                    )}
                                 </div>
                             </div>
-                            <div className="profile_info">
-                                <h2 className="welcome_title">
-                                    Welcome back, {userName && userName.firstName ? `${userName.firstName} ${userName.lastName || ''}` : 'User'}! 👋
-                                </h2>
+                            <div className="welcome_actions">
+                                <button className="btn btn_primary welcome_btn" onClick={() => navigate('/jobs')}>
+                                    <FontAwesomeIcon icon={faSearch} className="btn_icon" />
+                                    <span>Browse Jobs</span>
+                                    <div className="btn_glow"></div>
+                                </button>
+                                <button className="btn btn_secondary welcome_btn" onClick={() => setShowResumeUpload(true)}>
+                                    <FontAwesomeIcon icon={faPlus} className="btn_icon" />
+                                    <span>Upload Resume</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
 
-                                <div className="profile_details">
-                                    <div className="profile_detail_item">
-                                        <span className="detail_icon">📧</span>
-                                        <span className="detail_label">Email:</span>
-                                        <span className="detail_value">{userName && userName.email ? userName.email : 'Not provided'}</span>
+                    {/* Resume Profile Section */}
+                    <ErrorBoundary>
+                        <ResumeProfile 
+                            resumeData={resumeData} 
+                            onEdit={handleEditProfile}
+                            token={user?.token}
+                        />
+                    </ErrorBoundary>
+
+                    {/* Progress Cards - Modern Design */}
+                    <section className="progress_section">
+                        <div className="section_header enhanced">
+                            <div className="header_icon_wrapper">
+                                <div className="header_icon progress_icon">
+                                    <FontAwesomeIcon icon={faChartLine} />
+                                </div>
+                            </div>
+                            <div className="header_text_content">
+                                <h2>Your Progress</h2>
+                                <p>Track your job search journey and achievements</p>
+                            </div>
+                        </div>
+                        
+                        <div className="progress_cards_container">
+                            {/* Main Progress Overview Card */}
+                            <div className="progress_overview_card">
+                                <div className="overview_header">
+                                    <div className="overview_icon">
+                                        <FontAwesomeIcon icon={faRocket} />
                                     </div>
-                                    <div className="profile_detail_item">
-                                        <span className="detail_icon">📱</span>
-                                        <span className="detail_label">Phone:</span>
-                                        <span className="detail_value">{userName && userName.phoneNumber ? userName.phoneNumber : 'Not provided'}</span>
-                                    </div>
-                                    <div className="profile_detail_item">
-                                        <span className="detail_icon">💼</span>
-                                        <span className="detail_label">LinkedIn:</span>
-                                        <span className="detail_value">
-                                            {userName && userName.linkedInProfile ? (
-                                                <a 
-                                                    href={userName.linkedInProfile} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer"
-                                                    className="linkedin_link"
-                                                >
-                                                    View Profile
-                                                </a>
-                                            ) : 'Not provided'}
-                                        </span>
+                                    <div className="overview_text">
+                                        <h3>Progress Overview</h3>
+                                        <p>Your job search performance</p>
                                     </div>
                                 </div>
-                                <div className="profile_stats">
-                                    <div className="stat_item">
-                                        <span className="stat_number">{applicationStats.total || 0}</span>
-                                        <span className="stat_label">Total Applications</span>
+                                <div className="overview_stats">
+                                    <div className="overview_stat">
+                                        <span className="stat_value">{stats.totalApplications + stats.shortlisted + stats.interviews + stats.offers}</span>
+                                        <span className="stat_label">Total Activities</span>
                                     </div>
-                                    <div className="stat_item">
-                                        <span className="stat_number">{jobTitles && jobTitles.length ? jobTitles.length : 0}</span>
-                                        <span className="stat_label">Job Matches</span>
-                                    </div>
-                                    <div className="stat_item">
-                                        <span className="stat_number">{recommendedTitles && recommendedTitles.length ? recommendedTitles.length : 0}</span>
-                                        <span className="stat_label">Available Jobs</span>
+                                    <div className="overview_stat">
+                                        <span className="stat_value">{Math.round((stats.offers / Math.max(stats.totalApplications, 1)) * 100)}%</span>
+                                        <span className="stat_label">Success Rate</span>
                                     </div>
                                 </div>
                             </div>
-                        </>
-                    )}
-                </div>
-
-                <div className="section_header job_titles_header">
-                    <h2>
-                        <span className="header_icon"><i className="fas fa-bullseye"></i></span>
-                        <span className="header_text">Recommended Job Titles</span>
-                    </h2>
-                    <p className="section_subtitle">Based on your resume analysis</p>
-                </div>
-
-                {isLoadingProfile ? (
-                    <div className="section_loading">
-                        <div className="loading_spinner"></div>
-                        <p>Loading job recommendations...</p>
-                    </div>
-                ) : jobTitles && jobTitles.length > 0 ? (
-                    <div className="jobseeker_dashboard_job_titles">
-                        <div className="job_title_list">
-                            {jobTitles.map((title, index) => (
-                                <span key={index} className="job_title_item">
-                                    {title}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                ) : (
-                    <div className="empty_state">
-                        <div className="empty_state_icon">📄</div>
-                        <p className="empty_state_text">No recommended titles available for your resume.</p>
-                        <p className="empty_state_subtext">Upload or update your resume to get personalized job recommendations.</p>
-                    </div>
-                )}
-
-                <div className="section_header">
-                    <h2>
-                        <span className="header_icon"><i className="fas fa-briefcase"></i></span>
-                        <span className="header_text">Recommended Jobs</span>
-                    </h2>
-                    <p className="section_subtitle">Tailored to your skills and experience</p>
-                </div>
-                
-                {isLoadingProfile ? (
-                    <div className="section_loading">
-                        <div className="loading_spinner"></div>
-                        <p>Loading job listings...</p>
-                    </div>
-                ) : recommendedTitles && recommendedTitles.length > 0 ? (
-                    <div className="jobseeker_dashboard_job_cards">
-                        {recommendedTitles.map((job) => (
-                            <div key={job._id || job.job_title} className="jobseeker_dashboard_job_card">
-                                <div className="job_card_header">
-                                    <h3 className="job_title">{job.job_title}</h3>
-                                    <div className="job_company">{job.company_name}</div>
+                            
+                            {/* Individual Progress Cards */}
+                            <div className="progress_cards_grid">
+                                <div className="progress_card applications">
+                                    <div className="card_icon">
+                                        <FontAwesomeIcon icon={faFileAlt} />
+                                    </div>
+                                    <div className="card_content">
+                                        <h4>{stats.totalApplications}</h4>
+                                        <p>Applications</p>
+                                    </div>
                                 </div>
                                 
-                                <div className="job_card_details">
-                                    <div className="job_detail_item">
-                                        <span className="detail_icon">📍</span>
-                                        <span className="detail_text">{job.location}</span>
+                                <div className="progress_card shortlisted">
+                                    <div className="card_icon">
+                                        <FontAwesomeIcon icon={faCheck} />
                                     </div>
-                                    <div className="job_detail_item">
-                                        <span className="detail_icon">💰</span>
-                                        <span className="detail_text">{job.salary_range}</span>
-                                    </div>
-                                    <div className="job_detail_item">
-                                        <span className="detail_icon">⏰</span>
-                                        <span className="detail_text">{job.job_type}</span>
-                                    </div>
-                                    <div className="job_detail_item">
-                                        <span className="detail_icon">🏠</span>
-                                        <span className="detail_text">{job.remote_option}</span>
+                                    <div className="card_content">
+                                        <h4>{stats.shortlisted}</h4>
+                                        <p>Shortlisted</p>
                                     </div>
                                 </div>
-
-                                <div className="job_card_skills">
-                                    <h4>Required Skills:</h4>
-                                    <div className="skills_list">
-                                        {job.required_skills ? job.required_skills.split(',').slice(0, 3).map((skill, index) => (
-                                            <span key={index} className="skill_tag">{skill.trim()}</span>
-                                        )) : 'Not specified'}
+                                
+                                <div className="progress_card interviews">
+                                    <div className="card_icon">
+                                        <FontAwesomeIcon icon={faEye} />
+                                    </div>
+                                    <div className="card_content">
+                                        <h4>{stats.interviews}</h4>
+                                        <p>Interviews</p>
                                     </div>
                                 </div>
+                                
+                                <div className="progress_card offers">
+                                    <div className="card_icon">
+                                        <FontAwesomeIcon icon={faHeart} />
+                                    </div>
+                                    <div className="card_content">
+                                        <h4>{stats.offers}</h4>
+                                        <p>Job Offers</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-                                <div className="job_card_actions">
-                                    {appliedJobs.has(job._id) ? (
-                                        <button className="applied_button" disabled>
-                                            <span className="button_icon">✓</span>
-                                            Applied
-                                        </button>
-                                    ) : (
-                                        <button 
-                                            className="apply_button" 
-                                            onClick={() => applyForJob(job._id)} 
-                                            disabled={loadingApply.get(job._id)}
-                                        >
-                                            {loadingApply.get(job._id) ? (
-                                                <>
-                                                    <span className="button_icon">⏳</span>
-                                                    Applying...
-                                                </>
+                    {/* Recommended Jobs */}
+                    <section className="jobs_section">
+                        <div className="section_header enhanced">
+                            <div className="header_icon_wrapper">
+                                <div className="header_icon star_icon">
+                                    <FontAwesomeIcon icon={faStar} />
+                                </div>
+                            </div>
+                            <div className="header_text_content">
+                                <h2>Recommended for You</h2>
+                                <p>Jobs that match your skills and experience</p>
+                            </div>
+                        </div>
+                        
+                        <div className="jobs_grid">
+                            <ErrorBoundary>
+                                {recommendedJobs.map((job) => (
+                                    <div key={job.id} className="job_card">
+                                        <div className="job_card_header">
+                                            <div className="job_title_wrapper">
+                                                <h3 className="job_title">{job.title}</h3>
+                                                <div className="match_score">
+                                                    <span className="score_number">{job.matchScore}%</span>
+                                                    <span className="score_label">Match</span>
+                                                </div>
+                                            </div>
+                                            <p className="job_company">{job.company}</p>
+                                        </div>
+                                        
+                                        <div className="job_details">
+                                            <div className="job_detail">
+                                                <FontAwesomeIcon icon={faMapMarkerAlt} />
+                                                <span>{job.location}</span>
+                                            </div>
+                                            <div className="job_detail">
+                                                <FontAwesomeIcon icon={faMoneyBillWave} />
+                                                <span>{job.salary}</span>
+                                            </div>
+                                            <div className="job_detail">
+                                                <FontAwesomeIcon icon={faClock} />
+                                                <span>{job.type}</span>
+                                            </div>
+                                            <div className="job_detail">
+                                                <FontAwesomeIcon icon={faHome} />
+                                                <span>{job.remote}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="job_skills">
+                                            {Array.isArray(job.skills) && job.skills.length > 0 ? (
+                                                job.skills.map((skill, index) => (
+                                                    <span key={index} className="skill_tag">{skill}</span>
+                                                ))
                                             ) : (
-                                                <>
-                                                    <span className="button_icon">📝</span>
-                                                    Apply Now
-                                                </>
+                                                <span className="no_skills">No skills listed</span>
                                             )}
-                                        </button>
-                                    )}
-                                    <button
-                                        className="match_score_button"
-                                        onClick={() => handleViewMatchScore(job._id)}
-                                    >
-                                        {loadingMatch.get(job._id) ? (
-                                            <>
-                                                <span className="button_icon">⏳</span>
-                                                Calculating...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <span className="button_icon">📊</span>
-                                                View Match Score
-                                            </>
-                                        )}
-                                    </button>
-                                    <button
-                                        className="cultural_fit_button"
-                                        onClick={() => handleCulturalFitAssessment(job)}
-                                    >
-                                        <span className="button_icon">🌍</span>
-                                        Cultural Fit
-                                    </button>
+                                        </div>
+                                        
+                                        <div className="job_footer">
+                                            <span className="posted_date">{job.posted}</span>
+                                            <div className="job_actions">
+                                                <button className="btn btn_outline">View Details</button>
+                                                <button className="btn btn_primary">Apply Now</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </ErrorBoundary>
+                        </div>
+                    </section>
+
+                    {/* Recent Applications */}
+                    <section className="applications_section">
+                        <div className="section_header enhanced">
+                            <div className="header_icon_wrapper">
+                                <div className="header_icon clipboard_icon">
+                                    <FontAwesomeIcon icon={faClipboardList} />
                                 </div>
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="empty_state">
-                        <div className="empty_state_icon">💼</div>
-                        <p className="empty_state_text">No jobs available for your recommended titles.</p>
-                        <p className="empty_state_subtext">Check back later for new opportunities or browse all available jobs.</p>
-                    </div>
-                )}
-
-                <div className="section_header">
-                    <h2>
-                        <span className="header_icon"><i className="fas fa-chart-bar"></i></span>
-                        <span className="header_text">Analytics Dashboard</span>
-                    </h2>
-                    <p className="section_subtitle">Track your application progress and performance</p>
-                </div>
-
-                <div className="jobseeker_dashboard_charts">
-                    <div className="chart_container">
-                        <div className="chart_header">
-                            <h3>📈 Application Status Overview</h3>
-                            <p>Your current application progress</p>
-                        </div>
-                        {applicationStats && applicationStats.total > 0 ? (
-                            <Pie data={pieData} />
-                        ) : (
-                            <div className="chart_empty_state">
-                                <div className="chart_empty_icon">📊</div>
-                                <p>No applications yet</p>
-                                <p className="chart_empty_subtext">Start applying to jobs to see your progress</p>
+                            <div className="header_text_content">
+                                <h2>Recent Applications</h2>
+                                <p>Track your application progress</p>
                             </div>
-                        )}
-                    </div>
-
-                    <div className="chart_container">
-                        <div className="chart_header">
-                            <h3>🎯 Match Score Distribution</h3>
-                            <p>How well you match with job requirements</p>
                         </div>
-                        {matchScoreStats && (matchScoreStats.high + matchScoreStats.medium + matchScoreStats.low) > 0 ? (
-                            <Bar data={barData} options={options} />
-                        ) : (
-                            <div className="chart_empty_state">
-                                <div className="chart_empty_icon">🎯</div>
-                                <p>No match scores yet</p>
-                                <p className="chart_empty_subtext">View match scores for jobs to see this data</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                        
+                        <div className="applications_list">
+                            {recentApplications.map((application) => (
+                                <div key={application.id} className="application_item">
+                                    <div className="application_info">
+                                        <h4 className="application_job_title">{application.jobTitle}</h4>
+                                        <p className="application_company">{application.company}</p>
+                                        <span className="application_date">{application.date}</span>
+                                    </div>
+                                    
+                                    <div className="application_status">
+                                        <div 
+                                            className="status_badge"
+                                            style={{ backgroundColor: getStatusColor(application.status) }}
+                                        >
+                                            <FontAwesomeIcon icon={getStatusIcon(application.status)} />
+                                            <span>{application.status}</span>
+                                        </div>
+                                        <div className="match_score_badge">
+                                            {application.matchScore}% Match
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
 
-                {/* Cultural Fit Assessment Modal */}
-                {selectedJobForCulturalFit && (
-                    <JobSeekerCulturalFit
-                        isVisible={showCulturalFit}
-                        onClose={() => {
-                            setShowCulturalFit(false);
-                            setSelectedJobForCulturalFit(null);
-                        }}
-                        jobId={selectedJobForCulturalFit._id}
-                        companyName={selectedJobForCulturalFit.company_name}
-                    />
-                )}
-            </div>
+                    {/* Quick Actions */}
+                    <section className="quick_actions_section">
+                        <div className="section_header enhanced">
+                            <div className="header_icon_wrapper">
+                                <div className="header_icon bolt_icon">
+                                    <FontAwesomeIcon icon={faBolt} />
+                                </div>
+                            </div>
+                            <div className="header_text_content">
+                                <h2>Quick Actions</h2>
+                                <p>Get things done faster</p>
+                            </div>
+                        </div>
+                        
+                        <div className="actions_grid">
+                            <button className="action_card">
+                                <div className="action_icon">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </div>
+                                <h3>Search Jobs</h3>
+                                <p>Find opportunities that match your skills</p>
+                            </button>
+                            
+                            <button className="action_card">
+                                <div className="action_icon">
+                                    <FontAwesomeIcon icon={faPlus} />
+                                </div>
+                                <h3>Upload Resume</h3>
+                                <p>Keep your profile updated</p>
+                            </button>
+                            
+                            <button className="action_card">
+                                <div className="action_icon">
+                                    <FontAwesomeIcon icon={faChartLine} />
+                                </div>
+                                <h3>View Analytics</h3>
+                                <p>Track your application performance</p>
+                            </button>
+                            
+                            <button className="action_card">
+                                <div className="action_icon">
+                                    <FontAwesomeIcon icon={faUser} />
+                                </div>
+                                <h3>Edit Profile</h3>
+                                <p>Update your personal information</p>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            {/* Resume Upload Modal */}
+            {showResumeUpload && (
+                <ResumeUpload
+                    onResumeUploaded={handleResumeUploaded}
+                    onClose={() => setShowResumeUpload(false)}
+                />
+            )}
         </div>
+        </>
     );
 };
 

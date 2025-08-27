@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
+
 import '../styles/PricingPlans.css';
 
 const PricingPlans = () => {
@@ -397,7 +397,6 @@ const PricingPlans = () => {
 
   return (
     <div className={`pricing-container ${isVisible ? 'fade-in' : ''}`}>
-      <Header />
 
       <div className="pricing-header animate-slide-down">
         <h1>Choose Your Perfect Plan</h1>

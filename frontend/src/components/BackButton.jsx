@@ -4,7 +4,7 @@ import '../styles/BackButton.css';
 
 const BackButton = ({ 
   to = '/jobseeker-dashboard', 
-  text = 'Back to Dashboard',
+  text = 'Back',
   className = '',
   position = 'top-left' // top-left, top-center, top-right
 }) => {

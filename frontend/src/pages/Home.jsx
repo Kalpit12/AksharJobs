@@ -1,235 +1,578 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faSearch, 
+  faRocket, 
+  faHandshake, 
+  faMapMarkerAlt, 
+  faClock, 
+  faBuilding,
+  faChevronLeft,
+  faChevronRight,
+  faEye,
+  faLaptopCode,
+  faUsers,
+  faShieldAlt,
+  faGlobe,
+  faLightbulb,
+  faChartLine,
+  faBriefcase,
+  faStar,
+  faArrowRight
+} from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../context/AuthContext';
 import '../styles/Home.css';
-import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import heroImage from '../assets/placeholder_hero.png'; // Replace with your actual hero image
 
 const Home = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const autoPlayRef = useRef(null);
+
+  // Testimonials data
+  const testimonials = [
+    {
+      id: 1,
+      name: "Sarah Johnson",
+      role: "Senior Software Engineer",
+      company: "TechCorp",
+      quote: "RocketJobs helped me find my dream role in just 2 weeks. The AI matching is incredibly accurate!",
+      initials: "SJ"
+    },
+    {
+      id: 2,
+      name: "Michael Chen",
+      role: "Product Manager",
+      company: "StartupXYZ",
+      quote: "The platform's efficiency and quality of candidates exceeded our expectations. Highly recommended!",
+      initials: "MC"
+    },
+    {
+      id: 3,
+      name: "Amina Hassan",
+      role: "Data Scientist",
+      company: "Safaricom",
+      quote: "As a Kenyan professional, RocketJobs opened doors to opportunities I never thought possible.",
+      initials: "AH"
+    },
+    {
+      id: 4,
+      name: "David Kimani",
+      role: "UX Designer",
+      company: "M-Pesa",
+      quote: "The platform's focus on African talent and global opportunities is game-changing for our region.",
+      initials: "DK"
+    },
+    {
+      id: 5,
+      name: "Grace Wanjiku",
+      role: "Marketing Director",
+      company: "Equity Bank",
+      quote: "RocketJobs connected us with exceptional talent that perfectly matched our company culture.",
+      initials: "GW"
+    },
+    {
+      id: 6,
+      name: "James Ochieng",
+      role: "DevOps Engineer",
+      company: "KCB Group",
+      quote: "The AI-powered matching system is incredibly intelligent. It's like having a personal career advisor.",
+      initials: "JO"
+    },
+    {
+      id: 7,
+      name: "Lisa Wang",
+      role: "HR Manager",
+      company: "Google",
+      quote: "We've hired some of our best team members through RocketJobs. The quality is outstanding.",
+      initials: "LW"
+    },
+    {
+      id: 8,
+      name: "Robert Mwangi",
+      role: "Business Analyst",
+      company: "Co-op Bank",
+      quote: "RocketJobs understands the unique needs of African professionals and global companies.",
+      initials: "RM"
+    },
+    {
+      id: 9,
+      name: "Emma Njeri",
+      role: "Frontend Developer",
+      company: "Jumia",
+      quote: "The platform's modern interface and seamless experience made my job search enjoyable.",
+      initials: "EN"
+    },
+    {
+      id: 10,
+      name: "Thomas Odhiambo",
+      role: "Sales Manager",
+      company: "Safaricom",
+      quote: "RocketJobs helped me transition to a new industry with confidence and success.",
+      initials: "TO"
+    }
+  ];
+
+  // Featured jobs data
+  const featuredJobs = [
+    {
+      id: 1,
+      title: "Senior Software Engineer",
+      company: "TechCorp",
+      location: "San Francisco, CA",
+      type: "Full-time",
+      arrangement: "Remote",
+      logo: "TC"
+    },
+    {
+      id: 2,
+      title: "Data Scientist",
+      company: "DataStudio",
+      location: "New York, NY",
+      type: "Full-time",
+      arrangement: "Hybrid",
+      logo: "DS"
+    },
+    {
+      id: 3,
+      title: "UX/UI Designer",
+      company: "DesignHub",
+      location: "Austin, TX",
+      type: "Contract",
+      arrangement: "On-site",
+      logo: "DH"
+    },
+    {
+      id: 4,
+      title: "Product Manager",
+      company: "InnovateCorp",
+      location: "Seattle, WA",
+      type: "Full-time",
+      arrangement: "Remote",
+      logo: "IC"
+    }
+  ];
+
+  // Features data
+  const features = [
+    {
+      icon: faLaptopCode,
+      title: "AI-Powered Matching",
+      description: "Our advanced AI algorithm analyzes your skills, experience, and preferences to find the perfect job matches."
+    },
+    {
+      icon: faUsers,
+      title: "Top Talent Pool",
+      description: "Access a curated network of qualified professionals and connect with the best candidates for your organization."
+    },
+    {
+      icon: faRocket,
+      title: "Fast & Efficient",
+      description: "Streamlined hiring process that saves time and resources while ensuring quality matches."
+    },
+    {
+      icon: faShieldAlt,
+      title: "Secure & Reliable",
+      description: "Enterprise-grade security and data protection to keep your information safe and confidential."
+    },
+    {
+      icon: faGlobe,
+      title: "Global Reach",
+      description: "Connect with opportunities and talent from around the world, expanding your horizons."
+    },
+    {
+      icon: faLightbulb,
+      title: "Smart Insights",
+      description: "Get valuable analytics and insights to make informed decisions about your career or hiring strategy."
+    }
+  ];
+
+  // Stats data
+  const stats = [
+    { number: "25+", label: "Active Jobs" },
+    { number: "150+", label: "Job Seekers" },
+    { number: "12+", label: "Companies" },
+    { number: "87%", label: "Success Rate" },
+    { number: "24/7", label: "Support" },
+    { number: "8+", label: "Industries" }
+  ];
+
+  // Carousel functions
+  const goToNext = () => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === testimonials.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const goToPrevious = () => {
+    setCurrentTestimonialIndex((prev) => 
+      prev === 0 ? testimonials.length - 1 : prev - 1
+    );
+  };
+
+  const goToTestimonial = (index) => {
+    setCurrentTestimonialIndex(index);
+  };
+
+  // Auto-play functionality
+  useEffect(() => {
+    if (isAutoPlaying) {
+      autoPlayRef.current = setInterval(goToNext, 5000);
+    }
+    return () => {
+      if (autoPlayRef.current) {
+        clearInterval(autoPlayRef.current);
+      }
+    };
+  }, [isAutoPlaying]);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      if (isAuthenticated) {
+        // If user is authenticated, navigate to jobs with search term
+        navigate(`/jobs?search=${encodeURIComponent(searchTerm)}`);
+      } else {
+        // If user is not authenticated, redirect to signup
+        navigate('/signup');
+      }
+    }
+  };
 
   return (
-    <div className="Home">
-      {/* Header with RocketJobs Logo */}
-      <Header />
-      
-      {/* Hero Section - Introduction and Call to Action */}
-      <section className="home_hero">
-        <div className="home_hero_content">
-          <h1>Find the Perfect Job or Candidate with AI-Powered Matching!</h1>
-          <p>
-            Our platform uses advanced AI to connect job seekers with ideal
-            opportunities and recruiters with top talent, streamlining the hiring
-            process.
+    <div className="home_wrapper">
+      {/* Header */}
+      <header className="home_header">
+        <div className="header_container">
+          <div className="logo_section">
+            <div className="logo_icon">
+              <FontAwesomeIcon icon={faRocket} />
+            </div>
+            <div className="logo_text">
+              <div className="logo_title">RocketJobs</div>
+              <div className="logo_subtitle">AI-Powered Job Matching</div>
+            </div>
+          </div>
+          
+          <nav className="nav_links">
+            <a href="#" className="nav_link active">
+              <FontAwesomeIcon icon={faEye} />
+              Home
+            </a>
+            <a href="#" className="nav_link">
+              <FontAwesomeIcon icon={faBriefcase} />
+              Jobs
+            </a>
+            <a href="#" className="nav_link">
+              <FontAwesomeIcon icon={faUsers} />
+              About
+            </a>
+          </nav>
+          
+          <div className="header_actions">
+            <Link to="/login" className="btn btn_secondary">Sign In</Link>
+            <Link to="/signup" className="btn btn_primary">Get Started</Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="hero_section">
+        <div className="hero_container">
+          <h1 className="hero_title">Find Your Perfect Job Match</h1>
+          <p className="hero_subtitle">
+            Connect with top employers and discover opportunities that align with your skills, 
+            experience, and career goals. Our AI-powered matching system ensures the perfect fit 
+            for both job seekers and recruiters.
           </p>
-          <div className="home_hero_buttons">
-            <button
-              className="home_get_started_btn"
+          <div className="hero_actions">
+            <button 
+              className="hero_btn primary" 
+              onClick={() => {
+                if (isAuthenticated) {
+                  navigate('/jobs');
+                } else {
+                  navigate('/signup');
+                }
+              }}
+            >
+              <FontAwesomeIcon icon={faBriefcase} />
+              Find Jobs Now
+            </button>
+            <button 
+              className="hero_btn secondary" 
               onClick={() => navigate('/signup')}
             >
+              <FontAwesomeIcon icon={faRocket} />
               Get Started
             </button>
-            <button className="home_login_btn" onClick={() => navigate('/login')}>
-              Login
+          </div>
+        </div>
+      </section>
+
+      {/* Search Section */}
+      <section className="search_section">
+        <div className="search_container">
+          <h2 className="search_title">What are you looking for?</h2>
+          <form className="search_form" onSubmit={handleSearch}>
+            <input
+              type="text"
+              className="search_input"
+              placeholder="Job title, keywords, or company"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <button 
+              type="submit" 
+              className="search_button"
+              onClick={(e) => {
+                if (!isAuthenticated) {
+                  e.preventDefault();
+                  navigate('/signup');
+                }
+              }}
+            >
+              <FontAwesomeIcon icon={faSearch} />
+              Browse All
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section className="features_section">
+        <div className="features_container">
+          <h2 className="features_title">Why Choose RocketJobs?</h2>
+          <p className="features_subtitle">
+            Discover the features that make RocketJobs the preferred choice for job seekers and employers worldwide.
+          </p>
+          <div className="features_grid">
+            {features.map((feature, index) => (
+              <div key={index} className="feature_card">
+                <div className="feature_icon">
+                  <FontAwesomeIcon icon={feature.icon} />
+                </div>
+                <h3 className="feature_title">{feature.title}</h3>
+                <p className="feature_description">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="stats_section">
+        <div className="stats_container">
+          <h2 className="stats_title">Platform Statistics</h2>
+          <div className="stats_grid">
+            {stats.map((stat, index) => (
+              <div key={index} className="stat_card">
+                <div className="stat_number">{stat.number}</div>
+                <div className="stat_label">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Recent Jobs Section */}
+      <section className="recent_jobs_section">
+        <div className="recent_jobs_container">
+          <h2 className="recent_jobs_title">Featured Opportunities</h2>
+          <p className="recent_jobs_subtitle">
+            Discover the latest job openings from top companies across various industries.
+          </p>
+          <div className="jobs_grid">
+            {featuredJobs.map((job) => (
+              <div key={job.id} className="job_card">
+                <div className="job_header">
+                  <div className="job_logo">{job.logo}</div>
+                  <div className="job_info">
+                    <h3>{job.title}</h3>
+                    <div className="job_company">{job.company}</div>
+                  </div>
+                </div>
+                <div className="job_details">
+                  <div className="job_detail">
+                    <FontAwesomeIcon icon={faMapMarkerAlt} />
+                    {job.location}
+                  </div>
+                  <div className="job_detail">
+                    <FontAwesomeIcon icon={faClock} />
+                    {job.type}
+                  </div>
+                  <div className="job_detail">
+                    <FontAwesomeIcon icon={faBuilding} />
+                    {job.arrangement}
+                  </div>
+                </div>
+                <div className="job_actions">
+                  <button className="job_action_btn">View Details</button>
+                  <button className="job_action_btn primary">Apply Now</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Testimonials Section */}
+      <section className="testimonials_section">
+        <div className="testimonials_container">
+          <h2 className="testimonials_title">Success Stories from Our Community</h2>
+          <p className="testimonials_subtitle">
+            Hear from professionals across Kenya and beyond about their journey with RocketJobs
+          </p>
+          
+          <div className="testimonials_carousel">
+            <button 
+              className="carousel_button prev"
+              onClick={goToPrevious}
+              onMouseEnter={() => setIsAutoPlaying(false)}
+              onMouseLeave={() => setIsAutoPlaying(true)}
+            >
+              <FontAwesomeIcon icon={faChevronLeft} />
+            </button>
+            
+            <div className="testimonials_track">
+              <div className="testimonials_slide">
+                <div className="testimonial_card">
+                  <div className="testimonial_avatar">
+                    {testimonials[currentTestimonialIndex].initials}
+                  </div>
+                  <div className="testimonial_content">
+                    <p className="testimonial_quote">
+                      {testimonials[currentTestimonialIndex].quote}
+                    </p>
+                    <div className="testimonial_author">
+                      <div className="testimonial_name">
+                        {testimonials[currentTestimonialIndex].name}
+                      </div>
+                      <div className="testimonial_role">
+                        {testimonials[currentTestimonialIndex].role}
+                      </div>
+                      <div className="testimonial_company">
+                        {testimonials[currentTestimonialIndex].company}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              className="carousel_button next"
+              onClick={goToNext}
+              onMouseEnter={() => setIsAutoPlaying(false)}
+              onMouseLeave={() => setIsAutoPlaying(true)}
+            >
+              <FontAwesomeIcon icon={faChevronRight} />
             </button>
           </div>
-        </div>
-        <div className="home_hero_background">
-          <img src={heroImage} alt="Hero Background" />
-        </div>
-      </section>
-
-      
-      {/* Job Seeker Journey Section */}
-      <section className="home_seeker_journey">
-        <h2>For Job Seekers: Your Path to the Perfect Job</h2>
-        <div className="home_journey_steps">
-          <div className="home_journey_step">
-            <span className="home_step_number">1</span>
-            <h3>Create Your Profile</h3>
-            <p>
-              Sign up or log in to build your profile and showcase your skills and
-              experience.
-            </p>
-            <span className="home_journey_icon">👤</span> {/* User Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">2</span>
-            <h3>Upload Your Resume</h3>
-            <p>
-              Upload your resume (PDF or DOC) to enable our AI to analyze your
-              qualifications.
-            </p>
-            <span className="home_journey_icon">📄</span> {/* Document Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">3</span>
-            <h3>Get AI-Powered Matches</h3>
-            <p>
-              Receive personalized job recommendations based on your skills,
-              experience, and preferences.
-            </p>
-            <span className="home_journey_icon">🤖</span> {/* AI Brain Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">4</span>
-            <h3>Explore Job Listings</h3>
-            <p>
-              Browse relevant job openings, filter by criteria, and view match
-              scores to find the best opportunities.
-            </p>
-            <span className="home_journey_icon">🔍</span> {/* Search Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">5</span>
-            <h3>Apply and Track</h3>
-            <p>
-              Apply for jobs directly through the platform and track the status of
-              your applications.
-            </p>
-            <span className="home_journey_icon">🚀</span> {/* Rocket Icon */}
+          
+          <div className="testimonial_indicators">
+            {testimonials.map((_, index) => (
+              <button
+                key={index}
+                className={`indicator ${index === currentTestimonialIndex ? 'active' : ''}`}
+                onClick={() => goToTestimonial(index)}
+              />
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Recruiter Journey Section */}
-      <section className="home_recruiter_journey">
-        <h2>For Recruiters: Find Your Ideal Candidates</h2>
-        <div className="home_journey_steps">
-          <div className="home_journey_step">
-            <span className="home_step_number">1</span>
-            <h3>Create Your Account</h3>
-            <p>
-              Sign up or log in to access our powerful recruitment tools and start
-              finding top talent.
-            </p>
-            <span className="home_journey_icon">🏢</span> {/* Company Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">2</span>
-            <h3>Post a Job</h3>
-            <p>
-              Create detailed job listings with requirements and attract qualified
-              candidates.
-            </p>
-            <span className="home_journey_icon">✍️</span> {/* Writing Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">3</span>
-            <h3>Evaluate Candidates</h3>
-            <p>
-              Review candidate profiles, view match scores, and get hiring
-              recommendations to make informed decisions.
-            </p>
-            <span className="home_journey_icon">📊</span> {/* Bar Chart Icon */}
-          </div>
-          <div className="home_journey_step">
-            <span className="home_step_number">4</span>
-            <h3>Manage Applications</h3>
-            <p>
-              Shortlist candidates, schedule interviews, and track the progress of
-              your hiring process.
-            </p>
-            <span className="home_journey_icon">📅</span> {/* Calendar Icon */}
-          </div>
-        </div>
-      </section>
-
-      {/* Key Features Section - Moved Down, Can Be Optional */}
-      <section className="home_features">
-        <h2>Why Choose Us?</h2>
-        <div className="home_feature_list">
-          <div className="home_feature_item">
-            <span className="home_feature_icon">🤖</span>
-            <h3>AI-Based Matching</h3>
-            <p>Matches resumes with job descriptions using AI.</p>
-          </div>
-          <div className="home_feature_item">
-            <span className="home_feature_icon">📊</span>
-            <h3>Skill Gap Analysis</h3>
-            <p>Identifies missing skills for job seekers.</p>
-          </div>
-          <div className="home_feature_item">
-            <span className="home_feature_icon">💼</span>
-            <h3>Job Recommendations</h3>
-            <p>Personalized job suggestions based on skills & experience.</p>
-          </div>
-          <div className="home_feature_item">
-            <span className="home_feature_icon">🏆</span>
-            <h3>Candidate Ranking</h3>
-            <p>Get top-matching candidates automatically.</p>
-          </div>
-          <div className="home_feature_item">
-            <span className="home_feature_icon">📄</span>
-            <h3>Easy Resume Upload</h3>
-            <p>Upload PDF/DOC and get instant matching.</p>
-          </div>
-          <div className="home_feature_item">
-            <span className="home_feature_icon">📈</span>
-            <h3>Real-Time Tracking</h3>
-            <p>Track job applications & recruiter responses.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section - Can be simplified further */}
-      <section className="home_faq">
-        <h2>Frequently Asked Questions</h2>
-        <div className="home_faq_list">
-          <div className="home_faq_item">
-            <h3>How does AI match resumes with jobs?</h3>
-            <p>AI analyzes skills, experience, and keywords.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3>Do I need to upload a resume?</h3>
-            <p>Uploading enhances matching accuracy.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3>Is my data secure?</h3>
-            <p>We prioritize data security and privacy.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3> What file formats are accepted for resume uploads?</h3>
-            <p>We currently accept resumes in PDF and DOC/DOCX formats.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3>What happens to my resume data after I apply for a job?</h3>
-            <p>Your resume data is securely stored and shared with the recruiter for the specific job you applied for. We adhere to strict privacy policies.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3> How many candidates does the platform show?</h3>
-            <p>The platform provides ranking and detailed information. You can also view all applicants.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3>What information is provided in the candidate profiles?</h3>
-            <p> Candidate profiles include resume data, match scores, skill analysis, and hiring recommendations.</p>
-          </div>
-          <div className="home_faq_item">
-            <h3>Can I schedule interviews through the platform?</h3>
-            <p> Yes, you can schedule and manage interviews directly through the platform.</p>
+      {/* CTA Section */}
+      <section className="cta_section">
+        <div className="cta_container">
+          <h2 className="cta_title">Ready to Find Your Perfect Match?</h2>
+          <p className="cta_description">
+            Join thousands of professionals who have already discovered their dream careers through RocketJobs. 
+            Start your journey today and unlock endless possibilities.
+          </p>
+          <div className="cta_buttons">
+            <a href="#" className="cta_btn primary">
+              <FontAwesomeIcon icon={faRocket} />
+              Get Started
+            </a>
+            <a href="#" className="cta_btn secondary">
+              <FontAwesomeIcon icon={faChartLine} />
+              Learn More
+            </a>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="home_footer">
-  <div className="home_footer_wrapper">
-    <div className="home_footer_brand">
-      <h3>AI Resume Matcher</h3>
-      <p>Connecting talent with opportunity through smart AI.</p>
-    </div>
-    <div className="home_footer_info">
-      <p>Contact: <a href="mailto:support@TalentMatch.ai">support@TalentMatch.ai</a></p>
-      <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
-    </div>
-  </div>
-
-
-        <div className="home_footer_links">
-          <a href="/about">About Us</a>
-          <a href="/privacy">Privacy Policy</a>
-          <a href="/terms">Terms of Service</a>
+      <footer className="footer">
+        <div className="footer_container">
+          <div className="footer_brand">
+            <div className="footer_logo">
+              <div className="footer_logo_icon">
+                <FontAwesomeIcon icon={faRocket} />
+              </div>
+              <div className="footer_logo_text">RocketJobs</div>
+            </div>
+            <p className="footer_tagline">
+              Connecting top talent with amazing opportunities through AI-powered job matching. 
+              Your career journey starts here.
+            </p>
+          </div>
+          
+          <div className="footer_links">
+            <div className="footer_column">
+              <h3>Company</h3>
+              <ul>
+                <li><a href="#">About Us</a></li>
+                <li><a href="#">Careers</a></li>
+                <li><a href="#">Press</a></li>
+                <li><a href="#">Blog</a></li>
+                <li><a href="#">Partners</a></li>
+              </ul>
+            </div>
+            
+            <div className="footer_column">
+              <h3>Job Seekers</h3>
+              <ul>
+                <li><a href="#">Browse Jobs</a></li>
+                <li><a href="#">Upload Resume</a></li>
+                <li><a href="#">Create Profile</a></li>
+                <li><a href="#">Salary Guide</a></li>
+                <li><a href="#">Career Advice</a></li>
+              </ul>
+            </div>
+            
+            <div className="footer_column">
+              <h3>Employers</h3>
+              <ul>
+                <li><a href="#">Post a Job</a></li>
+                <li><a href="#">Pricing</a></li>
+                <li><a href="#">Recruitment Solutions</a></li>
+                <li><a href="#">Resources</a></li>
+                <li><a href="#">Contact Sales</a></li>
+              </ul>
+            </div>
+            
+            <div className="footer_column">
+              <h3>Support & Legal</h3>
+              <ul>
+                <li><a href="#">Help Center</a></li>
+                <li><a href="#">Contact Us</a></li>
+                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="#">Terms of Service</a></li>
+                <li><a href="#">Cookie Policy</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="footer_bottom">
+            <p>&copy; 2024 RocketJobs. All rights reserved.</p>
+          </div>
         </div>
-     </footer>
+      </footer>
     </div>
   );
 };

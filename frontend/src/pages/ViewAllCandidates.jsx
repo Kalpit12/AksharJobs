@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import Header from "../components/Header";
+
 import "../styles/ViewAllCandidates.css";
 import BackButton from "../components/BackButton";
 
@@ -24,14 +24,26 @@ const ViewAllCandidates = () => {
         const applications = response.data.applications || [];
         const enrichedCandidates = await Promise.all(
           applications.map(async (candidate) => {
-            const userResponse = await axios.get(`http://localhost:5000/api/auth/get_user?userId=${candidate.userId}`);
-            return { ...candidate, ...userResponse.data };
+            try {
+              const userResponse = await axios.get(`http://localhost:5000/api/auth/get_user?userId=${candidate.userId}`);
+              // Ensure userResponse.data is valid and not an empty object
+              if (userResponse.data && typeof userResponse.data === 'object' && Object.keys(userResponse.data).length > 0) {
+                return { ...candidate, ...userResponse.data };
+              } else {
+                console.warn('Invalid user data received for candidate:', candidate.userId);
+                return candidate; // Return original candidate data if user data is invalid
+              }
+            } catch (error) {
+              console.error('Error fetching user data for candidate:', candidate.userId, error);
+              return candidate; // Return original candidate data if user fetch fails
+            }
           })
         );
 
+        // Filter out invalid candidates and those with empty status
         const sortedCandidates = enrichedCandidates
-          .filter((c) => c.status !== "")
-          .sort((a, b) => b.final_score - a.final_score);
+          .filter((c) => c && typeof c === 'object' && c.status && c.userId) // Filter out invalid candidates
+          .sort((a, b) => (b.final_score || 0) - (a.final_score || 0));
         console.log(sortedCandidates);
         setCandidates(sortedCandidates);
       } catch (err) {
@@ -84,8 +96,7 @@ const ViewAllCandidates = () => {
 
   return (
     <div className="viewallcandidates_container">
-      <Header />
-      <BackButton to="/recruiter-dashboard" text="Back to Dashboard" />
+      <BackButton to="/recruiter-dashboard" text="Back" />
       <div className="top_candidates_container">
         <h2>All Candidates</h2>
 
@@ -119,7 +130,7 @@ const ViewAllCandidates = () => {
               </thead>
               <tbody>
                 {candidates
-                  .filter((c) => !statusFilter || c.status === statusFilter)
+                  .filter((c) => c && typeof c === 'object' && c.status) // Only show valid candidates
                   .map((candidate) => (
                     <tr key={candidate.userId} onClick={() => setSelectedCandidate(candidate)}>
                       <td>

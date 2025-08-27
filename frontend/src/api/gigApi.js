@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_BASE_URL = 'http://localhost:5000/api';
+import API_CONFIG from '../config/api.js';
 
 // Get auth token from localStorage
 const getAuthToken = () => {
@@ -9,7 +9,7 @@ const getAuthToken = () => {
 // Create axios instance with auth header
 const createAuthInstance = () => {
     return axios.create({
-        baseURL: API_BASE_URL,
+        baseURL: API_CONFIG.BASE_URL,
         headers: {
             'Authorization': `Bearer ${getAuthToken()}`,
             'Content-Type': 'application/json'
@@ -22,7 +22,7 @@ export const gigApi = {
     // Create a new gig
     createGig: async (gigData) => {
         try {
-            const response = await createAuthInstance().post('/gigs', gigData);
+            const response = await createAuthInstance().post('/api/gigs', gigData);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -41,7 +41,7 @@ export const gigApi = {
             if (filters.page) params.append('page', filters.page);
             if (filters.limit) params.append('limit', filters.limit);
 
-            const response = await axios.get(`${API_BASE_URL}/gigs?${params.toString()}`);
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/api/gigs?${params.toString()}`);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -51,7 +51,7 @@ export const gigApi = {
     // Get a specific gig by ID
     getGigById: async (gigId) => {
         try {
-            const response = await axios.get(`${API_BASE_URL}/gigs/${gigId}`);
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/api/gigs/${gigId}`);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -61,7 +61,7 @@ export const gigApi = {
     // Apply for a gig
     applyForGig: async (gigId, proposal, bidAmount) => {
         try {
-            const response = await createAuthInstance().post(`/gigs/${gigId}/apply`, {
+            const response = await createAuthInstance().post(`/api/gigs/${gigId}/apply`, {
                 proposal,
                 bid_amount: bidAmount
             });
@@ -74,7 +74,7 @@ export const gigApi = {
     // Get applications for a gig (only for gig poster)
     getGigApplications: async (gigId) => {
         try {
-            const response = await createAuthInstance().get(`/gigs/${gigId}/applications`);
+            const response = await createAuthInstance().get(`/api/gigs/${gigId}/applications`);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -84,7 +84,7 @@ export const gigApi = {
     // Accept a gig application
     acceptApplication: async (gigId, applicationId) => {
         try {
-            const response = await createAuthInstance().post(`/gigs/${gigId}/applications/${applicationId}/accept`);
+            const response = await createAuthInstance().post(`/api/gigs/${gigId}/applications/${applicationId}/accept`);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -99,7 +99,7 @@ export const gigApi = {
                 params.append('user_role', userRole);
             }
             
-            const response = await axios.get(`${API_BASE_URL}/gigs/categories?${params.toString()}`);
+            const response = await axios.get(`${API_CONFIG.BASE_URL}/api/gigs/categories?${params.toString()}`);
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -109,7 +109,7 @@ export const gigApi = {
     // Get gigs posted by current user
     getMyGigs: async () => {
         try {
-            const response = await createAuthInstance().get('/gigs/my-gigs');
+            const response = await createAuthInstance().get('/api/gigs/my-gigs');
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;
@@ -119,7 +119,7 @@ export const gigApi = {
     // Get applications submitted by current user
     getMyApplications: async () => {
         try {
-            const response = await createAuthInstance().get('/gigs/my-applications');
+            const response = await createAuthInstance().get('/api/gigs/my-applications');
             return response.data;
         } catch (error) {
             throw error.response?.data || error.message;

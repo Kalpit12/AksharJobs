@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # Backend Flask API (Development with Live Reload)
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: aksharjobs-backend-dev
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+      - PYTHONPATH=/app
+      - FLASK_DEBUG=1
+    volumes:
+      # Mount source code for live development
+      - ./backend:/app
+      # Exclude unnecessary files
+      - /app/__pycache__
+      - /app/venv
+      - /app/venv38
+    networks:
+      - aksharjobs-network
+    restart: unless-stopped
+    command: ["flask", "run", "--host=0.0.0.0", "--port=5000", "--reload"]
+
+  # Frontend React App (Development with Live Reload)
+  frontend:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: aksharjobs-frontend-dev
+    ports:
+      - "3002:3002"
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      # Mount source code for live development
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - aksharjobs-network
+    restart: unless-stopped
+    command: ["npm", "start"]
+
+networks:
+  aksharjobs-network:
+    driver: bridge

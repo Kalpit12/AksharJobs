@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gigApi } from '../api/gigApi';
-import Header from '../components/Header';
+
 import BackButton from '../components/BackButton';
 import '../styles/GigDashboard.css';
 
@@ -101,9 +101,8 @@ const GigDashboard = () => {
 
     return (
         <div className="gig-dashboard">
-            <Header />
             {/* Back Button */}
-            <BackButton to="/jobseeker-dashboard" text="Back to Dashboard" />
+            <BackButton to="/jobseeker-dashboard" text="Back" />
 
             <div className="dashboard-header">
                 <h1>Hustle Economy Gig Marketplace</h1>

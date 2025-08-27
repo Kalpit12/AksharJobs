@@ -3,6 +3,7 @@ from flask import Blueprint, request, jsonify
 from services.job_service import get_all_jobs, get_jobs_by_user,get_job_by_id,update_job
 from models.job_model import jobs_collection
 from datetime import datetime
+from models.user_model import users_collection
 
 job_routes = Blueprint("job_routes", __name__)
 
@@ -142,3 +143,103 @@ def apply_to_job(job_id):
         return jsonify({"message": "Application successful"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@job_routes.route("/recommended/<user_id>", methods=["GET"])
+def get_recommended_jobs(user_id):
+    """
+    Retrieves AI-recommended job postings for a specific user.
+    URL Parameter:
+        user_id (str): The ID of the user.
+    Returns:
+        JSON array of recommended job postings with match scores.
+    """
+    try:
+        # Get user's resume data
+        user = users_collection.find_one({"_id": ObjectId(user_id)})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Check if user has a resume
+        if "resume_data" not in user or not user["resume_data"]:
+            return jsonify({"error": "User has no resume uploaded"}), 404
+        
+        # Get all available jobs
+        all_jobs = list(jobs_collection.find())
+        if not all_jobs:
+            return jsonify({"error": "No jobs available"}), 404
+        
+        recommended_jobs = []
+        
+        # Calculate match score for each job
+        for job in all_jobs:
+            try:
+                # Use the existing match score calculation logic
+                from utils.match_result import hybrid_score
+                
+                # Get user's resume data
+                resume_data = user["resume_data"]
+                
+                # Extract skills properly from the nested structure
+                if 'skills' in resume_data and isinstance(resume_data['skills'], dict):
+                    # Handle nested skills structure
+                    technical_skills = resume_data['skills'].get('technical_skills', [])
+                    soft_skills = resume_data['skills'].get('soft_skills', [])
+                    languages = resume_data['skills'].get('languages', [])
+                    all_skills = technical_skills + soft_skills + languages
+                    
+                    # Create a flattened skills list for the hybrid_score function
+                    flattened_resume_data = resume_data.copy()
+                    flattened_resume_data['skills'] = all_skills
+                else:
+                    flattened_resume_data = resume_data
+                
+                # Calculate hybrid match score
+                # For now, use a default SBERT score of 0.5 since we're not calculating it here
+                # In a full implementation, you would calculate this using the SBERT model
+                default_sbert_score = 0.5
+                score_result = hybrid_score(default_sbert_score, flattened_resume_data, job)
+                
+                # Calculate final score from individual scores
+                # Weight the scores: 40% skills, 30% education, 20% experience, 10% SBERT
+                final_score = (
+                    (score_result.get('skill_score', 0) * 0.4) +
+                    (score_result.get('education_score', 0) * 0.3) +
+                    (score_result.get('experience_score', 0) * 0.2) +
+                    (default_sbert_score * 100 * 0.1)
+                )
+                
+                # Add match score to job data
+                job["_id"] = str(job["_id"])
+                job["match_score"] = round(final_score, 1)
+                job["score_breakdown"] = score_result
+                
+                # Convert datetime to string for JSON serialization
+                if "posted_date" in job and isinstance(job["posted_date"], datetime):
+                    job["posted_date"] = job["posted_date"].isoformat()
+                if "created_at" in job and isinstance(job["created_at"], datetime):
+                    job["created_at"] = job["created_at"].isoformat()
+                if "application_deadline" in job and isinstance(job["application_deadline"], datetime):
+                    job["application_deadline"] = job["application_deadline"].isoformat()
+                
+                recommended_jobs.append(job)
+                
+            except Exception as e:
+                print(f"Error calculating match score for job {job.get('_id', 'unknown')}: {str(e)}")
+                continue
+        
+        # Sort jobs by match score in descending order (highest match first)
+        recommended_jobs.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+        
+        # Limit to top 20 recommendations
+        top_recommendations = recommended_jobs[:20]
+        
+        return jsonify({
+            "message": "AI recommendations generated successfully",
+            "recommendations": top_recommendations,
+            "total_jobs_analyzed": len(all_jobs),
+            "recommendations_count": len(top_recommendations)
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in get_recommended_jobs: {str(e)}")
+        return jsonify({"error": f"Failed to generate recommendations: {str(e)}"}), 500

@@ -17,11 +17,11 @@ def generate_jwt_token(user_id):
     - str: A JWT token encoded with the user's ID and expiration time.
 
     Token Expiry:
-    - The token expires in 1 hour.
+    - The token expires in 24 hours (extended from 1 hour for better UX).
     """
     payload = {
         "sub": user_id,  # Flask-JWT-Extended expects 'sub' claim
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=24)
     }
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 

@@ -1,9 +1,9 @@
 /* Modern Settings Page with Enhanced UI and Animations */
 
-/* CSS Variables for consistent theming */
+/* CSS Variables for consistent theming - Updated to match image */
 :root {
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  --secondary-gradient: linear-gradient(135deg, #c084fc 0%, #d946ef 100%);
   --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --verified-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -11,25 +11,31 @@
   --border-radius: 16px;
   --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --text-primary: #000000;
+  --text-secondary: #374151;
+  --text-muted: #6b7280;
+  --background-primary: #ffffff;
+  --background-secondary: #f9fafb;
+  --accent-purple: #8b5cf6;
+  --accent-purple-light: #a855f7;
+}
+
+/* Enhanced font visibility and contrast */
+.settings-container {
+  color: var(--text-primary);
+}
+
+.settings-sidebar {
+  color: var(--text-primary);
 }
 
 /* Main container with animated background */
 .settings-container {
-  display: flex;
-  min-height: 100vh;
-  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite, fadeInUp 0.6s ease-out;
-  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  position: relative;
-  overflow-x: hidden;
-  padding-top: 80px; /* Account for fixed header */
-}
-
-@keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+    min-height: 100vh;
+    background: var(--background-secondary);
+    display: flex;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    animation: fadeInUp 0.6s ease-out;
 }
 
 @keyframes fadeInUp {
@@ -46,9 +52,9 @@
 /* Enhanced Sidebar */
 .settings-sidebar {
   width: 320px;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--background-primary);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.2);
+  border-right: 1px solid rgba(139, 92, 246, 0.1);
   box-shadow: var(--card-shadow);
   position: sticky;
   top: 0;
@@ -99,6 +105,8 @@
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: -0.5px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .back-button {
@@ -146,66 +154,51 @@
   padding: 25px 0;
 }
 
+/* Enhanced navigation items */
 .nav-item {
-  width: 100%;
-  padding: 18px 30px;
-  background: none;
-  border: none;
-  text-align: left;
-  cursor: pointer;
-  transition: var(--transition-smooth);
   display: flex;
   align-items: center;
   gap: 15px;
-  color: #2d3748;
-  font-size: 1rem;
-  font-weight: 500;
-  border-left: 4px solid transparent;
+  padding: 18px 25px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
   position: relative;
   overflow: hidden;
-}
-
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 0;
-  height: 100%;
-  background: var(--primary-gradient);
-  transition: width 0.3s ease;
-  z-index: 0;
-}
-
-.nav-item:hover::before {
-  width: 100%;
+  border-radius: 12px;
+  margin: 4px 15px;
+  text-align: left;
+  width: calc(100% - 30px);
 }
 
 .nav-item:hover {
-  color: white;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.1));
+  color: var(--text-primary);
   transform: translateX(5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .nav-item.active {
-  background: var(--primary-gradient);
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
   color: white;
-  border-left-color: #ffffff;
-  font-weight: 600;
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
   transform: translateX(5px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
 }
 
-.nav-item * {
-  position: relative;
-  z-index: 1;
+.nav-item.active:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  color: white;
 }
 
 .nav-icon {
-  font-size: 1.3rem;
-  width: 28px;
+  font-size: 1.2rem;
+  width: 24px;
   text-align: center;
   transition: var(--transition-bounce);
+  flex-shrink: 0;
 }
 
 .nav-item:hover .nav-icon {
@@ -219,6 +212,7 @@
   overflow-y: auto;
   max-width: 900px;
   animation: fadeInRight 0.6s ease-out 0.2s both;
+  color: var(--text-primary);
 }
 
 @keyframes fadeInRight {
@@ -234,13 +228,13 @@
 
 /* Modern card design */
 .settings-section {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--background-primary);
   backdrop-filter: blur(20px);
   border-radius: var(--border-radius);
   padding: 35px;
   margin-bottom: 30px;
   box-shadow: var(--card-shadow);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.1);
   transition: var(--transition-smooth);
   position: relative;
   overflow: hidden;
@@ -277,7 +271,7 @@
   margin: 0 0 30px 0;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #2d3748;
+  color: var(--text-primary);
   position: relative;
   padding-bottom: 15px;
 }
@@ -299,7 +293,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
   transition: var(--transition-smooth);
   cursor: pointer;
   position: relative;
@@ -317,7 +311,7 @@
   right: -35px;
   top: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05));
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(168, 85, 247, 0.05));
   border-radius: 12px;
   opacity: 0;
   transition: var(--transition-smooth);
@@ -343,37 +337,49 @@
   flex: 1;
 }
 
+/* Ensure proper contrast for all text elements */
 .setting-label {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 1rem;
-  transition: var(--transition-smooth);
-}
-
-.setting-item:hover .setting-label {
-  color: #667eea;
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  text-shadow: none !important;
 }
 
 .setting-description {
-  color: #718096;
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+  text-shadow: none !important;
+}
+
+.setting-value {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+}
+
+.setting-item:hover .setting-label {
+  color: var(--accent-purple);
+}
+
+.setting-description {
+  color: var(--text-secondary);
   font-size: 0.9rem;
-  font-weight: 400;
+  font-weight: 500;
   line-height: 1.4;
 }
 
 .setting-value {
-  color: #4a5568;
+  color: var(--text-primary);
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
   padding: 8px 12px;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(139, 92, 246, 0.1);
   border-radius: 8px;
   transition: var(--transition-smooth);
 }
 
 .setting-item:hover .setting-value {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: rgba(139, 92, 246, 0.2);
+  color: var(--accent-purple);
 }
 
 .setting-actions {
@@ -386,7 +392,7 @@
 .setting-arrow {
   background: none;
   border: none;
-  color: #a0aec0;
+  color: var(--text-muted);
   font-size: 1.4rem;
   cursor: pointer;
   padding: 8px;
@@ -400,8 +406,8 @@
 }
 
 .setting-arrow:hover {
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: var(--accent-purple);
+  background: rgba(139, 92, 246, 0.1);
   transform: translateX(3px) scale(1.1);
 }
 
@@ -409,37 +415,18 @@
   background: var(--primary-gradient);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 25px;
-  font-size: 0.9rem;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition-bounce);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-
-.verify-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s;
-}
-
-.verify-btn:hover::before {
-  left: 100%;
+  transition: var(--transition-smooth);
 }
 
 .verify-btn:hover {
-  transform: translateY(-2px) scale(1.05);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
 }
 
 .verify-btn:active {
@@ -450,13 +437,13 @@
 .verified-badge {
   background: var(--verified-gradient);
   color: white;
-  padding: 8px 16px;
-  border-radius: 25px;
-  font-size: 0.85rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.8rem;
   font-weight: 600;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
   animation: verifiedPulse 2s infinite;
   position: relative;
@@ -569,27 +556,23 @@
   }
 }
 
-/* Custom scrollbar */
-.settings-sidebar::-webkit-scrollbar,
-.settings-content::-webkit-scrollbar {
+/* Enhanced scrollbar styling */
+.settings-sidebar::-webkit-scrollbar {
   width: 8px;
 }
 
-.settings-sidebar::-webkit-scrollbar-track,
-.settings-content::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+.settings-sidebar::-webkit-scrollbar-track {
+  background: rgba(139, 92, 246, 0.1);
   border-radius: 4px;
 }
 
-.settings-sidebar::-webkit-scrollbar-thumb,
-.settings-content::-webkit-scrollbar-thumb {
+.settings-sidebar::-webkit-scrollbar-thumb {
   background: var(--primary-gradient);
   border-radius: 4px;
 }
 
-.settings-sidebar::-webkit-scrollbar-thumb:hover,
-.settings-content::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary-gradient);
+.settings-sidebar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
 }
 
 /* Responsive Design */

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
+
 import '../styles/PaymentSuccess.css';
 
 const PaymentSuccess = () => {
@@ -62,7 +62,6 @@ const PaymentSuccess = () => {
 
   return (
     <div className="success-container">
-      <Header />
       <div className="success-content">
         <div className="success-icon">🎉</div>
         

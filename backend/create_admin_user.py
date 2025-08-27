@@ -56,7 +56,7 @@ def create_admin_user():
             print("✅ Admin user created successfully!")
             print("📧 Email: admin@rocketmatch.com")
             print("🔒 Password: Admin@123")
-            print("🌐 Access: http://localhost:3001/admin")
+            print("🌐 Access: http://localhost:3002/admin")
             print("\n🚀 You can now login and access the admin dashboard!")
             return True
         else:

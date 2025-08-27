@@ -2,7 +2,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import logging
 import os
-load_dotenv()
+load_dotenv('.edn.local')
 
 # Get MongoDB URI from environment variables
 MONGO_URI = os.getenv("MONGO_URI")
@@ -21,8 +21,12 @@ def get_mongo_client():
         logging.error(f"Error connecting to MongoDB: {e}")
         return None
 
-def get_db(client, db_name='resume_parser'):
+def get_db(client, db_name=None):
     if client:  # Check if client is valid before trying to get the db
+        if db_name is None:
+            # Use environment variable if no db_name provided
+            from config import DB_NAME
+            db_name = DB_NAME or 'TalentMatchDB'
         db = client[db_name]
         return db
     else:

@@ -1,5 +1,5 @@
 import axios from 'axios';
-const API_BASE_URL = 'http://localhost:5000/api/analytics';
+import API_CONFIG from '../config/api.js';
 
 // Get auth token from localStorage
 const getAuthToken = () => {
@@ -8,7 +8,7 @@ const getAuthToken = () => {
 
 // Configure axios with auth header
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: `${API_CONFIG.BASE_URL}/api/analytics`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -25,7 +25,7 @@ api.interceptors.request.use((config) => {
 
 export const analyticsApi = {
   // Match Score Thresholds
-  getMatchThresholds: async () => {
+  getMatchThresholds: async (jobId) => {
     try {
       const response = await api.get('/match-thresholds');
       return response.data;
@@ -89,7 +89,7 @@ export const analyticsApi = {
   },
 
   // Candidate Recommendations
-  getCandidateRecommendations: async (jobId, minThreshold = 70) => {
+  getCandidateRecommendations: async (jobId, minThreshold) => {
     try {
       const response = await api.get(`/candidate-recommendations?job_id=${jobId}&min_threshold=${minThreshold}`);
       return response.data;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Settings.css';
-import Header from '../components/Header';
+
 import BackButton from '../components/BackButton';
 import EmailVerification from '../components/EmailVerification';
 import PhoneVerification from '../components/PhoneVerification';
@@ -1054,12 +1054,11 @@ const Settings = () => {
 
   return (
     <div className="settings-container">
-      <Header />
       <div className="settings-sidebar">
         <div className="settings-header">
           <BackButton 
             to={user.role === "recruiter" ? "/recruiter-dashboard" : "/jobseeker-dashboard"} 
-            text={`Back to ${user.role === "recruiter" ? "Recruiter" : "Job Seeker"} Dashboard`} 
+            text="Back" 
           />
           <div className="profile-icon">👤</div>
           <h1>Settings</h1>

@@ -7,7 +7,7 @@ import json
 import re
 
 # Load environment variables
-load_dotenv()
+load_dotenv('.edn.local')
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -158,7 +158,7 @@ def get_gemini_free_result(resume_data,job_data,match_score):
     }
     job_summary = {
         "job_title": job_data.get("job_title", "Unknown"),
-        "required_skills": job_data.get("required_skills", "").split(", "),
+        "required_skills": job_data.get("required_skills", "").split(", ") if isinstance(job_data.get("required_skills", ""), str) else job_data.get("required_skills", []),
         "education_required": job_data.get("education_required", "Not specified"),
         "industry":job_data.get("industry","Not specified"),
         "experience_required":job_data.get("experience_required","Not given"),

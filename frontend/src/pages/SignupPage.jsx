@@ -1,464 +1,572 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
-import InputField from "../components/InputField";
-import Button from "../components/Button";
-import "../styles/Signup.css";
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { 
+  faRocket, 
+  faEye, 
+  faEyeSlash, 
+  faEnvelope, 
+  faLock,
+  faUser,
+  faPhone,
+  faBuilding,
+  faArrowLeft,
+  faCheck,
+  faTimes
+} from '@fortawesome/free-solid-svg-icons';
+import { faGoogle as faGoogleBrand, faLinkedin as faLinkedinBrand } from '@fortawesome/free-brands-svg-icons';
+import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
+import { oauthApi } from '../api/oauthApi';
+import '../styles/Signup.css';
 
 const SignupPage = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
-    userType: "jobSeeker",
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    phoneNumber: "",
-    linkedInProfile: "",
-    companyName: "",
-    companyWebsite: "",
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    accountType: 'jobSeeker',
+    company: '',
+    agreeToTerms: false
   });
-
-  const [image, setImage] = useState(null);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
-  const [focusedField, setFocusedField] = useState("");
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [signupError, setSignupError] = useState('');
+  // Verification will be implemented later with real email/SMS services
 
-  useEffect(() => {
-    // Trigger entrance animation with delay
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setSelectedFile(file.name);
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
     }
   };
 
-  const handleFocus = (fieldName) => {
-    setFocusedField(fieldName);
-  };
+  const validateForm = () => {
+    const newErrors = {};
 
-  const handleBlur = () => {
-    setFocusedField("");
-  };
+    // First Name validation
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = 'First name must be at least 2 characters';
+    }
 
-  const validatePassword = (password) => {
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$/;
-    return passwordRegex.test(password);
-  };
+    // Last Name validation
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = 'Last name must be at least 2 characters';
+    }
 
-  const validatePhoneNumber = (phoneNumber) => {
-    const phoneRegex = /^[0-9]{10}$/;
-    return phoneRegex.test(phoneNumber);
+    // Email validation
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone validation
+    if (!formData.phone) {
+      newErrors.phone = 'Phone number is required';
+    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid phone number';
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+    }
+
+    // Confirm Password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = 'Please confirm your password';
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    // Company validation for recruiters
+    if (formData.accountType === 'recruiter' && !formData.company.trim()) {
+      newErrors.company = 'Company name is required for recruiters';
+    }
+
+    // Terms agreement validation
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = 'You must agree to the terms and conditions';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSignupError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match!");
+    if (!validateForm()) {
       return;
     }
 
-    if (!validatePassword(formData.password)) {
-      setError(
-        "Password must be 8-12 characters long, include at least 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character."
-      );
-      return;
-    }
-
-    if (formData.phoneNumber && !validatePhoneNumber(formData.phoneNumber)) {
-      setError("Phone number must be exactly 10 digits.");
-      return;
-    }
-
-    setError("");
     setIsLoading(true);
 
     try {
-      const formDataToSend = new FormData();
-      Object.keys(formData).forEach((key) => {
-        formDataToSend.append(key, formData[key]);
+      // Connect to your MongoDB backend for signup
+      const requestBody = {
+        userType: formData.accountType,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        phoneNumber: formData.phone,
+        companyName: formData.accountType === 'recruiter' ? formData.company : ''
+      };
+      
+      console.log('Sending signup request:', requestBody);
+      
+      const response = await fetch(buildApiUrl('/api/auth/signup'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody)
       });
-      if (image) {
-        formDataToSend.append("profileImage", image);
-      }
 
-      const response = await axios.post(
-        "http://127.0.0.1:5000/api/auth/signup",
-        formDataToSend,
-        
-      );
+      const data = await response.json();
+      console.log('Signup response:', response.status, data);
 
-      if (response.status === 201) {
-        setSuccess("Signup successful! Redirecting to login...");
-        setTimeout(() => navigate("/login"), 2000);
+      if (response.ok) {
+        // Account created successfully - redirect to login
+        setSignupError('');
+        alert('Account created successfully! Please check your email for verification and then login.');
+        navigate('/login');
+      } else {
+        console.error('Signup failed:', data);
+        setSignupError(data.error || 'Failed to create account. Please try again.');
       }
-    } catch (err) {
-      setError(err.response?.data?.error || "Signup failed. Please try again.");
+      
+    } catch (error) {
+      console.error('Signup error:', error);
+      setSignupError('Network error. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="signup-page">
-      {/* Background decorative elements */}
-      <div className="background-shapes">
-        <div className="bg-shape bg-shape-1"></div>
-        <div className="bg-shape bg-shape-2"></div>
-        <div className="bg-shape bg-shape-3"></div>
-        <div className="bg-shape bg-shape-4"></div>
+  const handleSocialSignup = async (provider) => {
+    try {
+      setIsLoading(true);
+      setSignupError('');
+      
+      let authUrl;
+      
+      if (provider === 'google') {
+        authUrl = await oauthApi.getGoogleAuthUrl();
+      } else if (provider === 'linkedin') {
+        authUrl = await oauthApi.getLinkedInAuthUrl();
+      } else {
+        throw new Error('Unsupported provider');
+      }
+      
+      if (authUrl) {
+        // Redirect to OAuth provider
+        window.location.href = authUrl;
+      } else {
+        throw new Error(`Failed to get ${provider} authentication URL`);
+      }
+      
+    } catch (error) {
+      console.error(`${provider} signup error:`, error);
+      setSignupError(`${provider} signup is not available at the moment. Please try again later.`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderForm = () => (
+    <form className="signup_form" onSubmit={handleSubmit}>
+      {signupError && (
+        <div className="error_message">
+          {signupError}
+        </div>
+      )}
+
+      {/* Name Fields */}
+      <div className="form_row">
+        <div className="form_group">
+          <label htmlFor="firstName" className="form_label">
+            <FontAwesomeIcon icon={faUser} />
+            First Name
+          </label>
+          <input
+            type="text"
+            id="firstName"
+            name="firstName"
+            className={`form_input ${errors.firstName ? 'error' : ''}`}
+            placeholder="Enter your first name"
+            value={formData.firstName}
+            onChange={handleInputChange}
+          />
+          {errors.firstName && (
+            <span className="error_text">{errors.firstName}</span>
+          )}
+        </div>
+
+        <div className="form_group">
+          <label htmlFor="lastName" className="form_label">
+            <FontAwesomeIcon icon={faUser} />
+            Last Name
+          </label>
+          <input
+            type="text"
+            id="lastName"
+            name="lastName"
+            className={`form_input ${errors.lastName ? 'error' : ''}`}
+            placeholder="Enter your last name"
+            value={formData.lastName}
+            onChange={handleInputChange}
+          />
+          {errors.lastName && (
+            <span className="error_text">{errors.lastName}</span>
+          )}
+        </div>
       </div>
 
-      <div className={`signup-container ${isVisible ? 'visible' : ''}`}>
-        {/* Left Panel - Welcome Section */}
-        <div className="signup-left">
-          <div className="welcome-content">
-            <div className="welcome-icon-container">
-              <div className="rocketjobs-logo">
-                <img 
-                  src="/RocketJobs_Logo.jpg" 
-                  alt="RocketJobs Logo" 
-                  width="120" 
-                  height="120"
-                />
+      {/* Email Field */}
+      <div className="form_group">
+        <label htmlFor="email" className="form_label">
+          <FontAwesomeIcon icon={faEnvelope} />
+          Email Address
+        </label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          className={`form_input ${errors.email ? 'error' : ''}`}
+          placeholder="Enter your email address"
+          value={formData.email}
+          onChange={handleInputChange}
+        />
+        {errors.email && (
+          <span className="error_text">{errors.email}</span>
+        )}
+      </div>
+
+      {/* Phone Field */}
+      <div className="form_group">
+        <label htmlFor="phone" className="form_label">
+          <FontAwesomeIcon icon={faPhone} />
+          Phone Number
+        </label>
+        <input
+          type="tel"
+          id="phone"
+          name="phone"
+          className={`form_input ${errors.phone ? 'error' : ''}`}
+          placeholder="Enter your phone number"
+          value={formData.phone}
+          onChange={handleInputChange}
+        />
+        {errors.phone && (
+          <span className="error_text">{errors.phone}</span>
+        )}
+      </div>
+
+      {/* Account Type Selection */}
+      <div className="form_group">
+        <label className="form_label">Account Type</label>
+        <div className="account_type_selector">
+          <label className="account_type_option">
+            <input
+              type="radio"
+              name="accountType"
+              value="jobSeeker"
+              checked={formData.accountType === 'jobSeeker'}
+              onChange={handleInputChange}
+            />
+            <span className="option_content">
+              <div className="option_icon">👤</div>
+              <div className="option_text">
+                <h4>Job Seeker</h4>
+                <p>Find your dream job with AI-powered matching</p>
               </div>
+            </span>
+          </label>
+
+          <label className="account_type_option">
+            <input
+              type="radio"
+              name="accountType"
+              value="recruiter"
+              checked={formData.accountType === 'recruiter'}
+              onChange={handleInputChange}
+            />
+            <span className="option_content">
+              <div className="option_icon">🏢</div>
+              <div className="option_text">
+                <h4>Recruiter</h4>
+                <p>Find top talent for your organization</p>
+              </div>
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* Company Field (for recruiters) */}
+      {formData.accountType === 'recruiter' && (
+        <div className="form_group">
+          <label htmlFor="company" className="form_label">
+            <FontAwesomeIcon icon={faBuilding} />
+            Company Name
+          </label>
+          <input
+            type="text"
+            id="company"
+            name="company"
+            className={`form_input ${errors.company ? 'error' : ''}`}
+            placeholder="Enter your company name"
+            value={formData.company}
+            onChange={handleInputChange}
+          />
+          {errors.company && (
+            <span className="error_text">{errors.company}</span>
+          )}
+        </div>
+      )}
+
+      {/* Password Fields */}
+      <div className="form_row">
+        <div className="form_group">
+          <label htmlFor="password" className="form_label">
+            <FontAwesomeIcon icon={faLock} />
+            Password
+          </label>
+          <div className="password_input_wrapper">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              name="password"
+              className={`form_input ${errors.password ? 'error' : ''}`}
+              placeholder="Create a strong password"
+              value={formData.password}
+              onChange={handleInputChange}
+            />
+            <button
+              type="button"
+              className="password_toggle"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+            </button>
+          </div>
+          {errors.password && (
+            <span className="error_text">{errors.password}</span>
+          )}
+        </div>
+
+        <div className="form_group">
+          <label htmlFor="confirmPassword" className="form_label">
+            <FontAwesomeIcon icon={faLock} />
+            Confirm Password
+          </label>
+          <div className="password_input_wrapper">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              name="confirmPassword"
+              className={`form_input ${errors.confirmPassword ? 'error' : ''}`}
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+            />
+            <button
+              type="button"
+              className="password_toggle"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+            </button>
+          </div>
+          {errors.confirmPassword && (
+            <span className="error_text">{errors.confirmPassword}</span>
+          )}
+        </div>
+      </div>
+
+      {/* Terms Agreement */}
+      <div className="form_group">
+        <label className="checkbox_label terms_checkbox">
+          <input
+            type="checkbox"
+            name="agreeToTerms"
+            checked={formData.agreeToTerms}
+            onChange={handleInputChange}
+            className="checkbox_input"
+          />
+          <span className="checkmark"></span>
+          I agree to the{' '}
+          <Link to="/terms" className="terms_link">Terms of Service</Link>
+          {' '}and{' '}
+          <Link to="/privacy" className="terms_link">Privacy Policy</Link>
+        </label>
+        {errors.agreeToTerms && (
+          <span className="error_text">{errors.agreeToTerms}</span>
+        )}
+      </div>
+
+      {/* Submit Button */}
+      <button 
+        type="submit" 
+        className="signup_submit_btn"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="loading_spinner">
+            <div className="spinner"></div>
+            Creating Account...
+          </div>
+        ) : (
+          'Create Account'
+        )}
+      </button>
+    </form>
+  );
+
+  // Verification components will be implemented later
+
+  return (
+    <div className="signup_wrapper">
+      {/* Header */}
+      <header className="signup_header">
+        <div className="header_container">
+          <div className="logo_section">
+            <div className="logo_icon">
+              <FontAwesomeIcon icon={faRocket} />
             </div>
-            
-            <h1 className="welcome-title">Welcome to RocketJobs</h1>
-            <p className="welcome-subtitle">Already have an account?</p>
-            
-            <Link to="/login" className="login-btn">
-              <span className="btn-text">Login</span>
-              <span className="btn-icon">→</span>
+            <div className="logo_text">
+              <div className="logo_title">RocketJobs</div>
+              <div className="logo_subtitle">AI-Powered Job Matching</div>
+            </div>
+          </div>
+          
+          <div className="header_actions">
+            <Link to="/" className="btn btn_secondary">
+              <FontAwesomeIcon icon={faArrowLeft} />
+              Back to Home
             </Link>
           </div>
-          
-          <div className="features-list">
-            <h3>Why Join Us?</h3>
-            <ul>
-              <li>
-                <span className="feature-icon">🚀</span>
-                <span className="feature-text">AI-powered job matching</span>
-              </li>
-              <li>
-                <span className="feature-icon">📝</span>
-                <span className="feature-text">Personalized resume review</span>
-              </li>
-              <li>
-                <span className="feature-icon">🤝</span>
-                <span className="feature-text">Connect with top recruiters instantly</span>
-              </li>
-              <li>
-                <span className="feature-icon">💼</span>
-                <span className="feature-text">Advanced career insights</span>
-              </li>
-              <li>
-                <span className="feature-icon">🎯</span>
-                <span className="feature-text">Smart job recommendations</span>
-              </li>
-            </ul>
-          </div>
-          
-          <div className="floating-shapes">
-            <div className="shape shape-1"></div>
-            <div className="shape shape-2"></div>
-            <div className="shape shape-3"></div>
-            <div className="shape shape-4"></div>
-            <div className="shape shape-5"></div>
-          </div>
         </div>
+      </header>
 
-        {/* Right Panel - Signup Form */}
-        <div className="signup-right">
-          <div className="form-header">
-            <h2 className="signup-title">Create Your Account</h2>
-            <p className="signup-subtitle">Find your dream job or hire top talent effortlessly.</p>
-          </div>
+      {/* Main Content */}
+      <main className="signup_main">
+        <div className="signup_container">
+          <div className="signup_content">
+            {/* Left Side - Form/Verification */}
+            <div className="signup_form_section">
+              <div className="signup_form_container">
+                                 <div className="signup_header_content">
+                   <h1 className="signup_title">Join RocketJobs</h1>
+                   <p className="signup_subtitle">
+                     Create your account and start your career journey with AI-powered job matching
+                   </p>
+                 </div>
 
-          <form onSubmit={handleSubmit} className="signup-form">
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">User Type</label>
-                <div className="select-wrapper">
-                  <select 
-                    name="userType" 
-                    value={formData.userType} 
-                    onChange={handleChange}
-                    className="user-type-select"
-                  >
-                    <option value="jobSeeker">Job Seeker</option>
-                    <option value="recruiter">Recruiter</option>
-                  </select>
-                </div>
+                 {/* Social Signup Buttons */}
+                 <div className="social_signup_section">
+                   <button 
+                     className="social_signup_btn google"
+                     onClick={() => handleSocialSignup('google')}
+                   >
+                     <FontAwesomeIcon icon={faGoogleBrand} />
+                     Continue with Google
+                   </button>
+                   <button 
+                     className="social_signup_btn linkedin"
+                     onClick={() => handleSocialSignup('linkedin')}
+                   >
+                     <FontAwesomeIcon icon={faLinkedinBrand} />
+                     Continue with LinkedIn
+                   </button>
+                 </div>
+
+                 <div className="divider">
+                   <span>or</span>
+                 </div>
+
+                 {renderForm()}
+
+                 {/* Sign In Link */}
+                 <div className="signin_prompt">
+                   <p>
+                     Already have an account?{' '}
+                     <Link to="/login" className="signin_link">
+                       Sign in here
+                     </Link>
+                   </p>
+                 </div>
               </div>
             </div>
 
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">
-                  {formData.userType === "jobSeeker" ? "Profile Picture" : "Company Logo"}
-                </label>
-                <div className="file-input-wrapper">
-                  <input 
-                    type="file" 
-                    name="profileImage" 
-                    accept="image/*" 
-                    onChange={handleImageChange}
-                    className="file-input"
-                    id="profile-image"
-                  />
-                  <label htmlFor="profile-image" className="file-input-label">
-                    <span className="file-text">
-                      {selectedFile ? selectedFile : "Choose file"}
-                    </span>
-                    <span className="file-upload-icon">↑</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">First Name</label>
-                <div className={`input-wrapper ${focusedField === 'firstName' ? 'focused' : ''}`}>
-                  <InputField
-                    label=""
-                    type="text"
-                    name="firstName"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('firstName')}
-                    onBlur={handleBlur}
-                    placeholder="Enter your first name"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="input-group">
-                <label className="form-label">Last Name</label>
-                <div className={`input-wrapper ${focusedField === 'lastName' ? 'focused' : ''}`}>
-                  <InputField
-                    label=""
-                    type="text"
-                    name="lastName"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('lastName')}
-                    onBlur={handleBlur}
-                    placeholder="Enter your last name"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Email Address</label>
-                <div className={`input-wrapper ${focusedField === 'email' ? 'focused' : ''}`}>
-                  <InputField
-                    label=""
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('email')}
-                    onBlur={handleBlur}
-                    placeholder="Enter your email address"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Password</label>
-                <div className={`input-wrapper ${focusedField === 'password' ? 'focused' : ''}`}>
-                  <InputField
-                    label=""
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('password')}
-                    onBlur={handleBlur}
-                    placeholder="Enter your password"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="input-group">
-                <label className="form-label">Confirm Password</label>
-                <div className={`input-wrapper ${focusedField === 'confirmPassword' ? 'focused' : ''}`}>
-                  <InputField
-                    label=""
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('confirmPassword')}
-                    onBlur={handleBlur}
-                    placeholder="Confirm your password"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="input-group">
-                <label className="form-label">Phone Number</label>
-                <div className={`input-wrapper ${focusedField === 'phoneNumber' ? 'focused' : ''}`}>
-                  <InputField
-                    label=""
-                    type="tel"
-                    name="phoneNumber"
-                    value={formData.phoneNumber}
-                    onChange={handleChange}
-                    onFocus={() => handleFocus('phoneNumber')}
-                    onBlur={handleBlur}
-                    placeholder="Enter your phone number"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {formData.userType === "jobSeeker" && (
-              <div className="form-row">
-                <div className="input-group">
-                  <label className="form-label">LinkedIn Profile (Optional)</label>
-                  <div className={`input-wrapper ${focusedField === 'linkedInProfile' ? 'focused' : ''}`}>
-                    <InputField
-                      label=""
-                      type="url"
-                      name="linkedInProfile"
-                      value={formData.linkedInProfile}
-                      onChange={handleChange}
-                      onFocus={() => handleFocus('linkedInProfile')}
-                      onBlur={handleBlur}
-                      placeholder="Enter your LinkedIn profile URL"
-                    />
+            {/* Right Side - Features */}
+            <div className="signup_features_section">
+              <div className="features_content">
+                <h2 className="features_title">Why Choose RocketJobs?</h2>
+                <div className="features_list">
+                  <div className="feature_item">
+                    <div className="feature_icon">
+                      <FontAwesomeIcon icon={faRocket} />
+                    </div>
+                    <div className="feature_text">
+                      <h3>AI-Powered Matching</h3>
+                      <p>Our advanced AI finds the perfect job matches for your skills and experience</p>
+                    </div>
                   </div>
-                </div>
-              </div>
-            )}
-
-            {formData.userType === "recruiter" && (
-              <>
-                <div className="form-row">
-                  <div className="input-group">
-                    <label className="form-label">Company Name</label>
-                    <div className={`input-wrapper ${focusedField === 'companyName' ? 'focused' : ''}`}>
-                      <InputField
-                        label=""
-                        type="text"
-                        name="companyName"
-                        value={formData.companyName}
-                        onChange={handleChange}
-                        onFocus={() => handleFocus('companyName')}
-                        onBlur={handleBlur}
-                        placeholder="Enter your company name"
-                        required
-                      />
+                  
+                  <div className="feature_item">
+                    <div className="feature_icon">
+                      <FontAwesomeIcon icon={faEnvelope} />
+                    </div>
+                    <div className="feature_text">
+                      <h3>Smart Notifications</h3>
+                      <p>Get personalized job alerts and updates that match your preferences</p>
+                    </div>
+                  </div>
+                  
+                  <div className="feature_item">
+                    <div className="feature_icon">
+                      <FontAwesomeIcon icon={faLock} />
+                    </div>
+                    <div className="feature_text">
+                      <h3>Secure & Private</h3>
+                      <p>Your data is protected with enterprise-grade security and privacy controls</p>
                     </div>
                   </div>
                 </div>
-                <div className="form-row">
-                  <div className="input-group">
-                    <label className="form-label">Company Website</label>
-                    <div className={`input-wrapper ${focusedField === 'companyWebsite' ? 'focused' : ''}`}>
-                      <InputField
-                        label=""
-                        type="url"
-                        name="companyWebsite"
-                        value={formData.companyWebsite}
-                        onChange={handleChange}
-                        onFocus={() => handleFocus('companyWebsite')}
-                        onBlur={handleBlur}
-                        placeholder="Enter your company website URL"
-                        required
-                      />
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {error && (
-              <div className="error-message">
-                <span className="error-icon">⚠️</span>
-                <span className="error-text">{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div className="success-message">
-                <span className="success-icon">✅</span>
-                <span className="success-text">{success}</span>
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              className="signup-button"
-              label={isLoading ? "Creating account..." : "Sign Up"}
-              disabled={isLoading}
-              text={isLoading ? "Creating account..." : "Sign Up"}
-            />
-
-            <div className="social-login">
-              <div className="divider">
-                <span className="divider-line"></span>
-                <span className="divider-text">or sign up with social platforms</span>
-                <span className="divider-line"></span>
-              </div>
-              
-              <div className="social-buttons">
-                <button type="button" className="social-btn google" title="Sign up with Google">
-                  <svg className="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                </button>
-                <button type="button" className="social-btn facebook" title="Sign up with Facebook">
-                  <svg className="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                </button>
-                <button type="button" className="social-btn github" title="Sign up with GitHub">
-                  <svg className="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                  </svg>
-                </button>
-                <button type="button" className="social-btn linkedin" title="Sign up with LinkedIn">
-                  <svg className="social-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-                  </svg>
-                </button>
               </div>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

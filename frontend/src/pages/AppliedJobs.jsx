@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
-import Header from "../components/Header";
+
 import BackButton from "../components/BackButton";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { buildApiUrl } from "../config/api";
 import "../styles/AppliedJobs.css";
 
 const AppliedJobs = () => {
@@ -22,15 +24,16 @@ const AppliedJobs = () => {
 
     try {
       setLoading(true);
-      const response = await axios.get(`http://127.0.0.1:5000/api/applications/get_applications`, { params: { userId } });
+      const response = await axios.get(buildApiUrl("/api/applications/get_applications"), { params: { userId } });
 
       if (response.data && Array.isArray(response.data.applications)) {
         setAppliedJobs(response.data.applications);
       } else {
-        console.error("Unexpected API response:", response.data);
+        setAppliedJobs([]);
       }
     } catch (error) {
-      console.error("Error fetching applied jobs:", error);
+      console.error('Error fetching applied jobs:', error);
+      setAppliedJobs([]);
     } finally {
       setLoading(false);
     }
@@ -39,7 +42,7 @@ const AppliedJobs = () => {
   /** Fetch All Job Details */
   const fetchJobDetails = useCallback(async () => {
     try {
-      const response = await axios.get("http://127.0.0.1:5000/api/jobs/get_jobs");
+      const response = await axios.get(buildApiUrl("/api/jobs/get_jobs"));
 
       if (response.data && Array.isArray(response.data)) {
         setJobDetails(response.data);
@@ -59,7 +62,7 @@ const AppliedJobs = () => {
   /** Apply for a Job */
   const applyForJob = useCallback(async (jobId) => {
     try {
-      await axios.put(`http://127.0.0.1:5000/api/applications/update_status`, { userId, jobId, status: "applied" });
+      await axios.put(buildApiUrl("/api/applications/update_status"), { userId, jobId, status: "applied" });
       fetchAppliedJobs();
     } catch (error) {
       console.error("Error applying for job:", error);
@@ -139,13 +142,14 @@ const AppliedJobs = () => {
   if (loading) {
     return (
       <div className="applied_jobs_page">
-        <Header />
-        <BackButton to="/jobseeker-dashboard" text="Back to Dashboard" />
+        <BackButton to="/jobseeker-dashboard" text="Back" />
         <div className="applied_jobs_container">
-          <div className="loading_container">
-            <div className="loading_spinner"></div>
-            <p>Loading your applied jobs...</p>
-          </div>
+          <LoadingSpinner 
+            type="dots" 
+            size="large" 
+            text="Loading your applied jobs..." 
+            showText={true}
+          />
         </div>
       </div>
     );
@@ -153,8 +157,7 @@ const AppliedJobs = () => {
 
   return (
     <div className="applied_jobs_page">
-      <Header />
-      <BackButton to="/jobseeker-dashboard" text="Back to Dashboard" />
+      <BackButton to="/jobseeker-dashboard" text="Back" />
       
       <div className="applied_jobs_container">
         {/* Section Header */}
@@ -168,6 +171,7 @@ const AppliedJobs = () => {
 
         {/* Enhanced Search & Filters */}
         <div className="enhanced_filters_container">
+          <h2 className="search-section-title">Applied Jobs Search</h2>
           <div className="filters_grid">
             <div className="filter_group">
               <label className="filter_label">Search</label>

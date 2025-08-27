@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
+
 import BackButton from '../components/BackButton';
 import { analyticsApi } from '../api/analyticsApi';
 import '../styles/AnalyticsDashboard.css';
@@ -405,7 +405,6 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <div className="analytics-dashboard">
-        <Header />
         <div className="loading">Loading analytics...</div>
       </div>
     );
@@ -413,47 +412,46 @@ const AnalyticsDashboard = () => {
 
   return (
     <div className="analytics-dashboard">
-      <Header />
-      <BackButton to="/recruiter-dashboard" text="Back to Dashboard" />
-      
-      <div className="dashboard-container">
-        <div className="dashboard-header">
-          <h1>Analytics Dashboard</h1>
-          <p>Comprehensive insights into your recruitment performance</p>
-        </div>
+      <BackButton to="/recruiter-dashboard" text="Back" />
+    
+    <div className="dashboard-container">
+      <div className="dashboard-header">
+        <h1>Analytics Dashboard</h1>
+        <p>Comprehensive insights into your recruitment performance</p>
+      </div>
 
-        <div className="dashboard-tabs">
-          <button
-            className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'thresholds' ? 'active' : ''}`}
-            onClick={() => setActiveTab('thresholds')}
-          >
-            Match Thresholds
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`}
-            onClick={() => setActiveTab('skills')}
-          >
-            Skills Gap Analysis
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
-            onClick={() => setActiveTab('history')}
-          >
-            Matching History
-          </button>
-          <button
-            className={`tab-btn ${activeTab === 'competitor' ? 'active' : ''}`}
-            onClick={() => setActiveTab('competitor')}
-          >
-            Competitor Analysis
-          </button>
-        </div>
+      <div className="dashboard-tabs">
+        <button
+          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'thresholds' ? 'active' : ''}`}
+          onClick={() => setActiveTab('thresholds')}
+        >
+          Match Thresholds
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'skills' ? 'active' : ''}`}
+          onClick={() => setActiveTab('skills')}
+        >
+          Skills Gap Analysis
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'history' ? 'active' : ''}`}
+          onClick={() => setActiveTab('history')}
+        >
+          Matching History
+        </button>
+        <button
+          className={`tab-btn ${activeTab === 'competitor' ? 'active' : ''}`}
+          onClick={() => setActiveTab('competitor')}
+        >
+          Competitor Analysis
+        </button>
+      </div>
 
         <div className="tab-content">
           {activeTab === 'overview' && renderOverviewTab()}

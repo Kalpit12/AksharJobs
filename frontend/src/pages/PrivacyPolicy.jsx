@@ -1,13 +1,12 @@
 import React from 'react';
 import '../styles/PrivacyPolicy.css';
-import Header from '../components/Header';
+
 import BackButton from '../components/BackButton';
 
 const PrivacyPolicy = () => {
   return (
     <div className="privacy_policy_section">
-      <Header />
-      <BackButton to="/jobseeker-dashboard" text="Back to Dashboard" />
+      <BackButton to="/jobseeker-dashboard" text="Back" />
       <h1>Privacy Policy</h1>
       <p>
         At <strong>TalentMatch</strong>, we respect your privacy and are committed to protecting the personal information you share with us.

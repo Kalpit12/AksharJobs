@@ -1,193 +1,530 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import "../styles/Header.css";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faHome,
+  faBriefcase,
+  faUser,
+  faCog,
+  faSignOutAlt,
+  faChartLine,
+  faBell,
+  faEnvelope,
+  faFileAlt,
+  faUpload,
+  faNewspaper,
+  faInfoCircle,
+  faAngleDown,
+  faBars,
+  faTimes
+} from '@fortawesome/free-solid-svg-icons';
+import { useAuth } from '../context/AuthContext';
+import '../styles/Header.css';
 
 const Header = () => {
-  const navigate = useNavigate();
-  const userId = localStorage.getItem("userId");
-  const userRole = localStorage.getItem("role");
-  const recruiterAvatar = "https://tse1.mm.bing.net/th?id=OIP.SLlIMAFQM9EeKfUS610FdwAAAA&pid=Api&P=0&h=180";
-  const jobSeekerAvatar = "https://www.w3schools.com/w3images/avatar2.png";
-
-  const [userName, setUserName] = useState("");
-  const [userImage, setUserImage] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
-
-  const loadUserdata = useCallback(async () => {
-    try {
-      const response = await axios.get(`http://127.0.0.1:5000/api/auth/get_user?userId=${userId}`);
-      if (response.data) {
-        setUserName(response.data.firstName);
-        setUserImage(response.data.profileImage || (userRole === "recruiter" ? recruiterAvatar : jobSeekerAvatar));
-        // Check if user has premium subscription
-        const paymentData = localStorage.getItem('paymentData');
-        if (paymentData) {
-          const payment = JSON.parse(paymentData);
-          setIsPremium(payment.status === 'success' && payment.planName !== 'Basic');
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      type: 'job',
+      title: 'New job match found',
+      message: 'A new job matching your profile has been posted',
+      time: '2 hours ago',
+      isRead: false
+    },
+    {
+      id: 2,
+      type: 'message',
+      title: 'New message from recruiter',
+      message: 'Sarah from Google has sent you a message',
+      time: '4 hours ago',
+      isRead: false
+    },
+    {
+      id: 3,
+      type: 'application',
+      title: 'Application status updated',
+      message: 'Your application has been reviewed',
+      time: '1 day ago',
+      isRead: true
     }
-  }, [userId, userRole, recruiterAvatar, jobSeekerAvatar]);
+  ]);
 
+  const { user, isAuthenticated, logout } = useAuth();
+  
+  // Debug: Log user object to see what's available
   useEffect(() => {
-    loadUserdata();
-  }, [loadUserdata]);
+    if (user) {
+      console.log('User object in Header:', user);
+    }
+  }, [user]);
+  const location = useLocation();
+  const notificationsRef = useRef(null);
+  const messagesRef = useRef(null);
+  const userMenuRef = useRef(null);
 
-  // Listen for profile updates from other components
-  useEffect(() => {
-    const handleProfileUpdate = () => {
-      loadUserdata();
-    };
+  // Extract user name from firstName or email
+  const getUserDisplayName = () => {
+    if (user?.firstName && user.firstName !== 'undefined') {
+      return user.firstName;
+    } else if (user?.email && user.email !== 'undefined') {
+      // Extract name from email (e.g., kalpitpatel751@gmail.com -> Kalpit)
+      const emailName = user.email.split('@')[0];
+      return emailName.replace(/[0-9]/g, '').replace(/\./g, ' ').replace(/_/g, ' ').trim();
+    }
+    return 'User';
+  };
 
-    window.addEventListener('profileUpdated', handleProfileUpdate);
-    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
-  }, [loadUserdata]);
+  // Get user role from context
+  const getUserRole = () => {
+    if (!user?.role || user.role === 'undefined') {
+      return 'jobSeeker';
+    }
+    return user.role;
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const toggleUserMenu = () => {
+    setIsUserMenuOpen(!isUserMenuOpen);
+    setShowNotifications(false);
+    setShowMessages(false);
+  };
 
   const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
+    logout();
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
-  const toggleProfileDropdown = () => {
-    setIsProfileDropdownOpen(!isProfileDropdownOpen);
+  const markAllNotificationsAsRead = () => {
+    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
   };
 
-  const closeDropdowns = () => {
-    setIsDropdownOpen(false);
-    setIsProfileDropdownOpen(false);
+  const markNotificationAsRead = (id) => {
+    setNotifications(prev => prev.map(notif =>
+      notif.id === id ? { ...notif, isRead: true } : notif
+    ));
   };
 
-  // Close dropdowns when clicking outside
+  const getUnreadCount = () => {
+    return notifications.filter(notif => !notif.isRead).length;
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+  };
+
+  // Handle click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (!event.target.closest('.header')) {
-        closeDropdowns();
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false);
+      }
+      if (messagesRef.current && !messagesRef.current.contains(event.target)) {
+        setShowMessages(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
+
+  const isActiveRoute = (path) => {
+    return location.pathname === path;
+  };
+
+  const getRoleDisplayName = (role) => {
+    if (!role || role === 'undefined') return 'User';
+    
+    const roleMap = {
+      'recruiter': 'Recruiter',
+      'jobSeeker': 'Job Seeker',
+      'jobseeker': 'Job Seeker',
+      'admin': 'Administrator'
+    };
+    
+    return roleMap[role.toLowerCase()] || 'User';
+  };
+
+  const getDashboardRoute = () => {
+    if (!user || !user.role) return '/';
+    
+    const role = user.role.toLowerCase();
+    if (role === 'recruiter') return '/recruiter-dashboard';
+    if (role === 'jobseeker' || role === 'jobseeker') return '/jobseeker-dashboard';
+    if (role === 'admin') return '/admin';
+    
+    return '/';
+  };
 
   return (
     <header className="header">
       <div className="header-container">
-        <div className="header-left">
-          <div className="logo-container" onClick={() => navigate(userRole === "recruiter" ? "/recruiter-dashboard" : "/jobseeker-dashboard")}>
-            <img src="/RocketJobs_Logo.jpg" alt="RocketJobs Logo" className="header-logo-img" />
-            <div className="logo-text">
-              <h1 className="header-logo">RocketJobs</h1>
-              <p className="header-tagline">Where Opportunity Meets Talent</p>
+        {/* Logo */}
+        <Link to={getDashboardRoute()} className="header-logo">
+          <img src="/RocketJobs_Logo.jpg" alt="AksharJobs Logo" />
+          <div>
+            <div className="header-logo-text">AksharJobs</div>
+            <div className="header-logo-tagline">AI-Powered Job Matching</div>
+          </div>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="header-nav">
+          <Link 
+            to="/" 
+            className={isActiveRoute('/') ? 'active' : ''}
+          >
+            <FontAwesomeIcon icon={faHome} />
+            Home
+          </Link>
+          
+          <Link 
+            to="/jobs" 
+            className={isActiveRoute('/jobs') ? 'active' : ''}
+          >
+            <FontAwesomeIcon icon={faBriefcase} />
+            Find Jobs
+          </Link>
+          
+          <Link 
+            to="/about" 
+            className={isActiveRoute('/about') ? 'active' : ''}
+          >
+            <FontAwesomeIcon icon={faInfoCircle} />
+            About Us
+          </Link>
+          
+          <Link 
+            to="/blog" 
+            className={isActiveRoute('/blog') ? 'active' : ''}
+          >
+            <FontAwesomeIcon icon={faNewspaper} />
+            Blog
+          </Link>
+        </nav>
+
+        {/* Header Actions */}
+        <div className="header-actions">
+          {/* Notifications */}
+          <div className="notifications-wrapper" ref={notificationsRef}>
+            <button 
+              className="action-button notifications-btn" 
+              onClick={() => setShowNotifications(!showNotifications)}
+              aria-label="Toggle notifications"
+            >
+              <FontAwesomeIcon icon={faBell} />
+              {getUnreadCount() > 0 && (
+                <span className="notification-badge">{getUnreadCount()}</span>
+              )}
+            </button>
+            
+            {/* Notifications Dropdown */}
+            {showNotifications && (
+              <div className="notifications-dropdown show">
+                <div className="notifications-header">
+                  <h3>Notifications ({getUnreadCount()} unread)</h3>
+                  <div className="notifications-actions">
+                    <button 
+                      className="mark-all-read" 
+                      onClick={markAllNotificationsAsRead}
+                      disabled={getUnreadCount() === 0}
+                    >
+                      Mark all read
+                    </button>
+                    <button 
+                      className="clear-all" 
+                      onClick={clearAllNotifications}
+                      disabled={notifications.length === 0}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                </div>
+                <div className="notifications-list">
+                  {notifications.map(notification => (
+                    <div 
+                      key={notification.id} 
+                      className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
+                      onClick={() => markNotificationAsRead(notification.id)}
+                    >
+                      <div className="notification-icon">
+                        <FontAwesomeIcon 
+                          icon={
+                            notification.type === 'job' ? faBriefcase :
+                            notification.type === 'message' ? faEnvelope :
+                            faUser
+                          } 
+                        />
+                      </div>
+                      <div className="notification-content">
+                        <h4>{notification.title}</h4>
+                        <p>{notification.message}</p>
+                        <span className="notification-time">{notification.time}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="notifications-footer">
+                  <Link to="/notifications" className="view-all-notifications">
+                    View all notifications
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Messages */}
+          <div className="messages-wrapper" ref={messagesRef}>
+            <button 
+              className="action-button messages-btn"
+              onClick={() => setShowMessages(!showMessages)}
+              aria-label="Toggle messages"
+            >
+              <FontAwesomeIcon icon={faEnvelope} />
+              <span className="message-badge">5</span>
+            </button>
+            
+            {/* Messages Dropdown */}
+            {showMessages && (
+              <div className="messages-dropdown">
+                <div className="messages-header">
+                  <h3>Messages</h3>
+                  <div className="messages-actions">
+                    <button 
+                      className="mark-all-read" 
+                      onClick={() => setShowMessages(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+                <div className="messages-list">
+                  <div className="message-item">
+                    <div className="message-icon">
+                      <FontAwesomeIcon icon={faEnvelope} />
+                    </div>
+                    <div className="message-content">
+                      <h4>New Message</h4>
+                      <p>You have 5 unread messages</p>
+                      <span className="message-time">Just now</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="messages-footer">
+                  <Link to="/messages" className="view-all-messages">
+                    View all messages
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* User Profile - New Clean Minimal Design */}
+          <div className="user-profile" ref={userMenuRef}>
+            <div className="profile-trigger" onClick={toggleUserMenu}>
+              <div className="profile-avatar">
+                <img 
+                  src="https://www.w3schools.com/w3images/avatar2.png" 
+                  alt="User Avatar" 
+                  className="avatar-image" 
+                />
+                <div className="profile-status-indicator"></div>
+              </div>
+              <div className="profile-info">
+                <div className="profile-name">{getUserDisplayName()}</div>
+                <div className="profile-role">{getRoleDisplayName(getUserRole()) || 'User'}</div>
+              </div>
+              <div className="profile-chevron">
+                <FontAwesomeIcon 
+                  icon={faAngleDown} 
+                  className={`chevron-icon ${isUserMenuOpen ? 'rotate' : ''}`}
+                />
+              </div>
+            </div>
+            
+            {/* New Profile Menu */}
+            <div className={`profile-menu ${isUserMenuOpen ? 'show' : ''}`}>
+              <div className="profile-menu-header">
+                <div className="profile-menu-avatar">
+                  <img 
+                    src="https://www.w3schools.com/w3images/avatar2.png" 
+                    alt="User Avatar" 
+                  />
+                </div>
+                <div className="profile-menu-details">
+                  <h3 className="profile-menu-name">{getUserDisplayName()}</h3>
+                  <p className="profile-menu-email">{user?.email && user.email !== 'undefined' ? user.email : 'No email available'}</p>
+                  <span className="profile-menu-role-badge">{getRoleDisplayName(getUserRole()) || 'User'}</span>
+                </div>
+              </div>
+              
+              <div className="profile-menu-divider"></div>
+              
+              <div className="profile-menu-actions">
+                <Link 
+                  to="/profile" 
+                  className="profile-menu-item" 
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <div className="menu-item-icon">
+                    <FontAwesomeIcon icon={faUser} />
+                  </div>
+                  <span className="menu-item-text">My Profile</span>
+                  <div className="menu-item-arrow">→</div>
+                </Link>
+                
+                <Link 
+                  to="/settings" 
+                  className="profile-menu-item" 
+                  onClick={() => setIsUserMenuOpen(false)}
+                >
+                  <div className="menu-item-icon">
+                    <FontAwesomeIcon icon={faCog} />
+                  </div>
+                  <span className="menu-item-text">Settings</span>
+                  <div className="menu-item-arrow">→</div>
+                </Link>
+                
+                {getUserRole() === 'recruiter' && (
+                  <Link 
+                    to="/post-job" 
+                    className="profile-menu-item" 
+                    onClick={() => setIsUserMenuOpen(false)}
+                  >
+                    <div className="menu-item-icon">
+                      <FontAwesomeIcon icon={faUpload} />
+                    </div>
+                    <span className="menu-item-text">Post Job</span>
+                    <div className="menu-item-arrow">→</div>
+                  </Link>
+                )}
+                
+                {getUserRole() === 'jobSeeker' && (
+                  <>
+                    <Link 
+                      to="/jobs" 
+                      className="profile-menu-item" 
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <div className="menu-item-icon">
+                        <FontAwesomeIcon icon={faBriefcase} />
+                      </div>
+                      <span className="menu-item-text">Browse Jobs</span>
+                      <div className="menu-item-arrow">→</div>
+                    </Link>
+                    
+                    <Link 
+                      to="/upload-resume" 
+                      className="profile-menu-item" 
+                      onClick={() => setIsUserMenuOpen(false)}
+                    >
+                      <div className="menu-item-icon">
+                        <FontAwesomeIcon icon={faFileAlt} />
+                      </div>
+                      <span className="menu-item-text">Upload Resume</span>
+                      <div className="menu-item-arrow">→</div>
+                    </Link>
+                  </>
+                )}
+              </div>
+              
+              <div className="profile-menu-divider"></div>
+              
+              <button 
+                onClick={handleLogout} 
+                className="profile-menu-logout"
+              >
+                <div className="logout-icon">
+                  <FontAwesomeIcon icon={faSignOutAlt} />
+                </div>
+                <span className="logout-text">Sign Out</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="header-right">
-                     
+        {/* Mobile Menu Toggle */}
+        <button className="mobile-menu-toggle" onClick={toggleMobileMenu}>
+          <FontAwesomeIcon icon={isMobileMenuOpen ? faTimes : faBars} />
+        </button>
+      </div>
 
-          <div className="header-profile">
-            <div className={`profile-dropdown ${isProfileDropdownOpen ? 'open' : ''}`}>
-              <button className="profile-btn" onClick={toggleProfileDropdown}>
-                <img src={userImage} alt="Profile" className="profile-image" />
-                <span className="profile-name">
-                  {userName}
-                </span>
-                <span className="dropdown-arrow">▼</span>
+      {/* Mobile Menu */}
+      <div className={`mobile-menu ${isMobileMenuOpen ? 'show' : ''}`}>
+        <div className="mobile-menu-content">
+          {/* Main Navigation */}
+          <div className="mobile-menu-section">
+            <div className="mobile-menu-title">Navigation</div>
+            <div className="mobile-menu-links">
+              <Link to="/" className="mobile-menu-link" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faHome} />
+                Home
+              </Link>
+              <Link to="/jobs" className="mobile-menu-link" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faBriefcase} />
+                Browse Jobs
+              </Link>
+              <Link to="/about" className="mobile-menu-link" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faInfoCircle} />
+                About Us
+              </Link>
+              <Link to="/blog" className="mobile-menu-link" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faNewspaper} />
+                Blog
+              </Link>
+            </div>
+          </div>
+
+          {/* User Actions */}
+          <div className="mobile-menu-section">
+            <div className="mobile-menu-title">Account</div>
+            <div className="mobile-menu-links">
+              <Link to="/profile" className="mobile-menu-link" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faUser} />
+                Profile
+              </Link>
+              <Link to="/settings" className="mobile-menu-link" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faCog} />
+                Settings
+              </Link>
+              {getUserRole() === 'recruiter' && (
+                <Link to="/post-job" className="mobile-menu-link" onClick={closeMobileMenu}>
+                  <FontAwesomeIcon icon={faUpload} />
+                  Post Job
+                </Link>
+              )}
+              {getUserRole() === 'jobSeeker' && (
+                <>
+                  <Link to="/jobs" className="mobile-menu-link" onClick={closeMobileMenu}>
+                    <FontAwesomeIcon icon={faBriefcase} />
+                    Browse Jobs
+                  </Link>
+                  <Link to="/upload-resume" className="mobile-menu-link" onClick={closeMobileMenu}>
+                    <FontAwesomeIcon icon={faFileAlt} />
+                    Upload Resume
+                  </Link>
+                </>
+              )}
+              <button onClick={handleLogout} className="mobile-menu-link">
+                <FontAwesomeIcon icon={faSignOutAlt} />
+                Logout
               </button>
-                             {isProfileDropdownOpen && (
-                 <div className="profile-dropdown-content">
-                   {userRole === "recruiter" ? (
-                     <>
-                       <NavLink to="/recruiter-dashboard" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">🏠</span>
-                         Dashboard
-                       </NavLink>
-                       <NavLink to="/allJobs" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">💼</span>
-                         All Jobs Posted
-                       </NavLink>
-                       <NavLink to="/job-description" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">📝</span>
-                         Post a Job
-                       </NavLink>
-                       <NavLink to="/recruiterApplicants" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">👥</span>
-                         View Applicants
-                       </NavLink>
-                       <NavLink to="/analytics-dashboard" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">📊</span>
-                         Analytics
-                       </NavLink>
-                       <div className="dropdown-divider"></div>
-                       <NavLink to="/profile" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">👤</span>
-                         Profile
-                       </NavLink>
-                       <NavLink to="/settings" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">⚙️</span>
-                         Settings & Privacy
-                       </NavLink>
-                       <NavLink to="/pricing" onClick={closeDropdowns} className="premium-upgrade-btn">
-                         <span className="dropdown-icon">🚀</span>
-                         Upgrade to Premium
-                       </NavLink>
-                       <button onClick={handleLogout} className="logout-btn">
-                         <span className="dropdown-icon">🚪</span>
-                         Logout
-                       </button>
-                     </>
-                   ) : (
-                     <>
-                       <NavLink to="/jobseeker-dashboard" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">🏠</span>
-                         Dashboard
-                       </NavLink>
-                       <NavLink to="/joblisting" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">🔍</span>
-                         Browse Jobs
-                       </NavLink>
-                       <NavLink to="/appliedjobs" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">📊</span>
-                         Match Scores
-                       </NavLink>
-                       <NavLink to="/upload" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">📄</span>
-                         Update Resume
-                       </NavLink>
-                       <NavLink to="/gigs" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">💼</span>
-                         Gig Marketplace
-                       </NavLink>
-                       <div className="dropdown-divider"></div>
-                       <NavLink to="/profile" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">👤</span>
-                         Profile
-                       </NavLink>
-                       <NavLink to="/settings" onClick={closeDropdowns}>
-                         <span className="dropdown-icon">⚙️</span>
-                         Settings & Privacy
-                       </NavLink>
-                       <NavLink to="/pricing" onClick={closeDropdowns} className="premium-upgrade-btn">
-                         <span className="dropdown-icon">🚀</span>
-                         Upgrade to Premium
-                       </NavLink>
-                       <button onClick={handleLogout} className="logout-btn">
-                         <span className="dropdown-icon">🚪</span>
-                         Logout
-                       </button>
-                     </>
-                   )}
-                 </div>
-               )}
             </div>
           </div>
         </div>

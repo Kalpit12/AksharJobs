@@ -100,17 +100,24 @@ def evaluate_application(resume_list, job_data):
 
     resume = resume_list[0]  
 
+    # Safely access resume fields with default values
+    profile_summary = resume.get('profile_summary', 'No profile summary available')
+    skills = resume.get('skills', [])
+    education = resume.get('education', [])
+    experience = resume.get('experience', [])
+    projects = resume.get('projects', [])
+    certificates = resume.get('certificates', [])
 
-    resume_text = f"{resume['profile_summary']} {', '.join(resume['skills'])}. "\
-              f"{' '.join([edu['degree'] for edu in resume['education']])}. "\
-              f"{' '.join([format_experience(exp) for exp in resume.get('experience', [])])}. "\
-              f"{' '.join([pro['title'] + ': ' + pro['description'] for pro in resume.get('projects', [])])}. "\
-              f"{', '.join([cert['name'] for cert in resume.get('certificates', [])])}."
+    resume_text = f"{profile_summary} {', '.join(skills) if skills else 'No skills specified'}. "\
+              f"{' '.join([edu.get('degree', 'Unknown degree') for edu in education]) if education else 'No education specified'}. "\
+              f"{' '.join([format_experience(exp) for exp in experience]) if experience else 'No experience specified'}. "\
+              f"{' '.join([pro.get('title', 'Unknown project') + ': ' + pro.get('description', 'No description') for pro in projects]) if projects else 'No projects specified'}. "\
+              f"{', '.join([cert.get('name', 'Unknown certificate') for cert in certificates]) if certificates else 'No certificates specified'}."
 
-    job_text = f"{job_data['job_title']} "\
-               f" Experience Required: {job_data['experience_required']}. "\
-               f"Education Required: {job_data['education_required']}. Skills Required: {job_data['required_skills']}. "\
-               f"Job Description: {job_data['description']}. Responsibilities: {job_data['responsibilities']}."
+    job_text = f"{job_data.get('job_title', 'Unknown job')} "\
+               f" Experience Required: {job_data.get('experience_required', 'Not specified')}. "\
+               f"Education Required: {job_data.get('education_required', 'Not specified')}. Skills Required: {job_data.get('required_skills', 'Not specified')}. "\
+               f"Job Description: {job_data.get('description', 'No description available')}. Responsibilities: {job_data.get('responsibilities', 'Not specified')}."
 
     
     return {

@@ -13,7 +13,7 @@ def create_test_jobseeker():
     # Connect to MongoDB
     try:
         client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']
+        db = client['TalentMatchDB']
         users_collection = db['users']
         
         print("✅ Connected to MongoDB successfully!")
@@ -25,12 +25,12 @@ def create_test_jobseeker():
     # Test job seeker user details
     jobseeker_data = {
         "userType": "job_seeker",
-        "firstName": "John",
-        "lastName": "Doe",
-        "email": "john.doe@example.com",
+        "firstName": "Kalpit",
+        "lastName": "Patel",
+        "email": "kalpit.patel@example.com",
         "password": bcrypt.hashpw("password123".encode("utf-8"), bcrypt.gensalt()),
         "phoneNumber": "+1 (555) 123-4567",
-        "linkedInProfile": "https://linkedin.com/in/johndoe",
+        "linkedInProfile": "https://linkedin.com/in/kalpitpatel",
         "profileImage": None,
         "subscription": {
             "plan": "Basic",
@@ -51,6 +51,7 @@ def create_test_jobseeker():
             print("❌ User already exists!")
             print(f"📧 Email: {jobseeker_data['email']}")
             print("🔒 Password: password123")
+            print("👤 Name: Kalpit Patel")
             return False
         
         # Insert user
@@ -58,9 +59,10 @@ def create_test_jobseeker():
         
         if result.inserted_id:
             print("✅ Test job seeker user created successfully!")
-            print("📧 Email: john.doe@example.com")
+            print("📧 Email: kalpit.patel@example.com")
             print("🔒 Password: password123")
             print("👤 User Type: Job Seeker")
+            print("👤 Name: Kalpit Patel")
             print("\n🚀 You can now login and test the frontend!")
             return True
         else:

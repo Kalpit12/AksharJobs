@@ -1,13 +1,12 @@
 from flask import Blueprint, request, jsonify
-from flask_cors import cross_origin
 from services.auth_service import AuthService, get_user_by_id_or_email
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from services.cloudinary_service import upload_image
+from flask_cors import cross_origin
+from utils.auth_token import generate_jwt_token
 
 auth_routes = Blueprint("auth_routes", __name__)
 
 @auth_routes.route("/signup", methods=["POST"])
-@cross_origin(origins=["http://localhost:3000", "http://localhost:3001"])
 def signup():
     """
     Handles user registration (signup).
@@ -24,29 +23,40 @@ def signup():
     - JSON response with success or error message.
     """
 
-    if 'profileImage' in request.files:  
-        profile_image = request.files['profileImage']
-        print(f"Received file: {profile_image.filename}")
+    # Handle both JSON and form data
+    if request.is_json:
+        data = request.json
     else:
-        print("No file uploaded")
-
-    data = request.form.to_dict()
+        data = request.form.to_dict()
+    
+    # Ensure data is not None
+    if data is None:
+        return jsonify({"error": "No data received"}), 400
+    
     print(f"Received Sign up Data: {data}")
+    print(f"Data types: {[(k, type(v), v) for k, v in data.items()]}")
+    
+    # Validate required fields
+    required_fields = ["userType", "firstName", "lastName", "email", "password"]
+    
+    print(f"Required fields check: {[(field, field in data, data.get(field, 'NOT_FOUND')) for field in required_fields]}")
+    
+    for field in required_fields:
+        if field not in data or not data[field]:
+            return jsonify({"error": f"Missing required field: {field}"}), 400
+    
+    # Validate that required fields are not empty strings
+    for field in required_fields:
+        if not data[field].strip():
+            return jsonify({"error": f"Field {field} cannot be empty"}), 400
+    
     user_type = data.get("userType", "")
 
-    profile_image = request.files.get("profileImage")
-    company_logo = request.files.get("companyLogo") 
-    #print("Profile",profile_image)
-    profile_image_url = upload_image(profile_image) if profile_image else None
-    company_logo_url = upload_image(company_logo) if company_logo else None
-    print("URL",profile_image_url)
-
-    response, status = AuthService.signup(data, profile_image_url, company_logo_url)
-    print("Sign UP result",response,status)
+    response, status = AuthService.signup(data, None, None)
+    print("Sign UP result", response, status)
     return jsonify(response), status
 
-@auth_routes.route("/login", methods=["POST"])
-@cross_origin(origins=["http://localhost:3000", "http://localhost:3001"])
+@auth_routes.route("/login", methods=["POST", "OPTIONS"])
 def login():
     """
     Handles user login.
@@ -58,10 +68,15 @@ def login():
     - JSON response with user details and authentication token if successful.
     - Error message if authentication fails.
     """
+    # Handle preflight OPTIONS request
+    if request.method == "OPTIONS":
+        return jsonify({"message": "OK"}), 200
+    
     data = request.json
     response, status = AuthService.login(data)
 
     print("User got",response)
+    
     return jsonify(response), status
 
 @auth_routes.route("/logout", methods=["POST"])
@@ -97,7 +112,6 @@ def get_user():
     return jsonify(user_data), 200
 
 @auth_routes.route('/update_profile', methods=['PUT'])
-@cross_origin(origins=["http://localhost:3000", "http://localhost:3001"])
 def update_profile():
     """
     Updates user profile information.
@@ -110,6 +124,9 @@ def update_profile():
     """
     try:
         data = request.json
+        if data is None:
+            return jsonify({"error": "No data received"}), 400
+            
         user_id = data.get('userId')
         
         if not user_id:
@@ -122,11 +139,11 @@ def update_profile():
         
         # Update fields
         update_fields = {}
-        if 'firstName' in data:
+        if data.get('firstName'):
             update_fields['firstName'] = data['firstName']
-        if 'lastName' in data:
+        if data.get('lastName'):
             update_fields['lastName'] = data['lastName']
-        if 'profilePicture' in data:
+        if data.get('profilePicture'):
             update_fields['profileImage'] = data['profilePicture']
         
         if not update_fields:
@@ -147,3 +164,24 @@ def update_profile():
     except Exception as e:
         print(f"Error updating profile: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
+
+@auth_routes.route("/refresh", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    """Refresh JWT token"""
+    try:
+        current_user_id = get_jwt_identity()
+        if not current_user_id:
+            return jsonify({"error": "Invalid refresh token"}), 401
+        
+        # Generate new access token
+        new_token = generate_jwt_token(current_user_id)
+        
+        return jsonify({
+            "token": new_token,
+            "message": "Token refreshed successfully"
+        }), 200
+        
+    except Exception as e:
+        print(f"Error refreshing token: {e}")
+        return jsonify({"error": "Failed to refresh token"}), 500

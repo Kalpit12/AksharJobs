@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
+
 import '../styles/Payment.css';
 
 const Payment = () => {
@@ -96,7 +96,6 @@ const Payment = () => {
 
   return (
     <div className="payment-container">
-      <Header />
       <div className="payment-content">
         <div className="payment-header">
           <h1>Complete Your Purchase</h1>

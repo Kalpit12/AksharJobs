@@ -12,11 +12,23 @@ DB_NAME = os.getenv("DB_NAME", "resume_matcher")  # Plans are in resume_matcher 
 def get_db():
     """Establishes connection with MongoDB and returns the database object."""
     try:
-        client = MongoClient(MONGO_URI,socketTimeoutMS=60000,  
-    connectTimeoutMS=60000)
+        client = MongoClient(MONGO_URI, socketTimeoutMS=60000, connectTimeoutMS=60000)
         db = client[DB_NAME]
-        print(" MongoDB connected successfully!")  
+        print("✅ MongoDB connected successfully!")  
         return db
     except Exception as e:
-        print(f" Error connecting to MongoDB: {e}") 
+        print(f"❌ Error connecting to MongoDB: {e}") 
         return None
+
+def is_db_connected():
+    """Check if database connection is working"""
+    try:
+        db = get_db()
+        if db is not None:
+            # Test the connection by running a simple command
+            db.command('ping')
+            return True
+        return False
+    except Exception as e:
+        print(f"❌ Database connection test failed: {e}")
+        return False

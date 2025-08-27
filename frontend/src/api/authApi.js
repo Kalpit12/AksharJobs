@@ -1,8 +1,10 @@
+import API_CONFIG from '../config/api.js';
+
 // Authentication API endpoints
 export const authApi = {
   // Sign up
   signup: async (userData) => {
-    const response = await fetch('http://localhost:5000/api/signup', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.AUTH_ENDPOINTS.SIGNUP}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -14,7 +16,7 @@ export const authApi = {
 
   // Login
   login: async (credentials) => {
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.AUTH_ENDPOINTS.LOGIN}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -26,7 +28,7 @@ export const authApi = {
 
   // Get user info
   getUser: async (userId) => {
-    const response = await fetch(`http://localhost:5000/api/auth/get_user?userId=${userId}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.AUTH_ENDPOINTS.GET_USER}?userId=${userId}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +39,7 @@ export const authApi = {
 
   // Logout
   logout: async () => {
-    const response = await fetch('http://localhost:5000/api/auth/logout', {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.AUTH_ENDPOINTS.LOGOUT}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -30,7 +30,15 @@ def apply():
     
 
     result = process_application(user_id, job_id,status)
-    return jsonify(result)
+    
+    # Handle the tuple return from process_application
+    if isinstance(result, tuple) and len(result) == 2:
+        # If result is a tuple (error_dict, status_code)
+        error_dict, status_code = result
+        return jsonify(error_dict), status_code
+    else:
+        # If result is a success dict
+        return jsonify(result)
 
 @application_routes.route("/get_applications", methods=["GET"])
 def get_applications():

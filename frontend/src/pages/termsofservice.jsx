@@ -1,11 +1,10 @@
 import React from 'react';
 import '../styles/TermsOfService.css';
-import Header from '../components/Header';
+
 
 const TermsOfService = () => {
   return (
     <div className="terms_section">
-      <Header />
       <h1>Terms of Service</h1>
       <p>
         Welcome to <strong>TalentMatch</strong>. These Terms of Service (“Terms”) govern your use of our platform, including all features like resume-job matching, job listings, and dashboards.

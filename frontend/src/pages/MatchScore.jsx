@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
-import Header from "../components/Header";
+
 import Button from "../components/Button";
 import BackButton from "../components/BackButton";
 import "../styles/MatchScore.css";
@@ -110,14 +110,15 @@ const MatchScore = () => {
   const handleApply = async () => {
     if (!matchDetails || matchDetails.status !== "") return;
 
-    console.log("🚀 Attempting to update status:", { userId, jobId });
+    console.log("🚀 Attempting to apply for job:", { userId, jobId });
 
     try {
-      const response = await axios.put(
-        `http://127.0.0.1:5000/api/applications/update_status`,
+      // First, process the application (this creates the application record and calculates match score)
+      const processResponse = await axios.post(
+        `http://127.0.0.1:5000/api/applications/apply`,
         { userId, jobId, status: "applied" }
       );
-      console.log("✅ Status updated:", response.data);
+      console.log("✅ Application processed:", processResponse.data);
       setMatchDetails((prev) => ({ ...prev, status: "applied" }));
 
       try {
@@ -129,13 +130,13 @@ const MatchScore = () => {
         console.error("❌ Failed to apply for job:", error);
       }
     } catch (error) {
-      console.error("❌ Error updating status:", error.response?.data || error.message);
+      console.error("❌ Error processing application:", error.response?.data || error.message);
     }
   };
 
   if (isLoading) return (
     <div className="match_score_page">
-      <Header />
+
       <div className="match_score_container">
         <p>🔄 Loading match score...</p>
       </div>
@@ -144,7 +145,7 @@ const MatchScore = () => {
 
   if (error) return (
     <div className="match_score_page">
-      <Header />
+
       <div className="match_score_container">
         <h2>❌ Error</h2>
         <p>{error}</p>
@@ -155,7 +156,7 @@ const MatchScore = () => {
 
   if (!matchDetails || !resumeDetails || !jobDetails) return (
     <div className="match_score_page">
-      <Header />
+
       <div className="match_score_container">
         <h2>⚠️ Missing Data</h2>
         <p>Some required data is missing:</p>
@@ -184,8 +185,8 @@ const MatchScore = () => {
 
   return (
     <div className="match_score_page">
-      <Header />
-      <BackButton to="/jobseeker-dashboard" text="Back to Dashboard" />
+
+      <BackButton to="/jobseeker-dashboard" text="Back" />
       <div className="match_score_container">
         <h2>🎯 Match Score Report</h2>
         

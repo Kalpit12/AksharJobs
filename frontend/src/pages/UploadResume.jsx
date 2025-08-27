@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "../components/Header";
+
 import BackButton from "../components/BackButton";
 import "../styles/UploadResume.css";
 
@@ -87,7 +87,6 @@ const UploadResume = () => {
 
   return (
     <div className="upload_resume_container">
-      <Header />
       <BackButton />
       
       <div className="upload_resume_card">

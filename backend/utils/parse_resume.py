@@ -7,7 +7,7 @@ import random
 import re
 import sys
 
-load_dotenv()
+load_dotenv('.edn.local')
 
 logging.basicConfig(level=logging.INFO)
 

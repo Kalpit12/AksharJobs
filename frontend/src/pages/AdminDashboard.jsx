@@ -7,6 +7,8 @@ import RecruiterMatrix from '../components/RecruiterMatrix';
 import PlanManagement from '../components/PlanManagement';
 import AnalyticsDashboard from '../components/AdminAnalyticsDashboard';
 import UserManagement from '../components/UserManagement';
+import SwahiliAnalysisManagement from '../components/SwahiliAnalysisManagement';
+import LoadingSpinner from '../components/LoadingSpinner';
 import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -108,6 +110,9 @@ const AdminDashboard = () => {
                 <button onClick={() => setActiveView('users')}>
                   Manage Users
                 </button>
+                <button onClick={() => setActiveView('swahili-analysis')}>
+                  Manage Swahili Analysis
+                </button>
               </div>
             </div>
           </div>
@@ -122,13 +127,24 @@ const AdminDashboard = () => {
         return <AnalyticsDashboard />;
       case 'users':
         return <UserManagement />;
+      case 'swahili-analysis':
+        return <SwahiliAnalysisManagement />;
       default:
         return <div>Select a view from the sidebar</div>;
     }
   };
 
   if (loading) {
-    return <div className="loading">Loading Admin Dashboard...</div>;
+    return (
+      <div className="admin-dashboard">
+        <LoadingSpinner 
+          type="pulse" 
+          size="large" 
+          text="Loading Admin Dashboard..." 
+          showText={true}
+        />
+      </div>
+    );
   }
 
   return (

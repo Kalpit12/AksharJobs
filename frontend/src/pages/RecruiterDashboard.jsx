@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "../components/Header";
+import { useAuth } from "../context/AuthContext";
+
 import PremiumPrompt from "../components/PremiumPrompt";
 import InterviewScorecard from "../components/InterviewScorecard";
 import TeamCollaboration from "../components/TeamCollaboration";
@@ -10,11 +11,16 @@ import CulturalProfileBuilder from "../components/CulturalProfileBuilder";
 import CompanyCultureAssessment from "../components/CompanyCultureAssessment";
 import CulturalFitScore from "../components/CulturalFitScore";
 import DiversityAnalytics from "../components/DiversityAnalytics";
+
 import { analyticsApi } from "../api/analyticsApi";
 import "../styles/RecruiterDashboard.css";
+import Header from "../components/Header";
 
 const RecruiterDashboard = () => {
+  const { user, isAuthenticated, isRecruiter } = useAuth();
   const navigate = useNavigate();
+  
+  // All hooks must be called before any conditional logic
   const [jobPostings, setJobPostings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,108 +104,79 @@ const RecruiterDashboard = () => {
         company: "TechCorp",
         avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
         matchScore: 92,
+        status: "Interview Scheduled",
+        lastContact: "2 days ago",
         experience: "5 years"
       },
       {
         id: 2,
         name: "Michael Chen",
         position: "Full Stack Engineer",
-        company: "InnovateLab",
+        company: "StartupXYZ",
         avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
         matchScore: 88,
-        experience: "4 years"
-      },
+        status: "Resume Review",
+        lastContact: "1 week ago",
+        experience: "3 years"
+      }
+    ],
+    shortlisted: [
       {
         id: 3,
         name: "Emily Rodriguez",
-        position: "UI/UX Designer",
+        position: "UX Designer",
         company: "DesignStudio",
         avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face",
-        matchScore: 85,
-        experience: "3 years"
+        matchScore: 95,
+        status: "Final Interview",
+        lastContact: "3 days ago",
+        experience: "4 years"
       }
     ],
     reviewing: [
       {
         id: 4,
-        name: "David Kim",
+        name: "David Wilson",
         position: "Backend Developer",
-        company: "DataFlow",
+        company: "DataTech",
         avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
-        matchScore: 91,
-        experience: "6 years"
-      },
-      {
-        id: 5,
-        name: "Lisa Wang",
-        position: "DevOps Engineer",
-        company: "CloudTech",
-        avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face",
         matchScore: 87,
-        experience: "4 years"
+        status: "Under Review",
+        lastContact: "4 days ago",
+        experience: "6 years"
       }
     ],
     interviewing: [
       {
-        id: 6,
-        name: "James Wilson",
-        position: "Product Manager",
-        company: "ProductHub",
-        avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face",
-        matchScore: 94,
-        experience: "7 years"
-      }
-    ],
-    shortlisted: [
-      {
-        id: 7,
-        name: "Maria Garcia",
-        position: "Data Scientist",
-        company: "AnalyticsPro",
-        avatar: "https://images.unsplash.com/photo-1487412720507-e7f430eb9c8b?w=150&h=150&fit=crop&crop=face",
-        matchScore: 96,
-        experience: "5 years"
-      }
-    ],
-    hired: [
-      {
-        id: 8,
-        name: "Alex Thompson",
-        position: "Mobile Developer",
-        company: "AppWorks",
-        avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop&crop=face",
-        matchScore: 89,
+        id: 5,
+        name: "Lisa Thompson",
+        position: "DevOps Engineer",
+        company: "CloudScale",
+        avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150&h=150&fit=crop&crop=face",
+        matchScore: 91,
+        status: "Technical Interview",
+        lastContact: "1 day ago",
         experience: "4 years"
       }
-    ]
+    ],
+    offered: [],
+    hired: []
   });
 
-  // Drag and drop functionality
-  const handleDragStart = (e, candidate) => {
-    e.dataTransfer.setData("candidate", JSON.stringify(candidate));
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e, targetStage) => {
-    e.preventDefault();
-    const candidate = JSON.parse(e.dataTransfer.getData("candidate"));
+  // Authentication check - must come after all hooks
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
     
-    // Remove candidate from all stages
-    const newPipelineData = { ...pipelineData };
-    Object.keys(newPipelineData).forEach(stage => {
-      newPipelineData[stage] = newPipelineData[stage].filter(c => c.id !== candidate.id);
-    });
-    
-    // Add candidate to target stage
-    newPipelineData[targetStage] = [...newPipelineData[targetStage], candidate];
-    
-    setPipelineData(newPipelineData);
-  };
+    if (!isRecruiter) {
+      navigate('/');
+      return;
+    }
+  }, [isAuthenticated, isRecruiter, navigate]);
 
-  // Load analytics for the Analytics tab cards
+  // Load analytics for the Analytics tab cards - must come after all hooks
   useEffect(() => {
     const loadAnalytics = async () => {
       try {
@@ -216,6 +193,139 @@ const RecruiterDashboard = () => {
     };
     loadAnalytics();
   }, []);
+
+  // Fetch jobs and user details - must come after all hooks
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await axios.get(`http://localhost:5000/api/jobs/jobs_by_user/${userId}`);
+        setJobPostings(response.data || []);
+      } catch (err) {
+        setError("Failed to fetch job postings.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(`http://127.0.0.1:5000/api/auth/get_user?userId=${userId}`);
+        setUserDetails(response.data);
+      } catch (err) {
+        console.error("Failed to fetch user details.");
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    if (userId) {
+      fetchJobs();
+      fetchUserDetails();
+    }
+  }, [userId]);
+
+  // Load stored cultural profiles - must come after all hooks
+  useEffect(() => {
+    if (selectedCandidate) {
+      const stored = loadStoredJSON(`candidate_profile_${selectedCandidate.id}`);
+      if (stored) {
+        setCandidateCulturalProfile(stored);
+      } else {
+        setCandidateCulturalProfile(generateProfileFromCandidate(selectedCandidate));
+      }
+    }
+  }, [selectedCandidate]);
+
+  // Load company culture data - must come after all hooks
+  useEffect(() => {
+    const stored = loadStoredJSON('company_culture_profile');
+    if (stored) {
+      setCompanyCultureData(stored);
+    } else {
+      setCompanyCultureData(defaultCompanyCultureFromUser(userDetails));
+    }
+  }, [userDetails]);
+
+  // Fetch applications and interviews - must come after all hooks
+  useEffect(() => {
+    const fetchApplicationsAndInterviews = async () => {
+      try {
+        const applicationData = [];
+        const interviewData = [];
+    
+        for (const job of jobPostings) {
+          const response = await axios.get(
+            `http://localhost:5000/api/applications/get_applications?jobId=${job._id}`
+          );
+          const jobApplications = response.data.applications || [];
+    
+          // Check all applications for interviews, not just shortlisted ones
+          for (const application of jobApplications) {
+                        if (application.interviewDate) {
+              try {
+                const userResponse = await axios.get(
+                  `http://localhost:5000/api/auth/get_user?userId=${application.userId}`
+                );
+                
+                // Normalize field names to match what the interview display expects
+                const candidateDetails = {
+                  ...userResponse.data,
+                  id: application.userId, // Ensure we have an ID for the interview
+                  candidateId: application.userId,
+                  interviewDate: application.interviewDate,
+                  interviewMode: application.interviewMode,
+                  jobTitle: job.job_title,
+                  jobId: job._id,
+                  status: application.status,
+                  // Ensure we have the right field names for display
+                  firstName: userResponse.data.firstName || userResponse.data.first_name || userResponse.data.name?.split(' ')[0] || 'Candidate',
+                  lastName: userResponse.data.lastName || userResponse.data.last_name || userResponse.data.name?.split(' ').slice(1).join(' ') || '',
+                  matchScore: userResponse.data.match_score || userResponse.data.final_score || '85%',
+                  experience: userResponse.data.experience || '3 years',
+                  profileImage: userResponse.data.profileImage || userResponse.data.avatar,
+                };
+                
+                interviewData.push(candidateDetails);
+ 
+              } catch (userErr) {
+                console.error('Failed to fetch user details for interview:', application.userId, userErr);
+              }
+            }
+            
+            // Also add to application data for other purposes
+            try {
+              const userResponse = await axios.get(
+                `http://localhost:5000/api/auth/get_user?userId=${application.userId}`
+              );
+              const candidateDetails = {
+                ...userResponse.data,
+                interviewDate: application.interviewDate,
+                interviewMode: application.interviewMode,
+                jobTitle: job.job_title,
+              };
+              applicationData.push(candidateDetails);
+            } catch (userErr) {
+              console.error('Failed to fetch user details for application:', application.userId, userErr);
+            }
+          }
+        }
+        
+        setInterviews(interviewData);
+        
+      } catch (err) {
+        console.error("Failed to fetch applications or interviews.", err);
+      }
+    };
+    
+    if (jobPostings.length > 0) {
+      fetchApplicationsAndInterviews();
+    }
+  }, [jobPostings]);
+
+  // If not authenticated or not a recruiter, don't render the dashboard
+  if (!isAuthenticated || !isRecruiter) {
+    return null;
+  }
 
   // ---- Derived analytics metrics ----
   const totalApplications30 = matchingHistoryAnalytics.reduce(
@@ -265,83 +375,6 @@ const RecruiterDashboard = () => {
     return avg;
   })();
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/api/jobs/jobs_by_user/${userId}`);
-        setJobPostings(response.data || []);
-      } catch (err) {
-        setError("Failed to fetch job postings.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchUserDetails = async () => {
-      try {
-        const response = await axios.get(`http://127.0.0.1:5000/api/auth/get_user?userId=${userId}`);
-        setUserDetails(response.data);
-      } catch (err) {
-        console.error("Failed to fetch user details.");
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    };
-
-        if (userId) {
-      fetchJobs();
-      fetchUserDetails();
-    }
-    
-    // Show premium prompt for Basic users after a delay
-    setTimeout(() => {
-      try {
-        const paymentData = localStorage.getItem('paymentData');
-        if (!paymentData) {
-          setShowPremiumPrompt(true);
-        } else {
-          const parsedData = JSON.parse(paymentData);
-          if (parsedData.planName === 'Basic') {
-            setShowPremiumPrompt(true);
-          }
-        }
-      } catch (error) {
-        console.log('Error parsing payment data, showing premium prompt');
-        setShowPremiumPrompt(true);
-      }
-    }, 3000); // Show after 3 seconds
-    
-  }, [userId]);
-
-  // Debug: Monitor component mount
-  useEffect(() => {
-    // Component mount monitoring
-  }, []);
-
-  const filteredJobs = jobPostings
-    .filter(job => filterType === "all" || job.job_type === filterType)
-    .filter(job => job.job_title.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  const sortedJobs = [...filteredJobs].sort((a, b) => {
-    if (sortType === "deadline") return new Date(a.application_deadline) - new Date(b.application_deadline);
-    if (sortType === "applicants") return (b.applicants?.length || 0) - (a.applicants?.length || 0);
-    if (sortType === "views") return (Number(b.views) || 0) - (Number(a.views) || 0);
-    return 0;
-  });
-
-  const totalJobs = jobPostings.length;
-  const totalApplicants = jobPostings.reduce((sum, job) => sum + (job.applicants?.length || 0), 0);
-  const totalViews = jobPostings.reduce((sum, job) => sum + (Number(job.views) || 0), 0);
-  const activeJobs = jobPostings.filter(job => new Date(job.application_deadline) > new Date()).length;
-  const urgentJobs = jobPostings.filter(job => {
-    const deadline = new Date(job.application_deadline);
-    const now = new Date();
-    const daysUntilDeadline = (deadline - now) / (1000 * 60 * 60 * 24);
-    return daysUntilDeadline <= 7 && daysUntilDeadline > 0;
-  }).length;
-
-  const currentJobs = sortedJobs.slice(0, 8);
-  
   // Productivity Tools Handlers
   const openInterviewScorecard = (candidate, job) => {
     setSelectedCandidate(candidate);
@@ -403,73 +436,26 @@ const RecruiterDashboard = () => {
     setSelectedCandidate(null);
     setSelectedJob(null);
   };
-  
-  const fetchApplicationsAndInterviews = useCallback(async () => {
-    try {
-      const applicationData = [];
-      const interviewData = [];
-  
-      for (const job of jobPostings) {
-        const response = await axios.get(
-          `http://localhost:5000/api/applications/get_applications?jobId=${job._id}`
-        );
-        const jobApplications = response.data.applications || [];
-  
-        const shortlistedApplications = jobApplications.filter(
-          (app) => app.status === "shortlisted"
-        );
-  
-        for (const application of shortlistedApplications) {
-          const userResponse = await axios.get(
-            `http://localhost:5000/api/auth/get_user?userId=${application.userId}`
-          );
-          const candidateDetails = {
-            ...userResponse.data,
-            interviewDate: application.interviewDate,
-            interviewMode: application.interviewMode,
-            jobTitle: job.job_title,
-          };
-  
-          if (application.interviewDate) {
-            interviewData.push(candidateDetails);
-          }
-          applicationData.push(candidateDetails);
-        }
-      }
-      
-      setInterviews(interviewData);
-      
-    } catch (err) {
-      console.error("Failed to fetch applications or interviews.", err);
-    }
-  }, [jobPostings]);
-  
-  useEffect(() => {
-    if (jobPostings.length > 0) {
-      fetchApplicationsAndInterviews();
-    }
-  }, [jobPostings, fetchApplicationsAndInterviews]);
 
   const filterInterviews = (interviews) => {
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-  
+    
     const filtered = interviews.filter((candidate) => {
+      if (!candidate.interviewDate) return false;
+      
       const interviewDate = new Date(candidate.interviewDate);
-      const interviewDay = new Date(interviewDate.getFullYear(), interviewDate.getMonth(), interviewDate.getDate());
-  
-      return (
-        (interviewDay.getTime() === today.getTime() || interviewDay.getTime() === tomorrow.getTime()) &&
-        interviewDate.getTime() > now.getTime()
-      );
+      
+      // Show all interviews that are in the future (including today)
+      return interviewDate.getTime() >= now.getTime();
     });
-  
-    return filtered;
+    
+    // Sort by interview date (earliest first)
+    return filtered.sort((a, b) => new Date(a.interviewDate) - new Date(b.interviewDate));
   };
 
   const upcomingInterviews = filterInterviews(interviews);
+  
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -489,11 +475,281 @@ const RecruiterDashboard = () => {
     if (daysUntilDeadline <= 7) return 'urgent';
     return 'active';
   };
+
+  // Drag and drop functionality
+  const handleDragStart = (e, candidate) => {
+    e.dataTransfer.setData("candidate", JSON.stringify(candidate));
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // Helper function to generate interview details
+  const generateInterviewDetails = (candidate, jobPosting) => {
+    const now = new Date();
+    
+    // Schedule interview for next business day at 10 AM
+    let interviewDate = new Date(now);
+    interviewDate.setDate(now.getDate() + 1);
+    
+    // Skip weekends
+    while (interviewDate.getDay() === 0 || interviewDate.getDay() === 6) {
+      interviewDate.setDate(interviewDate.getDate() + 1);
+    }
+    
+    // Set time to 10:00 AM
+    interviewDate.setHours(10, 0, 0, 0);
+    
+    // If it's already past 10 AM today, schedule for tomorrow
+    if (now.getHours() >= 10) {
+      interviewDate.setDate(interviewDate.getDate() + 1);
+      while (interviewDate.getDay() === 0 || interviewDate.getDay() === 6) {
+        interviewDate.setDate(interviewDate.getDate() + 1);
+      }
+    }
+    
+    // Handle different candidate data structures (pipeline vs API)
+    const firstName = candidate.firstName || candidate.name?.split(' ')[0] || 'Candidate';
+    const lastName = candidate.lastName || candidate.name?.split(' ').slice(1).join(' ') || '';
+    const jobTitle = jobPosting?.job_title || candidate.jobTitle || candidate.position || 'Software Engineer';
+    const matchScore = candidate.match_score || candidate.final_score || candidate.matchScore || '85%';
+    const experience = candidate.experience || '3 years';
+    const profileImage = candidate.profileImage || candidate.avatar;
+    
+    return {
+      id: `interview_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      candidateId: candidate.id,
+      candidateName: `${firstName} ${lastName}`,
+      firstName: firstName,
+      lastName: lastName,
+      jobTitle: jobTitle,
+      jobId: jobPosting?._id || candidate.jobId,
+      company: candidate.company || 'Company',
+      interviewDate: interviewDate.toISOString(),
+      interviewMode: 'In-person', // Default mode
+      status: 'scheduled',
+      matchScore: matchScore,
+      experience: experience,
+      profileImage: profileImage,
+      createdAt: new Date().toISOString()
+    };
+  };
+
+  const handleDrop = (e, targetStage) => {
+    e.preventDefault();
+    const candidate = JSON.parse(e.dataTransfer.getData("candidate"));
+    
+    // Remove candidate from all stages
+    const newPipelineData = { ...pipelineData };
+    Object.keys(newPipelineData).forEach(stage => {
+      newPipelineData[stage] = newPipelineData[stage].filter(c => c.id !== candidate.id);
+    });
+    
+    // Add candidate to target stage
+    newPipelineData[targetStage] = [...newPipelineData[targetStage], candidate];
+    
+    setPipelineData(newPipelineData);
+    
+    // Automatically schedule interview if moved to interviewing stage
+    if (targetStage === 'interviewing') {
+      // Find the job posting for this candidate
+      const jobPosting = jobPostings.find(job => 
+        job.applicants?.some(applicant => applicant.id === candidate.id) ||
+        job._id === candidate.jobId
+      );
+      
+      // Generate interview details
+      const interviewDetails = generateInterviewDetails(candidate, jobPosting);
+      
+      // Save interview to database via API
+      const saveInterviewToDatabase = async () => {
+        try {
+          const response = await axios.put("http://localhost:5000/api/applications/update_status", {
+            userId: candidate.id,
+            jobId: jobPosting?._id || candidate.jobId,
+            status: "shortlisted", // Keep as shortlisted but add interview details
+            interviewDate: interviewDetails.interviewDate,
+            interviewMode: interviewDetails.interviewMode
+          });
+          
+          
+          
+          // Add to interviews list only after successful API call
+          setInterviews(prevInterviews => {
+            // Check if interview already exists for this candidate
+            const existingInterview = prevInterviews.find(interview => 
+              interview.candidateId === candidate.id
+            );
+            
+            if (existingInterview) {
+              // Update existing interview
+              return prevInterviews.map(interview => 
+                interview.candidateId === candidate.id 
+                  ? { ...interview, ...interviewDetails }
+                  : interview
+              );
+            } else {
+              // Add new interview
+              return [...prevInterviews, interviewDetails];
+            }
+          });
+          
+          // Show success notification
+          const candidateName = candidate.firstName ? `${candidate.firstName} ${candidate.lastName}` : candidate.name || 'Candidate';
+          alert(`Interview automatically scheduled for ${candidateName} on ${new Date(interviewDetails.interviewDate).toLocaleDateString()} at 10:00 AM`);
+          
+        } catch (error) {
+          console.error('Failed to save interview to database:', error);
+          alert('Failed to schedule interview. Please try again.');
+        }
+      };
+      
+      saveInterviewToDatabase();
+    }
+    
+    // Remove interview if candidate is moved out of interviewing stage
+    if (targetStage !== 'interviewing') {
+      setInterviews(prevInterviews => 
+        prevInterviews.filter(interview => interview.candidateId !== candidate.id)
+      );
+    }
+  };
+  
+  // Helper function to manually schedule interview
+  const scheduleInterview = async (candidate, customDate = null, customMode = 'In-person') => {
+    const jobPosting = jobPostings.find(job => 
+      job.applicants?.some(applicant => applicant.id === candidate.id) ||
+      job._id === candidate.jobId
+    );
+    
+    const interviewDetails = generateInterviewDetails(candidate, jobPosting);
+    
+    // Override with custom values if provided
+    if (customDate) {
+      interviewDetails.interviewDate = new Date(customDate).toISOString();
+    }
+    if (customMode) {
+      interviewDetails.interviewMode = customMode;
+    }
+    
+    try {
+      // Save to database first
+      const response = await axios.put("http://localhost:5000/api/applications/update_status", {
+        userId: candidate.id,
+        jobId: jobPosting?._id || candidate.jobId,
+        status: "shortlisted", // Keep as shortlisted but add interview details
+        interviewDate: interviewDetails.interviewDate,
+        interviewMode: interviewDetails.interviewMode
+      });
+      
+      // Update local state only after successful API call
+      setInterviews(prevInterviews => {
+        const existingInterview = prevInterviews.find(interview => 
+          interview.candidateId === candidate.id
+        );
+        
+        if (existingInterview) {
+          return prevInterviews.map(interview => 
+            interview.candidateId === candidate.id 
+              ? { ...interview, ...interviewDetails }
+              : interview
+          );
+        } else {
+          return [...prevInterviews, interviewDetails];
+        }
+      });
+      
+      const candidateName = candidate.firstName ? `${candidate.firstName} ${candidate.lastName}` : candidate.name || 'Candidate';
+      alert(`Interview scheduled for ${candidateName} on ${new Date(interviewDetails.interviewDate).toLocaleDateString()}`);
+      
+    } catch (error) {
+      console.error('Failed to save interview to database:', error);
+      alert('Failed to schedule interview. Please try again.');
+    }
+  };
+
+  // Function to mark interview as complete
+  const markInterviewComplete = (interviewId) => {
+    setInterviews(prevInterviews => 
+      prevInterviews.filter(interview => interview.id !== interviewId)
+    );
+    alert('Interview marked as complete and removed from schedule');
+  };
+
+  // Function to reschedule interview
+  const rescheduleInterview = async (interviewId) => {
+    const interview = interviews.find(i => i.id === interviewId);
+    if (interview) {
+      const newDate = prompt('Enter new interview date (YYYY-MM-DD):', 
+        new Date(interview.interviewDate).toISOString().split('T')[0]
+      );
+      if (newDate) {
+        const newTime = prompt('Enter new interview time (HH:MM):', '10:00');
+        if (newTime) {
+          const [hours, minutes] = newTime.split(':');
+          const newDateTime = new Date(newDate);
+          newDateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          
+          try {
+            // Update in database first
+            const response = await axios.put("http://localhost:5000/api/applications/update_status", {
+              userId: interview.candidateId,
+              jobId: interview.jobId,
+              status: "shortlisted", // Keep current status
+              interviewDate: newDateTime.toISOString(),
+              interviewMode: interview.interviewMode
+            });
+            
+            // Update local state only after successful API call
+            setInterviews(prevInterviews => 
+              prevInterviews.map(i => 
+                i.id === interviewId 
+                  ? { ...i, interviewDate: newDateTime.toISOString() }
+                  : i
+              )
+            );
+            alert(`Interview rescheduled to ${newDateTime.toLocaleDateString()} at ${newTime}`);
+            
+          } catch (error) {
+            console.error('Failed to reschedule interview:', error);
+            alert('Failed to reschedule interview. Please try again.');
+          }
+        }
+      }
+    }
+  };
+  
+  // Function to check if candidate already has an interview scheduled
+  const hasInterviewScheduled = (candidateId) => {
+    return interviews.some(interview => interview.candidateId === candidateId);
+  };
+
+  // Function to get interview details for a candidate
+  const getInterviewDetails = (candidateId) => {
+    return interviews.find(interview => interview.candidateId === candidateId);
+  };
   
   return (
-    <div className="recruiter_dashboard_wrapper">
+    <>
       <Header />
-      <div className="recruiter_dashboard_container">
+      
+      {/* 🚨 ATTENTION-GRABBING NOTIFICATION BANNER */}
+      <div className="attention-banner">
+        <div className="banner-content">
+          <div className="banner-icon">🚨</div>
+          <div className="banner-text">
+            <strong>BREAKING NEWS:</strong> Access 70% MORE Kenyan talent with our revolutionary Swahili & Local Language Resume Analysis! 
+            <span className="banner-highlight"> NO OTHER PLATFORM HAS THIS!</span>
+          </div>
+          <div className="banner-action">
+            <button className="banner-btn" onClick={() => navigate('/local-language-analysis')}>Learn More</button>
+          </div>
+        </div>
+      </div>
+      
+      <div className="recruiter_dashboard_wrapper">
+        <div className="recruiter_dashboard_container">
         
         {/* Premium Prompt - Modern Design */}
                         {showPremiumPrompt && (
@@ -504,6 +760,8 @@ const RecruiterDashboard = () => {
                 )}
         
         <div className="main_content">
+
+
         {/* 🎯 Section Header */}
         <div className="section_header">
           <h2>
@@ -586,28 +844,33 @@ const RecruiterDashboard = () => {
                 <div className="stat_item">
                   <div className="stat_icon">📊</div>
                   <div className="stat_content">
-                    <div className="stat_number">{totalJobs}</div>
+                    <div className="stat_number">{jobPostings.length}</div>
                     <div className="stat_label">Total Jobs</div>
                   </div>
                 </div>
                 <div className="stat_item">
                   <div className="stat_icon">👥</div>
                   <div className="stat_content">
-                    <div className="stat_number">{totalApplicants}</div>
+                    <div className="stat_number">{jobPostings.reduce((sum, job) => sum + (job.applicants?.length || 0), 0)}</div>
                     <div className="stat_label">Total Applicants</div>
                   </div>
                 </div>
                 <div className="stat_item">
                   <div className="stat_icon">👁️</div>
                   <div className="stat_content">
-                    <div className="stat_number">{totalViews}</div>
+                    <div className="stat_number">{jobPostings.reduce((sum, job) => sum + (Number(job.views) || 0), 0)}</div>
                     <div className="stat_label">Total Views</div>
                   </div>
                 </div>
                 <div className="stat_item">
                   <div className="stat_icon">⏰</div>
                   <div className="stat_content">
-                    <div className="stat_number">{urgentJobs}</div>
+                    <div className="stat_number">{jobPostings.filter(job => {
+                      const deadline = new Date(job.application_deadline);
+                      const now = new Date();
+                      const daysUntilDeadline = (deadline - now) / (1000 * 60 * 60 * 24);
+                      return daysUntilDeadline <= 7 && daysUntilDeadline > 0;
+                    }).length}</div>
                     <div className="stat_label">Urgent Jobs</div>
                   </div>
                 </div>
@@ -760,6 +1023,26 @@ const RecruiterDashboard = () => {
                     <div className="candidate_info">
                       <div className="candidate_avatar">
                         <img src={candidate.avatar} alt={candidate.name} />
+                        {hasInterviewScheduled(candidate.id) && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#28a745',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}>
+                            🗓️
+                          </div>
+                        )}
                       </div>
                       <div className="candidate_details">
                         <h4>{candidate.name}</h4>
@@ -822,6 +1105,26 @@ const RecruiterDashboard = () => {
                     <div className="candidate_info">
                       <div className="candidate_avatar">
                         <img src={candidate.avatar} alt={candidate.name} />
+                        {hasInterviewScheduled(candidate.id) && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#28a745',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}>
+                            🗓️
+                          </div>
+                        )}
                       </div>
                       <div className="candidate_details">
                         <h4>{candidate.name}</h4>
@@ -842,6 +1145,15 @@ const RecruiterDashboard = () => {
               <div className="pipeline_header">
                 <h3>🤝 Interviewing</h3>
                 <span className="candidate_count">{pipelineData.interviewing.length}</span>
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  color: '#667eea', 
+                  marginTop: '5px', 
+                  fontStyle: 'italic',
+                  textAlign: 'center'
+                }}>
+                  💡 Drag candidates here to auto-schedule interviews
+                </div>
               </div>
               <div className="pipeline_candidates">
                 {pipelineData.interviewing.map((candidate) => (
@@ -880,10 +1192,44 @@ const RecruiterDashboard = () => {
                       >
                         CF
                       </button>
+                      <button 
+                        className={`action_btn ${hasInterviewScheduled(candidate.id) ? 'success' : 'interview_schedule_btn'}`}
+                        onClick={() => {
+                          if (hasInterviewScheduled(candidate.id)) {
+                            const interview = getInterviewDetails(candidate.id);
+                            alert(`Interview already scheduled for ${new Date(interview.interviewDate).toLocaleDateString()} at ${new Date(interview.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`);
+                          } else {
+                            scheduleInterview(candidate);
+                          }
+                        }}
+                        title={hasInterviewScheduled(candidate.id) ? "Interview Already Scheduled" : "Schedule Interview"}
+                      >
+                        {hasInterviewScheduled(candidate.id) ? '✅' : '🗓️'}
+                      </button>
                     </div>
                     <div className="candidate_info">
                       <div className="candidate_avatar">
                         <img src={candidate.avatar} alt={candidate.name} />
+                        {hasInterviewScheduled(candidate.id) && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#28a745',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}>
+                            🗓️
+                          </div>
+                        )}
                       </div>
                       <div className="candidate_details">
                         <h4>{candidate.name}</h4>
@@ -946,6 +1292,26 @@ const RecruiterDashboard = () => {
                     <div className="candidate_info">
                       <div className="candidate_avatar">
                         <img src={candidate.avatar} alt={candidate.name} />
+                        {hasInterviewScheduled(candidate.id) && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#28a745',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}>
+                            🗓️
+                          </div>
+                        )}
                       </div>
                       <div className="candidate_details">
                         <h4>{candidate.name}</h4>
@@ -1008,6 +1374,26 @@ const RecruiterDashboard = () => {
                     <div className="candidate_info">
                       <div className="candidate_avatar">
                         <img src={candidate.avatar} alt={candidate.name} />
+                        {hasInterviewScheduled(candidate.id) && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-5px',
+                            right: '-5px',
+                            background: '#28a745',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            border: '2px solid white',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                          }}>
+                            🗓️
+                          </div>
+                        )}
                       </div>
                       <div className="candidate_details">
                         <h4>{candidate.name}</h4>
@@ -1036,15 +1422,15 @@ const RecruiterDashboard = () => {
                   <h3>Performance Overview</h3>
                   <div className="metric_stats">
                     <div className="metric_stat">
-                      <span className="stat_value">{totalJobs}</span>
+                      <span className="stat_value">{jobPostings.length}</span>
                       <span className="stat_label">Active Jobs</span>
                     </div>
                     <div className="metric_stat">
-                      <span className="stat_value">{totalApplicants}</span>
+                      <span className="stat_value">{jobPostings.reduce((sum, job) => sum + (job.applicants?.length || 0), 0)}</span>
                       <span className="stat_label">Total Applicants</span>
                     </div>
                     <div className="metric_stat">
-                      <span className="stat_value">{Math.round((totalApplicants / Math.max(totalJobs, 1)) * 10) / 10}</span>
+                      <span className="stat_value">{Math.round((jobPostings.reduce((sum, job) => sum + (job.applicants?.length || 0), 0) / Math.max(jobPostings.length, 1)) * 10) / 10}</span>
                       <span className="stat_label">Avg. per Job</span>
                     </div>
                   </div>
@@ -1066,7 +1452,12 @@ const RecruiterDashboard = () => {
                     </div>
                     <div className="activity_item">
                       <span className="activity_icon">⏰</span>
-                      <span className="activity_text">{urgentJobs} jobs need attention</span>
+                      <span className="activity_text">{jobPostings.filter(job => {
+                        const deadline = new Date(job.application_deadline);
+                        const now = new Date();
+                        const daysUntilDeadline = (deadline - now) / (1000 * 60 * 60 * 24);
+                        return daysUntilDeadline <= 7 && daysUntilDeadline > 0;
+                      }).length} jobs need attention</span>
                     </div>
                   </div>
                 </div>
@@ -1077,10 +1468,20 @@ const RecruiterDashboard = () => {
                 <div className="metric_content">
                   <h3>Action Required</h3>
                   <div className="action_list">
-                    {urgentJobs > 0 && (
+                    {jobPostings.filter(job => {
+                      const deadline = new Date(job.application_deadline);
+                      const now = new Date();
+                      const daysUntilDeadline = (deadline - now) / (1000 * 60 * 60 * 24);
+                      return daysUntilDeadline <= 7 && daysUntilDeadline > 0;
+                    }).length > 0 && (
                       <div className="action_item urgent">
                         <span className="action_icon">🚨</span>
-                        <span className="action_text">{urgentJobs} jobs expiring soon</span>
+                        <span className="action_text">{jobPostings.filter(job => {
+                          const deadline = new Date(job.application_deadline);
+                          const now = new Date();
+                          const daysUntilDeadline = (deadline - now) / (1000 * 60 * 60 * 24);
+                          return daysUntilDeadline <= 7 && daysUntilDeadline > 0;
+                        }).length} jobs expiring soon</span>
                       </div>
                     )}
                     {upcomingInterviews.length > 0 && (
@@ -1089,7 +1490,7 @@ const RecruiterDashboard = () => {
                         <span className="action_text">Prepare for {upcomingInterviews.length} interviews</span>
                       </div>
                     )}
-                    {totalApplicants > 0 && (
+                    {jobPostings.reduce((sum, job) => sum + (job.applicants?.length || 0), 0) > 0 && (
                       <div className="action_item">
                         <span className="action_icon">👀</span>
                         <span className="action_text">Review new applications</span>
@@ -1115,9 +1516,9 @@ const RecruiterDashboard = () => {
                 <span className="error_icon">❌</span>
                 <p>{error}</p>
               </div>
-            ) : currentJobs.length > 0 ? (
+            ) : jobPostings.length > 0 ? (
               <div className="enhanced_job_cards">
-                {currentJobs.map((job, index) => (
+                {jobPostings.map((job, index) => (
                   <div key={job._id} className="enhanced_job_card" style={{ animationDelay: `${index * 0.1}s` }}>
                     <div className="job_card_header">
                       <div className="job_status_badge" style={{ backgroundColor: getStatusColor(getJobStatus(job.application_deadline)) }}>
@@ -1215,6 +1616,10 @@ const RecruiterDashboard = () => {
               <p className="section_subtitle">Manage your interview schedule and candidate preparation</p>
             </div>
             
+
+            
+
+            
             {upcomingInterviews.length > 0 ? (
               <div className="enhanced_interview_cards">
                 {upcomingInterviews.map((candidate, index) => (
@@ -1238,6 +1643,18 @@ const RecruiterDashboard = () => {
                             {new Date(candidate.interviewDate).toLocaleDateString()} at {new Date(candidate.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
+                        <div className="candidate_meta" style={{ marginTop: '8px' }}>
+                          {candidate.matchScore && (
+                            <span className="match_score" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>
+                              Match: {candidate.matchScore}
+                            </span>
+                          )}
+                          {candidate.experience && (
+                            <span className="experience" style={{ fontSize: '0.8rem', padding: '4px 8px' }}>
+                              {candidate.experience}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="interview_mode_badge">
                         {candidate.interviewMode || 'In-person'}
@@ -1245,17 +1662,17 @@ const RecruiterDashboard = () => {
                     </div>
                     
                     <div className="interview_card_actions">
-                      <button className="action_button primary">
-                        <span className="button_icon">📋</span>
+                      <button className="action_button primary" onClick={() => navigate(`/candidate-profile/${candidate.candidateId}`)}>
+                        <span className="button_icon">👤</span>
                         View Profile
                       </button>
-                      <button className="action_button secondary">
-                        <span className="button_icon">📞</span>
+                      <button className="action_button secondary" onClick={() => rescheduleInterview(candidate.id)}>
+                        <span className="button_icon">📅</span>
                         Reschedule
                       </button>
-                      <button className="action_button success">
+                      <button className="action_button success" onClick={() => markInterviewComplete(candidate.id)}>
                         <span className="button_icon">✅</span>
-                        Mark Complete
+                        Complete
                       </button>
                     </div>
                   </div>
@@ -1265,7 +1682,12 @@ const RecruiterDashboard = () => {
               <div className="empty_state">
                 <div className="empty_state_icon">🗓️</div>
                 <h3 className="empty_state_title">No Upcoming Interviews</h3>
-                <p className="empty_state_text">Start shortlisting candidates to schedule interviews!</p>
+                <p className="empty_state_text">Drag candidates to the "Interviewing" stage in the pipeline to automatically schedule interviews!</p>
+                <div style={{ marginTop: '20px' }}>
+                  <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: '10px' }}>
+                    💡 <strong>Pro Tip:</strong> When you move candidates to the Interviewing stage, interviews are automatically scheduled for the next business day at 10:00 AM.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -1463,6 +1885,7 @@ const RecruiterDashboard = () => {
        )}
       
     </div>
+    </>
   );
 };
 

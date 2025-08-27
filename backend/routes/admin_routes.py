@@ -172,7 +172,11 @@ def get_recruiter_settings():
                     "offerLetterGeneration": {"enabled": False, "premiumOnly": True},
                     "advancedAnalytics": {"enabled": False, "premiumOnly": True},
                     "bulkOperations": {"enabled": False, "premiumOnly": True},
-                    "directCvAccess": {"enabled": False, "premiumOnly": True}  # New CV Access feature
+                    "directCvAccess": {"enabled": False, "premiumOnly": True},  # New CV Access feature
+                    "swahiliAnalysis": {"enabled": True, "premiumOnly": False},  # Swahili & Local Language Analysis
+                    "localMarketIntelligence": {"enabled": True, "premiumOnly": False},  # Local Market Intelligence
+                    "realTimeCulturalScoring": {"enabled": True, "premiumOnly": False},  # Real-Time Cultural Scoring
+                    "predictiveCulturalSuccess": {"enabled": True, "premiumOnly": False}  # Predictive Cultural Success
                 },
                 "limits": {
                     "freeJobPostings": 2,
@@ -603,5 +607,111 @@ def export_users():
         else:
             return jsonify({"error": "Unsupported format"}), 400
             
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Swahili Analysis Feature Management
+@admin_routes.route('/swahili-analysis-settings', methods=['GET'])
+@admin_required
+def get_swahili_analysis_settings():
+    try:
+        # Direct database connection to ensure we get the right database
+        from pymongo import MongoClient
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['resume_matcher']  # Direct connection to resume_matcher
+        
+        settings = db.admin_settings.find_one({"type": "swahili_analysis"})
+        
+        if not settings:
+            # Default settings
+            default_settings = {
+                "features": {
+                    "swahiliAnalysis": {"enabled": True, "premiumOnly": False},
+                    "localMarketIntelligence": {"enabled": True, "premiumOnly": False},
+                    "realTimeCulturalScoring": {"enabled": True, "premiumOnly": False},
+                    "predictiveCulturalSuccess": {"enabled": True, "premiumOnly": False}
+                },
+                "limits": {
+                    "freeAnalysisPerMonth": 10,
+                    "premiumAnalysisPerMonth": 100,
+                    "enterpriseAnalysisPerMonth": 1000
+                },
+                "config": {
+                    "supportedLanguages": ["swahili", "english", "kikuyu", "kamba", "luhya", "kisii", "meru", "kalenjin"],
+                    "aiModel": "gemini-1.5-flash",
+                    "analysisTimeout": 30
+                }
+            }
+            return jsonify(default_settings)
+        
+        return jsonify(settings)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_routes.route('/swahili-analysis-settings', methods=['PUT'])
+@admin_required
+def update_swahili_analysis_settings():
+    try:
+        data = request.get_json()
+        
+        # Direct database connection to ensure we get the right database
+        from pymongo import MongoClient
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['resume_matcher']  # Direct connection to resume_matcher
+        
+        # Update or create settings
+        db.admin_settings.update_one(
+            {"type": "swahili_analysis"},
+            {
+                "$set": {
+                    "features": data.get("features", {}),
+                    "limits": data.get("limits", {}),
+                    "config": data.get("config", {}),
+                    "updatedAt": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+        
+        return jsonify({"message": "Swahili analysis settings updated successfully"})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@admin_routes.route('/swahili-analysis-settings/feature-toggle', methods=['PUT'])
+@admin_required
+def toggle_swahili_feature():
+    try:
+        data = request.get_json()
+        feature_name = data.get("feature")
+        enabled = data.get("enabled")
+        
+        if not feature_name or enabled is None:
+            return jsonify({"error": "Missing feature name or enabled status"}), 400
+        
+        # Direct database connection to ensure we get the right database
+        from pymongo import MongoClient
+        client = MongoClient('mongodb://localhost:27017/')
+        db = client['resume_matcher']  # Direct connection to resume_matcher
+        
+        # Update the specific feature
+        result = db.admin_settings.update_one(
+            {"type": "swahili_analysis"},
+            {
+                "$set": {
+                    f"features.{feature_name}.enabled": enabled,
+                    "updatedAt": datetime.utcnow()
+                }
+            },
+            upsert=True
+        )
+        
+        return jsonify({
+            "message": f"Feature {feature_name} {'enabled' if enabled else 'disabled'} successfully",
+            "feature": feature_name,
+            "enabled": enabled
+        })
+        
     except Exception as e:
         return jsonify({"error": str(e)}), 500

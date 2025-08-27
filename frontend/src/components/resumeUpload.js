@@ -1,5 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
+import API_CONFIG from '../config/api.js';
 
 const ResumeUpload = () => {
     const [file, setFile] = useState(null);
@@ -19,7 +20,7 @@ const ResumeUpload = () => {
         formData.append("file", file);
 
         try {
-            const response = await axios.post("http://127.0.0.1:5000/add_resume", formData, {
+            const response = await axios.post(`${API_CONFIG.BASE_URL}/add_resume`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
