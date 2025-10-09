@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Verification - Live Count Endpoint</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .status {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-left: 15px;
+        }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-success { background: #d1fae5; color: #065f46; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .test-box {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .test-box h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .result {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { border-color: #10b981; background: #f0fdf4; }
+        .error { border-color: #ef4444; background: #fef2f2; }
+        .endpoint {
+            background: #1e293b;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+        .count-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .count-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .count-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            display: block;
+        }
+        .count-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 API Verification
+            <span id="overallStatus" class="status status-pending">Testing...</span>
+        </h1>
+        <p>Verifying the centralized visitor counting API endpoint</p>
+
+        <div class="test-box">
+            <h3>📡 API Endpoint</h3>
+            <div class="endpoint">
+                https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec
+            </div>
+            <button onclick="testBasicAPI()">Test Basic API</button>
+            <button onclick="testLiveCount()">Test Live Count</button>
+            <button onclick="testAllEndpoints()">Test All Endpoints</button>
+            <div id="apiResult" class="result" style="display: none;"></div>
+        </div>
+
+        <div class="test-box">
+            <h3>📊 Current Live Counts</h3>
+            <div class="count-display">
+                <div class="count-card">
+                    <span class="count-number" id="liveCount">-</span>
+                    <span class="count-label">Live Now</span>
+                </div>
+                <div class="count-card">
+                    <span class="count-number" id="totalCount">-</span>
+                    <span class="count-label">Total</span>
+                </div>
+                <div class="count-card">
+                    <span class="count-number" id="newToday">-</span>
+                    <span class="count-label">New Today</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="test-box">
+            <h3>📝 Test Results</h3>
+            <div id="testResults"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        function showResult(result, isSuccess = true) {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.style.display = 'block';
+            resultDiv.className = `result ${isSuccess ? 'success' : 'error'}`;
+            resultDiv.textContent = typeof result === 'object' ? 
+                JSON.stringify(result, null, 2) : result;
+        }
+
+        function addTestResult(testName, result, isSuccess) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultItem = document.createElement('div');
+            resultItem.className = `result ${isSuccess ? 'success' : 'error'}`;
+            resultItem.innerHTML = `
+                <strong>${isSuccess ? '✅' : '❌'} ${testName}</strong>
+                <pre>${typeof result === 'object' ? JSON.stringify(result, null, 2) : result}</pre>
+            `;
+            resultsDiv.appendChild(resultItem);
+        }
+
+        async function testBasicAPI() {
+            try {
+                console.log('Testing basic API...');
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                const data = await response.json();
+                console.log('Basic API response:', data);
+                
+                showResult({
+                    test: 'Basic API Test',
+                    status: response.status,
+                    statusText: response.statusText,
+                    response: data
+                }, response.ok);
+                
+                addTestResult('Basic API Connection', data, response.ok);
+                
+            } catch (error) {
+                console.error('Basic API test error:', error);
+                showResult({
+                    test: 'Basic API Test',
+                    error: error.message
+                }, false);
+                addTestResult('Basic API Connection', error.message, false);
+            }
+        }
+
+        async function testLiveCount() {
+            try {
+                console.log('Testing live count endpoint...');
+                const url = `${API_URL}?action=get_live_count&timestamp=${Date.now()}`;
+                console.log('URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Live count response:', data);
+                
+                if (data.success) {
+                    // Update count displays
+                    document.getElementById('liveCount').textContent = data.liveCount || 0;
+                    document.getElementById('totalCount').textContent = data.totalVisitors || 0;
+                    document.getElementById('newToday').textContent = data.newVisitorsToday || 0;
+                    
+                    // Update overall status
+                    const statusBadge = document.getElementById('overallStatus');
+                    statusBadge.textContent = '✅ Working';
+                    statusBadge.className = 'status status-success';
+                    
+                    showResult({
+                        test: 'Live Count API Test',
+                        status: '✅ SUCCESS',
+                        data: data
+                    }, true);
+                    
+                    addTestResult('Live Count Endpoint', data, true);
+                } else {
+                    throw new Error(data.error || 'API returned success=false');
+                }
+                
+            } catch (error) {
+                console.error('Live count test error:', error);
+                
+                const statusBadge = document.getElementById('overallStatus');
+                statusBadge.textContent = '❌ Error';
+                statusBadge.className = 'status status-error';
+                
+                showResult({
+                    test: 'Live Count API Test',
+                    status: '❌ FAILED',
+                    error: error.message
+                }, false);
+                
+                addTestResult('Live Count Endpoint', error.message, false);
+            }
+        }
+
+        async function testAllEndpoints() {
+            document.getElementById('testResults').innerHTML = '';
+            
+            console.log('Running all endpoint tests...');
+            
+            // Test 1: Basic API
+            await testBasicAPI();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 2: Live Count
+            await testLiveCount();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Test 3: Different timestamp
+            try {
+                const url = `${API_URL}?action=get_live_count&timestamp=${Date.now()}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                addTestResult('Live Count (Second Call)', data, response.ok && data.success);
+            } catch (error) {
+                addTestResult('Live Count (Second Call)', error.message, false);
+            }
+            
+            console.log('All tests completed!');
+        }
+
+        // Auto-run basic test on load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('Page loaded. Running initial test...');
+            setTimeout(() => {
+                testLiveCount();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+

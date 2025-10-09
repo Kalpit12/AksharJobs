@@ -33,9 +33,9 @@ def call_gemini_free(prompt):
                     "parts": [{"text": prompt}]
                 }],
                 "generationConfig": {
-                    "temperature": 0.1,
-                    "topK": 40,
-                    "topP": 0.95,
+                    "temperature": 0.0,  # Set to 0 for completely deterministic results
+                    "topK": 1,           # Use only the most likely token
+                    "topP": 0.1,         # Reduce randomness further
                     "maxOutputTokens": 2048,
                 }
             },

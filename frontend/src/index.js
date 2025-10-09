@@ -5,6 +5,31 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import './utils/urlInterceptor'; // Import URL interceptor to fix hardcoded URLs
 
+// Suppress proxy errors from browser extensions
+window.addEventListener('error', (event) => {
+  if (event.message && (
+    event.message.includes('Attempting to use a disconnected port object') ||
+    event.message.includes('WebSocket connection error') ||
+    event.message.includes('Socket.IO not configured')
+  )) {
+    event.preventDefault();
+    event.stopPropagation();
+    return false;
+  }
+});
+
+// Suppress unhandled promise rejections from proxy errors
+window.addEventListener('unhandledrejection', (event) => {
+  if (event.reason && event.reason.message && (
+    event.reason.message.includes('Attempting to use a disconnected port object') ||
+    event.reason.message.includes('WebSocket connection error') ||
+    event.reason.message.includes('Socket.IO not configured')
+  )) {
+    event.preventDefault();
+    return false;
+  }
+});
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

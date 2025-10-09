@@ -13,6 +13,12 @@ class SubscriptionService:
     def upgrade_subscription(user_id, plan_name, amount, payment_method):
         """Upgrade user subscription and send confirmation email"""
         try:
+            from bson import ObjectId
+            
+            # Convert string user_id to ObjectId if needed
+            if isinstance(user_id, str):
+                user_id = ObjectId(user_id)
+            
             # Update user subscription
             subscription_data = {
                 "plan": plan_name,
@@ -57,6 +63,12 @@ class SubscriptionService:
     def get_user_subscription(user_id):
         """Get user's current subscription details"""
         try:
+            from bson import ObjectId
+            
+            # Convert string user_id to ObjectId if needed
+            if isinstance(user_id, str):
+                user_id = ObjectId(user_id)
+            
             user = users.find_one({"_id": user_id})
             if user and "subscription" in user:
                 return user["subscription"]
@@ -69,6 +81,12 @@ class SubscriptionService:
     def is_premium_user(user_id):
         """Check if user has premium subscription"""
         try:
+            from bson import ObjectId
+            
+            # Convert string user_id to ObjectId if needed
+            if isinstance(user_id, str):
+                user_id = ObjectId(user_id)
+            
             subscription = SubscriptionService.get_user_subscription(user_id)
             if subscription and subscription.get("status") == "active":
                 plan = subscription.get("plan", "Basic")

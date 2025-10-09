@@ -17,18 +17,17 @@ const ProtectedRoute = ({ children, requiredRole = null, redirectTo = '/login' }
   }
 
   if (!isAuthenticated) {
+    // Store the intended destination for after login
+    sessionStorage.setItem('intendedDestination', location.pathname);
+    console.log('🔐 ProtectedRoute - Storing intended destination:', location.pathname);
+    
     // Redirect to login if not authenticated
     return <Navigate to={redirectTo} state={{ from: location }} replace />;
   }
 
-  // Check if user has completed profile setup
-  const profileCompleted = localStorage.getItem('profileCompleted') === 'true';
-  const isDashboardRoute = location.pathname.includes('dashboard');
-  
-  if (isDashboardRoute && !profileCompleted) {
-    // Redirect to profile setup if trying to access dashboard without completed profile
-    return <Navigate to="/user-profile-setup" replace />;
-  }
+  // Profile setup is now optional - users can access dashboard directly
+  // The profile setup component will auto-redirect to dashboard
+  // No need to check profileCompleted anymore
 
   if (requiredRole && !hasRole(requiredRole)) {
     // Redirect to appropriate dashboard if user doesn't have required role
@@ -38,6 +37,8 @@ const ProtectedRoute = ({ children, requiredRole = null, redirectTo = '/login' }
       return <Navigate to="/recruiter-dashboard" replace />;
     } else if (userRole === 'jobseeker' || userRole === 'job_seeker' || userRole === 'jobseeker') {
       return <Navigate to="/jobseeker-dashboard" replace />;
+    } else if (userRole === 'intern') {
+      return <Navigate to="/intern-dashboard" replace />;
     } else if (userRole === 'admin' || userRole === 'administrator') {
       return <Navigate to="/admin" replace />;
     }

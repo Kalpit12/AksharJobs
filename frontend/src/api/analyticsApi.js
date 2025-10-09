@@ -23,6 +23,25 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Handle 401 responses (expired tokens)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Token expired or invalid, redirect to login
+      console.log('Token expired, redirecting to login...');
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('userFirstName');
+      localStorage.removeItem('userLastName');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const analyticsApi = {
   // Match Score Thresholds
   getMatchThresholds: async (jobId) => {
@@ -117,6 +136,17 @@ export const analyticsApi = {
       return response.data;
     } catch (error) {
       console.error('Error fetching dashboard summary:', error);
+      throw error;
+    }
+  },
+
+  // Recruitment Analytics for Dashboard Cards
+  getRecruitmentAnalytics: async (days = 30) => {
+    try {
+      const response = await api.get(`/recruitment-analytics?days=${days}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching recruitment analytics:', error);
       throw error;
     }
   }

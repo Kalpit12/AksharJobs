@@ -56,7 +56,7 @@ const Blog = () => {
     <div className="blog-page">
       <div className="blog-hero">
         <div className="blog-hero-content">
-          <h1>RocketJobs Blog</h1>
+          <h1>AksharJobs Blog</h1>
           <p>Insights, tips, and strategies to accelerate your career journey</p>
         </div>
       </div>

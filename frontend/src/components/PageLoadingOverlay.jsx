@@ -1,5 +1,5 @@
 import React from 'react';
-import LoadingSpinner from './LoadingSpinner';
+import ModernLoadingSpinner from './ModernLoadingSpinner';
 import '../styles/Global.css';
 
 const PageLoadingOverlay = ({ 
@@ -14,7 +14,7 @@ const PageLoadingOverlay = ({
   return (
     <div className={`page-loading-overlay ${backdrop ? 'with-backdrop' : ''}`}>
       <div className="page-loading-content">
-        <LoadingSpinner 
+        <ModernLoadingSpinner 
           type={type} 
           size={size} 
           text={text}

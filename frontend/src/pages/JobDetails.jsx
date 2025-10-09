@@ -45,12 +45,10 @@ const JobDetails = () => {
 
         try {
             // First check if user has already applied
-            const applicationResponse = await fetch(buildApiUrl(`/api/applications/get_applications?userId=${user.id}&jobId=${jobId}`), {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const allAppsResponse = await fetch(buildApiUrl('/api/applications/all'));
+            const allAppsData = await allAppsResponse.json();
+            const userApplications = allAppsData.applications.filter(app => app.applicant_id === user.id && app.job_id === jobId);
+            const applicationResponse = { ok: true, json: () => Promise.resolve({ applications: userApplications }) };
 
             if (applicationResponse.ok) {
                 const applicationData = await applicationResponse.json();

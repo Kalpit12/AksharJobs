@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test New Google Apps Script</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test New Google Apps Script</h1>
+        <p>Testing the new Google Apps Script URL: <code>AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ</code></p>
+        
+        <div>
+            <h3>1. API Status Check</h3>
+            <button class="test-button" onclick="testAPIStatus()">Test API Status</button>
+            <div id="apiStatus" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>2. Registration Check Test</h3>
+            <button class="test-button" onclick="testRegistrationCheck()">Test Registration Check</button>
+            <div id="registrationResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>3. Referral Share Test</h3>
+            <button class="test-button" onclick="testReferralShare()">Test Referral Share</button>
+            <div id="referralResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>4. Login Update Test</h3>
+            <button class="test-button" onclick="testLoginUpdate()">Test Login Update</button>
+            <div id="loginUpdateResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>5. Console Logs</h3>
+            <button class="test-button" onclick="clearLogs()">Clear Logs</button>
+            <div id="consoleLogs" class="result info"></div>
+        </div>
+    </div>
+
+    <script>
+        // New Google Apps Script URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        // Test API Status
+        async function testAPIStatus() {
+            const resultDiv = document.getElementById('apiStatus');
+            resultDiv.innerHTML = 'Testing API status...';
+            
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ API is running!<br>
+                        Message: ${data.message}<br>
+                        Timestamp: ${data.timestamp}
+                    </div>
+                `;
+                logToConsole('API Status: SUCCESS', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ API Error: ${error.message}
+                    </div>
+                `;
+                logToConsole('API Status: ERROR', error);
+            }
+        }
+        
+        // Test Registration Check
+        async function testRegistrationCheck() {
+            const resultDiv = document.getElementById('registrationResult');
+            resultDiv.innerHTML = 'Testing registration check...';
+            
+            try {
+                const email = 'test@example.com';
+                const checkUrl = `${API_URL}?type=check_registration&email=${encodeURIComponent(email)}`;
+                logToConsole('Checking registration:', checkUrl);
+                
+                const response = await fetch(checkUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Registration check successful!<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('Registration Check Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Registration check failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Registration Check Error:', error);
+            }
+        }
+        
+        // Test Referral Share
+        async function testReferralShare() {
+            const resultDiv = document.getElementById('referralResult');
+            resultDiv.innerHTML = 'Testing referral share...';
+            
+            try {
+                const shareData = {
+                    type: 'referral_share',
+                    referrerEmail: 'test@example.com',
+                    referrerName: 'Test User',
+                    platform: 'whatsapp',
+                    coinsEarned: 3,
+                    totalShares: 1,
+                    shareCount: 1,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const shareUrl = `${API_URL}?${Object.keys(shareData).map(key => `${key}=${encodeURIComponent(shareData[key])}`).join('&')}`;
+                logToConsole('Testing referral share:', shareUrl);
+                
+                const response = await fetch(shareUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Referral share successful!<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('Referral Share Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Referral share failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Referral Share Error:', error);
+            }
+        }
+        
+        // Test Login Update
+        async function testLoginUpdate() {
+            const resultDiv = document.getElementById('loginUpdateResult');
+            resultDiv.innerHTML = 'Testing login update...';
+            
+            try {
+                const loginData = {
+                    type: 'update_login',
+                    email: 'test@example.com',
+                    timestamp: new Date().toISOString()
+                };
+                
+                const loginUrl = `${API_URL}?${Object.keys(loginData).map(key => `${key}=${encodeURIComponent(loginData[key])}`).join('&')}`;
+                logToConsole('Testing login update:', loginUrl);
+                
+                const response = await fetch(loginUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Login update successful!<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('Login Update Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Login update failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Login Update Error:', error);
+            }
+        }
+        
+        // Logging functions
+        function logToConsole(message, data = null) {
+            const logsDiv = document.getElementById('consoleLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}${data ? ': ' + JSON.stringify(data, null, 2) : ''}`;
+            logsDiv.innerHTML += logEntry + '<br><br>';
+            console.log(message, data);
+        }
+        
+        function clearLogs() {
+            document.getElementById('consoleLogs').innerHTML = '';
+        }
+        
+        // Auto-run API status check on page load
+        window.onload = function() {
+            testAPIStatus();
+        };
+    </script>
+</body>
+</html>

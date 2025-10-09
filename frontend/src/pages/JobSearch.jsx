@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import LoadingSpinner from '../components/LoadingSpinner';
+import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
 import Button from '../components/Button';
 import JobCardSkeleton from '../components/JobCardSkeleton';
 import { 
@@ -29,12 +29,18 @@ import {
   faBullseye,
   faHashtag,
   faCheckDouble,
-  faUserTie
+  faUserTie,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import axios from "axios";
 import "../styles/JobSearch.css";
+import "../styles/JobSearchButtons.css";
 import { useAuth } from '../context/AuthContext';
 import { buildApiUrl } from '../config/api';
+import { formatSalary, getUserCountry } from '../utils/currencyUtils';
+import ModernJobDetailsModal from '../components/ModernJobDetailsModal';
+import CommunitySelector from '../components/CommunitySelector';
+import CommunityApi from '../api/communityApi';
 
 const JobSearch = () => {
   const navigate = useNavigate();
@@ -57,25 +63,34 @@ const JobSearch = () => {
   const [aiRecommendedJobs, setAiRecommendedJobs] = useState([]);
   const [loadingRecommendations, setLoadingRecommendations] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [selectedCommunities, setSelectedCommunities] = useState([]);
+  const [userCommunities, setUserCommunities] = useState([]);
+  const [communities, setCommunities] = useState([]);
 
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
     fetchJobs();
+    fetchCommunities();
     if (userId) {
       fetchAppliedJobs();
       fetchFavorites();
+      fetchUserCommunities();
     }
   }, [userId]);
 
   useEffect(() => {
     filterAndSortJobs();
-  }, [jobs, searchTerm, locationFilter, jobTypeFilter, experienceFilter, fieldFilter, sortBy]);
+  }, [jobs, searchTerm, locationFilter, jobTypeFilter, experienceFilter, fieldFilter, sortBy, selectedCommunities]);
 
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(buildApiUrl("/api/jobs/get_jobs"));
+      // Use the new endpoint that filters jobs by user's communities
+      const url = userId 
+        ? buildApiUrl(`/api/jobs/get_jobs_for_user?userId=${userId}`)
+        : buildApiUrl("/api/jobs/get_jobs");
+      const response = await axios.get(url);
       setJobs(response.data || []);
     } catch (err) {
       setError("Failed to fetch jobs. Please try again later.");
@@ -85,17 +100,56 @@ const JobSearch = () => {
     }
   };
 
+  const fetchCommunities = async () => {
+    try {
+      const response = await CommunityApi.getAllCommunities();
+      if (response.success) {
+        setCommunities(response.communities || []);
+      }
+    } catch (err) {
+      console.error("Error fetching communities:", err);
+    }
+  };
+
+  const fetchUserCommunities = async () => {
+    if (!userId) return;
+    
+    try {
+      const response = await axios.get(buildApiUrl(`/api/auth/get_user?userId=${userId}`));
+      if (response.data) {
+        setUserCommunities(response.data.communities || []);
+        // Set default selected communities to user's communities
+        if (response.data.communities && response.data.communities.length > 0) {
+          setSelectedCommunities(response.data.communities);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching user communities:", err);
+    }
+  };
+
   const fetchAppliedJobs = async () => {
     try {
-      const response = await axios.get(buildApiUrl(`/api/applications/get_applications`), {
-        params: { userId }
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log("No token found, skipping applied jobs fetch");
+        return;
+      }
+
+      const response = await axios.get(buildApiUrl(`/api/applications/my-applications`), {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
-      if (response.data?.applications) {
-        const appliedJobIds = new Set(response.data.applications.map(app => app.jobId));
+      
+      if (response.data) {
+        // Our endpoint returns an array of applications directly
+        const appliedJobIds = new Set(response.data.map(app => app.job_id));
         setAppliedJobs(appliedJobIds);
       }
     } catch (err) {
       console.error("Error fetching applied jobs:", err);
+      // Don't show error to user for this - it's not critical
     }
   };
 
@@ -239,6 +293,26 @@ const JobSearch = () => {
       });
     }
 
+    // Community filter
+    if (selectedCommunities.length > 0) {
+      filtered = filtered.filter(job => {
+        // If job targets all communities, show it
+        if (job.all_communities) {
+          return true;
+        }
+        
+        // If job has specific target communities, check if any match selected communities
+        if (job.target_communities && job.target_communities.length > 0) {
+          return job.target_communities.some(communityId => 
+            selectedCommunities.includes(communityId)
+          );
+        }
+        
+        // If no community targeting specified, show the job (backward compatibility)
+        return true;
+      });
+    }
+
     // Sorting
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -270,25 +344,213 @@ const JobSearch = () => {
     if (!userId || matchScores[jobId] !== undefined) return;
 
     setLoadingMatch(prev => ({ ...prev, [jobId]: true }));
+    
+  // Debug: Log current user info
+  console.log('🎯 Match Score Debug:', {
+    userId: userId,
+    jobId: jobId,
+    userEmail: localStorage.getItem('userEmail'),
+    userFirstName: localStorage.getItem('userFirstName'),
+    userLastName: localStorage.getItem('userLastName'),
+    hasToken: !!localStorage.getItem('token')
+  });
+  
+  // Show user info in console for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.log('👤 Current User Info:', {
+      id: userId,
+      email: localStorage.getItem('userEmail'),
+      name: `${localStorage.getItem('userFirstName')} ${localStorage.getItem('userLastName')}`,
+      role: localStorage.getItem('role')
+    });
+  }
+    
     try {
-      const response = await axios.post(buildApiUrl("/api/applications/apply"), {
-        userId,
-        jobId,
-        status: ""
-      });
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.log('No token available for match score calculation');
+        return;
+      }
+
+      // Call the backend API to get consistent match score
+      console.log(`🔗 Calling API: /api/applications/match-score/${jobId}`);
+      const response = await axios.get(
+        buildApiUrl(`/api/applications/match-score/${jobId}`),
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
       
-      if (response.data.final_score !== undefined) {
-        // Store both match score and AI suggestions
+      console.log('📊 API Response:', response.data);
+      console.log('📊 Response Status:', response.status);
+      console.log('📊 Response Headers:', response.headers);
+
+      if (response.status === 200 && response.data.match_data) {
+        const matchData = response.data.match_data;
+        
         setMatchScores(prev => ({ 
           ...prev, 
           [jobId]: {
-            score: response.data.final_score,
-            aiSuggestions: response.data.ai_suggestions || []
+            score: Math.round(matchData.final_score || 0),
+            cached: matchData.cached || false,
+            aiSuggestions: [
+              "Your skills match analysis is based on AI evaluation",
+              "Match score is calculated using advanced algorithms",
+              "This score is consistent and cached for reliability"
+            ]
+          }
+        }));
+        
+        console.log(`✅ Match score for job ${jobId}: ${matchData.final_score}% (cached: ${matchData.cached})`);
+      } else {
+        console.log('❌ API response missing match_data:', response.data);
+        
+        // Set a fallback score to show something
+        setMatchScores(prev => ({ 
+          ...prev, 
+          [jobId]: {
+            score: 0,
+            cached: false,
+            apiError: true,
+            aiSuggestions: [
+              "API response was missing match data",
+              "This might be a backend configuration issue",
+              "Please contact support if this persists"
+            ]
           }
         }));
       }
     } catch (err) {
       console.error("Error calculating match score:", err);
+      console.error("Error details:", {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+      
+      // Check for specific error types
+      const errorMessage = err.response?.data?.error || err.message || '';
+      
+      if (errorMessage.includes('No resume found')) {
+        console.log(`❌ No resume found for user ${userId}, showing upload message for job ${jobId}`);
+        setMatchScores(prev => ({ 
+          ...prev, 
+          [jobId]: {
+            score: 0,
+            cached: false,
+            noResume: true,
+            aiSuggestions: [
+              "Upload your resume to get an accurate match score",
+              "Match scores require resume data for calculation",
+              "Complete your profile to see job compatibility"
+            ]
+          }
+        }));
+        return;
+      }
+      
+      if (errorMessage.includes('User not found') || errorMessage.includes('No user found')) {
+        console.log(`❌ User not found in database for user ${userId}`);
+        console.log(`🔧 This might be an OAuth user who needs profile completion`);
+        setMatchScores(prev => ({ 
+          ...prev, 
+          [jobId]: {
+            score: 0,
+            cached: false,
+            userNotFound: true,
+            aiSuggestions: [
+              "Complete your profile setup first",
+              "Upload your resume to enable match scoring",
+              "Your OAuth account needs profile completion"
+            ]
+          }
+        }));
+        return;
+      }
+      
+      // Check for authentication errors
+      if (err.response?.status === 401) {
+        console.log(`❌ Authentication error for user ${userId}`);
+        setMatchScores(prev => ({ 
+          ...prev, 
+          [jobId]: {
+            score: 0,
+            cached: false,
+            authError: true,
+            aiSuggestions: [
+              "Please log in again to see match scores",
+              "Your session may have expired",
+              "Try refreshing the page"
+            ]
+          }
+        }));
+        return;
+      }
+      
+      // Fallback: try to get score from existing applications
+      try {
+        const applicationsResponse = await axios.get(
+          buildApiUrl("/api/applications/my-applications"),
+          {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        const existingApp = applicationsResponse.data.find(app => 
+          app.jobId === jobId || app.job_id === jobId
+        );
+        
+        if (existingApp && existingApp.final_score) {
+          setMatchScores(prev => ({ 
+            ...prev, 
+            [jobId]: {
+              score: Math.round(existingApp.final_score),
+              cached: true,
+              aiSuggestions: [
+                "Match score retrieved from your application history",
+                "This is your actual AI-calculated compatibility score"
+              ]
+            }
+          }));
+        } else {
+          // No existing application found, show placeholder
+          setMatchScores(prev => ({ 
+            ...prev, 
+            [jobId]: {
+              score: 0,
+              cached: false,
+              noData: true,
+              aiSuggestions: [
+                "Upload your resume to get a personalized match score",
+                "Match scores help you find the best job opportunities",
+                "Complete your profile for better job matching"
+              ]
+            }
+          }));
+        }
+      } catch (fallbackErr) {
+        console.error("Fallback match score retrieval failed:", fallbackErr);
+        // Final fallback - show placeholder with helpful message
+        setMatchScores(prev => ({ 
+          ...prev, 
+          [jobId]: {
+            score: 0,
+            cached: false,
+            error: true,
+            aiSuggestions: [
+              "Unable to calculate match score at this time",
+              "Please ensure you have uploaded your resume",
+              "Try refreshing the page or contact support"
+            ]
+          }
+        }));
+      }
     } finally {
       setLoadingMatch(prev => ({ ...prev, [jobId]: false }));
     }
@@ -301,25 +563,44 @@ const JobSearch = () => {
     }
 
     try {
-      // First, process the application (this creates the application record and calculates match score)
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Please log in to apply for jobs");
+        navigate('/login');
+        return;
+      }
+
+      // Submit the job application with JWT token
       const processResponse = await axios.post(buildApiUrl("/api/applications/apply"), {
-        userId,
-        jobId,
-        status: "applied"
+        job_id: jobId,
+        cover_letter: "I am interested in this position and would like to be considered for the role."
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
       });
 
-      if (processResponse.status === 200) {
-        // Then update the job applicant count
-        await axios.post(buildApiUrl(`/api/jobs/apply/${jobId}`), {
-          applicant_id: userId,
-        });
-
+      if (processResponse.status === 201) {
         setAppliedJobs(prev => new Set([...prev, jobId]));
         alert("Application submitted successfully!");
       }
     } catch (err) {
       console.error("Error applying for job:", err);
-      alert("Failed to apply for job. Please try again.");
+      if (err.response?.status === 401) {
+        alert("Your session has expired. Please log in again.");
+        navigate('/login');
+      } else if (err.response?.status === 400 && err.response?.data?.error?.includes("already applied")) {
+        alert("You have already applied for this job.");
+        setAppliedJobs(prev => new Set([...prev, jobId]));
+      } else if (err.response?.status === 402) {
+        // Payment required - PROMOCODE SYSTEM TEMPORARILY DEACTIVATED
+        const errorData = err.response.data;
+        // For now, just show a simple message without promocode redirect
+        alert("Application processing temporarily disabled. Please contact support if you need assistance.");
+      } else {
+        alert("Failed to apply for job. Please try again.");
+      }
     }
   };
 
@@ -335,6 +616,12 @@ const JobSearch = () => {
   };
 
   const viewJobDetails = (job) => {
+    // Navigate to the dedicated job details page
+    navigate(`/job-details/${job._id}`);
+  };
+
+  const viewJobDetailsModal = (job) => {
+    // For quick preview in modal (optional alternative)
     setSelectedJob(job);
     setShowJobDetails(true);
     if (!matchScores[job._id]) {
@@ -342,17 +629,36 @@ const JobSearch = () => {
     }
   };
 
-  const getMatchScoreColor = (score) => {
+  const getMatchScoreColor = (score, matchData = null) => {
+    // Special cases for no data scenarios
+    if (matchData && (matchData.noResume || matchData.userNotFound || matchData.noData || matchData.authError || matchData.apiError || matchData.error)) {
+      return "#8B5CF6"; // Purple color to indicate action needed
+    }
+    
+    // Regular score-based colors
     if (score >= 80) return "#10B981";
     if (score >= 60) return "#F59E0B";
     if (score >= 40) return "#EF4444";
+    if (score === 0) return "#8B5CF6"; // Purple for "upload resume"
     return "#6B7280";
   };
 
-  const getMatchScoreText = (score) => {
+  const getMatchScoreText = (score, matchData = null) => {
+    // Check if this is a special case (no resume, no data, etc.)
+    if (matchData) {
+      if (matchData.noResume) return "Upload Resume";
+      if (matchData.userNotFound) return "Complete Setup";
+      if (matchData.noData) return "Complete Profile";
+      if (matchData.authError) return "Login Required";
+      if (matchData.apiError) return "API Error";
+      if (matchData.error) return "Unable to Calculate";
+    }
+    
+    // Regular score-based text
     if (score >= 80) return "Excellent Match";
     if (score >= 60) return "Good Match";
     if (score >= 40) return "Fair Match";
+    if (score === 0) return "Upload Resume";
     return "Poor Match";
   };
 
@@ -383,12 +689,10 @@ const JobSearch = () => {
       <div className="job-search-page">
         <div className="job-search-container">
           <div className="loading-container">
-            <LoadingSpinner
-              type="rocket"
+            <ModernLoadingSpinner
+              type="spinner"
               size="large"
               text="Finding amazing opportunities for you..."
-              showText={true}
-              color="primary"
             />
           </div>
         </div>
@@ -419,146 +723,6 @@ const JobSearch = () => {
           <h1>Find Your Dream Job</h1>
           <p>Discover opportunities that match your skills and career goals</p>
         </div>
-
-        {/* AI Recommended Jobs Section */}
-        {userId && (
-          <div className="ai-recommendations-section">
-            <div className="recommendations-header">
-              <div className="recommendations-title">
-                <FontAwesomeIcon icon={faRobot} className="ai-icon" />
-                <h2>🤖 AI-Powered Job Recommendations</h2>
-                <p>Jobs that best match your skills and experience</p>
-              </div>
-              <Button
-                onClick={fetchAIRecommendations}
-                className="get-recommendations-btn"
-                disabled={loadingRecommendations}
-                loading={loadingRecommendations}
-                icon={faLightbulb}
-              >
-                    Get AI Recommendations
-              </Button>
-            </div>
-
-            {showRecommendations && aiRecommendedJobs.length > 0 && (
-              <div className="recommendations-content">
-                <div className="recommendations-summary">
-                  <span className="recommendations-count">
-                    {aiRecommendedJobs.length} personalized recommendations
-                  </span>
-                  <span className="recommendations-note">
-                    Based on your resume analysis
-                  </span>
-                </div>
-                
-                <div className="recommended-jobs-grid">
-                  {aiRecommendedJobs.slice(0, 6).map((job) => (
-                    <div key={job._id} className="recommended-job-card">
-                      <div className="recommendation-badge">
-                        <FontAwesomeIcon icon={faStar} />
-                        {job.match_score}% Match
-                      </div>
-                      
-                      <div className="recommended-job-content">
-                        <h3 className="recommended-job-title" onClick={() => viewJobDetails(job)}>
-                          {job.job_title}
-                        </h3>
-                        <div className="recommended-company">
-                          <FontAwesomeIcon icon={faBuilding} />
-                          <span>{job.company_name}</span>
-                        </div>
-                        <div className="recommended-location">
-                          <FontAwesomeIcon icon={faMapMarkerAlt} />
-                          <span>{job.location}</span>
-                        </div>
-                        <div className="recommended-type">
-                          <FontAwesomeIcon icon={faClock} />
-                          <span>{job.job_type}</span>
-                        </div>
-                        
-                        <div className="recommended-match-score">
-                          <div className="match-score-bar">
-                            <div 
-                              className="match-score-fill"
-                              style={{ 
-                                width: `${job.match_score}%`,
-                                backgroundColor: getMatchScoreColor(job.match_score)
-                              }}
-                            ></div>
-                          </div>
-                          <span className="match-score-text">
-                            {getMatchScoreText(job.match_score)}
-                          </span>
-                        </div>
-                        
-                        <div className="recommended-job-actions">
-                          <button
-                            onClick={() => viewJobDetails(job)}
-                            className="view-recommended-btn"
-                          >
-                            <FontAwesomeIcon icon={faEye} />
-                            View Details
-                          </button>
-                          
-                          {!appliedJobs.has(job._id) ? (
-                            <button
-                              onClick={() => handleApply(job._id)}
-                              className="apply-recommended-btn"
-                            >
-                              <FontAwesomeIcon icon={faCheckCircle} />
-                              Apply Now
-                            </button>
-                          ) : (
-                            <span className="applied-badge-small">
-                              <FontAwesomeIcon icon={faCheckCircle} />
-                              Applied
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {aiRecommendedJobs.length > 6 && (
-                  <div className="view-all-recommendations">
-                    <button
-                      onClick={() => setShowRecommendations(false)}
-                      className="view-all-btn"
-                    >
-                      <FontAwesomeIcon icon={faEye} />
-                      View All {aiRecommendedJobs.length} Recommendations
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {showRecommendations && aiRecommendedJobs.length === 0 && !loadingRecommendations && (
-              <div className="no-recommendations">
-                <FontAwesomeIcon icon={faExclamationTriangle} />
-                <h3>No Resume Found</h3>
-                <p>To get personalized AI job recommendations, you need to upload your resume first. Our AI will analyze your skills, experience, and qualifications to find the best job matches for you.</p>
-                <div className="no-resume-actions">
-                  <button
-                    onClick={() => navigate('/uploadresume')}
-                    className="upload-resume-btn primary"
-                  >
-                    <FontAwesomeIcon icon={faFileAlt} />
-                    Upload Resume
-                  </button>
-                  <button
-                    onClick={() => setShowRecommendations(false)}
-                    className="upload-resume-btn secondary"
-                  >
-                    <FontAwesomeIcon icon={faTimesCircle} />
-                    Close
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Search and Filters */}
         <div className="search-filters-section">
@@ -664,6 +828,32 @@ const JobSearch = () => {
               </select>
             </div>
           </div>
+
+          {/* Community Filter */}
+          <div className="community-filter-section">
+            <h3 className="community-filter-title">
+              <FontAwesomeIcon icon={faUsers} />
+              Filter by Religious/Ethnic Communities
+            </h3>
+            <div className="community-filter-content">
+              <CommunitySelector
+                selectedCommunities={selectedCommunities}
+                onSelectionChange={setSelectedCommunities}
+                multiple={true}
+                showDescription={true}
+                placeholder="Select religious/ethnic communities to see relevant jobs..."
+              />
+              {userCommunities.length > 0 && (
+                <div className="user-communities-info">
+                  <span className="info-icon">💡</span>
+                  <span>Your communities: {userCommunities.map(id => {
+                    const community = communities.find(c => c._id === id);
+                    return community ? community.name : '';
+                  }).filter(Boolean).join(', ')}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Results Summary */}
@@ -672,7 +862,7 @@ const JobSearch = () => {
           {userId && (
             <div className="user-actions">
               <button 
-                onClick={() => navigate('/appliedjobs')}
+                onClick={() => navigate('/application-tracker')}
                 className="view-applied-btn"
               >
                 <FontAwesomeIcon icon={faCheckCircle} />
@@ -691,7 +881,7 @@ const JobSearch = () => {
               <div key={job._id} className="job-card">
                 <div className="job-card-header">
                   <div className="job-title-section">
-                    <h3 onClick={() => viewJobDetails(job)} className="job-title">
+                    <h3 onClick={() => viewJobDetails(job)} className="job-title" title="Click to view full details">
                       {job.job_title}
                     </h3>
                     <div className="company-info">
@@ -741,7 +931,7 @@ const JobSearch = () => {
                   </div>
                   <div className="job-detail">
                     <FontAwesomeIcon icon={faMoneyBillWave} />
-                    <span>{job.salary_range || 'Salary not specified'}</span>
+                    <span>{formatSalary(job.salary_range, getUserCountry())}</span>
                   </div>
                 </div>
 
@@ -771,12 +961,15 @@ const JobSearch = () => {
                         <span className="score-label">Match Score:</span>
                         <span 
                           className="score-value"
-                          style={{ color: getMatchScoreColor(matchScores[job._id].score) }}
+                          style={{ color: getMatchScoreColor(matchScores[job._id].score, matchScores[job._id]) }}
                         >
-                          {matchScores[job._id].score.toFixed(1)}%
+                          {matchScores[job._id].score === 0 && (matchScores[job._id].noResume || matchScores[job._id].noData) 
+                            ? "—" 
+                            : `${matchScores[job._id].score.toFixed(1)}%`
+                          }
                         </span>
                         <span className="score-text">
-                          {getMatchScoreText(matchScores[job._id].score)}
+                          {getMatchScoreText(matchScores[job._id].score, matchScores[job._id])}
                         </span>
                       </div>
                     ) : (
@@ -802,12 +995,21 @@ const JobSearch = () => {
 
                   <div className="view-details-section">
                     <button
-                      onClick={() => viewJobDetails(job)}
-                      className="view-details-btn"
+                      onClick={() => viewJobDetailsModal(job)}
+                      className="quick-preview-btn"
+                      title="Quick preview in modal"
                     >
                       <FontAwesomeIcon icon={faEye} />
-                      View Full Details
+                      Quick Preview
+                    </button>
+                    
+                    <button
+                      onClick={() => viewJobDetails(job)}
+                      className="view-details-btn"
+                      title="View full details page"
+                    >
                       <FontAwesomeIcon icon={faArrowRight} />
+                      View Full Details
                     </button>
                   </div>
                 </div>
@@ -823,286 +1025,17 @@ const JobSearch = () => {
         </div>
       </div>
 
-      {/* Job Details Modal */}
-      {showJobDetails && selectedJob && (
-        <div className="job-details-modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>{selectedJob.job_title}</h2>
-              <button 
-                onClick={() => setShowJobDetails(false)}
-                className="close-btn"
-              >
-                <FontAwesomeIcon icon={faTimesCircle} />
-              </button>
-            </div>
-
-            <div className="modal-body">
-              <div className="company-overview">
-                <h3>Company Overview</h3>
-                <div className="company-details">
-                  <p><strong>Company:</strong> {selectedJob.company_name}</p>
-                  <p><strong>Industry:</strong> {selectedJob.industry}</p>
-                  <p><strong>Website:</strong> 
-                    <a href={selectedJob.company_website} target="_blank" rel="noopener noreferrer">
-                      {selectedJob.company_website}
-                    </a>
-                  </p>
-                </div>
-              </div>
-
-              <div className="job-overview">
-                <h3>Job Overview</h3>
-                <div className="job-overview-grid">
-                  <div className="overview-item">
-                    <FontAwesomeIcon icon={faMapMarkerAlt} />
-                    <span><strong>Location:</strong> {selectedJob.location}</span>
-                  </div>
-                  <div className="overview-item">
-                    <FontAwesomeIcon icon={faClock} />
-                    <span><strong>Job Type:</strong> {selectedJob.job_type}</span>
-                  </div>
-                  <div className="overview-item">
-                    <FontAwesomeIcon icon={faGlobe} />
-                    <span><strong>Remote Option:</strong> {selectedJob.remote_option}</span>
-                  </div>
-                  <div className="overview-item">
-                    <FontAwesomeIcon icon={faMoneyBillWave} />
-                    <span><strong>Salary:</strong> {selectedJob.salary_range}</span>
-                  </div>
-                  <div className="overview-item">
-                    <FontAwesomeIcon icon={faGraduationCap} />
-                    <span><strong>Education:</strong> {selectedJob.education_required}</span>
-                  </div>
-                  <div className="overview-item">
-                    <FontAwesomeIcon icon={faBriefcase} />
-                    <span><strong>Experience:</strong> {selectedJob.experience_required}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="job-description-full">
-                <h3>Job Description</h3>
-                <p>{selectedJob.description}</p>
-              </div>
-
-              <div className="key-responsibilities">
-                <h3>Key Responsibilities</h3>
-                <div className="responsibilities-list">
-                  {(() => {
-                    let responsibilities = [];
-                    if (selectedJob.responsibilities) {
-                      if (typeof selectedJob.responsibilities === 'string') {
-                        responsibilities = selectedJob.responsibilities.split('\n');
-                      } else if (Array.isArray(selectedJob.responsibilities)) {
-                        responsibilities = selectedJob.responsibilities;
-                      }
-                    }
-                    return responsibilities.map((resp, index) => (
-                      <div key={index} className="responsibility-item">
-                        <FontAwesomeIcon icon={faArrowRight} />
-                        <span>{typeof resp === 'string' ? resp.trim() : String(resp)}</span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              </div>
-
-              <div className="required-skills">
-                <h3>Required Skills</h3>
-                <div className="skills-tags">
-                  {(() => {
-                    let skills = [];
-                    if (selectedJob.required_skills) {
-                      if (typeof selectedJob.required_skills === 'string') {
-                        skills = selectedJob.required_skills.split(',');
-                      } else if (Array.isArray(selectedJob.required_skills)) {
-                        skills = selectedJob.required_skills;
-                      }
-                    }
-                    return skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">
-                        {typeof skill === 'string' ? skill.trim() : String(skill)}
-                      </span>
-                    ));
-                  })()}
-                </div>
-              </div>
-
-              <div className="application-deadline">
-                <h3>Application Deadline</h3>
-                <p>{new Date(selectedJob.application_deadline).toLocaleDateString()}</p>
-              </div>
-
-              {/* Match Score Section */}
-              <div className="match-analysis-section">
-                <h3>Your Match Analysis</h3>
-                {matchScores[selectedJob._id] !== undefined ? (
-                  <div className="match-analysis">
-                    <div className="match-score-display">
-                      <div className="score-circle">
-                        <span className="score-number">{matchScores[selectedJob._id].score.toFixed(1)}%</span>
-                        <span className="score-label">Match Score</span>
-                      </div>
-                      <div className="score-breakdown">
-                        <h4>{getMatchScoreText(matchScores[selectedJob._id].score)}</h4>
-                        <p>This score is based on your resume analysis and the job requirements.</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="calculate-match-prompt">
-                    <FontAwesomeIcon icon={faChartLine} />
-                    <p>Calculate your match score to see how well you fit this position</p>
-                    <button
-                      onClick={() => calculateMatchScore(selectedJob._id)}
-                      className="calculate-match-btn-large"
-                      disabled={loadingMatch[selectedJob._id]}
-                    >
-                      {loadingMatch[selectedJob._id] ? 'Calculating...' : 'Calculate Match Score'}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Improvement Suggestions */}
-              <div className="improvement-suggestions">
-                <h3>
-                  <FontAwesomeIcon icon={faLightbulb} />
-                  AI-Powered Improvement Suggestions
-                </h3>
-                
-                {/* AI-Generated Suggestions */}
-                {matchScores[selectedJob._id] !== undefined && (
-                  <div className="ai-suggestions">
-                    <h4>🎯 Personalized Recommendations</h4>
-                    <div className="suggestions-list">
-                      {(() => {
-                        // Get AI-generated suggestions if available
-                        const aiSuggestions = [];
-                        if (matchScores[selectedJob._id] && matchScores[selectedJob._id].aiSuggestions) {
-                          aiSuggestions.push(...matchScores[selectedJob._id].aiSuggestions);
-                        }
-                        
-                        // Fallback to generic suggestions if no AI suggestions
-                        if (aiSuggestions.length === 0) {
-                          return getImprovementSuggestions(selectedJob).map((suggestion, index) => (
-                            <div key={index} className="suggestion-item">
-                              <FontAwesomeIcon icon={faCheckCircle} />
-                              <span>{suggestion}</span>
-                            </div>
-                          ));
-                        }
-                        
-                        return aiSuggestions.map((suggestion, index) => (
-                          <div key={index} className="suggestion-item ai-suggestion">
-                            <FontAwesomeIcon icon={faRobot} />
-                            <span>{suggestion}</span>
-                          </div>
-                        ));
-                      })()}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Resume Improvement Services */}
-                <div className="resume-services-section">
-                  <h4>📝 Resume Enhancement Services</h4>
-                  <div className="resume-services-grid">
-                    <div className="resume-service-card">
-                      <div className="service-icon">
-                        <FontAwesomeIcon icon={faFileAlt} />
-                      </div>
-                      <h5>Resume Review & Optimization</h5>
-                      <p>Get your resume professionally reviewed and optimized for this specific job role</p>
-                      <button className="service-btn">Get Started</button>
-                    </div>
-                    
-                    <div className="resume-service-card">
-                      <div className="service-icon">
-                        <FontAwesomeIcon icon={faSearch} />
-                      </div>
-                      <h5>Keyword Optimization</h5>
-                      <p>Optimize your resume with the exact keywords from this job posting</p>
-                      <button className="service-btn">Optimize Now</button>
-                    </div>
-                    
-                    <div className="resume-service-card">
-                      <div className="service-icon">
-                        <FontAwesomeIcon icon={faChartLine} />
-                      </div>
-                      <h5>ATS-Friendly Formatting</h5>
-                      <p>Ensure your resume passes Applicant Tracking Systems</p>
-                      <button className="service-btn">Format Resume</button>
-                    </div>
-                    
-                    <div className="resume-service-card">
-                      <div className="service-icon">
-                        <FontAwesomeIcon icon={faStar} />
-                      </div>
-                      <h5>Professional Rewriting</h5>
-                      <p>Get your resume professionally rewritten to highlight relevant achievements</p>
-                      <button className="service-btn">Rewrite Resume</button>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Quick Resume Tips */}
-                <div className="quick-resume-tips">
-                  <h4>💡 Quick Resume Improvement Tips</h4>
-                  <div className="tips-grid">
-                    <div className="tip-item">
-                      <FontAwesomeIcon icon={faBullseye} />
-                      <span>Use action verbs like "achieved," "developed," "implemented"</span>
-                    </div>
-                    <div className="tip-item">
-                      <FontAwesomeIcon icon={faHashtag} />
-                      <span>Include specific numbers and metrics for achievements</span>
-                    </div>
-                    <div className="tip-item">
-                      <FontAwesomeIcon icon={faCheckDouble} />
-                      <span>Match your skills section to the job requirements</span>
-                    </div>
-                    <div className="tip-item">
-                      <FontAwesomeIcon icon={faUserTie} />
-                      <span>Add a compelling professional summary at the top</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-footer">
-              <div className="modal-actions">
-                <button
-                  onClick={() => toggleFavorite(selectedJob._id)}
-                  className={`favorite-btn-large ${favoriteJobs.has(selectedJob._id) ? 'favorited' : ''}`}
-                >
-                  <FontAwesomeIcon icon={faHeart} />
-                  {favoriteJobs.has(selectedJob._id) ? 'Remove from Favorites' : 'Add to Favorites'}
-                </button>
-                
-                {!appliedJobs.has(selectedJob._id) ? (
-                  <button
-                    onClick={() => {
-                      handleApply(selectedJob._id);
-                      setShowJobDetails(false);
-                    }}
-                    className="apply-btn-large"
-                  >
-                    Apply for This Position
-                  </button>
-                ) : (
-                  <span className="applied-badge-large">
-                    <FontAwesomeIcon icon={faCheckCircle} />
-                    Already Applied
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modern Job Details Modal */}
+      <ModernJobDetailsModal
+        job={selectedJob}
+        isOpen={showJobDetails}
+        onClose={() => setShowJobDetails(false)}
+        matchScore={selectedJob ? matchScores[selectedJob._id] : undefined}
+        onApply={handleApply}
+        onCalculateMatch={calculateMatchScore}
+        isApplied={selectedJob ? appliedJobs.has(selectedJob._id) : false}
+        isCalculatingMatch={selectedJob ? loadingMatch[selectedJob._id] : false}
+      />
     </div>
   );
 };

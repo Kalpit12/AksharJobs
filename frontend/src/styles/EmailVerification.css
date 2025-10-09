@@ -1,283 +1,350 @@
-.email-verification-overlay {
-  position: fixed;
+/* Email Verification Page Styles */
+.email-verification-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.verification-card {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  padding: 40px;
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.verification-card::before {
+  content: '';
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  backdrop-filter: blur(5px);
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
 }
 
-.email-verification-modal {
-  background: white;
-  border-radius: 15px;
-  padding: 0;
-  width: 90%;
-  max-width: 500px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: modalSlideIn 0.3s ease-out;
+.verification-header {
+  margin-bottom: 30px;
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-50px) scale(0.9);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.logo-section h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0 0 5px 0;
+  text-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
 }
 
-.modal-header {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
-  color: white;
-  padding: 20px 25px;
-  border-radius: 15px 15px 0 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.close-button {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 5px;
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.2s;
-}
-
-.close-button:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.email-input-step,
-.code-verification-step {
-  padding: 30px 25px;
-}
-
-.email-input-step p,
-.code-verification-step p {
+.logo-section p {
+  font-size: 14px;
+  color: #6b7280;
   margin: 0 0 20px 0;
-  color: #555;
-  font-size: 1rem;
-  line-height: 1.5;
+  font-weight: 300;
+}
+
+.verification-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 10px 0;
+}
+
+.verification-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 15px 0;
 }
 
 .email-display {
-  background-color: #f8f9fa;
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-  font-weight: 500;
-  color: var(--primary-dark);
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.input-group {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #667eea;
+  display: inline-block;
   margin-bottom: 20px;
 }
 
-.input-group label {
+.verification-form {
+  margin-bottom: 30px;
+}
+
+.form-group {
+  margin-bottom: 25px;
+}
+
+.form-group label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: 500;
-  color: #333;
-  font-size: 0.95rem;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 10px;
+  text-align: left;
 }
 
-.input-group input {
+.code-input-container {
+  position: relative;
+}
+
+.code-input {
   width: 100%;
-  padding: 14px 16px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s;
+  padding: 20px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 8px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #1f2937;
+  font-family: 'Courier New', monospace;
+  transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
-.input-group input:focus {
+.code-input:focus {
   outline: none;
-  border-color: var(--primary-dark);
-  box-shadow: 0 0 0 3px rgba(42, 90, 90, 0.1);
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
-.input-group input:disabled {
-  background-color: #f8f9fa;
-  color: #6c757d;
-  cursor: not-allowed;
+.code-input.error {
+  border-color: #ef4444;
+  background: #fef2f2;
 }
 
-.message {
+.code-input::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.code-input-help {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
   padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.message.success {
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.message.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-}
-
-.button-group {
+  margin: 15px 0;
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  align-items: center;
+  gap: 8px;
+  color: #dc2626;
+  font-size: 14px;
 }
 
-.button-group button {
-  flex: 1;
-  padding: 14px 20px;
-  border: none;
+.error-icon {
+  font-size: 16px;
+}
+
+.success-message {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
   border-radius: 8px;
-  font-size: 1rem;
+  padding: 12px 16px;
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #16a34a;
+  font-size: 14px;
+}
+
+.success-icon {
+  font-size: 16px;
+}
+
+.form-actions {
+  margin-top: 25px;
+}
+
+.verify-button {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 24px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
-  text-transform: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.send-code-btn,
-.verify-btn {
-  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary) 100%);
-  color: white;
-}
-
-.send-code-btn:hover:not(:disabled),
-.verify-btn:hover:not(:disabled) {
+.verify-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(42, 90, 90, 0.3);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
-.send-code-btn:disabled,
-.verify-btn:disabled {
+.verify-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-  box-shadow: none;
 }
 
-.cancel-btn {
-  background-color: #6c757d;
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.verification-footer {
+  border-top: 1px solid #e5e7eb;
+  padding-top: 25px;
+  margin-top: 25px;
+}
+
+.resend-section {
+  margin-bottom: 20px;
+}
+
+.resend-section p {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 0 0 10px 0;
+}
+
+.resend-button {
+  background: transparent;
+  color: #667eea;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 0 auto;
+}
+
+.resend-button:hover:not(:disabled) {
+  background: #667eea;
   color: white;
 }
 
-.cancel-btn:hover {
-  background-color: #5a6268;
-}
-
-.resend-btn {
-  background-color: #17a2b8;
-  color: white;
-}
-
-.resend-btn:hover:not(:disabled) {
-  background-color: #138496;
-}
-
-.resend-btn:disabled {
-  background-color: #6c757d;
+.resend-button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-.back-btn {
-  width: 100%;
-  padding: 12px 20px;
-  background: none;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  color: #6c757d;
-  font-size: 0.9rem;
+.back-section {
+  margin-top: 15px;
+}
+
+.back-button {
+  background: transparent;
+  color: #6b7280;
+  border: none;
+  font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color 0.3s ease;
+  text-decoration: underline;
 }
 
-.back-btn:hover {
-  border-color: var(--primary-dark);
-  color: var(--primary-dark);
-  background-color: #f8f9fa;
+.back-button:hover {
+  color: #374151;
 }
 
-/* Responsive Design */
+.verification-info {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 25px;
+  text-align: left;
+}
+
+.verification-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.verification-info ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.verification-info li {
+  margin-bottom: 8px;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
-  .email-verification-modal {
-    width: 95%;
-    margin: 20px;
+  .email-verification-container {
+    padding: 10px;
   }
   
-  .modal-header {
-    padding: 18px 20px;
+  .verification-card {
+    padding: 30px 20px;
+    border-radius: 16px;
   }
   
-  .modal-header h2 {
-    font-size: 1.3rem;
+  .logo-section h1 {
+    font-size: 28px;
   }
   
-  .email-input-step,
-  .code-verification-step {
-    padding: 25px 20px;
+  .verification-header h2 {
+    font-size: 20px;
   }
   
-  .button-group {
-    flex-direction: column;
+  .code-input {
+    font-size: 20px;
+    letter-spacing: 6px;
+    padding: 16px;
   }
   
-  .button-group button {
-    width: 100%;
+  .verify-button {
+    padding: 14px 20px;
+    font-size: 15px;
   }
 }
 
 @media (max-width: 480px) {
-  .email-verification-modal {
-    width: 98%;
-    margin: 10px;
+  .verification-card {
+    padding: 25px 15px;
   }
   
-  .modal-header {
-    padding: 15px 18px;
-  }
-  
-  .email-input-step,
-  .code-verification-step {
-    padding: 20px 18px;
-  }
-  
-  .input-group input {
-    padding: 12px 14px;
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-  
-  .button-group button {
-    padding: 12px 18px;
+  .code-input {
+    font-size: 18px;
+    letter-spacing: 4px;
   }
 }

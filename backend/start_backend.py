@@ -94,7 +94,7 @@ def start_server():
         from app import app
         
         print("✅ Flask app imported successfully")
-        print("🌐 Server will be available at: http://localhost:5000")
+        print("🌐 Server will be available at: http://localhost:3002")
         print("📱 API endpoints:")
         print("   - POST /api/auth/login")
         print("   - POST /api/auth/signup")
@@ -104,7 +104,7 @@ def start_server():
         # Start the server
         app.run(
             host="0.0.0.0", 
-            port=5000, 
+            port=3002, 
             debug=True,
             use_reloader=True
         )

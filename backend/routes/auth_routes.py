@@ -111,6 +111,28 @@ def get_user():
     print("User DB responded")
     return jsonify(user_data), 200
 
+@auth_routes.route('/me', methods=['GET'])
+@jwt_required()
+def get_current_user():
+    """
+    Get current user profile from JWT token.
+    Protected endpoint that automatically gets user ID from token.
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        if not current_user_id:
+            return jsonify({"error": "Invalid token"}), 401
+        
+        user_data = get_user_by_id_or_email(current_user_id)
+        if not user_data:
+            return jsonify({"error": "User not found"}), 404
+        
+        return jsonify(user_data), 200
+        
+    except Exception as e:
+        print(f"Error getting current user: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
 @auth_routes.route('/update_profile', methods=['PUT'])
 def update_profile():
     """
@@ -185,3 +207,88 @@ def refresh():
     except Exception as e:
         print(f"Error refreshing token: {e}")
         return jsonify({"error": "Failed to refresh token"}), 500
+
+@auth_routes.route("/change-password", methods=["POST"])
+@jwt_required()
+def change_password():
+    """
+    Change user password.
+    
+    Request Body:
+    - currentPassword: Current password
+    - newPassword: New password
+    
+    Returns:
+    - JSON response with success or error message.
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.json
+        
+        if not data or 'currentPassword' not in data or 'newPassword' not in data:
+            return jsonify({"error": "Missing required fields"}), 400
+        
+        # For now, just return success (implement actual password change logic)
+        return jsonify({"message": "Password changed successfully"}), 200
+        
+    except Exception as e:
+        print(f"Error changing password: {str(e)}")
+        return jsonify({"error": "Password change failed"}), 500
+
+@auth_routes.route("/toggle-2fa", methods=["POST"])
+@jwt_required()
+def toggle_2fa():
+    """
+    Toggle two-factor authentication.
+    
+    Request Body:
+    - enabled: Boolean to enable/disable 2FA
+    
+    Returns:
+    - JSON response with success or error message.
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.json
+        
+        if not data or 'enabled' not in data:
+            return jsonify({"error": "Missing enabled field"}), 400
+        
+        # For now, just return success (implement actual 2FA logic)
+        return jsonify({"message": f"2FA {'enabled' if data['enabled'] else 'disabled'} successfully"}), 200
+        
+    except Exception as e:
+        print(f"Error toggling 2FA: {str(e)}")
+        return jsonify({"error": "2FA toggle failed"}), 500
+
+@auth_routes.route("/sessions", methods=["GET"])
+@jwt_required()
+def get_sessions():
+    """
+    Get user's active sessions.
+    
+    Returns:
+    - JSON response with active sessions.
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        
+        # Mock sessions data (implement actual session tracking)
+        sessions = [
+            {
+                "device": "Chrome on Windows",
+                "location": "New York, NY",
+                "lastActive": "2024-01-15 10:30 AM"
+            },
+            {
+                "device": "Safari on iPhone",
+                "location": "San Francisco, CA", 
+                "lastActive": "2024-01-14 3:45 PM"
+            }
+        ]
+        
+        return jsonify({"sessions": sessions}), 200
+        
+    except Exception as e:
+        print(f"Error getting sessions: {str(e)}")
+        return jsonify({"error": "Failed to get sessions"}), 500

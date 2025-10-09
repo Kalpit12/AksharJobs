@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Referral Sync with Google Sheets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+        .warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Referral Sync with Google Sheets</h1>
+        <p>Testing if referral shares are properly syncing with Google Sheets</p>
+        
+        <div>
+            <h3>1. Setup Test User</h3>
+            <button class="test-button" onclick="setupTestUser()">Setup Test User</button>
+            <div id="setupResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>2. Test Referral Share Tracking</h3>
+            <button class="test-button" onclick="testReferralShare()">Test WhatsApp Share</button>
+            <button class="test-button" onclick="testLinkedInShare()">Test LinkedIn Share</button>
+            <button class="test-button" onclick="testEmailShare()">Test Email Share</button>
+            <div id="shareResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>3. Test Google Sheets Sync</h3>
+            <button class="test-button" onclick="testGoogleSheetsSync()">Test Google Sheets Sync</button>
+            <div id="syncResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>4. View Local Data</h3>
+            <button class="test-button" onclick="viewLocalData()">View Local Data</button>
+            <div id="localDataResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>5. Console Logs</h3>
+            <button class="test-button" onclick="clearLogs()">Clear Logs</button>
+            <div id="consoleLogs" class="result info"></div>
+        </div>
+    </div>
+
+    <script>
+        // Your Google Sheets API URL
+        const REFERRAL_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        // Setup test user
+        function setupTestUser() {
+            const resultDiv = document.getElementById('setupResult');
+            
+            const testUser = {
+                name: 'Test User',
+                email: 'test@example.com',
+                phone: '+1234567890',
+                role: 'job_seeker',
+                aksharCoins: 10
+            };
+            
+            localStorage.setItem('aksharUserData', JSON.stringify(testUser));
+            localStorage.setItem('isLoggedIn', 'true');
+            
+            resultDiv.innerHTML = `
+                <div class="success">
+                    ✅ Test user setup complete!<br>
+                    Name: ${testUser.name}<br>
+                    Email: ${testUser.email}<br>
+                    Coins: ${testUser.aksharCoins}
+                </div>
+            `;
+            logToConsole('Test user setup:', testUser);
+        }
+        
+        // Test referral share tracking
+        function testReferralShare() {
+            const resultDiv = document.getElementById('shareResult');
+            resultDiv.innerHTML = 'Testing referral share...';
+            
+            try {
+                // Simulate the trackReferralShare function
+                trackReferralShare('whatsapp');
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ WhatsApp share tracked!<br>
+                        Check console logs for details
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Share tracking failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Share tracking error:', error);
+            }
+        }
+        
+        function testLinkedInShare() {
+            const resultDiv = document.getElementById('shareResult');
+            resultDiv.innerHTML = 'Testing LinkedIn share...';
+            
+            try {
+                trackReferralShare('linkedin');
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ LinkedIn share tracked!<br>
+                        Check console logs for details
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ LinkedIn share tracking failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('LinkedIn share error:', error);
+            }
+        }
+        
+        function testEmailShare() {
+            const resultDiv = document.getElementById('shareResult');
+            resultDiv.innerHTML = 'Testing Email share...';
+            
+            try {
+                trackReferralShare('email');
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Email share tracked!<br>
+                        Check console logs for details
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Email share tracking failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Email share error:', error);
+            }
+        }
+        
+        // Test Google Sheets sync
+        async function testGoogleSheetsSync() {
+            const resultDiv = document.getElementById('syncResult');
+            resultDiv.innerHTML = 'Testing Google Sheets sync...';
+            
+            try {
+                const testData = {
+                    type: 'referral_share',
+                    referrerEmail: 'test@example.com',
+                    referrerName: 'Test User',
+                    platform: 'test',
+                    coinsEarned: 3,
+                    totalShares: 1,
+                    shareCount: 1,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const syncUrl = `${REFERRAL_WEBHOOK_URL}?${Object.keys(testData).map(key => `${key}=${encodeURIComponent(testData[key])}`).join('&')}`;
+                logToConsole('Testing Google Sheets sync:', syncUrl);
+                
+                const response = await fetch(syncUrl, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Google Sheets sync successful!<br>
+                            Response: ${JSON.stringify(data, null, 2)}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Google Sheets sync failed<br>
+                            Status: ${response.status} ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="warning">
+                        ⚠️ Google Sheets sync failed (CORS issue)<br>
+                        This is expected - using iframe fallback method
+                    </div>
+                `;
+                logToConsole('Google Sheets sync error:', error);
+            }
+        }
+        
+        // View local data
+        function viewLocalData() {
+            const resultDiv = document.getElementById('localDataResult');
+            
+            const userData = JSON.parse(localStorage.getItem('aksharUserData') || '{}');
+            const referralData = JSON.parse(localStorage.getItem('aksharReferralData') || '{}');
+            
+            resultDiv.innerHTML = `
+                <div class="info">
+                    <strong>User Data:</strong><br>
+                    ${JSON.stringify(userData, null, 2)}<br><br>
+                    <strong>Referral Data:</strong><br>
+                    ${JSON.stringify(referralData, null, 2)}
+                </div>
+            `;
+        }
+        
+        // Enhanced referral share tracking with Google Sheets sync
+        function trackReferralShare(platform) {
+            console.log('📊 Tracking referral share:', platform);
+            
+            const userData = JSON.parse(localStorage.getItem('aksharUserData') || '{}');
+            
+            if (!userData.email) {
+                console.log('❌ No user data found for referral tracking');
+                return;
+            }
+            
+            // Update local referral data
+            const referralData = JSON.parse(localStorage.getItem('aksharReferralData') || '{}');
+            referralData.totalShares = (referralData.totalShares || 0) + 1;
+            referralData[platform + 'Shares'] = (referralData[platform + 'Shares'] || 0) + 1;
+            localStorage.setItem('aksharReferralData', JSON.stringify(referralData));
+            
+            // Update user coins
+            const coinsEarned = 3; // 3 coins per share
+            userData.aksharCoins = (userData.aksharCoins || 0) + coinsEarned;
+            localStorage.setItem('aksharUserData', JSON.stringify(userData));
+            
+            // Sync with Google Sheets
+            syncReferralShareWithGoogleSheets(userData, platform, coinsEarned, referralData);
+            
+            console.log('✅ Referral share tracked locally:', { platform, coinsEarned, totalShares: referralData.totalShares });
+        }
+        
+        // Sync referral share with Google Sheets
+        async function syncReferralShareWithGoogleSheets(userData, platform, coinsEarned, referralData) {
+            if (!REFERRAL_WEBHOOK_URL) {
+                console.log('Referral webhook not configured, skipping Google Sheets sync');
+                return;
+            }
+            
+            try {
+                const shareData = {
+                    type: 'referral_share',
+                    referrerEmail: userData.email,
+                    referrerName: userData.name || userData.fullName,
+                    platform: platform,
+                    coinsEarned: coinsEarned,
+                    totalShares: referralData.totalShares,
+                    shareCount: referralData[platform + 'Shares'] || 1,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const syncUrl = `${REFERRAL_WEBHOOK_URL}?${Object.keys(shareData).map(key => `${key}=${encodeURIComponent(shareData[key])}`).join('&')}`;
+                console.log('🔄 Syncing referral share with Google Sheets:', syncUrl);
+                
+                // Use iframe method for sync (non-blocking)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = syncUrl;
+                document.body.appendChild(iframe);
+                
+                setTimeout(() => {
+                    if (iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                    }
+                }, 2000);
+                
+            } catch (error) {
+                console.log('⚠️ Referral share sync failed (non-critical):', error);
+            }
+        }
+        
+        // Logging functions
+        function logToConsole(message, data = null) {
+            const logsDiv = document.getElementById('consoleLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}${data ? ': ' + JSON.stringify(data, null, 2) : ''}`;
+            logsDiv.innerHTML += logEntry + '<br><br>';
+            console.log(message, data);
+        }
+        
+        function clearLogs() {
+            document.getElementById('consoleLogs').innerHTML = '';
+        }
+        
+        // Auto-setup test user on page load
+        window.onload = function() {
+            setupTestUser();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+═══════════════════════════════════════════════════════════════════════════════
+    MULTIPLE ROLES SELECTION - QUICK GUIDE
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ FEATURE: Users can now select MULTIPLE roles during registration!
+
+═══════════════════════════════════════════════════════════════════════════════
+   BEFORE vs AFTER
+═══════════════════════════════════════════════════════════════════════════════
+
+BEFORE (Single Selection):
+  ○ Job Seeker     (Radio button - can only pick ONE)
+  ○ Recruiter
+  ○ Mentor
+  ○ Trainer
+
+AFTER (Multiple Selection):
+  ☐ Job Seeker     (Checkboxes - can pick MULTIPLE)
+  ☑ Recruiter
+  ☑ Mentor
+  ☐ Trainer
+
+═══════════════════════════════════════════════════════════════════════════════
+   WHAT CHANGED
+═══════════════════════════════════════════════════════════════════════════════
+
+1. ✅ Radio buttons → Checkboxes
+2. ✅ name="role" → name="roles"
+3. ✅ Shows ALL selected role-specific fields
+4. ✅ Displays count: "Selected Roles (3)"
+5. ✅ Saves to multiple Google Sheets
+6. ✅ Validation: Must select at least 1 role
+
+═══════════════════════════════════════════════════════════════════════════════
+   EXAMPLE USAGE
+═══════════════════════════════════════════════════════════════════════════════
+
+SCENARIO 1: Job Seeker Who Also Mentors
+  ☑ Job Seeker
+  ☑ Mentor
+  ☐ Trainer
+  
+  Result: "Selected Roles (2): 🔍 Job Seeker, 🎓 Mentor"
+  Shows: Job Seeker fields + Mentor fields
+  Saved to: Main sheet + Job_Seekers sheet + Mentors sheet
+
+SCENARIO 2: Versatile Professional
+  ☑ Job Seeker
+  ☑ Mentor
+  ☑ Trainer
+  ☑ Consultant
+  
+  Result: "Selected Roles (4): 🔍 Job Seeker, 🎓 Mentor, 👨‍🏫 Trainer, 📊 Consultant"
+  Shows: All 4 role-specific field sections
+  Saved to: Main sheet + 4 role-specific sheets
+
+SCENARIO 3: Focused User
+  ☑ Job Seeker
+  ☐ Recruiter
+  ☐ Mentor
+  
+  Result: "Selected Roles (1): 🔍 Job Seeker"
+  Shows: Only Job Seeker fields
+  Saved to: Main sheet + Job_Seekers sheet
+
+═══════════════════════════════════════════════════════════════════════════════
+   GOOGLE SHEETS DATA
+═══════════════════════════════════════════════════════════════════════════════
+
+MAIN REGISTRATION SHEET:
+┌────────────┬───────────┬──────────────────┬───────┬─────────────────────────┬────────────┐
+│ Timestamp  │ Full Name │ Email            │ Phone │ Roles                   │ Role Count │
+├────────────┼───────────┼──────────────────┼───────┼─────────────────────────┼────────────┤
+│ 2025-10-04 │ John Doe  │ john@example.com │ 12345 │ job_seeker, mentor      │ 2          │
+│ 2025-10-04 │ Jane Smith│ jane@example.com │ 67890 │ recruiter, consultant   │ 2          │
+│ 2025-10-04 │ Bob Wilson│ bob@example.com  │ 11111 │ job_seeker              │ 1          │
+└────────────┴───────────┴──────────────────┴───────┴─────────────────────────┴────────────┘
+
+ROLE-SPECIFIC SHEETS:
+John Doe appears in:
+  ✅ Job_Seekers sheet
+  ✅ Mentors sheet
+
+Jane Smith appears in:
+  ✅ Recruiters sheet
+  ✅ Consultants sheet
+
+Bob Wilson appears in:
+  ✅ Job_Seekers sheet (only)
+
+═══════════════════════════════════════════════════════════════════════════════
+   HOW TO TEST
+═══════════════════════════════════════════════════════════════════════════════
+
+STEP 1: Clear Browser Cache
+  Windows: Ctrl + Shift + Delete
+  Mac: Cmd + Shift + Delete
+
+STEP 2: Open Registration Form
+  URL: https://www.aksharjobs.com/AKSHAREXPO/registration.html
+
+STEP 3: Select Multiple Roles
+  ✅ Click "Job Seeker" checkbox
+  ✅ Click "Mentor" checkbox
+  ✅ Click "Trainer" checkbox
+
+STEP 4: Verify Display
+  Should show: "✓ Selected Roles (3):"
+  Should show: Three role cards with icons
+  Should show: All three role-specific field sections
+
+STEP 5: Fill & Submit Form
+  Fill required fields for all selected roles
+  Click "Register"
+
+STEP 6: Check Google Sheets
+  Open: https://docs.google.com/spreadsheets/d/14gfIXPlZQGuYYAWiW1RHlcDlBf_Tm63JMRrJ-4pyqwk/
+  
+  Main Sheet: Should show roles as "job_seeker, mentor, trainer"
+  Job_Seekers Sheet: Should have your entry
+  Mentors Sheet: Should have your entry
+  Trainers Sheet: Should have your entry
+
+═══════════════════════════════════════════════════════════════════════════════
+   VALIDATION RULES
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ At least 1 role MUST be selected
+❌ Cannot submit with 0 roles selected
+✅ Can select up to all 9 roles
+✅ Can uncheck and recheck roles anytime
+✅ Role-specific fields update dynamically
+
+═══════════════════════════════════════════════════════════════════════════════
+   AVAILABLE ROLES
+═══════════════════════════════════════════════════════════════════════════════
+
+1. 🔍 Job Seeker        - Find your dream job
+2. 👥 Recruiter         - Connect with top talent
+3. 🎓 Mentor            - Share your expertise
+4. 👨‍🏫 Trainer          - Deliver training programs
+5. 📊 Consultant        - Provide strategic guidance
+6. ❤️  Volunteer        - Make a positive impact
+7. 🎓 Intern            - Gain valuable experience
+8. 👥 Community         - Join professional network
+9. 🏛️  University       - Connect students with opportunities
+
+═══════════════════════════════════════════════════════════════════════════════
+   FILES CHANGED
+═══════════════════════════════════════════════════════════════════════════════
+
+1. registration.html
+   - Radio buttons → Checkboxes
+   - Updated JavaScript for multiple selections
+   - Updated CSS styling
+   - New validation logic
+
+2. google_sheets_integration.gs
+   - Updated validation (role OR roles)
+   - Changed headers (Roles + Role Count)
+   - Multi-sheet saving logic
+   - Backward compatible
+
+═══════════════════════════════════════════════════════════════════════════════
+   BENEFITS
+═══════════════════════════════════════════════════════════════════════════════
+
+FOR USERS:
+✅ More flexibility in role selection
+✅ Saves time (register once for multiple roles)
+✅ Better represents their multi-faceted profile
+
+FOR PLATFORM:
+✅ Better user data and understanding
+✅ More accurate matching
+✅ Targeted communication per role
+
+FOR ADMIN:
+✅ Organized role-specific sheets
+✅ Easy filtering and analysis
+✅ Track role combinations
+
+═══════════════════════════════════════════════════════════════════════════════
+   BACKWARD COMPATIBILITY
+═══════════════════════════════════════════════════════════════════════════════
+
+✅ Old single-role registrations still work
+✅ System handles both "role" and "roles" fields
+✅ Existing sheets continue to function
+✅ No data migration needed
+
+═══════════════════════════════════════════════════════════════════════════════
+   TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════════════════
+
+ISSUE: Still seeing radio buttons
+SOLUTION: Clear browser cache (Ctrl+Shift+Delete) and refresh
+
+ISSUE: Can't select multiple roles
+SOLUTION: Make sure you're on the latest version (check URL)
+
+ISSUE: Error "Please select at least one role"
+SOLUTION: This is correct validation - select at least 1 role
+
+ISSUE: Not seeing all role fields
+SOLUTION: This is correct - only selected role fields are shown
+
+═══════════════════════════════════════════════════════════════════════════════
+   DOCUMENTATION
+═══════════════════════════════════════════════════════════════════════════════
+
+📚 Full Documentation: MULTIPLE_ROLES_SELECTION.md
+📋 Quick Guide: MULTIPLE_ROLES_QUICK_GUIDE.txt (this file)
+
+═══════════════════════════════════════════════════════════════════════════════
+   STATUS
+═══════════════════════════════════════════════════════════════════════════════
+
+Implementation: ✅ COMPLETE
+Testing: ✅ READY
+Google Sheets: ✅ UPDATED
+Deployment: ✅ LIVE
+
+Date: October 4, 2025
+Feature: Multiple Role Selection
+Impact: High - Major UX Improvement
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Need help? Check MULTIPLE_ROLES_SELECTION.md for detailed documentation.
+
+═══════════════════════════════════════════════════════════════════════════════
+

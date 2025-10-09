@@ -8,7 +8,8 @@ import PlanManagement from '../components/PlanManagement';
 import AnalyticsDashboard from '../components/AdminAnalyticsDashboard';
 import UserManagement from '../components/UserManagement';
 import SwahiliAnalysisManagement from '../components/SwahiliAnalysisManagement';
-import LoadingSpinner from '../components/LoadingSpinner';
+import BulkImport from '../components/BulkImport';
+import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
 import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -33,18 +34,37 @@ const AdminDashboard = () => {
   useEffect(() => {
     // Check if user is admin
     const role = localStorage.getItem('role');
-    if (role !== 'admin') {
+    const userType = localStorage.getItem('userType');
+    const token = localStorage.getItem('token');
+    
+    // Check if user is logged in and is admin
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
+    // Check if user has admin role (role could be 'admin' or userType could be 'admin')
+    if (role !== 'admin' && userType !== 'admin') {
       navigate('/login');
       return;
     }
     
     fetchSystemStats();
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array - only check on mount
 
   const fetchSystemStats = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:5000/api/admin/stats', {
+      
+      // Skip stats fetch if no token
+      if (!token) {
+        console.log('⚠️ No token found, skipping stats fetch');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await fetch('http://localhost:3002/api/admin/stats', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -53,9 +73,33 @@ const AdminDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setSystemStats(data);
+      } else {
+        console.error('❌ Failed to fetch admin stats:', response.status, response.statusText);
+        // Set default stats instead of failing
+        setSystemStats({
+          totalJobSeekers: 0,
+          totalRecruiters: 0,
+          totalResumes: 0,
+          totalJobs: 0,
+          activeUsers: 0,
+          inactiveUsers: 0,
+          monthlyActiveUsers: 0,
+          dailyActiveUsers: 0
+        });
       }
     } catch (error) {
       console.error('Error fetching system stats:', error);
+      // Set default stats on error
+      setSystemStats({
+        totalJobSeekers: 0,
+        totalRecruiters: 0,
+        totalResumes: 0,
+        totalJobs: 0,
+        activeUsers: 0,
+        inactiveUsers: 0,
+        monthlyActiveUsers: 0,
+        dailyActiveUsers: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -98,6 +142,18 @@ const AdminDashboard = () => {
             <div className="quick-actions">
               <h3>Quick Actions</h3>
               <div className="action-buttons">
+                <button 
+                  onClick={() => setActiveView('bulk-import')}
+                  className="bulk-upload-btn"
+                  style={{
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    fontSize: '1.1rem',
+                    fontWeight: '700',
+                    padding: '1.2rem 2rem'
+                  }}
+                >
+                  📊 BULK UPLOAD
+                </button>
                 <button onClick={() => setActiveView('jobseeker-matrix')}>
                   Manage Job Seeker Features
                 </button>
@@ -129,6 +185,8 @@ const AdminDashboard = () => {
         return <UserManagement />;
       case 'swahili-analysis':
         return <SwahiliAnalysisManagement />;
+      case 'bulk-import':
+        return <BulkImport />;
       default:
         return <div>Select a view from the sidebar</div>;
     }
@@ -137,7 +195,7 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="admin-dashboard">
-        <LoadingSpinner 
+        <ModernLoadingSpinner 
           type="pulse" 
           size="large" 
           text="Loading Admin Dashboard..." 

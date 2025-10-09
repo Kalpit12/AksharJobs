@@ -1,10 +1,8 @@
 import jwt
 import datetime
-import os
-from dotenv import load_dotenv
+from config import Config
 
-load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY")
+SECRET_KEY = Config.JWT_SECRET_KEY
 
 def generate_jwt_token(user_id):
     """

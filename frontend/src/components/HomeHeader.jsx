@@ -27,21 +27,10 @@ const HomeHeader = () => {
         <div className="home-header-left">
           <div className="home-logo-container" onClick={() => navigate('/')}>
             <div className="home-logo-svg">
-              <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="50" height="50" rx="8" fill="url(#gradient)"/>
-                <path d="M25 10L30 20L25 30L20 20L25 10Z" fill="white"/>
-                <path d="M25 30L25 40" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-                <circle cx="25" cy="35" r="2" fill="white"/>
-                <defs>
-                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FFD700"/>
-                    <stop offset="100%" stopColor="#FFA500"/>
-                  </linearGradient>
-                </defs>
-              </svg>
+              <img src="/AK_logo.jpg" alt="AksharJobs Logo" />
             </div>
             <div className="home-logo-text">
-              <h1 className="home-logo">RocketJobs</h1>
+              <h1 className="home-logo">AksharJobs</h1>
               <p className="home-tagline">Where Opportunity Meets Talent</p>
             </div>
           </div>

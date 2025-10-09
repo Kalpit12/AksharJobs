@@ -42,7 +42,7 @@ const JobDescription = () => {
     setMessage("");
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/api/jobs/add_job", formData, {
+      const response = await axios.post("http://localhost:3002/api/jobs/add_job", formData, {
         headers: { "Content-Type": "application/json" },
       });
 

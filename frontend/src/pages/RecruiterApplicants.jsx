@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 
 import Header from "../components/Header";
 import "../styles/ViewAllCandidates.css";
 import BackButton from "../components/BackButton";
 
 const RecruiterApplicants = () => {
+  const navigate = useNavigate();
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,43 +23,55 @@ const RecruiterApplicants = () => {
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
-        const userId = localStorage.getItem("userId");
-        const jobsResponse = await axios.get(`http://localhost:5000/api/jobs/jobs_by_user/${userId}`);
-        const jobs = jobsResponse.data;
-        let allCandidates = [];
-
-        for (const job of jobs) {
-          const response = await axios.get(`http://localhost:5000/api/applications/get_applications?jobId=${job._id}`);
-          const applications = response.data.applications || [];
-          const enrichedCandidates = await Promise.all(
-            applications.map(async (candidate) => {
-              try {
-                const userResponse = await axios.get(`http://localhost:5000/api/auth/get_user?userId=${candidate.userId}`);
-                const jobResponse = await axios.get(`http://localhost:5000/api/jobs/job/${candidate.jobId}`);
-                // Ensure both userResponse.data and jobResponse.data are valid
-                if (userResponse.data && typeof userResponse.data === 'object' && Object.keys(userResponse.data).length > 0 &&
-                    jobResponse.data && typeof jobResponse.data === 'object' && Object.keys(jobResponse.data).length > 0) {
-                  return { ...candidate, ...userResponse.data, jobTitle: jobResponse.data.job_title };
-                } else {
-                  console.warn('Invalid user or job data received for candidate:', candidate.userId);
-                  return candidate; // Return original candidate data if data is invalid
-                }
-              } catch (error) {
-                console.error('Error fetching user or job data for candidate:', candidate.userId, error);
-                return candidate; // Return original candidate data if fetch fails
-              }
-            })
-          );
-
-          allCandidates = [...allCandidates, ...enrichedCandidates.filter(Boolean)];
-        }
-
+        // Use the new endpoint that returns all applications with user and job details
+        const response = await axios.get(buildApiUrl(`/api/applications/all`));
+        const applications = response.data.applications || [];
+        
+        // The applications already have user and job details, so we can use them directly
+        const enrichedCandidates = applications.map(candidate => ({
+          ...candidate,
+          // Map the fields to match what the component expects
+          fullName: candidate.applicant_name,
+          firstName: candidate.applicant_name, // For table display
+          email: candidate.applicant_email,
+          phoneNumber: candidate.applicant_phone,
+          jobTitle: candidate.job_title,
+          companyName: candidate.company_name,
+          // Keep original fields for compatibility
+          userId: candidate.applicant_id,
+          jobId: candidate.job_id,
+          // Add missing fields that the component expects
+          final_score: candidate.matchScore || 0,
+          skill_score: candidate.matchScore || 0,
+          skills_match: candidate.matchScore || 0,
+          profileImage: "https://www.w3schools.com/w3images/avatar2.png" // Default avatar
+        }));
+        
+        console.log('Raw applications:', applications);
+        console.log('Enriched candidates:', enrichedCandidates);
+        
+        // Debug each filter condition
+        const debugFilter = (c) => {
+          const checks = {
+            exists: c && typeof c === 'object',
+            hasStatus: c.status && c.status !== "",
+            hasApplicantId: c.applicant_id,
+            statusValue: c.status,
+            applicantIdValue: c.applicant_id
+          };
+          console.log('Filter check for candidate:', c.applicant_name, checks);
+          return checks.exists && checks.hasStatus && checks.hasApplicantId;
+        };
+        
         // Filter out invalid candidates and those with empty status
-        const sortedCandidates = allCandidates
-          .filter((c) => c && typeof c === 'object' && c.status && c.status !== "" && c.userId) // Filter out invalid candidates
-          .sort((a, b) => (b.final_score || 0) - (a.final_score || 0));
+        const sortedCandidates = enrichedCandidates
+          .filter(debugFilter) // Filter out invalid candidates
+          .sort((a, b) => (b.final_score || b.matchScore || 0) - (a.final_score || a.matchScore || 0));
+        
+        console.log('Filtered candidates:', sortedCandidates);
         setCandidates(sortedCandidates);
       } catch (err) {
+        console.error('Error fetching candidates:', err);
         setError("Failed to fetch candidates.");
       } finally {
         setLoading(false);
@@ -68,7 +83,7 @@ const RecruiterApplicants = () => {
 
   const updateStatus = async (userId, jobId, status, interviewDate, interviewMode) => {
     try {
-      await axios.put("http://localhost:5000/api/applications/update_status", { userId, jobId, status, interviewDate, interviewMode });
+              await axios.put(buildApiUrl("/api/applications/update_status"), { userId, jobId, status, interviewDate, interviewMode });
       setCandidates((prev) =>
         prev.map((c) => (c.userId === userId && c.jobId === jobId ? { ...c, status, interviewDate, interviewMode } : c))
       );
@@ -113,7 +128,29 @@ const RecruiterApplicants = () => {
       <div className="viewallcandidates_container">
         <BackButton to="/recruiter-dashboard" text="Back" />
         <div className="top_candidates_container">
-          <h2 className="recruiter_applicant_title">All Applicants</h2>
+          <div className="header_section">
+            <h2 className="recruiter_applicant_title">All Applicants</h2>
+            <button 
+              className="tracker_btn"
+              onClick={() => navigate('/modern-application-tracker')}
+              style={{
+                background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '12px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                boxShadow: '0 8px 25px rgba(102, 126, 234, 0.3)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              📊 View in Application Tracker
+            </button>
+          </div>
           {/* Search Field */}
           <input
             type="text"
@@ -125,23 +162,48 @@ const RecruiterApplicants = () => {
 
           <select onChange={(e) => setStatusFilter(e.target.value)} className="recruiter_applicants_select">
             <option value="">All Status</option>
+            <option value="applied">Applied</option>
+            <option value="to_review">To Review</option>
             <option value="shortlisted">Shortlisted</option>
-            <option value="accepted">Accepted</option>
+            <option value="to_interview">To Interview</option>
+            <option value="interviewed">Interviewed</option>
             <option value="rejected">Rejected</option>
+            <option value="selected">Selected</option>
+            <option value="hired">Hired</option>
           </select>
           {/*Status Analysis */}
           <div className="recruiter_status_analysis">
+            <div className="recruiter_status_box recruiter_applied">
+              <span className="recruiter_status_title">Applied</span>
+              <span className="recruiter_status_count">{candidates.filter(c => c.status === "applied").length}</span>
+            </div>
+            <div className="recruiter_status_box recruiter_to_review">
+              <span className="recruiter_status_title">To Review</span>
+              <span className="recruiter_status_count">{candidates.filter(c => c.status === "to_review").length}</span>
+            </div>
             <div className="recruiter_status_box recruiter_shortlisted">
               <span className="recruiter_status_title">Shortlisted</span>
               <span className="recruiter_status_count">{candidates.filter(c => c.status === "shortlisted").length}</span>
             </div>
-            <div className="recruiter_status_box recruiter_accepted">
-              <span className="recruiter_status_title">Accepted</span>
-              <span className="recruiter_status_count">{candidates.filter(c => c.status === "accepted").length}</span>
+            <div className="recruiter_status_box recruiter_to_interview">
+              <span className="recruiter_status_title">To Interview</span>
+              <span className="recruiter_status_count">{candidates.filter(c => c.status === "to_interview").length}</span>
+            </div>
+            <div className="recruiter_status_box recruiter_interviewed">
+              <span className="recruiter_status_title">Interviewed</span>
+              <span className="recruiter_status_count">{candidates.filter(c => c.status === "interviewed").length}</span>
             </div>
             <div className="recruiter_status_box recruiter_rejected">
               <span className="recruiter_status_title">Rejected</span>
               <span className="recruiter_status_count">{candidates.filter(c => c.status === "rejected").length}</span>
+            </div>
+            <div className="recruiter_status_box recruiter_selected">
+              <span className="recruiter_status_title">Selected</span>
+              <span className="recruiter_status_count">{candidates.filter(c => c.status === "selected").length}</span>
+            </div>
+            <div className="recruiter_status_box recruiter_hired">
+              <span className="recruiter_status_title">Hired</span>
+              <span className="recruiter_status_count">{candidates.filter(c => c.status === "hired").length}</span>
             </div>
           </div>
 
@@ -188,20 +250,24 @@ const RecruiterApplicants = () => {
                           </span>
                         </td>
                         <td>
-                          {candidate.status === "accepted" || candidate.status === "rejected" ? (
+                          {candidate.status === "rejected" || candidate.status === "selected" || candidate.status === "hired" ? (
                             <span>{candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}</span>
                           ) : (
-                            <select onChange={(e) => updateStatus(candidate.userId, candidate.jobId, e.target.value, interviewSchedules[candidate.userId], interviewModes[candidate.userId])} value={candidate.status || "pending"}>
-                              <option value="pending">Pending Review</option>
-                              <option value="shortlisted">Shortlist</option>
-                              <option value="accepted">Accept</option>
-                              <option value="rejected">Reject</option>
+                            <select onChange={(e) => updateStatus(candidate.userId, candidate.jobId, e.target.value, interviewSchedules[candidate.userId], interviewModes[candidate.userId])} value={candidate.status || "applied"}>
+                              <option value="applied">Applied</option>
+                              <option value="to_review">To Review</option>
+                              <option value="shortlisted">Shortlisted</option>
+                              <option value="to_interview">To Interview</option>
+                              <option value="interviewed">Interviewed</option>
+                              <option value="rejected">Rejected</option>
+                              <option value="selected">Selected</option>
+                              <option value="hired">Hired</option>
                             </select>
                           )}
                         </td>
 
                         <td>
-                          {candidate.status === "shortlisted" && (
+                          {(candidate.status === "shortlisted" || candidate.status === "to_interview") && (
                             <div className="schedule_interview">
                               {candidate.interviewDate && candidate.interviewMode ? (
                                 <div>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Google Apps Script</title>
+</head>
+<body>
+    <h1>Testing Google Apps Script for Referral Tracking</h1>
+    <button onclick="testScript()">Test Script</button>
+    <pre id="result"></pre>
+
+    <script>
+        async function testScript() {
+            const baseUrl = 'https://script.google.com/macros/s/AKfycbzIWDUnsWhdqj7324Ue-mGhlgqTgf8BwTyhChGW0OyqRLqnYw52lsdadoCmhQiSMUjh/exec';
+            
+            const testData = {
+                type: 'share',
+                action: 'referral_share',
+                referrerEmail: 'neel66569@gmail.com',
+                referrerName: 'Neel Patel',
+                referrerPhone: '0734852877',
+                referrerRole: 'job_seeker',
+                platform: 'whatsapp',
+                coinsEarned: 3,
+                shareCoins: 3,
+                referralBonusCoins: 0,
+                totalCoins: 3,
+                totalShares: 1,
+                platformShareCount: 1,
+                referralCount: 0,
+                totalReferrals: 0,
+                timestamp: new Date().toISOString(),
+                referralCode: 'AKSHAR2025',
+                source: 'test_page'
+            };
+            
+            const params = new URLSearchParams(testData);
+            const url = `${baseUrl}?${params.toString()}`;
+            
+            document.getElementById('result').textContent = 'Testing URL:\n' + url + '\n\nWaiting for response...';
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                const data = await response.json();
+                document.getElementById('result').textContent = 'Response:\n' + JSON.stringify(data, null, 2);
+                
+                if (data.success) {
+                    alert('✅ SUCCESS! Script is processing data correctly!');
+                } else {
+                    alert('⚠️ Script returned but not processing correctly. Check response.');
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = 'Error:\n' + error.toString() + '\n\nThis might be CORS error (normal). Check Google Sheets to see if data was saved.';
+            }
+        }
+    </script>
+</body>
+</html>
+

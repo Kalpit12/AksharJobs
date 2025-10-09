@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Roles & Benefits - AksharJobs | AI-Powered Job Matching Platform</title>
+    <link rel="stylesheet" href="expo_landing.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Open+Sans:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <style>
+        .roles-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 120px 0 80px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .roles-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><radialGradient id="a" cx="50%" cy="50%"><stop offset="0%" stop-color="rgba(255,255,255,0.1)"/><stop offset="100%" stop-color="transparent"/></radialGradient></defs><circle cx="200" cy="200" r="100" fill="url(%23a)"/><circle cx="800" cy="300" r="150" fill="url(%23a)"/><circle cx="400" cy="700" r="120" fill="url(%23a)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .roles-hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .roles-hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #f0f9ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .roles-hero p {
+            font-size: 1.25rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .roles-section {
+            padding: 80px 0;
+            background: #f8fafc;
+        }
+        
+        .role-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.02) 0%, rgba(139, 92, 246, 0.02) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .role-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border-left-color: var(--primary-color);
+        }
+        
+        .role-card:hover::before {
+            opacity: 1;
+        }
+        
+        .role-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .role-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            margin-right: 30px;
+            flex-shrink: 0;
+        }
+        
+        .role-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .role-subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+        }
+        
+        .benefits-section {
+            margin-top: 30px;
+        }
+        
+        .benefits-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .benefits-title i {
+            margin-right: 10px;
+        }
+        
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .benefits-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            align-items: flex-start;
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .benefits-list li:last-child {
+            border-bottom: none;
+        }
+        
+        .benefits-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 12px;
+            width: 20px;
+            height: 20px;
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .cta-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 80px 0;
+            text-align: center;
+            color: white;
+        }
+        
+        .cta-content h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .cta-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: var(--primary-color);
+            padding: 15px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .roles-hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .role-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .role-icon {
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .role-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <img src="frontend/src/assets/AK logo.jpg" alt="AksharJobs Logo" class="logo-img">
+                <div class="logo-content">
+                    <span class="logo-text">AksharJobs</span>
+                    <span class="logo-tagline">Where Opportunity Meets Talent</span>
+                </div>
+            </div>
+            <div class="nav-menu" id="nav-menu">
+                <a href="expo_landing.html" class="nav-link">Home</a>
+                <a href="expo_landing.html#features" class="nav-link">Features</a>
+                <a href="expo_landing.html#about" class="nav-link">About</a>
+                <a href="expo_landing.html#contact" class="nav-link">Contact</a>
+                <a href="roles.html" class="nav-link active">Roles</a>
+                <a href="expo_landing.html#contact" class="btn-primary">Get Started</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Roles Hero Section -->
+    <section class="roles-hero">
+        <div class="container">
+            <div class="roles-hero-content" data-aos="fade-up">
+                <h1>Find Your Perfect Role</h1>
+                <p>Discover how AksharJobs serves different professionals and organizations with tailored solutions and unique benefits for each role.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Roles Section -->
+    <section class="roles-section">
+        <div class="container">
+            <!-- Job Seeker Role -->
+            <div class="role-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="role-header">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h2 class="role-title">Job Seeker</h2>
+                        <p class="role-subtitle">Find your dream job with AI-powered matching</p>
+                    </div>
+                </div>
+                <div class="benefits-section">
+                    <h3 class="benefits-title">
+                        <i class="fas fa-star"></i>
+                        Key Benefits
+                    </h3>
+                    <ul class="benefits-list">
+                        <li><strong>AI-Powered Job Matching:</strong> Get matched with jobs that truly fit your skills and experience</li>
+                        <li><strong>Multilingual Resume Support:</strong> Upload resumes in any language - Swahili, English, or local dialects</li>
+                        <li><strong>Cultural Intelligence:</strong> Connect with employers who understand your background and values</li>
+                        <li><strong>Real-Time Notifications:</strong> Get instant alerts for new job opportunities that match your profile</li>
+                        <li><strong>Skill Development Insights:</strong> Receive personalized recommendations to improve your marketability</li>
+                        <li><strong>Interview Preparation:</strong> Access AI-generated interview questions and preparation tips</li>
+                        <li><strong>Salary Insights:</strong> Get market data on salary ranges for your role and experience level</li>
+                        <li><strong>Career Path Guidance:</strong> Discover potential career progression opportunities</li>
+                        <li><strong>Mobile-First Experience:</strong> Search and apply for jobs on any device, anywhere</li>
+                        <li><strong>Privacy Protection:</strong> Control who sees your profile and personal information</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Recruiter Role -->
+            <div class="role-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="role-header">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <i class="fas fa-briefcase"></i>
+                    </div>
+                    <div>
+                        <h2 class="role-title">Recruiter</h2>
+                        <p class="role-subtitle">Find the best talent with advanced AI tools</p>
+                    </div>
+                </div>
+                <div class="benefits-section">
+                    <h3 class="benefits-title">
+                        <i class="fas fa-star"></i>
+                        Key Benefits
+                    </h3>
+                    <ul class="benefits-list">
+                        <li><strong>AI-Powered Candidate Matching:</strong> Find the perfect candidates with 75.3% accuracy</li>
+                        <li><strong>Multilingual Talent Pool:</strong> Access candidates from diverse linguistic backgrounds</li>
+                        <li><strong>Cultural Fit Assessment:</strong> Evaluate candidates based on cultural compatibility</li>
+                        <li><strong>Advanced Filtering:</strong> Filter candidates by skills, experience, location, and more</li>
+                        <li><strong>Resume Intelligence:</strong> AI extracts and analyzes candidate information automatically</li>
+                        <li><strong>Interview Scheduling:</strong> Built-in calendar system for seamless interview coordination</li>
+                        <li><strong>Analytics Dashboard:</strong> Track hiring metrics, success rates, and candidate pipeline</li>
+                        <li><strong>Bulk Operations:</strong> Manage multiple job postings and candidate communications efficiently</li>
+                        <li><strong>Custom Branding:</strong> Showcase your company culture and values to attract top talent</li>
+                        <li><strong>Compliance Tools:</strong> Ensure fair hiring practices with built-in bias detection</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Mentor Role -->
+            <div class="role-card" data-aos="fade-up" data-aos-delay="300">
+                <div class="role-header">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h2 class="role-title">Mentor</h2>
+                        <p class="role-subtitle">Guide and inspire the next generation</p>
+                    </div>
+                </div>
+                <div class="benefits-section">
+                    <h3 class="benefits-title">
+                        <i class="fas fa-star"></i>
+                        Key Benefits
+                    </h3>
+                    <ul class="benefits-list">
+                        <li><strong>Mentee Matching:</strong> Connect with mentees who align with your expertise and interests</li>
+                        <li><strong>Structured Mentorship Programs:</strong> Access organized programs for effective guidance</li>
+                        <li><strong>Progress Tracking:</strong> Monitor mentee development and set achievable goals</li>
+                        <li><strong>Resource Library:</strong> Access curated materials and best practices for mentoring</li>
+                        <li><strong>Community Network:</strong> Connect with other mentors for knowledge sharing</li>
+                        <li><strong>Recognition System:</strong> Earn badges and recognition for your mentoring contributions</li>
+                        <li><strong>Flexible Scheduling:</strong> Set your availability and preferred communication methods</li>
+                        <li><strong>Impact Analytics:</strong> See the positive impact of your mentoring efforts</li>
+                        <li><strong>Professional Development:</strong> Enhance your own skills through mentoring others</li>
+                        <li><strong>Cultural Exchange:</strong> Share knowledge across different cultural backgrounds</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Trainer/Consultant Role -->
+            <div class="role-card" data-aos="fade-up" data-aos-delay="400">
+                <div class="role-header">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <i class="fas fa-chalkboard-teacher"></i>
+                    </div>
+                    <div>
+                        <h2 class="role-title">Trainer/Consultant</h2>
+                        <p class="role-subtitle">Share your expertise and knowledge</p>
+                    </div>
+                </div>
+                <div class="benefits-section">
+                    <h3 class="benefits-title">
+                        <i class="fas fa-star"></i>
+                        Key Benefits
+                    </h3>
+                    <ul class="benefits-list">
+                        <li><strong>Course Creation Tools:</strong> Design and deliver training programs with built-in tools</li>
+                        <li><strong>Student Management:</strong> Track student progress and engagement effectively</li>
+                        <li><strong>Certification Programs:</strong> Offer recognized certificates for completed training</li>
+                        <li><strong>Interactive Content:</strong> Create engaging multimedia training materials</li>
+                        <li><strong>Assessment Tools:</strong> Build quizzes, tests, and practical evaluations</li>
+                        <li><strong>Revenue Generation:</strong> Monetize your expertise through paid training programs</li>
+                        <li><strong>Marketplace Visibility:</strong> Showcase your training offerings to a wide audience</li>
+                        <li><strong>Feedback System:</strong> Collect and analyze student feedback for continuous improvement</li>
+                        <li><strong>Collaboration Tools:</strong> Work with other trainers on joint programs</li>
+                        <li><strong>Analytics Dashboard:</strong> Monitor training effectiveness and student outcomes</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Intern Role -->
+            <div class="role-card" data-aos="fade-up" data-aos-delay="500">
+                <div class="role-header">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #06b6d4, #0891b2);">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h2 class="role-title">Intern</h2>
+                        <p class="role-subtitle">Gain valuable experience and skills</p>
+                    </div>
+                </div>
+                <div class="benefits-section">
+                    <h3 class="benefits-title">
+                        <i class="fas fa-star"></i>
+                        Key Benefits
+                    </h3>
+                    <ul class="benefits-list">
+                        <li><strong>Internship Matching:</strong> Find internships that align with your field of study</li>
+                        <li><strong>Skill Development:</strong> Access learning resources and skill-building programs</li>
+                        <li><strong>Mentor Connection:</strong> Get paired with experienced professionals for guidance</li>
+                        <li><strong>Project Portfolio:</strong> Build a portfolio of work completed during internships</li>
+                        <li><strong>Networking Opportunities:</strong> Connect with professionals in your industry</li>
+                        <li><strong>Career Exploration:</strong> Discover different career paths and opportunities</li>
+                        <li><strong>Feedback and Evaluation:</strong> Receive constructive feedback on your performance</li>
+                        <li><strong>Certificate Programs:</strong> Earn certificates for completed internships and training</li>
+                        <li><strong>Job Placement Support:</strong> Get assistance transitioning from intern to full-time employee</li>
+                        <li><strong>Cultural Learning:</strong> Experience different workplace cultures and practices</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Community Member Role -->
+            <div class="role-card" data-aos="fade-up" data-aos-delay="600">
+                <div class="role-header">
+                    <div class="role-icon" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h2 class="role-title">Community Member</h2>
+                        <p class="role-subtitle">Join our growing professional network</p>
+                    </div>
+                </div>
+                <div class="benefits-section">
+                    <h3 class="benefits-title">
+                        <i class="fas fa-star"></i>
+                        Key Benefits
+                    </h3>
+                    <ul class="benefits-list">
+                        <li><strong>Professional Networking:</strong> Connect with like-minded professionals in your field</li>
+                        <li><strong>Knowledge Sharing:</strong> Share insights, experiences, and best practices</li>
+                        <li><strong>Event Access:</strong> Attend virtual and in-person networking events</li>
+                        <li><strong>Discussion Forums:</strong> Participate in industry-specific discussions and Q&A sessions</li>
+                        <li><strong>Resource Library:</strong> Access shared resources, templates, and tools</li>
+                        <li><strong>Collaboration Opportunities:</strong> Find partners for projects and initiatives</li>
+                        <li><strong>Industry Updates:</strong> Stay informed about latest trends and developments</li>
+                        <li><strong>Peer Support:</strong> Get advice and support from community members</li>
+                        <li><strong>Recognition Programs:</strong> Earn recognition for your contributions to the community</li>
+                        <li><strong>Global Reach:</strong> Connect with professionals from around the world</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-content" data-aos="fade-up">
+                <h2>Ready to Get Started?</h2>
+                <p>Join thousands of professionals who are already using AksharJobs to advance their careers and find opportunities.</p>
+                <a href="expo_landing.html#contact" class="btn-primary">Join AksharJobs Today</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <img src="frontend/src/assets/AK logo.jpg" alt="AksharJobs Logo" class="logo-img">
+                    <span class="logo-text">AksharJobs</span>
+                </div>
+                <div class="footer-links">
+                    <a href="expo_landing.html">Home</a>
+                    <a href="expo_landing.html#features">Features</a>
+                    <a href="expo_landing.html#about">About</a>
+                    <a href="expo_landing.html#contact">Contact</a>
+                    <a href="roles.html">Roles</a>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 AksharJobs. All rights reserved. | Expo 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="expo_landing.js"></script>
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true,
+            offset: 100
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,3256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share AksharJobs - Earn AksharCoins</title>
+    <meta name="description" content="Share AksharJobs with your network and earn AksharCoins for every successful referral. Join the community and help others find their dream jobs!">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/jpeg" href="AK logo.jpg">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <!-- AOS Animation Library -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 20px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* Shrink header when scrolling */
+        .header.scrolled {
+            padding: 10px 0;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(30px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .logo img {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            transition: all 0.3s ease;
+        }
+
+        /* Shrink logo when scrolling */
+        .header.scrolled .logo img {
+            width: 40px;
+            height: 40px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+
+        /* Shrink logo text when scrolling */
+        .header.scrolled .logo h1 {
+            font-size: 20px;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            font-size: 14px;
+        }
+
+        /* Shrink back button when scrolling */
+        .header.scrolled .back-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding-top: 120px;
+            padding-bottom: 60px;
+        }
+
+        .referral-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title h1 {
+            font-size: 36px;
+            color: #333;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-title p {
+            font-size: 18px;
+            color: #666;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* User Info Section */
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .welcome-message {
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .user-details {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .user-stat {
+            text-align: center;
+        }
+
+        .user-stat .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .user-stat .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .user-stat .label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Referral Code Section */
+        .referral-code-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 2px dashed #667eea;
+        }
+
+        .referral-code-label {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .referral-code-display {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 0 auto 20px;
+            max-width: 300px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .referral-code-display:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .referral-code {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        .referral-code-display:hover .referral-code {
+            color: white;
+        }
+
+        .copy-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .copy-success {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .copy-success.show {
+            opacity: 1;
+            top: -50px;
+        }
+        
+        /* Personalized Referral Link Section */
+        .referral-link-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .referral-link-section .referral-code-label {
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        
+        .referral-link-display {
+            background: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 0 auto 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .referral-link-display:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .referral-link {
+            font-size: 13px;
+            font-weight: 600;
+            color: #667eea;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+        }
+        
+        .link-info {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 14px;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        
+        .link-info strong {
+            color: #ffd700;
+            font-weight: 700;
+        }
+
+        /* Share Options */
+        .share-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .share-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .share-option {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .share-option:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .share-option .icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .share-option .platform {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .share-option .reward {
+            font-size: 14px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .share-option.whatsapp:hover { border-color: #25D366; }
+        .share-option.whatsapp .icon { color: #25D366; }
+
+        .share-option.linkedin:hover { border-color: #0077B5; }
+        .share-option.linkedin .icon { color: #0077B5; }
+
+        .share-option.email:hover { border-color: #EA4335; }
+        .share-option.email .icon { color: #EA4335; }
+
+        .share-option.twitter:hover { border-color: #1DA1F2; }
+        .share-option.twitter .icon { color: #1DA1F2; }
+
+        .share-option.facebook:hover { border-color: #1877F2; }
+        .share-option.facebook .icon { color: #1877F2; }
+
+        .share-option.telegram:hover { border-color: #0088CC; }
+        .share-option.telegram .icon { color: #0088CC; }
+
+        /* Stats Section */
+        .stats-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Instructions */
+        .instructions {
+            background: #e3f2fd;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #2196f3;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 30px 0;
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .referral-container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .page-title h1 {
+                font-size: 28px;
+            }
+
+            .user-details {
+                gap: 20px;
+            }
+
+            .share-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(400px);
+            transition: all 0.3s ease;
+            z-index: 1001;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+        
+        .notification.info {
+            background: #3b82f6;
+        }
+
+        /* Debug Modal (Removed - Production) */
+        .debug-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .debug-modal.show {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .debug-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+            margin: 50px auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .debug-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .debug-close {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .debug-close:hover {
+            background: #c82333;
+            transform: rotate(90deg);
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .debug-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .debug-table th,
+        .debug-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .debug-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .debug-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .debug-loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .debug-loading .spinner {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(102, 126, 234, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .debug-error {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .debug-success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .refresh-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .refresh-button:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+        
+        /* Login Modal Styles */
+        .login-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .login-modal.show {
+            display: flex;
+        }
+        
+        .login-modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideInDown 0.3s ease-out;
+        }
+        
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .login-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        
+        .login-close:hover {
+            color: #333;
+        }
+        
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .login-input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .login-input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #667eea;
+            font-size: 18px;
+        }
+        
+        .login-input-group input {
+            width: 100%;
+            padding: 15px 15px 15px 50px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .login-input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 15px;
+        }
+        
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .login-btn-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .login-info {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .login-info a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .login-info a:hover {
+            text-decoration: underline;
+        }
+        
+        .login-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .switch-user-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        /* Shrink switch user button when scrolling */
+        .header.scrolled .switch-user-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        .switch-user-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Shrink header actions gap when scrolling */
+        .header.scrolled .header-actions {
+            gap: 10px;
+        }
+        
+        .current-user-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        /* Shrink user display when scrolling */
+        .header.scrolled .current-user-display {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+        
+        .current-user-display i {
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .header.scrolled .current-user-display i {
+            font-size: 14px;
+        }
+        
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+        }
+        
+        /* Shrink logout button when scrolling */
+        .header.scrolled .logout-btn {
+            padding: 6px 12px;
+            font-size: 11px;
+        }
+        
+        .logout-btn:hover {
+            background: #dc2626;
+            transform: scale(1.05);
+        }
+        
+        /* Share Verification Modal */
+        .share-verification-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10001;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .share-verification-modal.show {
+            display: flex;
+        }
+        
+        .share-verification-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: slideInDown 0.3s ease-out;
+        }
+        
+        .share-verification-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        
+        .share-verification-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .share-verification-message {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .share-verification-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .verify-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .verify-btn-yes {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .verify-btn-yes:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        }
+        
+        .verify-btn-no {
+            background: #e5e7eb;
+            color: #374151;
+        }
+        
+        .verify-btn-no:hover {
+            background: #d1d5db;
+        }
+        
+        .platform-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 1px;
+        }
+        
+        .refer-earn-btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        /* Shrink refer button when scrolling */
+        .header.scrolled .refer-earn-btn {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+        
+        .refer-earn-btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .header-actions {
+                flex-wrap: wrap;
+                gap: 10px;
+                justify-content: center;
+            }
+            
+            .refer-earn-btn,
+            .back-btn {
+                font-size: 12px;
+                padding: 8px 16px;
+            }
+            
+            .current-user-display {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+        
+        /* Coin Breakdown Section */
+        .coin-breakdown-section {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        }
+        
+        .coin-breakdown-section .section-title {
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .breakdown-item {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .breakdown-item.total {
+            background: white;
+            border: 3px solid #fbbf24;
+        }
+        
+        .breakdown-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .breakdown-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #d97706;
+        }
+        
+        .breakdown-value.total-value {
+            font-size: 32px;
+            color: #ea580c;
+        }
+        
+        .breakdown-value small {
+            display: block;
+            font-size: 12px;
+            color: #999;
+            font-weight: 400;
+            margin-top: 5px;
+        }
+        
+        /* Registered Users Section */
+        .registered-users-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .registered-users-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+        
+        .empty-state p {
+            margin: 10px 0 5px;
+            font-size: 16px;
+            font-weight: 500;
+        }
+        
+        .empty-state small {
+            font-size: 13px;
+        }
+        
+        .registered-user-item {
+            background: white;
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-left: 4px solid #10b981;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        
+        .registered-user-info {
+            flex: 1;
+        }
+        
+        .registered-user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 15px;
+            margin-bottom: 3px;
+        }
+        
+        .registered-user-email {
+            font-size: 13px;
+            color: #666;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .registered-user-time {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .registered-user-coin {
+            background: #10b981;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .refresh-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        
+        .refresh-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="index.html" class="logo">
+                    <img src="AK logo.jpg" alt="AksharJobs Logo">
+                    <h1>AksharJobs</h1>
+                </a>
+                <div class="header-actions">
+                    <a href="index.html#referral" class="refer-earn-btn">
+                        <i class="fas fa-gift"></i>
+                        Refer & Earn
+                    </a>
+                    <a href="index.html" class="back-btn">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Home
+                    </a>
+                    <span class="current-user-display" id="currentUserDisplay" style="display: none;">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="currentUserEmail"></span>
+                    </span>
+                    <button onclick="showLoginModal()" class="switch-user-btn" id="switchUserBtn" style="display: none;">
+                        <i class="fas fa-exchange-alt"></i>
+                        Switch User
+                    </button>
+                    <button onclick="handleLogout()" class="logout-btn" id="logoutBtn" style="display: none;">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal">
+        <div class="login-modal-content">
+            <span class="login-close" onclick="closeLoginModal()">&times;</span>
+            <h2 class="login-title">Access Your Referral Account</h2>
+            <p class="login-subtitle">Enter your registered email to view your referral stats and continue referring</p>
+            
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="login-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="loginEmail" placeholder="Enter your registered email" required>
+                </div>
+                
+                <button type="submit" class="login-btn">
+                    <span class="login-btn-text">Access My Referrals</span>
+                    <span class="login-btn-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i> Checking...
+                    </span>
+                </button>
+                
+                <div class="login-info">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Not registered yet? <a href="registration.html">Register here</a></span>
+                </div>
+            </form>
+            
+            <div id="loginError" class="login-error" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="loginErrorMessage"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="referral-container" data-aos="fade-up">
+                <!-- Page Title -->
+                <div class="page-title">
+                    <h1>Share AksharJobs</h1>
+                    <p>Help your network discover amazing job opportunities while earning AksharCoins for every successful referral!</p>
+                </div>
+
+                <!-- User Info -->
+                <div class="user-info" data-aos="fade-up" data-aos-delay="100">
+                    <div class="welcome-message">
+                        Welcome back, <span id="userName">Job Seeker</span>! 🎉
+                    </div>
+                    <p>Share your referral code and earn rewards for every person who joins through your link.</p>
+                    
+                    <div class="user-details">
+                        <div class="user-stat">
+                            <span class="icon">🪙</span>
+                            <div class="value" id="coinBalance">0</div>
+                            <div class="label">AksharCoins</div>
+                        </div>
+                        <div class="user-stat">
+                            <span class="icon">👥</span>
+                            <div class="value" id="referralCount">0</div>
+                            <div class="label">Registered Via Link</div>
+                        </div>
+                        <div class="user-stat">
+                            <span class="icon">📊</span>
+                            <div class="value" id="totalShares">0</div>
+                            <div class="label">Total Shares</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Code -->
+                <div class="referral-code-section" data-aos="fade-up" data-aos-delay="200">
+                    <div class="referral-code-label">Your Referral Code</div>
+                    <div class="referral-code-display" onclick="copyReferralCode()">
+                        <div class="copy-success" id="copySuccess">Copied!</div>
+                        <div class="referral-code" id="referralCode">AKSHAR2025</div>
+                        <div class="copy-hint">Click to copy</div>
+                    </div>
+                </div>
+                
+                <!-- Personalized Referral Link -->
+                <div class="referral-link-section" data-aos="fade-up" data-aos-delay="250">
+                    <div class="referral-code-label">Your Personalized Referral Link</div>
+                    <div class="referral-link-display" onclick="copyReferralLink()">
+                        <div class="copy-success" id="linkCopySuccess">Copied!</div>
+                        <div class="referral-link" id="referralLink">Loading...</div>
+                        <div class="copy-hint">Click to copy link (paste & share to earn coins)</div>
+                    </div>
+                    <div class="link-info">
+                        💡 <strong>Share via social media below</strong> to get <strong>3 coins instantly</strong> + <strong>1 bonus coin</strong> when someone registers!
+                    </div>
+                </div>
+
+                <!-- Share Options -->
+                <div class="share-section" data-aos="fade-up" data-aos-delay="300">
+                    <h2 class="section-title">Share via Social Media</h2>
+                    <div class="share-grid">
+                        <div class="share-option whatsapp" onclick="shareReferralViaWhatsApp()">
+                            <i class="fab fa-whatsapp icon"></i>
+                            <div class="platform">WhatsApp</div>
+                            <div class="reward">+3 coins</div>
+                        </div>
+                        <div class="share-option linkedin" onclick="shareReferralViaLinkedIn()">
+                            <i class="fab fa-linkedin icon"></i>
+                            <div class="platform">LinkedIn</div>
+                            <div class="reward">+3 coins</div>
+                        </div>
+                        <div class="share-option email" onclick="shareReferralViaEmail()">
+                            <i class="fas fa-envelope icon"></i>
+                            <div class="platform">Email</div>
+                            <div class="reward">+3 coins</div>
+                        </div>
+                        <div class="share-option twitter" onclick="shareReferralViaTwitter()">
+                            <i class="fab fa-twitter icon"></i>
+                            <div class="platform">Twitter</div>
+                            <div class="reward">+3 coins</div>
+                        </div>
+                        <div class="share-option facebook" onclick="shareReferralViaFacebook()">
+                            <i class="fab fa-facebook icon"></i>
+                            <div class="platform">Facebook</div>
+                            <div class="reward">+3 coins</div>
+                        </div>
+                        <div class="share-option telegram" onclick="shareReferralViaTelegram()">
+                            <i class="fab fa-telegram icon"></i>
+                            <div class="platform">Telegram</div>
+                            <div class="reward">+3 coins</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Section -->
+                <div class="stats-section" data-aos="fade-up" data-aos-delay="400">
+                    <h2 class="section-title">Your Referral Stats</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalReferrals">0</span>
+                            <div class="stat-label">Users Registered Via Link</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="totalCoinsEarned">0</span>
+                            <div class="stat-label">Total Coins Earned</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="whatsappShares">0</span>
+                            <div class="stat-label">WhatsApp Shares</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number" id="linkedinShares">0</span>
+                            <div class="stat-label">LinkedIn Shares</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coin Breakdown Section -->
+                <div class="coin-breakdown-section" data-aos="fade-up" data-aos-delay="450">
+                    <h2 class="section-title">💰 Coin Breakdown</h2>
+                    <div class="breakdown-grid">
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">Coins from Shares</div>
+                            <div class="breakdown-value">
+                                <span id="coinsFromShares">0</span> coins
+                                <small>(<span id="totalSharesBreakdown">0</span> shares Ã— 3)</small>
+                            </div>
+                        </div>
+                        <div class="breakdown-item">
+                            <div class="breakdown-label">Coins from Referrals</div>
+                            <div class="breakdown-value">
+                                <span id="coinsFromReferrals">0</span> coins
+                                <small>(<span id="totalReferralsBreakdown">0</span> registrations Ã— 1)</small>
+                            </div>
+                        </div>
+                        <div class="breakdown-item total">
+                            <div class="breakdown-label">Total Coins Earned</div>
+                            <div class="breakdown-value total-value">
+                                <span id="totalCoinsBreakdown">0</span> coins
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Users Registered Via Your Link -->
+                <div class="registered-users-section" data-aos="fade-up" data-aos-delay="475">
+                    <h2 class="section-title">👥 Users Registered Via Your Link</h2>
+                    <div id="registeredUsersList" class="registered-users-list">
+                        <div class="empty-state">
+                            <i class="fas fa-user-plus" style="font-size: 48px; color: #cbd5e1; margin-bottom: 15px;"></i>
+                            <p>No one has registered via your link yet</p>
+                            <small>Share your referral link to start earning bonus coins!</small>
+                        </div>
+                    </div>
+                    <button onclick="fetchReferralClicks()" class="refresh-btn" style="margin-top: 15px;">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh List
+                    </button>
+                </div>
+
+                <!-- Instructions -->
+                <div class="instructions" data-aos="fade-up" data-aos-delay="500">
+                    <h3>How It Works</h3>
+                    <ol>
+                        <li><strong>Click a social media button</strong> (WhatsApp, LinkedIn, Email, etc.) to share your referral link</li>
+                        <li><strong>Get 3 coins instantly</strong> when the share dialog opens (proves you shared, not just copied)</li>
+                        <li><strong>Get 1 bonus coin</strong> when someone registers using your personalized link</li>
+                        <li><strong>Track your progress</strong> - see how many users registered via your link in real-time</li>
+                        <li><strong>Help your network</strong> discover amazing job opportunities while earning rewards!</li>
+                    </ol>
+                    <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 15px; margin-top: 20px; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 14px; color: #1e40af;">
+                            <strong>💡 Important:</strong> Coins are earned when you <strong>actually share</strong> (click share buttons), 
+                            not just copy the link. Copy the link to share manually, then use share buttons to earn coins!
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 AksharJobs. All rights reserved. | Built with ❤️ for the community</p>
+        </div>
+    </footer>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span id="notificationText"></span>
+    </div>
+    
+    <!-- Share Verification Modal -->
+    <div id="shareVerificationModal" class="share-verification-modal">
+        <div class="share-verification-content">
+            <div class="share-verification-icon">✅</div>
+            <div class="platform-badge" id="sharePlatformBadge">WHATSAPP</div>
+            <h2 class="share-verification-title">Did you complete the share?</h2>
+            <p class="share-verification-message">
+                <strong>Please confirm:</strong> Did you actually send/post the referral message on <span id="sharePlatformName">this platform</span>?
+                <br><br>
+                ✅ Click <strong>"Yes, I Shared"</strong> if you completed the share<br>
+                ❌ Click <strong>"No, Cancel"</strong> if you didn't share
+            </p>
+            <div class="share-verification-buttons">
+                <button class="verify-btn verify-btn-yes" onclick="confirmShareComplete()">
+                    <i class="fas fa-check-circle"></i> Yes, I Shared!
+                </button>
+                <button class="verify-btn verify-btn-no" onclick="cancelShareVerification()">
+                    <i class="fas fa-times-circle"></i> No, Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // ========== STICKY SHRINKING HEADER ==========
+        // Add scroll event listener to shrink header on scroll
+        let lastScrollTop = 0;
+        const header = document.querySelector('.header');
+        
+        window.addEventListener('scroll', function() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Add 'scrolled' class when user scrolls down more than 50px
+            if (scrollTop > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+            
+            lastScrollTop = scrollTop;
+        }, { passive: true });
+
+        // ========== API CONFIGURATION ==========
+        // ✅ Google Sheets integration (PRIMARY tracking system)
+        const REFERRAL_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        // ✅ AksharCoins reward system (UNLIMITED SHARES ALLOWED - Every share is tracked!)
+        const AKSHAR_COINS_REWARDS = {
+            'whatsapp': 3,   // ✅ 3 coins per share (share unlimited times!)
+            'linkedin': 3,   // ✅ 3 coins per share (share unlimited times!)
+            'email': 3,      // ✅ 3 coins per share (share unlimited times!)
+            'facebook': 3,   // ✅ 3 coins per share (share unlimited times!)
+            'telegram': 3,   // ✅ 3 coins per share (share unlimited times!)
+            'native': 3,     // ✅ 3 coins per share (share unlimited times!)
+            'sms': 3,        // ✅ 3 coins per share (share unlimited times!)
+            'copy': 0        // ❌ Just copying = NO coins (must share it)
+        };
+
+        // ========== USER-SPECIFIC DATA STORAGE ==========
+        // Each user's data is stored separately using their email as the key
+        
+        function getCurrentUserEmail() {
+            // Get the current logged-in user's email from a non-user-specific key
+            const email = localStorage.getItem('currentUserEmail');
+            console.log('getCurrentUserEmail called, returning:', email);
+            return email || 'anonymous@example.com';
+        }
+        
+        function setCurrentUser(email) {
+            // Set who is currently logged in
+            localStorage.setItem('currentUserEmail', email);
+        }
+        
+        function getUserData() {
+            const email = getCurrentUserEmail();
+            const key = `aksharUserData_${email}`;
+            return JSON.parse(localStorage.getItem(key) || '{}');
+        }
+        
+        function saveUserData(data) {
+            const email = getCurrentUserEmail();
+            const key = `aksharUserData_${email}`;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        function getReferralData() {
+            const email = getCurrentUserEmail();
+            const key = `aksharReferralData_${email}`;
+            return JSON.parse(localStorage.getItem(key) || '{}');
+        }
+        
+        function saveReferralData(data) {
+            const email = getCurrentUserEmail();
+            const key = `aksharReferralData_${email}`;
+            localStorage.setItem(key, JSON.stringify(data));
+        }
+        
+        // Load user data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is coming from registration with new user info
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('from') === 'registration') {
+                // Try to get user data from old key (set by registration page)
+                const tempUserData = JSON.parse(localStorage.getItem('aksharUserData') || '{}');
+                if (tempUserData.email) {
+                    // Set this as the current user
+                    setCurrentUser(tempUserData.email);
+                    
+                    // Save their data to user-specific key
+                    saveUserData(tempUserData);
+                    
+                    // Initialize their referral data (all zeros for new user)
+                    saveReferralData({
+                        totalShares: 0,
+                        totalReferrals: 0,
+                        totalCoinsEarned: 0
+                    });
+                    
+                    // Clean up old key
+                    localStorage.removeItem('aksharUserData');
+                    localStorage.removeItem('aksharReferralData');
+                }
+            }
+            
+            // Check if user is logged in, if not show login modal
+            const currentEmail = getCurrentUserEmail();
+            if (currentEmail === 'anonymous@example.com') {
+                // No user logged in, show login modal
+                showLoginModal();
+            } else {
+                // User is already logged in - sync FIRST, then display
+                // Show user info and buttons
+                const currentUserDisplay = document.getElementById('currentUserDisplay');
+                const currentUserEmailSpan = document.getElementById('currentUserEmail');
+                const switchBtn = document.getElementById('switchUserBtn');
+                const logoutBtn = document.getElementById('logoutBtn');
+                
+                if (currentUserDisplay) currentUserDisplay.style.display = 'inline-flex';
+                if (currentUserEmailSpan) currentUserEmailSpan.textContent = currentEmail;
+                if (switchBtn) switchBtn.style.display = 'inline-flex';
+                if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+            
+                // IMPORTANT: Sync with Google Sheets FIRST before displaying data
+                console.log('🔄 Page load - Syncing with Google Sheets for existing user:', currentEmail);
+                syncReferralDataFromSheets().then(() => {
+                    // After sync completes, load and display the synced data
+            loadUserData();
+            updateStats();
+                    generatePersonalizedLink();
+            fetchReferralClicks();
+                }).catch(err => {
+                    // If sync fails, still load local data
+                    console.warn('Sync failed, using local data:', err);
+            loadUserData();
+            updateStats();
+            generatePersonalizedLink();
+                    fetchReferralClicks();
+                });
+            }
+        });
+        
+        // ========== SYNC WITH GOOGLE SHEETS ==========
+        
+        async function syncReferralDataFromSheets() {
+            const currentEmail = getCurrentUserEmail();
+            
+            if (!currentEmail || currentEmail === 'anonymous@example.com') {
+                console.log('No user logged in, skipping sync');
+                return;
+            }
+            
+            try {
+                console.log('Syncing referral data from Google Sheets for:', currentEmail);
+                
+                // Fetch referral data from Google Sheets
+                const apiUrl = `${REFERRAL_WEBHOOK_URL}?action=get_referrals&email=${encodeURIComponent(currentEmail)}`;
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors'
+                }).catch(() => null);
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    console.log('Google Sheets response:', data);
+                    
+                    if (data.success && data.records && data.records.length > 0) {
+                        // Google Sheets has data - use it to update referral count only
+                        const allRecords = data.records;
+                        const lastRecord = allRecords[allRecords.length - 1];
+                        
+                        console.log('📊 Found', allRecords.length, 'record(s) in Google Sheets');
+                        
+                        // Only update referral count from Google Sheets
+                        const referralCount = lastRecord.referralCount || 0;
+                        
+                        const referralData = getReferralData();
+                        referralData.totalReferrals = referralCount;
+                        saveReferralData(referralData);
+                        
+                        console.log('✅ Synced referral count from Google Sheets:', {
+                            referralCount: referralCount
+                        });
+                        
+                        // Update displays with local calculations
+                        loadUserData();
+                        updateStats();
+                        
+                        return true;
+                    } else {
+                        // No records in Google Sheets - use local data only
+                        console.log('ℹ️ No records in Google Sheets, using local share history');
+                        
+                        // Update displays with local calculations
+                        loadUserData();
+                        updateStats();
+                        
+                        return false;
+                    }
+                }
+            } catch (error) {
+                console.log('Could not sync with Google Sheets (using local data):', error);
+                // Not critical - continue with local data
+                return false;  // Sync failed
+            }
+            
+            return false;  // No sync needed or failed
+        }
+        
+        // ========== LOGIN SYSTEM ==========
+        
+        function showLoginModal() {
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function closeLoginModal() {
+            const modal = document.getElementById('loginModal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const emailInput = document.getElementById('loginEmail');
+            const email = emailInput.value.trim().toLowerCase();
+            const loginBtn = event.target.querySelector('.login-btn');
+            const btnText = loginBtn.querySelector('.login-btn-text');
+            const btnLoading = loginBtn.querySelector('.login-btn-loading');
+            const errorDiv = document.getElementById('loginError');
+            const errorMessage = document.getElementById('loginErrorMessage');
+            
+            // Hide previous errors
+            errorDiv.style.display = 'none';
+            
+            // Show loading state
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'flex';
+            loginBtn.disabled = true;
+            
+            try {
+                console.log('Checking if user is registered:', email);
+                
+                // Step 1: Check localStorage first (fastest)
+                const userKey = `aksharUserData_${email}`;
+                const localUserData = localStorage.getItem(userKey);
+                
+                if (localUserData) {
+                    // User exists locally - quick login
+                    console.log('✅ User found in local storage');
+                    loginUser(email);
+                    return;
+                }
+                
+                // Step 2: Check Google Sheets (user might be registered but on different device)
+                console.log('User not in localStorage, checking Google Sheets...');
+                
+                const checkUrl = `${REFERRAL_WEBHOOK_URL}?type=check_registration&email=${encodeURIComponent(email)}`;
+                
+                try {
+                    const response = await fetch(checkUrl, {
+                        method: 'GET',
+                        mode: 'cors',
+                        credentials: 'omit'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('Google Sheets response:', data);
+                        
+                        if (data.registered && data.userData) {
+                            // User is registered in Google Sheets!
+                            console.log('✅ User found in Google Sheets:', data.userData);
+                            
+                            // Create local user data from Google Sheets
+                            const userData = {
+                                email: email,
+                                fullName: data.userData.name || email,
+                                phone: data.userData.phone || '',
+                                role: data.userData.role || 'unknown',
+                                aksharCoins: 0  // Will sync from Google Sheets
+                            };
+                            
+                            // Save to localStorage
+                            setCurrentUser(email);
+                            saveUserData(userData);
+                            
+                            // Initialize referral data
+                            saveReferralData({
+                                totalShares: 0,
+                                totalReferrals: 0,
+                                totalCoinsEarned: 0
+                            });
+                            
+                            // Login and sync
+                            loginUser(email);
+                            return;
+                        }
+                    }
+                } catch (fetchError) {
+                    console.warn('CORS error checking Google Sheets:', fetchError);
+                }
+                
+                // Step 3: User not found - require registration
+                console.log('❌ User not found in our records');
+                errorMessage.innerHTML = `
+                    <div style="text-align: center;">
+                        <strong style="display: block; margin-bottom: 8px; font-size: 16px;">📧 Email Not Registered</strong>
+                        <p style="margin-bottom: 12px;">This email hasn't been registered yet.</p>
+                        <a href="registration.html" 
+                           style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                                  color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; 
+                                  font-weight: 600; margin-top: 8px;">
+                            Complete Registration →
+                        </a>
+                    </div>
+                `;
+                errorDiv.style.display = 'flex';
+                
+                // Reset button state
+                btnText.style.display = 'block';
+                btnLoading.style.display = 'none';
+                loginBtn.disabled = false;
+                return;
+                
+            } catch (error) {
+                console.error('Login error:', error);
+                errorMessage.textContent = 'Error checking registration. Please try again.';
+                errorDiv.style.display = 'flex';
+            } finally {
+                // Reset button state
+                btnText.style.display = 'block';
+                btnLoading.style.display = 'none';
+                loginBtn.disabled = false;
+            }
+        }
+        
+        // Helper function to complete login process
+        async function loginUser(email) {
+            setCurrentUser(email);
+            closeLoginModal();
+            
+            // Show user info and buttons in header FIRST
+            const currentUserDisplay = document.getElementById('currentUserDisplay');
+            const currentUserEmailSpan = document.getElementById('currentUserEmail');
+            const switchBtn = document.getElementById('switchUserBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            if (currentUserDisplay) currentUserDisplay.style.display = 'inline-flex';
+            if (currentUserEmailSpan) currentUserEmailSpan.textContent = email;
+            if (switchBtn) switchBtn.style.display = 'inline-flex';
+            if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+            
+            // IMPORTANT: Sync with Google Sheets FIRST to get latest data
+            console.log('🔄 Starting Google Sheets sync for:', email);
+            await syncReferralDataFromSheets();
+            
+            // THEN load and display user data (this will use the synced data)
+            loadUserData();
+            updateStats();
+            generatePersonalizedLink();
+            
+            // Fetch referral clicks
+            fetchReferralClicks();
+            
+            showNotification(`Welcome back! Logged in as ${email}`, 'success');
+        }
+        
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout? You can login again anytime with your email.')) {
+                // Clear current user
+                localStorage.removeItem('currentUserEmail');
+                
+                // Show logout notification
+                showNotification('Logged out successfully!', 'success');
+                
+                // Redirect to registration page after 1 second
+                setTimeout(() => {
+                    window.location.href = 'registration.html';
+                }, 1000);
+            }
+        }
+
+        function loadUserData() {
+            const userData = getUserData();
+            const referralData = getReferralData();
+            
+            // ✅ ALWAYS calculate from actual share count (most accurate!)
+            const coinData = calculateAccurateCoins();
+            
+            const totalCoins = coinData.totalCoins;
+            const totalShares = coinData.totalShares;
+            const totalReferrals = referralData.totalReferrals || 0;
+            
+            console.log('💰 Calculated accurate coins:', {
+                coins: totalCoins,
+                shares: totalShares,
+                referrals: totalReferrals,
+                shareCoins: coinData.shareCoins,
+                referralBonusCoins: coinData.referralBonusCoins
+            });
+            
+            // Update user data with total coins
+            userData.aksharCoins = totalCoins;
+            
+            // Update user info
+            if (userData.fullName || userData.name) {
+                document.getElementById('userName').textContent = userData.fullName || userData.name;
+            }
+            
+            // Update coin balance (top section)
+            document.getElementById('coinBalance').textContent = totalCoins;
+            
+            // Update referral stats (top section)
+            document.getElementById('referralCount').textContent = totalReferrals;
+            document.getElementById('totalShares').textContent = totalShares;
+            
+            // Save updated data back to localStorage
+            saveUserData(userData);
+        }
+
+        function updateStats() {
+            const userData = getUserData();
+            const referralData = getReferralData();
+            
+            // ✅ ALWAYS calculate from actual share count (LOCAL is authoritative!)
+            const coinData = calculateAccurateCoins();
+            
+            const totalShares = coinData.totalShares;
+            const totalReferrals = referralData.totalReferrals || 0;
+            const coinsFromShares = coinData.shareCoins;
+            const coinsFromReferrals = coinData.referralBonusCoins;
+            const totalCoins = coinData.totalCoins;
+            
+            console.log('📊 updateStats - Calculated from local share history:', {
+                totalShares: totalShares,
+                coinsFromShares: coinsFromShares,
+                totalReferrals: totalReferrals,
+                coinsFromReferrals: coinsFromReferrals,
+                totalCoins: totalCoins
+            });
+            
+            // Update userData with total coins (don't overwrite synced value)
+            userData.aksharCoins = totalCoins;
+            saveUserData(userData);
+            
+            // Update bottom stats section with synced data
+            document.getElementById('totalReferrals').textContent = totalReferrals;
+            document.getElementById('totalCoinsEarned').textContent = totalCoins;
+            document.getElementById('whatsappShares').textContent = referralData.whatsappShares || 0;
+            document.getElementById('linkedinShares').textContent = referralData.linkedinShares || 0;
+            
+            // Update coin breakdown section with synced data
+            document.getElementById('coinsFromShares').textContent = coinsFromShares;
+            document.getElementById('totalSharesBreakdown').textContent = totalShares;
+            document.getElementById('coinsFromReferrals').textContent = coinsFromReferrals;
+            document.getElementById('totalReferralsBreakdown').textContent = totalReferrals;
+            document.getElementById('totalCoinsBreakdown').textContent = totalCoins;
+            
+            console.log('📊 Final Display Values:', {
+                totalShares,
+                coinsFromShares,
+                totalReferrals,
+                coinsFromReferrals,
+                totalCoins
+            });
+        }
+
+        function copyReferralCode() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            
+            navigator.clipboard.writeText(referralCode).then(() => {
+                showCopySuccess();
+                // NO coins for just copying - they must actually share it
+                showNotification('Referral code copied! Share it to earn 3 coins.', 'info');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = referralCode;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopySuccess();
+                showNotification('Referral code copied! Share it to earn 3 coins.', 'info');
+            });
+        }
+
+        function showCopySuccess() {
+            const copySuccess = document.getElementById('copySuccess');
+            copySuccess.classList.add('show');
+            setTimeout(() => {
+                copySuccess.classList.remove('show');
+            }, 2000);
+        }
+        
+        // Generate and display personalized referral link
+        function generatePersonalizedLink() {
+            // CRITICAL: Always use current logged-in user's email
+            const currentEmail = getCurrentUserEmail();
+            
+            console.log('Generating referral link for:', currentEmail);
+            
+            // Validate email
+            if (!currentEmail || currentEmail === 'anonymous@example.com') {
+                console.error('No valid user email found!');
+                const linkElement = document.getElementById('referralLink');
+                if (linkElement) {
+                    linkElement.textContent = 'Please login first';
+                }
+                return '';
+            }
+            
+            // Create personalized referral link with CURRENT user's email
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(currentEmail)}`;
+            
+            console.log('Generated referral link:', referralLink);
+            console.log('For user:', currentEmail);
+            
+            // Update the display
+            const linkElement = document.getElementById('referralLink');
+            if (linkElement) {
+                linkElement.textContent = referralLink;
+            }
+            
+            return referralLink;
+        }
+        
+        // Copy personalized referral link
+        function copyReferralLink() {
+            const referralLink = document.getElementById('referralLink').textContent;
+            
+            if (referralLink === 'Loading...') {
+                // Generate it first if not loaded
+                const link = generatePersonalizedLink();
+                navigator.clipboard.writeText(link).then(() => {
+                    showLinkCopySuccess();
+                    // NO coins for just copying - they must actually share it
+                    showNotification('Link copied! Share it on social media to earn 3 coins.', 'info');
+                });
+                return;
+            }
+            
+            navigator.clipboard.writeText(referralLink).then(() => {
+                showLinkCopySuccess();
+                // NO coins for just copying - they must actually share it
+                showNotification('Link copied! Share it on social media to earn 3 coins.', 'info');
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = referralLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showLinkCopySuccess();
+                showNotification('Link copied! Share it on social media to earn 3 coins.', 'info');
+            });
+        }
+        
+        // Show link copy success message
+        function showLinkCopySuccess() {
+            const copySuccess = document.getElementById('linkCopySuccess');
+            if (copySuccess) {
+                copySuccess.classList.add('show');
+                setTimeout(() => {
+                    copySuccess.classList.remove('show');
+                }, 2000);
+            }
+        }
+
+        // Track last action to prevent duplicates
+        let lastAction = null;
+        let actionTimeout = null;
+
+        // ✅ UNLIMITED SHARES - Track every share action (no restrictions!)
+        function trackShareAction(platform) {
+            const userData = getUserData();
+            const userEmail = userData.email || getCurrentUserEmail() || 'anonymous@example.com';
+            const timestamp = new Date().toISOString();
+            
+            // Get user's complete share history
+            const shareHistory = getUserShareHistory(userEmail);
+            
+            // ✅ IMPORTANT: Convert old boolean format to array format
+            if (!shareHistory[platform] || !Array.isArray(shareHistory[platform])) {
+                shareHistory[platform] = [];
+            }
+            
+            // ✅ ADD A NEW SHARE RECORD (unlimited!)
+            shareHistory[platform].push({
+                timestamp: timestamp,
+                coinsEarned: 3
+            });
+            
+            // Save updated share history
+            saveUserShareHistory(userEmail, shareHistory);
+            
+            console.log(`✅ Tracked share on ${platform}. Total ${platform} shares: ${shareHistory[platform].length}`);
+            
+            return shareHistory[platform].length; // Return total shares on this platform
+        }
+
+        // Get share history for specific user (prevents mixing between users)
+        function getUserShareHistory(userEmail) {
+            const allShareHistory = JSON.parse(localStorage.getItem('aksharShareHistory') || '{}');
+            let userHistory = allShareHistory[userEmail] || {};
+            
+            // ✅ MIGRATE OLD DATA: Convert boolean format to array format
+            const platforms = ['whatsapp', 'email', 'linkedin', 'twitter', 'facebook', 'telegram', 'sms', 'native'];
+            let needsSave = false;
+            
+            platforms.forEach(platform => {
+                if (userHistory[platform]) {
+                    // Check if it's old boolean format
+                    if (userHistory[platform] === true || typeof userHistory[platform] === 'boolean') {
+                        console.log(`🔄 Migrating ${platform} from boolean to array format`);
+                        userHistory[platform] = [{
+                            timestamp: new Date().toISOString(),
+                            coinsEarned: 3
+                        }];
+                        needsSave = true;
+                    } else if (!Array.isArray(userHistory[platform])) {
+                        // Invalid format, reset to empty array
+                        console.log(`⚠️ Invalid format for ${platform}, resetting to empty array`);
+                        userHistory[platform] = [];
+                        needsSave = true;
+                    }
+                }
+            });
+            
+            // Save migrated data if needed
+            if (needsSave) {
+                saveUserShareHistory(userEmail, userHistory);
+                console.log('✅ Migrated old share history data to new format');
+            }
+            
+            return userHistory;
+        }
+
+        // Save share history for specific user
+        function saveUserShareHistory(userEmail, userShareHistory) {
+            const allShareHistory = JSON.parse(localStorage.getItem('aksharShareHistory') || '{}');
+            allShareHistory[userEmail] = userShareHistory;
+            localStorage.setItem('aksharShareHistory', JSON.stringify(allShareHistory));
+        }
+        
+        // Get total share count for a user
+        function getTotalShareCount(userEmail) {
+            const shareHistory = getUserShareHistory(userEmail);
+            let total = 0;
+            for (let platform in shareHistory) {
+                if (Array.isArray(shareHistory[platform])) {
+                    total += shareHistory[platform].length;
+                }
+            }
+            return total;
+        }
+
+        // ✅ Calculate accurate coin count based on ALL shares (unlimited shares allowed)
+        function calculateAccurateCoins() {
+            const userData = getUserData();
+            const userEmail = userData.email || getCurrentUserEmail() || 'anonymous@example.com';
+            
+            // Get user's complete share history (arrays of shares per platform)
+            const shareHistory = getUserShareHistory(userEmail);
+            
+            // Calculate coins from ALL shares (count every share, not just one per platform!)
+            let shareCoins = 0;
+            let totalShares = 0;
+            const platforms = ['whatsapp', 'email', 'linkedin', 'twitter', 'facebook', 'telegram', 'sms', 'native'];
+            const platformCounts = {};
+            
+            platforms.forEach(platform => {
+                // Data is already migrated by getUserShareHistory, just check if it's an array
+                if (shareHistory[platform] && Array.isArray(shareHistory[platform])) {
+                    const platformShareCount = shareHistory[platform].length;
+                    shareCoins += platformShareCount * 3; // 3 coins per share (unlimited!)
+                    totalShares += platformShareCount;
+                    platformCounts[platform] = platformShareCount;
+                }
+            });
+            
+            // Get referral bonus coins from Google Sheets sync
+            const referralData = getReferralData();
+            const referralBonusCoins = referralData.referralBonusCoins || 0;
+            
+            // Total = share coins + referral bonus coins
+            const totalCoins = shareCoins + referralBonusCoins;
+            
+            console.log(`📊 Accurate Coin Calculation for ${userEmail}:`, {
+                shareCoins: shareCoins,
+                totalShares: totalShares,
+                referralBonusCoins: referralBonusCoins,
+                totalCoins: totalCoins,
+                platformCounts: platformCounts
+            });
+            
+            return {
+                shareCoins: shareCoins,
+                referralBonusCoins: referralBonusCoins,
+                totalCoins: totalCoins,
+                totalShares: totalShares,
+                platformCounts: platformCounts
+            };
+        }
+
+        // Update user data with accurate coin count
+        function updateAccurateCoinCount() {
+            const userData = getUserData();
+            const userEmail = userData.email || getCurrentUserEmail() || 'anonymous@example.com';
+            
+            // Calculate accurate coins
+            const coinData = calculateAccurateCoins();
+            
+            // Update user data with accurate count
+            userData.aksharCoins = coinData.totalCoins;
+            userData.shareCoins = coinData.shareCoins;
+            userData.syncedCoins = coinData.syncedCoins;
+            userData.platformsShared = coinData.platformsShared;
+            
+            // Save updated user data
+            saveUserData(userData);
+            
+            console.log(`✅ Updated accurate coin count for ${userEmail}: ${coinData.totalCoins} coins`);
+            
+            return coinData;
+        }
+
+        // NEW: Share confirmation using modal (won't be blocked by browser!)
+        function showShareConfirmationDialog(platform, onConfirm) {
+            // Store current platform for modal
+            currentSharePlatform = platform;
+            
+            // Show instruction notification
+            showNotification(`📱 Opening ${platform.toUpperCase()} share... Complete it and come back to confirm!`, 'info');
+            
+            // Open the share window immediately
+            onConfirm();
+            
+            // Show verification modal after user has time to share
+            setTimeout(() => {
+                showShareVerificationModal(platform);
+            }, 2000); // 2 second delay
+        }
+        
+        // OLD: Share confirmation dialog (DISABLED - confirm() dialogs get blocked)
+        function showShareConfirmationDialog_OLD_BLOCKED(platform, onConfirm) {
+            // Show immediate instruction dialog first
+            const instructionMessage = `📱 SHARE INSTRUCTIONS for ${platform.toUpperCase()}:\n\n1. The share window will open\n2. Complete the share by sending/posting the message\n3. Come back here and click "I Shared" button\n\n⚠️ You will NOT get coins just for opening the share window!\nYou MUST actually share the message to earn coins.`;
+            
+            const proceed = confirm(instructionMessage);
+            
+            if (!proceed) {
+                showNotification('❌ Share cancelled. No coins awarded.', 'info');
+                return;
+            }
+            
+            // Open the share window first
+            onConfirm();
+            
+            // Then show the verification dialog after a delay
+            setTimeout(() => {
+                const verificationMessage = `✅ VERIFICATION REQUIRED:\n\nDid you ACTUALLY share the message on ${platform}?\n\n⚠️ Only click "YES" if you:\n• Opened the share window AND\n• Sent/posted the message AND\n• Completed the share action\n\n❌ Do NOT click "YES" if you just opened and closed the share window!`;
+                
+                const actuallyShared = confirm(verificationMessage);
+                
+                if (actuallyShared) {
+                    // User confirmed they actually shared
+                    // Now give coins
+                    const userData = getUserData();
+                    const referralData = getReferralData();
+                    
+                    // Check if already shared on this platform
+                    if (hasSharedOnPlatform(platform)) {
+                        showNotification(`⚠️ You've already shared on ${platform}. Try a different platform!`, 'warning');
+                        return;
+                    }
+                    
+                    // Mark platform as shared (this updates share history)
+                    markPlatformAsShared(platform);
+                    
+                    // Calculate and update accurate coin count
+                    const coinData = updateAccurateCoinCount();
+                    
+                    // Update referral data
+                    referralData.totalShares = (referralData.totalShares || 0) + 1;
+                    referralData.totalCoinsEarned = coinData.totalCoins;
+                    referralData.platformShares = referralData.platformShares || {};
+                    referralData.platformShares[platform] = (referralData.platformShares[platform] || 0) + 1;
+                    
+                    // Save updated data
+                    saveUserData(userData);
+                    saveReferralData(referralData);
+                    
+                    // Update all displays with accurate data
+                    updateReferralStats();
+                    updateCoinDisplay();
+                    loadUserData();
+                    updateStats();
+                    
+                    // Send to backend with accurate data
+                    sendShareToBackend(userData, platform, 3, referralData);
+                    
+                    // Show success message with accurate count
+                    showNotification(`🎁‰ +3 AksharCoins earned! Total: ${coinData.totalCoins} coins (${coinData.platformsShared.length}/8 platforms shared)`, 'success');
+                    
+                } else {
+                    // User admitted they didn't actually share
+                    showNotification('❌ No coins awarded. Please actually share the message to earn coins!', 'info');
+                }
+            }, 3000); // 3 second delay to let them complete the share
+        }
+        
+        // ===== NEW MODAL-BASED SHARE VERIFICATION (REPLACES confirm() DIALOGS) =====
+        
+        // Global variable to track current share platform
+        let currentSharePlatform = null;
+        
+        // Show the verification modal
+        function showShareVerificationModal(platform) {
+            const modal = document.getElementById('shareVerificationModal');
+            const platformBadge = document.getElementById('sharePlatformBadge');
+            const platformName = document.getElementById('sharePlatformName');
+            
+            if (modal && platformBadge && platformName) {
+                platformBadge.textContent = platform.toUpperCase();
+                platformName.textContent = platform;
+                modal.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        // Close the verification modal
+        function closeShareVerificationModal() {
+            const modal = document.getElementById('shareVerificationModal');
+            if (modal) {
+                modal.classList.remove('show');
+                document.body.style.overflow = 'auto';
+            }
+            currentSharePlatform = null;
+        }
+        
+        // ✅ User confirmed they shared - award coins (UNLIMITED SHARES!)
+        function confirmShareComplete() {
+            if (!currentSharePlatform) {
+                showNotification('❌ Error: No platform selected', 'error');
+                closeShareVerificationModal();
+                return;
+            }
+            
+            const platform = currentSharePlatform;
+            const userData = getUserData();
+            const referralData = getReferralData();
+            
+            // ✅ TRACK THIS SHARE (No restrictions - unlimited shares allowed!)
+            const platformShareCount = trackShareAction(platform);
+            
+            // Calculate and update accurate coin count (counts all shares)
+            const coinData = updateAccurateCoinCount();
+            
+            // Update referral data with total shares
+            referralData.totalShares = coinData.totalShares;
+            referralData.totalCoinsEarned = coinData.totalCoins;
+            
+            // Save updated data
+            saveUserData(userData);
+            saveReferralData(referralData);
+            
+            // Update all displays with accurate data
+            loadUserData();
+            updateStats();
+            
+            // ✅ Send to Google Sheets with complete data
+            sendShareToGoogleSheets(userData, platform, 3, referralData, coinData);
+            
+            // Close modal
+            closeShareVerificationModal();
+            
+            // Show success message
+            showNotification(
+                `🎉 +3 AksharCoins earned! Total: ${coinData.totalCoins} coins (${coinData.totalShares} total shares, ${platformShareCount} on ${platform})`, 
+                'success'
+            );
+            
+            console.log(`✅ Share tracked successfully:`, {
+                platform: platform,
+                platformShareCount: platformShareCount,
+                coinsEarned: 3,
+                totalCoins: coinData.totalCoins,
+                totalShares: coinData.totalShares,
+                platformCounts: coinData.platformCounts
+            });
+        }
+        
+        // User cancelled - no coins awarded
+        function cancelShareVerification() {
+            closeShareVerificationModal();
+            showNotification('❌ No coins awarded. Share again when ready!', 'info');
+        }
+
+        // ✅ Send share data to Google Sheets (PRIMARY tracking system)
+        function sendShareToGoogleSheets(userData, platform, coinsEarned, referralData, coinData) {
+            const userEmail = userData.email || getCurrentUserEmail() || 'anonymous@example.com';
+            const userName = userData.fullName || userData.name || 'Anonymous';
+            const userPhone = userData.phone || '';
+            const userRole = userData.role || 'unknown';
+            
+            // Get referral count (how many people registered via user's link)
+            const referralCount = referralData.totalReferrals || referralData.referralCount || 0;
+            
+            // Prepare complete tracking data for Google Sheets
+            const trackingData = {
+                type: 'share',
+                action: 'referral_share',
+                referrerName: userName,
+                referrerEmail: userEmail,
+                referrerPhone: userPhone,
+                referrerRole: userRole,
+                platform: platform,
+                coinsEarned: coinsEarned,
+                shareCoins: coinData.shareCoins,
+                referralBonusCoins: coinData.referralBonusCoins || 0,
+                totalCoins: coinData.totalCoins,
+                totalShares: coinData.totalShares,
+                platformShareCount: coinData.platformCounts[platform] || 0,
+                referralCount: referralCount,  // ✅ Added: How many registered via link
+                totalReferrals: referralCount,  // ✅ Alias for compatibility
+                timestamp: new Date().toISOString(),
+                referralCode: document.getElementById('referralCode') ? document.getElementById('referralCode').textContent : 'AKSHAR2025',
+                source: 'referral_page'
+            };
+            
+            // Send to Google Sheets
+            sendReferralDataToSheets(trackingData);
+            
+            console.log(`✅ Sent share data to Google Sheets for ${platform}:`, {
+                userEmail: userEmail,
+                platform: platform,
+                coinsEarned: coinsEarned,
+                totalCoins: coinData.totalCoins,
+                totalShares: coinData.totalShares,
+                platformShareCount: coinData.platformCounts[platform]
+            });
+        }
+
+        // OLD FUNCTION - DEPRECATED - kept for compatibility
+        function trackReferralShare(platform) {
+            const now = Date.now();
+            const actionKey = `${platform}_${now}`;
+            
+            // Prevent duplicate actions within 3 seconds
+            if (lastAction && (now - lastAction.timestamp) < 3000) {
+                console.log('Duplicate action prevented:', platform);
+                return;
+            }
+            
+            lastAction = { platform, timestamp: now };
+            
+            // Clear any existing timeout
+            if (actionTimeout) {
+                clearTimeout(actionTimeout);
+            }
+            
+            // Set timeout to clear lastAction after 5 seconds
+            actionTimeout = setTimeout(() => {
+                lastAction = null;
+            }, 5000);
+            
+            console.log('Processing referral share for platform:', platform);
+            
+            const userData = getUserData();
+            const referralData = getReferralData();
+            
+            const coinsEarned = AKSHAR_COINS_REWARDS[platform] || 1;
+            
+            // Update local data
+            userData.aksharCoins = (userData.aksharCoins || 0) + coinsEarned;
+            referralData.totalShares = (referralData.totalShares || 0) + 1;
+            referralData.totalCoinsEarned = (referralData.totalCoinsEarned || 0) + coinsEarned;
+            referralData[platform + 'Shares'] = (referralData[platform + 'Shares'] || 0) + 1;
+            
+            // Save to localStorage
+            saveUserData(userData);
+            saveReferralData(referralData);
+            
+            // Update UI
+            loadUserData();
+            updateStats();
+            
+            // Send to Google Sheets
+            sendReferralDataToSheets({
+                type: 'referral',
+                referrerName: userData.fullName || 'Anonymous',
+                referrerEmail: userData.email || 'anonymous@example.com',
+                referrerPhone: userData.phone || '',
+                referrerRole: userData.role || 'unknown',
+                platform: platform,
+                coinsEarned: coinsEarned,
+                timestamp: new Date().toISOString(),
+                referralCode: 'AKSHAR2025',
+                totalCoins: userData.aksharCoins,
+                totalShares: referralData.totalShares,
+                shareCount: referralData[platform + 'Shares'] || 1,
+                source: 'referral_page'
+            });
+            
+            showNotification(`🎁‰ +${coinsEarned} Coins! You'll get +1 more when someone registers via your link!`, 'success');
+        }
+
+        function sendReferralDataToSheets(data) {
+            try {
+                // ✅ VALIDATE: Make sure we have user email before sending!
+                if (!data.referrerEmail || data.referrerEmail === 'unknown@example.com' || data.referrerEmail === 'anonymous@example.com') {
+                    console.error('❌ Cannot send to Google Sheets - Invalid user email:', data.referrerEmail);
+                    showNotification('⚠️ Please login first before sharing!', 'warning');
+                    return;
+                }
+                
+                // ✅ ADD UNIQUE ID to prevent duplicate processing
+                data.shareId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                console.log('📤 Sending referral data to Google Sheets:', data);
+                
+                const params = new URLSearchParams(data);
+                const url = `${REFERRAL_WEBHOOK_URL}?${params.toString()}`;
+                
+                console.log('🔗 Webhook URL:', url);
+                console.log('📧 User Email:', data.referrerEmail);
+                console.log('🆔 Share ID:', data.shareId);
+                
+                // ✅ USE ONLY ONE METHOD: Iframe (most reliable for Google Apps Script)
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = 'none';
+                iframe.src = url;
+                
+                iframe.onload = () => {
+                    console.log('✅ Iframe loaded successfully - Data sent to Google Sheets');
+                };
+                
+                iframe.onerror = (error) => {
+                    console.error('⚠️ Iframe error (but data might still be sent):', error);
+                };
+                
+                document.body.appendChild(iframe);
+                
+                // Clean up iframe after 5 seconds
+                setTimeout(() => {
+                    if (iframe && iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                        console.log('🗑️ Iframe cleaned up');
+                    }
+                }, 5000);
+                
+                setTimeout(() => {
+                    if (iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                        console.log('Referral iframe removed');
+                    }
+                }, 3000);
+                
+                console.log('Referral data sent to Google Sheets successfully');
+                
+                // Show success notification
+                showNotification('Referral data saved to Google Sheets!', 'success');
+                
+            } catch (error) {
+                console.error('Failed to send referral data to Google Sheets:', error);
+                showNotification('Failed to save referral data. Please try again.', 'error');
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notificationText');
+            
+            notificationText.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Share functions
+        function shareReferralViaWhatsApp() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            const userData = getUserData();
+            const referrerEmail = userData.email || getCurrentUserEmail();
+            
+            // Create personalized referral link with user's email
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(referrerEmail)}`;
+            
+            const message = `www.AksharJobs.com
+🌟 Imagine this...
+
+What if finding your dream opportunity didn't take months of endless searching?
+What if the perfect match was just minutes away?
+
+Welcome to AksharJobs ✨
+
+🧠 Powered by Advanced AI
+Our intelligent system doesn't just match keywords... it understands you. Your skills. Your aspirations. Your unique potential.
+
+🌍 Speaks Your Language
+Breaking barriers with true multilingual support. Because opportunity shouldn't be limited by language.
+
+💫 Culturally Intelligent
+Built for the global market. Designed to understand what makes you unique.
+
+One Platform. Infinite Connections.
+
+Whether you're a:
+• Job Seeker ready for your breakthrough
+• Recruiter hunting for exceptional talent
+• Mentor eager to guide the next generation
+• Trainer sharing transformative knowledge
+• Consultant offering expertise
+• Volunteer making a difference
+• Intern starting your journey
+• Community builder
+• University shaping futures
+• HR professional
+• NGO creating impact
+• Evangelist spreading innovation
+
+You belong here.... 🤝
+
+🎁 Here's the beautiful part:
+Earn AksharCoins with every interaction.
+Use them to unlock premium features.
+Completely free.
+
+Your success shouldn't cost a fortune. It should reward you.
+
+⚡ Minutes, not months.
+💎 Perfect matches, not compromises.
+🚀 Your future, starting now.
+
+AksharJobs - Where opportunities find you.
+Connect | Discover | Elevate
+
+Ready to revolutionize your journey?
+Join the awesome Network for pre-launch & start earning AksharCoins...
+
+Register here: ${referralLink}
+Use my referral code: ${referralCode}`;
+            
+            // Show confirmation dialog and open WhatsApp
+            showShareConfirmationDialog('whatsapp', () => {
+                const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+            });
+        }
+
+        function shareReferralViaLinkedIn() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            const userData = getUserData();
+            const referrerEmail = userData.email || getCurrentUserEmail();
+            
+            // Create personalized referral link
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(referrerEmail)}`;
+            
+            const message = `www.AksharJobs.com
+🌟 Imagine this...
+
+What if finding your dream opportunity didn't take months of endless searching? What if the perfect match was just minutes away?
+
+Welcome to AksharJobs ✨
+
+🧠 Powered by Advanced AI - Our intelligent system understands you. Your skills. Your aspirations. Your unique potential.
+
+🌍 Speaks Your Language - Breaking barriers with true multilingual support.
+
+💫 Culturally Intelligent - Built for the global market.
+
+One Platform. Infinite Connections.
+
+Whether you're a Job Seeker, Recruiter, Mentor, Trainer, Consultant, Volunteer, Intern, Community builder, University, HR professional, NGO, or Evangelist - You belong here.... 🤝
+
+🎁 Earn AksharCoins with every interaction. Use them to unlock premium features. Completely free.
+
+⚡ Minutes, not months.
+💎 Perfect matches, not compromises.
+🚀 Your future, starting now.
+
+Join the awesome Network for pre-launch & start earning AksharCoins...
+
+Register: ${referralLink}
+Code: ${referralCode}
+
+#AksharJobs #AI #CareerOpportunities #Innovation`;
+            
+            // Show confirmation dialog and open LinkedIn
+            showShareConfirmationDialog('linkedin', () => {
+                const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(referralLink)}`;
+                window.open(url, '_blank');
+            });
+        }
+
+        function shareReferralViaEmail() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            const userData = getUserData();
+            const referrerEmail = userData.email || getCurrentUserEmail();
+            
+            // Create personalized referral link
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(referrerEmail)}`;
+            
+            const subject = 'Join AksharJobs - Where Opportunities Find You';
+            const body = `www.AksharJobs.com
+🌟 Imagine this...
+
+What if finding your dream opportunity didn't take months of endless searching?
+What if the perfect match was just minutes away?
+
+Welcome to AksharJobs ✨
+
+🧠 Powered by Advanced AI
+Our intelligent system doesn't just match keywords... it understands you. Your skills. Your aspirations. Your unique potential.
+
+🌍 Speaks Your Language
+Breaking barriers with true multilingual support. Because opportunity shouldn't be limited by language.
+
+💫 Culturally Intelligent
+Built for the global market. Designed to understand what makes you unique.
+
+One Platform. Infinite Connections.
+
+Whether you're a:
+• Job Seeker ready for your breakthrough
+• Recruiter hunting for exceptional talent
+• Mentor eager to guide the next generation
+• Trainer sharing transformative knowledge
+• Consultant offering expertise
+• Volunteer making a difference
+• Intern starting your journey
+• Community builder
+• University shaping futures
+• HR professional
+• NGO creating impact
+• Evangelist spreading innovation
+
+You belong here.... 🤝
+
+🎁 Here's the beautiful part:
+Earn AksharCoins with every interaction.
+Use them to unlock premium features.
+Completely free.
+
+Your success shouldn't cost a fortune. It should reward you.
+
+⚡ Minutes, not months.
+💎 Perfect matches, not compromises.
+🚀 Your future, starting now.
+
+AksharJobs - Where opportunities find you.
+Connect | Discover | Elevate
+
+Ready to revolutionize your journey?
+Join the awesome Network for pre-launch & start earning AksharCoins...
+
+Register here: ${referralLink}
+Use my referral code: ${referralCode}`;
+            const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            
+            // Show confirmation dialog and open email
+            showShareConfirmationDialog('email', () => {
+                window.open(url);
+            });
+        }
+
+        function shareReferralViaTwitter() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            const userData = getUserData();
+            const referrerEmail = userData.email || getCurrentUserEmail();
+            
+            // Create personalized referral link
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(referrerEmail)}`;
+            
+            const message = `🚀 Join AksharJobs - Where Opportunities Find You
+
+🧠 AI-Powered matching
+🌍 Multilingual support
+💫 Culturally intelligent
+🎁 Earn AksharCoins
+
+⚡ Minutes, not months
+💎 Perfect matches, not compromises
+
+Join now: ${referralLink}
+Code: ${referralCode}
+
+#AksharJobs #AI #CareerOpportunities`;
+            // Show confirmation dialog and open Twitter
+            showShareConfirmationDialog('twitter', () => {
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+            });
+        }
+
+        function shareReferralViaFacebook() {
+            const userData = getUserData();
+            const referrerEmail = userData.email || getCurrentUserEmail();
+            
+            // Create personalized referral link
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(referrerEmail)}`;
+            
+            // Show confirmation dialog and open Facebook
+            showShareConfirmationDialog('facebook', () => {
+                const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(referralLink)}`;
+                window.open(url, '_blank');
+            });
+        }
+
+        function shareReferralViaTelegram() {
+            const referralCode = document.getElementById('referralCode').textContent;
+            const userData = getUserData();
+            const referrerEmail = userData.email || getCurrentUserEmail();
+            
+            // Create personalized referral link
+            const baseUrl = window.location.origin + window.location.pathname.replace('referral.html', 'registration.html');
+            const referralLink = `${baseUrl}?ref=${encodeURIComponent(referrerEmail)}`;
+            
+            const message = `🚀 Join AksharJobs - Where Opportunities Find You
+
+🧠 AI-Powered matching that understands YOU
+🌍 Multilingual support - No language barriers
+💫 Culturally intelligent for global market
+🎁 Earn AksharCoins with every interaction
+
+⚡ Minutes, not months
+💎 Perfect matches, not compromises
+🚀 Your future, starting now
+
+Join the awesome Network for pre-launch & start earning AksharCoins...
+
+Register: ${referralLink}
+Code: ${referralCode}`;
+            // Show confirmation dialog and open Telegram
+            showShareConfirmationDialog('telegram', () => {
+                const url = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
+                window.open(url, '_blank');
+            });
+        }
+
+        // Debug Modal Functions
+        function openDebugModal() {
+            const modal = document.getElementById('debugModal');
+            modal.classList.add('show');
+            
+            // Load current user info
+            const userData = getUserData();
+            document.getElementById('debugCurrentUser').textContent = userData.fullName || userData.name || 'Anonymous';
+            document.getElementById('debugCurrentEmail').textContent = userData.email || getCurrentUserEmail();
+            
+            // Fetch data from Google Sheets
+            fetchReferralDataFromSheets();
+        }
+
+        function closeDebugModal() {
+            const modal = document.getElementById('debugModal');
+            modal.classList.remove('show');
+        }
+
+        function refreshDebugData() {
+            fetchReferralDataFromSheets();
+        }
+
+        async function fetchReferralDataFromSheets() {
+            const container = document.getElementById('debugDataContainer');
+            
+            // Show loading state
+            container.innerHTML = `
+                <div class="debug-loading">
+                    <div class="spinner"></div>
+                    <p>Loading referral data from Google Sheets...</p>
+                </div>
+            `;
+
+            try {
+                const userData = getUserData();
+                const userEmail = userData.email || getCurrentUserEmail();
+                
+                console.log('Fetching referral data for email:', userEmail);
+                console.log('API URL:', REFERRAL_WEBHOOK_URL);
+                
+                // Make a request to the Google Sheets script to get referral data
+                // We'll use a simple GET request to fetch all data
+                const apiUrl = `${REFERRAL_WEBHOOK_URL}?action=get_referrals&email=${encodeURIComponent(userEmail)}`;
+                console.log('Full API URL:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    redirect: 'follow'
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                // Try to parse as JSON
+                let data;
+                try {
+                    data = JSON.parse(text);
+                    console.log('Parsed data:', data);
+                } catch (e) {
+                    // If not JSON, show raw response
+                    console.log('Response is not JSON:', text);
+                    throw new Error('Invalid response format from Google Sheets. Response: ' + text.substring(0, 100));
+                }
+
+                displayReferralData(data);
+                
+            } catch (error) {
+                console.error('Error fetching referral data:', error);
+                
+                // Show error with fallback to local data
+                container.innerHTML = `
+                    <div class="debug-error">
+                        <strong>⚠️ Note:</strong> The Google Apps Script needs to be redeployed with the new code.<br>
+                        Currently showing local data only.<br>
+                        <small style="display: block; margin-top: 8px;"><strong>Error Details:</strong> ${error.message}</small>
+                        <div style="margin-top: 10px; padding: 10px; background: white; border-radius: 5px;">
+                            <strong>📝 To fix this:</strong>
+                            <ol style="margin: 10px 0 0 20px; text-align: left;">
+                                <li>Open <a href="https://script.google.com" target="_blank" style="color: #667eea;">script.google.com</a></li>
+                                <li>Find your AksharJobs project</li>
+                                <li>Copy the updated code from google_sheets_integration.gs</li>
+                                <li>Click <strong>Deploy â†’ New deployment</strong></li>
+                                <li>Update the deployment</li>
+                            </ol>
+                        </div>
+                    </div>
+                    ${displayLocalReferralData()}
+                `;
+            }
+        }
+
+        function displayLocalReferralData() {
+            const userData = getUserData();
+            const referralData = getReferralData();
+            
+            return `
+                <div class="debug-success">
+                    <strong>✅ Local Storage Data</strong>
+                </div>
+                <table class="debug-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>User Name</strong></td>
+                            <td>${userData.fullName || userData.name || 'Not set'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email</strong></td>
+                            <td>${userData.email || 'Not set'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Phone</strong></td>
+                            <td>${userData.phone || 'Not set'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Role</strong></td>
+                            <td>${userData.role || 'Not set'}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AksharCoins</strong></td>
+                            <td><strong style="color: #667eea;">${userData.aksharCoins || 0} ðŸª™</strong></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Shares</strong></td>
+                            <td>${referralData.totalShares || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Referrals</strong></td>
+                            <td>${referralData.totalReferrals || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total Coins Earned</strong></td>
+                            <td>${referralData.totalCoinsEarned || 0} ðŸª™</td>
+                        </tr>
+                        <tr>
+                            <td><strong>WhatsApp Shares</strong></td>
+                            <td>${referralData.whatsappShares || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>LinkedIn Shares</strong></td>
+                            <td>${referralData.linkedinShares || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Email Shares</strong></td>
+                            <td>${referralData.emailShares || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Twitter Shares</strong></td>
+                            <td>${referralData.twitterShares || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Facebook Shares</strong></td>
+                            <td>${referralData.facebookShares || 0}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Telegram Shares</strong></td>
+                            <td>${referralData.telegramShares || 0}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 10px; border-left: 4px solid #2196f3;">
+                    <strong>â„¹ï¸ How to verify in Google Sheets:</strong><br>
+                    1. Open the Google Sheet directly: <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID || '1rnLQpt9FDACUZUsGC87vGsK61z1DcoCyUW0yXXIuHf8'}" target="_blank" style="color: #667eea;">Click here</a><br>
+                    2. Look for the "Referral_Tracking" tab<br>
+                    3. Find your email address to see your referral records<br>
+                    4. Each share action should create or update a row with your information
+                </div>
+            `;
+        }
+
+        function displayReferralData(data) {
+            const container = document.getElementById('debugDataContainer');
+            
+            if (!data || !data.success) {
+                container.innerHTML = `
+                    <div class="debug-error">
+                        <strong>⚠️ Error:</strong> ${data?.error || 'Failed to fetch data'}
+                    </div>
+                `;
+                return;
+            }
+
+            // Display the data in a nice format
+            container.innerHTML = `
+                <div class="debug-success">
+                    <strong>✅ Data fetched successfully from Google Sheets!</strong><br>
+                    <small>Last updated: ${new Date().toLocaleString()}</small>
+                </div>
+                <table class="debug-table">
+                    <thead>
+                        <tr>
+                            <th>Referrer Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                            <th>Referrer Count</th>
+                            <th>Total Coins</th>
+                            <th>Platform</th>
+                            <th>Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.records && data.records.length > 0 ? 
+                            data.records.map(record => `
+                                <tr>
+                                    <td>${record.name || 'N/A'}</td>
+                                    <td>${record.email || 'N/A'}</td>
+                                    <td>${record.phone || 'N/A'}</td>
+                                    <td>${record.role || 'N/A'}</td>
+                                    <td>${record.referralCount || 0}</td>
+                                    <td><strong style="color: #667eea;">${record.totalCoins || 0} ðŸª™</strong></td>
+                                    <td>${record.platform || 'N/A'}</td>
+                                    <td>${record.timestamp ? new Date(record.timestamp).toLocaleString() : 'N/A'}</td>
+                                </tr>
+                            `).join('')
+                            : '<tr><td colspan="8" style="text-align: center;">No records found</td></tr>'
+                        }
+                    </tbody>
+                </table>
+            `;
+        }
+
+        // ========== FETCH REFERRAL CLICKS (WHO REGISTERED VIA YOUR LINK) ==========
+        
+        async function fetchReferralClicks() {
+            const currentEmail = getCurrentUserEmail();
+            
+            console.log('fetchReferralClicks called with email:', currentEmail);
+            
+            if (!currentEmail || currentEmail === 'anonymous@example.com') {
+                console.log('No user logged in, cannot fetch referral clicks');
+                displayEmptyReferralClicks();
+                return;
+            }
+            
+            try {
+                console.log('Fetching referral clicks for:', currentEmail);
+                
+                // Fetch from Google Sheets
+                const apiUrl = `${REFERRAL_WEBHOOK_URL}?action=get_referral_clicks&referrer=${encodeURIComponent(currentEmail)}`;
+                console.log('API URL:', apiUrl);
+                
+                const response = await fetch(apiUrl, {
+                    method: 'GET',
+                    mode: 'cors'
+                }).catch((error) => {
+                    console.error('Fetch error:', error);
+                    return null;
+                });
+                
+                console.log('Response received:', response);
+                
+                if (response && response.ok) {
+                    const data = await response.json();
+                    console.log('Referral clicks response:', data);
+                    
+                    if (data.success && data.clicks && data.clicks.length > 0) {
+                        displayReferralClicks(data.clicks);
+                    } else {
+                        // No clicks yet - show empty state
+                        console.log('No referral clicks found for user:', currentEmail);
+                        displayEmptyReferralClicks();
+                    }
+                } else {
+                    console.log('Response not ok, status:', response?.status);
+                    // CORS might block, show empty state
+                    displayEmptyReferralClicks();
+                }
+            } catch (error) {
+                console.error('Could not fetch referral clicks:', error);
+                displayEmptyReferralClicks();
+            }
+        }
+        
+        function displayReferralClicks(clicks) {
+            const listContainer = document.getElementById('registeredUsersList');
+            
+            if (!clicks || clicks.length === 0) {
+                displayEmptyReferralClicks();
+                return;
+            }
+            
+            const html = clicks.map((click, index) => `
+                <div class="registered-user-item" style="animation: slideInUp 0.3s ease-out ${index * 0.1}s both;">
+                    <div class="registered-user-info">
+                        <div class="registered-user-name">
+                            ${click.referredName || click.referredEmail || 'User'}
+                        </div>
+                        <div class="registered-user-email">
+                            ${click.referredEmail || 'No email'}
+                        </div>
+                        <div class="registered-user-time">
+                            Registered: ${formatDate(click.timestamp)}
+                        </div>
+                    </div>
+                    <div class="registered-user-coin">
+                        +${click.coinsAwarded || 1} ðŸª™
+                    </div>
+                </div>
+            `).join('');
+            
+            listContainer.innerHTML = html;
+        }
+        
+        function displayEmptyReferralClicks() {
+            const listContainer = document.getElementById('registeredUsersList');
+            listContainer.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-user-plus" style="font-size: 48px; color: #cbd5e1; margin-bottom: 15px;"></i>
+                    <p>No one has registered via your link yet</p>
+                    <small>Share your referral link to start earning bonus coins!</small>
+                </div>
+            `;
+        }
+        
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Unknown';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        // Google Sheets ID for direct link
+        const SHEET_ID = '14gfIXPlZQGuYYAWiW1RHlcDlBf_Tm63JMRrJ-4pyqwk';
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('debugModal');
+            if (event.target === modal) {
+                closeDebugModal();
+            }
+        }
+    </script>
+</body>
+</html>

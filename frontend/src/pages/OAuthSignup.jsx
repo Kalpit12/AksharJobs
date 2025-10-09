@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { oauthApi } from '../api/oauthApi';
-import LoadingSpinner from '../components/LoadingSpinner';
+import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
 import '../styles/Global.css';
 import '../styles/OAuth.css';
 
@@ -72,7 +72,7 @@ const OAuthSignup = () => {
     return (
       <div className="oauth-signup-page">
         <div className="oauth-content">
-          <LoadingSpinner 
+          <ModernLoadingSpinner 
             type="dots" 
             size="large" 
             text="Loading your information..." 
@@ -136,7 +136,7 @@ const OAuthSignup = () => {
               className="btn btn-primary btn-full-width"
             >
               {isLoading ? (
-                <LoadingSpinner type="spinner" size="small" text="Creating Account..." showText={true} />
+                <ModernLoadingSpinner type="spinner" size="small" text="Creating Account..." showText={true} />
               ) : (
                 'Create Account'
               )}

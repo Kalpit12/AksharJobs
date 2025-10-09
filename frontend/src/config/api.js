@@ -1,9 +1,35 @@
-// API Configuration for RocketJobs Frontend
+// API Configuration for AksharJobs Frontend - Network Agnostic
 const API_CONFIG = {
-  // Backend base URL - change this based on your backend port
-  BASE_URL: 'http://localhost:3002',
+  // Dynamic backend detection - Global accessibility
+  get BASE_URL() {
+    // Try to detect backend automatically
+    if (typeof window !== 'undefined') {
+      const currentHost = window.location.hostname;
+      
+      // Always use the same host as the frontend with backend port 3002
+      // This works from anywhere - localhost, local network, or external access
+      return `http://${currentHost}:3002`;
+    }
+    // Fallback for SSR - use localhost
+    return 'http://localhost:3002';
+  },
+  
   // Frontend URL - for internal redirects
-  FRONTEND_URL: 'http://localhost:3003',
+  get FRONTEND_URL() {
+    if (typeof window !== 'undefined') {
+      return window.location.origin;
+    }
+    return 'http://localhost:3003';
+  },
+  
+  // Network detection helper
+  get isLocalNetwork() {
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.') || hostname.startsWith('10.') || hostname.startsWith('172.');
+    }
+    return false;
+  },
   
   // Authentication endpoints
   AUTH_ENDPOINTS: {
@@ -38,12 +64,22 @@ const API_CONFIG = {
   }
 };
 
-// Helper function to build full API URLs
+// Helper function to build full API URLs with network detection
 export const buildApiUrl = (endpoint) => {
-  return `${API_CONFIG.BASE_URL}${endpoint}`;
+  const baseUrl = API_CONFIG.BASE_URL;
+  const fullUrl = `${baseUrl}${endpoint}`;
+  
+  // Log URL construction for debugging
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`🔗 Building API URL: ${fullUrl}`);
+    console.log(`🌐 Base URL: ${baseUrl}`);
+    console.log(`📱 Current Host: ${typeof window !== 'undefined' ? window.location.hostname : 'SSR'}`);
+  }
+  
+  return fullUrl;
 };
 
-// Helper function to make authenticated API calls
+// Helper function to make authenticated API calls with network resilience
 export const makeAuthenticatedRequest = async (url, options = {}) => {
   const token = localStorage.getItem('token');
   
@@ -88,8 +124,65 @@ export const makeAuthenticatedRequest = async (url, options = {}) => {
     return response;
   } catch (error) {
     console.error('API request failed:', error);
+    
+    // Network error handling
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      console.error('🌐 Network error detected. This might be due to:');
+      console.error('   - WiFi network change');
+      console.error('   - Backend server not running');
+      console.error('   - Firewall blocking connection');
+      console.error('   - Backend running on different IP');
+      
+      // Try to reconnect or show helpful message
+      if (typeof window !== 'undefined') {
+        // Show network error notification
+        const event = new CustomEvent('networkError', {
+          detail: {
+            message: 'Network connection issue detected. Please check your connection and try again.',
+            error: error.message
+          }
+        });
+        window.dispatchEvent(event);
+      }
+    }
+    
     throw error;
   }
+};
+
+// Network status monitoring
+export const monitorNetworkStatus = () => {
+  if (typeof window === 'undefined') return;
+  
+  let isOnline = navigator.onLine;
+  
+  const updateNetworkStatus = () => {
+    const wasOnline = isOnline;
+    isOnline = navigator.onLine;
+    
+    if (wasOnline !== isOnline) {
+      const event = new CustomEvent('networkStatusChange', {
+        detail: { isOnline, timestamp: new Date().toISOString() }
+      });
+      window.dispatchEvent(event);
+      
+      if (isOnline) {
+        console.log('✅ Network connection restored');
+      } else {
+        console.log('❌ Network connection lost');
+      }
+    }
+  };
+  
+  // Listen for network changes
+  window.addEventListener('online', updateNetworkStatus);
+  window.addEventListener('offline', updateNetworkStatus);
+  
+  // Return cleanup function
+  return () => {
+    window.removeEventListener('online', updateNetworkStatus);
+    window.removeEventListener('offline', updateNetworkStatus);
+  };
 };
 
 export default API_CONFIG;

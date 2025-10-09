@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Visitor Data - AksharJobs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .data-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #e9ecef;
+        }
+        
+        .action-type {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .action-track_visit { background: #10b981; color: white; }
+        .action-page_load { background: #3b82f6; color: white; }
+        .action-link_click { background: #f59e0b; color: white; }
+        .action-scroll_depth { background: #8b5cf6; color: white; }
+        .action-time_on_page { background: #ec4899; color: white; }
+        .action-page_exit { background: #ef4444; color: white; }
+        
+        .json-display {
+            background: #1e293b;
+            color: #10b981;
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fbbf24;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+        
+        .empty-state i {
+            font-size: 4rem;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <i class="fas fa-chart-line"></i>
+            Visitor Data Dashboard
+        </h1>
+        <p class="subtitle">View stored visitor tracking data from localStorage</p>
+        
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-database"></i>
+                <div class="stat-number" id="totalEvents">0</div>
+                <div class="stat-label">Total Events Tracked</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-clock"></i>
+                <div class="stat-number" id="lastVisit">Never</div>
+                <div class="stat-label">Last Visit</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-mouse-pointer"></i>
+                <div class="stat-number" id="clickEvents">0</div>
+                <div class="stat-label">Click Events</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-eye"></i>
+                <div class="stat-number" id="pageViews">0</div>
+                <div class="stat-label">Page Views</div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="refreshData()">
+                <i class="fas fa-sync"></i>
+                Refresh Data
+            </button>
+            <button class="btn btn-success" onclick="exportToCSV()">
+                <i class="fas fa-download"></i>
+                Export to CSV
+            </button>
+            <button class="btn btn-info" onclick="exportToJSON()">
+                <i class="fas fa-file-code"></i>
+                Export to JSON
+            </button>
+            <button class="btn btn-danger" onclick="clearData()">
+                <i class="fas fa-trash"></i>
+                Clear All Data
+            </button>
+        </div>
+        
+        <!-- Alerts -->
+        <div id="alerts"></div>
+        
+        <!-- Recent Events Table -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-list"></i>
+                Recent Tracking Events
+            </h2>
+            <div id="eventsTable"></div>
+        </div>
+        
+        <!-- Raw JSON Data -->
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-code"></i>
+                Raw JSON Data
+            </h2>
+            <div class="json-display" id="jsonDisplay">
+                No data available
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Load and display data
+        function loadVisitorData() {
+            try {
+                // Get visitor data from localStorage
+                const visitorDataRaw = localStorage.getItem('akshar_visitor_data');
+                const lastVisit = localStorage.getItem('akshar_last_visit');
+                
+                if (!visitorDataRaw) {
+                    showEmptyState();
+                    return;
+                }
+                
+                const visitorData = JSON.parse(visitorDataRaw);
+                
+                // Update stats
+                document.getElementById('totalEvents').textContent = visitorData.length;
+                
+                if (lastVisit) {
+                    const lastVisitDate = new Date(parseInt(lastVisit));
+                    document.getElementById('lastVisit').textContent = lastVisitDate.toLocaleDateString();
+                }
+                
+                // Count specific events
+                const clickEvents = visitorData.filter(e => e.action === 'link_click').length;
+                const pageViews = visitorData.filter(e => e.action === 'page_load' || e.action === 'track_visit').length;
+                
+                document.getElementById('clickEvents').textContent = clickEvents;
+                document.getElementById('pageViews').textContent = pageViews;
+                
+                // Display events table
+                displayEventsTable(visitorData);
+                
+                // Display raw JSON
+                document.getElementById('jsonDisplay').textContent = JSON.stringify(visitorData, null, 2);
+                
+            } catch (error) {
+                console.error('Error loading visitor data:', error);
+                showAlert('Error loading data: ' + error.message, 'warning');
+            }
+        }
+        
+        function displayEventsTable(data) {
+            const tableContainer = document.getElementById('eventsTable');
+            
+            if (data.length === 0) {
+                tableContainer.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No events tracked yet</p></div>';
+                return;
+            }
+            
+            // Sort by timestamp (most recent first)
+            const sortedData = data.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Take only the most recent 50 events
+            const recentData = sortedData.slice(0, 50);
+            
+            let tableHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                            <th>Details</th>
+                            <th>URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            recentData.forEach(event => {
+                const timestamp = new Date(event.timestamp).toLocaleString();
+                const action = event.action || 'unknown';
+                const actionClass = 'action-' + action.replace('_', '_');
+                
+                let details = '';
+                if (event.linkText) details = event.linkText;
+                else if (event.scrollPercent) details = `${event.scrollPercent}% scrolled`;
+                else if (event.timeSpent) details = `${event.timeSpent}s`;
+                else if (event.isNewVisitor) details = 'New Visitor';
+                
+                const url = event.url || event.linkUrl || '-';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${timestamp}</td>
+                        <td><span class="action-type ${actionClass}">${action}</span></td>
+                        <td>${details}</td>
+                        <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${url}">${url}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+            
+            if (sortedData.length > 50) {
+                tableHTML += `<p style="margin-top: 15px; color: #666; text-align: center;">Showing 50 of ${sortedData.length} events. Export to see all.</p>`;
+            }
+            
+            tableContainer.innerHTML = tableHTML;
+        }
+        
+        function showEmptyState() {
+            document.getElementById('eventsTable').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>No Visitor Data Found</h3>
+                    <p>No tracking data has been stored in localStorage yet.</p>
+                    <p style="margin-top: 10px; color: #999;">This could mean:</p>
+                    <ul style="list-style: none; margin-top: 10px;">
+                        <li>✓ The tracking script was never run</li>
+                        <li>✓ Data was cleared previously</li>
+                        <li>✓ You're viewing from a different browser/device</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('jsonDisplay').textContent = 'No data available';
+        }
+        
+        function refreshData() {
+            loadVisitorData();
+            showAlert('Data refreshed successfully!', 'info');
+        }
+        
+        function exportToCSV() {
+            try {
+                const visitorDataRaw = localStorage.getItem('akshar_visitor_data');
+                if (!visitorDataRaw) {
+                    showAlert('No data to export', 'warning');
+                    return;
+                }
+                
+                const visitorData = JSON.parse(visitorDataRaw);
+                
+                // Create CSV content
+                let csv = 'Timestamp,Action,Visitor ID,Session ID,Details,URL\n';
+                
+                visitorData.forEach(event => {
+                    const timestamp = event.timestamp || '';
+                    const action = event.action || '';
+                    const visitorId = event.visitorId || '';
+                    const sessionId = event.sessionId || '';
+                    const details = event.linkText || event.scrollPercent || event.timeSpent || '';
+                    const url = event.url || event.linkUrl || '';
+                    
+                    csv += `"${timestamp}","${action}","${visitorId}","${sessionId}","${details}","${url}"\n`;
+                });
+                
+                // Download CSV
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `aksharjobs-visitor-data-${Date.now()}.csv`;
+                a.click();
+                
+                showAlert('CSV exported successfully!', 'info');
+            } catch (error) {
+                showAlert('Error exporting CSV: ' + error.message, 'warning');
+            }
+        }
+        
+        function exportToJSON() {
+            try {
+                const visitorDataRaw = localStorage.getItem('akshar_visitor_data');
+                if (!visitorDataRaw) {
+                    showAlert('No data to export', 'warning');
+                    return;
+                }
+                
+                // Download JSON
+                const blob = new Blob([visitorDataRaw], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `aksharjobs-visitor-data-${Date.now()}.json`;
+                a.click();
+                
+                showAlert('JSON exported successfully!', 'info');
+            } catch (error) {
+                showAlert('Error exporting JSON: ' + error.message, 'warning');
+            }
+        }
+        
+        function clearData() {
+            if (confirm('Are you sure you want to clear all visitor data? This cannot be undone!')) {
+                localStorage.removeItem('akshar_visitor_data');
+                localStorage.removeItem('akshar_last_visit');
+                
+                loadVisitorData();
+                showAlert('All visitor data cleared!', 'warning');
+            }
+        }
+        
+        function showAlert(message, type = 'info') {
+            const alertsDiv = document.getElementById('alerts');
+            const alertHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                    ${message}
+                </div>
+            `;
+            
+            alertsDiv.innerHTML = alertHTML;
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                alertsDiv.innerHTML = '';
+            }, 3000);
+        }
+        
+        // Load data on page load
+        document.addEventListener('DOMContentLoaded', loadVisitorData);
+    </script>
+</body>
+</html>
+

@@ -33,14 +33,27 @@ const AnalyticsDashboard = () => {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      const summary = await analyticsApi.getDashboardSummary();
-      setDashboardSummary(summary.data);
+      const [summaryRes, thresholdsRes, historyRes, recruitmentAnalyticsRes] = await Promise.all([
+        analyticsApi.getDashboardSummary(),
+        analyticsApi.getMatchThresholds(),
+        analyticsApi.getMatchingHistory(30),
+        analyticsApi.getRecruitmentAnalytics(30)
+      ]);
       
-      const thresholds = await analyticsApi.getMatchThresholds();
-      setMatchThresholds(thresholds.data);
+      setDashboardSummary(summaryRes.data);
+      setMatchThresholds(thresholdsRes.data || []);
+      setMatchingHistory(historyRes.data || []);
       
-      const history = await analyticsApi.getMatchingHistory(30);
-      setMatchingHistory(history.data);
+      // Use recruitment analytics data to populate dashboard summary if available
+      if (recruitmentAnalyticsRes.data) {
+        const analytics = recruitmentAnalyticsRes.data;
+        setDashboardSummary({
+          total_jobs: analytics.overview?.total_jobs || 0,
+          total_applications: analytics.overview?.total_applications || 0,
+          average_match_score: analytics.candidate_quality?.avg_match_score || 0,
+          recent_jobs: historyRes.data || []
+        });
+      }
     } catch (err) {
       setError('Failed to load dashboard data');
       console.error(err);
@@ -51,23 +64,37 @@ const AnalyticsDashboard = () => {
 
   const loadJobs = async () => {
     try {
-      // Get real jobs from the analytics API (match thresholds endpoint)
-      const thresholds = await analyticsApi.getMatchThresholds();
-      if (thresholds.data) {
-        const realJobs = thresholds.data.map(job => ({
+      // Get real jobs from the backend
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('No token found');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:3002/api/jobs/jobs_by_user/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const realJobs = data.jobs?.map(job => ({
           id: job._id,
           title: job.job_title
-        }));
+        })) || [];
         setJobs(realJobs);
+        console.log('Loaded real jobs:', realJobs);
+      } else {
+        console.error('Failed to load jobs:', response.status);
+        // Fallback to empty array
+        setJobs([]);
       }
     } catch (err) {
       console.error('Error loading jobs:', err);
-      // Fallback to mock data if API fails
-      setJobs([
-        { id: '68a2c93af2d8e24993f2c8fb', title: 'Senior Software Engineer' },
-        { id: '68a2c93bf2d8e24993f2c8fc', title: 'Data Scientist' },
-        { id: '68a2c93bf2d8e24993f2c8fd', title: 'Product Manager' }
-      ]);
+      // Fallback to empty array if API fails
+      setJobs([]);
     }
   };
 
@@ -150,15 +177,29 @@ const AnalyticsDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {dashboardSummary?.recent_jobs?.map((job, index) => (
-                <tr key={index}>
-                  <td>{job.job_title}</td>
-                  <td>{job.total_applications}</td>
-                  <td>{job.average_match_score}%</td>
-                  <td>{job.high_quality_candidates}</td>
-                  <td>{job.conversion_rate?.toFixed(1)}%</td>
+              {dashboardSummary?.recent_jobs?.length > 0 ? (
+                dashboardSummary.recent_jobs.map((job, index) => (
+                  <tr key={index}>
+                    <td>{job.job_title}</td>
+                    <td>{job.total_applications}</td>
+                    <td>{job.average_match_score}%</td>
+                    <td>{job.high_quality_candidates}</td>
+                    <td>{job.conversion_rate?.toFixed(1)}%</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '2rem' }}>📈</span>
+                      <p>No job performance data available yet.</p>
+                      <p style={{ fontSize: '0.9rem', color: '#999' }}>
+                        Job performance metrics will appear here once you have jobs with applications.
+                      </p>
+                    </div>
+                  </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -172,51 +213,61 @@ const AnalyticsDashboard = () => {
       <p>Set minimum match scores to automatically filter candidates</p>
       
       <div className="thresholds-grid">
-        {matchThresholds.map((job, index) => (
-          <div key={index} className="threshold-card">
-            <h4>{job.job_title}</h4>
-            <div className="threshold-inputs">
-              <div className="input-group">
-                <label>Minimum Score:</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  defaultValue={job.match_threshold || 70}
-                  onChange={(e) => {
-                    const newThresholds = [...matchThresholds];
-                    newThresholds[index].match_threshold = parseInt(e.target.value);
-                    setMatchThresholds(newThresholds);
-                  }}
-                />
+        {matchThresholds.length > 0 ? (
+          matchThresholds.map((job, index) => (
+            <div key={index} className="threshold-card">
+              <h4>{job.job_title}</h4>
+              <div className="threshold-inputs">
+                <div className="input-group">
+                  <label>Minimum Score:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    defaultValue={job.match_threshold || 70}
+                    onChange={(e) => {
+                      const newThresholds = [...matchThresholds];
+                      newThresholds[index].match_threshold = parseInt(e.target.value);
+                      setMatchThresholds(newThresholds);
+                    }}
+                  />
+                </div>
+                <div className="input-group">
+                  <label>Auto-Reject Below:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    defaultValue={job.auto_reject_threshold || 50}
+                    onChange={(e) => {
+                      const newThresholds = [...matchThresholds];
+                      newThresholds[index].auto_reject_threshold = parseInt(e.target.value);
+                      setMatchThresholds(newThresholds);
+                    }}
+                  />
+                </div>
               </div>
-              <div className="input-group">
-                <label>Auto-Reject Below:</label>
-                <input
-                  type="number"
-                  min="0"
-                  max="100"
-                  defaultValue={job.auto_reject_threshold || 50}
-                  onChange={(e) => {
-                    const newThresholds = [...matchThresholds];
-                    newThresholds[index].auto_reject_threshold = parseInt(e.target.value);
-                    setMatchThresholds(newThresholds);
-                  }}
-                />
-              </div>
+              <button
+                className="update-btn"
+                onClick={() => handleThresholdUpdate(
+                  job._id,
+                  job.match_threshold,
+                  job.auto_reject_threshold
+                )}
+              >
+                Update Thresholds
+              </button>
             </div>
-            <button
-              className="update-btn"
-              onClick={() => handleThresholdUpdate(
-                job._id,
-                job.match_threshold,
-                job.auto_reject_threshold
-              )}
-            >
-              Update Thresholds
-            </button>
+          ))
+        ) : (
+          <div style={{ textAlign: 'center', padding: '40px', color: '#666', gridColumn: '1 / -1' }}>
+            <span style={{ fontSize: '2rem' }}>⚙️</span>
+            <p>No jobs available to set match score thresholds.</p>
+            <p style={{ fontSize: '0.9rem', color: '#999', marginTop: '10px' }}>
+              Create some job postings first to configure match score settings.
+            </p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -241,45 +292,70 @@ const AnalyticsDashboard = () => {
         </button>
       </div>
 
-      {skillsGapAnalysis && (
+      {skillsGapAnalysis ? (
         <div className="skills-analysis">
           <h4>{skillsGapAnalysis.job_title}</h4>
           <div className="required-skills">
             <h5>Required Skills:</h5>
             <div className="skills-tags">
-              {skillsGapAnalysis.required_skills.map((skill, index) => (
+              {skillsGapAnalysis.required_skills?.map((skill, index) => (
                 <span key={index} className="skill-tag required">{skill}</span>
-              ))}
+              )) || <p>No required skills defined for this job.</p>}
             </div>
           </div>
 
           <div className="candidates-analysis">
             <h5>Candidates Analysis:</h5>
-            <div className="candidates-grid">
-              {skillsGapAnalysis.candidates_analysis.map((candidate, index) => (
-                <div key={index} className="candidate-card">
-                  <h6>{candidate.candidate_name}</h6>
-                  <p>Match Score: {candidate.match_score}%</p>
-                  <p>Skills Match: {candidate.skills_match_percentage.toFixed(1)}%</p>
-                  
-                  <div className="skills-breakdown">
-                    <div className="matched-skills">
-                      <strong>Matched:</strong>
-                      {candidate.matched_skills.map((skill, idx) => (
-                        <span key={idx} className="skill-tag matched">{skill}</span>
-                      ))}
-                    </div>
-                    <div className="missing-skills">
-                      <strong>Missing:</strong>
-                      {candidate.missing_skills.map((skill, idx) => (
-                        <span key={idx} className="skill-tag missing">{skill}</span>
-                      ))}
+            {skillsGapAnalysis.candidates_analysis?.length > 0 ? (
+              <div className="candidates-grid">
+                {skillsGapAnalysis.candidates_analysis.map((candidate, index) => (
+                  <div key={index} className="candidate-card">
+                    <h6>{candidate.candidate_name}</h6>
+                    <p>Match Score: {candidate.match_score}%</p>
+                    <p>Skills Match: {candidate.skills_match_percentage.toFixed(1)}%</p>
+                    
+                    <div className="skills-breakdown">
+                      <div className="matched-skills">
+                        <strong>Matched:</strong>
+                        {candidate.matched_skills?.map((skill, idx) => (
+                          <span key={idx} className="skill-tag matched">{skill}</span>
+                        )) || <span>None</span>}
+                      </div>
+                      <div className="missing-skills">
+                        <strong>Missing:</strong>
+                        {candidate.missing_skills?.map((skill, idx) => (
+                          <span key={idx} className="skill-tag missing">{skill}</span>
+                        )) || <span>None</span>}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                <span style={{ fontSize: '2rem' }}>👥</span>
+                <p>No candidates have applied for this job yet.</p>
+                <p style={{ fontSize: '0.9rem', color: '#999' }}>
+                  Skills gap analysis will be available once applications are received.
+                </p>
+              </div>
+            )}
           </div>
+        </div>
+      ) : selectedJob ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          <span style={{ fontSize: '2rem' }}>🔍</span>
+          <p>Click "Analyze Skills" to perform skills gap analysis for the selected job.</p>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          <span style={{ fontSize: '2rem' }}>📋</span>
+          <p>Select a job to analyze skills gaps and candidate matches.</p>
+          {jobs.length === 0 && (
+            <p style={{ fontSize: '0.9rem', color: '#999', marginTop: '10px' }}>
+              No jobs available. Create some job postings first.
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -321,17 +397,31 @@ const AnalyticsDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {matchingHistory.map((job, index) => (
-              <tr key={index}>
-                <td>{job.job_title}</td>
-                <td>{new Date(job.posted_date).toLocaleDateString()}</td>
-                <td>{job.total_applications}</td>
-                <td>{job.average_match_score}%</td>
-                <td>{job.high_quality_candidates}</td>
-                <td>{job.views}</td>
-                <td>{job.conversion_rate?.toFixed(1)}%</td>
+            {matchingHistory.length > 0 ? (
+              matchingHistory.map((job, index) => (
+                <tr key={index}>
+                  <td>{job.job_title}</td>
+                  <td>{new Date(job.posted_date).toLocaleDateString()}</td>
+                  <td>{job.total_applications}</td>
+                  <td>{job.average_match_score}%</td>
+                  <td>{job.high_quality_candidates}</td>
+                  <td>{job.views}</td>
+                  <td>{job.conversion_rate?.toFixed(1)}%</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="7" style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '2rem' }}>📊</span>
+                    <p>No matching history data available for the selected period.</p>
+                    <p style={{ fontSize: '0.9rem', color: '#999' }}>
+                      This could be because there are no jobs posted or no applications received yet.
+                    </p>
+                  </div>
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -361,42 +451,67 @@ const AnalyticsDashboard = () => {
         </button>
       </div>
 
-      {competitorAnalysis && (
+      {competitorAnalysis ? (
         <div className="competitor-results">
           <div className="market-insights">
             <h4>Market Insights</h4>
             <div className="insights-grid">
               <div className="insight-card">
                 <h5>Average Salary</h5>
-                <p>{competitorAnalysis.market_insights.average_salary}</p>
+                <p>{competitorAnalysis.market_insights?.average_salary || 'N/A'}</p>
               </div>
               <div className="insight-card">
                 <h5>Average Applicants</h5>
-                <p>{competitorAnalysis.market_insights.average_applicants}</p>
+                <p>{competitorAnalysis.market_insights?.average_applicants || 'N/A'}</p>
               </div>
               <div className="insight-card">
                 <h5>Market Demand</h5>
-                <p>{competitorAnalysis.market_insights.market_demand}</p>
+                <p>{competitorAnalysis.market_insights?.market_demand || 'N/A'}</p>
               </div>
             </div>
           </div>
 
           <div className="competitor-jobs">
             <h4>Competitor Job Postings</h4>
-            <div className="competitor-grid">
-              {competitorAnalysis.competitor_analysis.map((competitor, index) => (
-                <div key={index} className="competitor-card">
-                  <h5>{competitor.company}</h5>
-                  <p><strong>Job:</strong> {competitor.job_title}</p>
-                  <p><strong>Location:</strong> {competitor.location}</p>
-                  <p><strong>Salary:</strong> {competitor.salary_range}</p>
-                  <p><strong>Applicants:</strong> {competitor.applicants}</p>
-                  <p><strong>Quality:</strong> {competitor.match_quality}</p>
-                  <p><strong>Posted:</strong> {new Date(competitor.posted_date).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
+            {competitorAnalysis.competitor_analysis?.length > 0 ? (
+              <div className="competitor-grid">
+                {competitorAnalysis.competitor_analysis.map((competitor, index) => (
+                  <div key={index} className="competitor-card">
+                    <h5>{competitor.company}</h5>
+                    <p><strong>Job:</strong> {competitor.job_title}</p>
+                    <p><strong>Location:</strong> {competitor.location}</p>
+                    <p><strong>Salary:</strong> {competitor.salary_range}</p>
+                    <p><strong>Applicants:</strong> {competitor.applicants}</p>
+                    <p><strong>Quality:</strong> {competitor.match_quality}</p>
+                    <p><strong>Posted:</strong> {new Date(competitor.posted_date).toLocaleDateString()}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                <span style={{ fontSize: '2rem' }}>🏢</span>
+                <p>No competitor data available for this job.</p>
+                <p style={{ fontSize: '0.9rem', color: '#999' }}>
+                  Competitor analysis is currently using mock data.
+                </p>
+              </div>
+            )}
           </div>
+        </div>
+      ) : selectedJob ? (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          <span style={{ fontSize: '2rem' }}>🔍</span>
+          <p>Click "Analyze Competition" to get market insights for the selected job.</p>
+        </div>
+      ) : (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+          <span style={{ fontSize: '2rem' }}>📊</span>
+          <p>Select a job to analyze market competition and get insights.</p>
+          {jobs.length === 0 && (
+            <p style={{ fontSize: '0.9rem', color: '#999', marginTop: '10px' }}>
+              No jobs available. Create some job postings first.
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Routes Flow Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 6px;
+            background: #fff;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-color: #ffeaa7;
+            color: #856404;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 8px;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button.danger {
+            background-color: #dc3545;
+        }
+        button.danger:hover {
+            background-color: #c82333;
+        }
+        button.success {
+            background-color: #28a745;
+        }
+        button.success:hover {
+            background-color: #218838;
+        }
+        #results {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .route-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .route-button {
+            padding: 10px;
+            text-align: center;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #495057;
+            transition: all 0.2s;
+        }
+        .route-button:hover {
+            background: #e9ecef;
+            text-decoration: none;
+            color: #495057;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-online {
+            background-color: #28a745;
+        }
+        .status-offline {
+            background-color: #dc3545;
+        }
+        .status-unknown {
+            background-color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Authentication Routes Flow Test</h1>
+        <p>This tool helps you manually test the authentication flow and route protection in your application.</p>
+        
+        <div class="test-section">
+            <h3>🌐 Server Status</h3>
+            <p>Check if your servers are running:</p>
+            <button onclick="checkServers()">Check Server Status</button>
+            <div id="server-status" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Authentication State Inspector</h3>
+            <p>Check current authentication state:</p>
+            <button onclick="checkAuthState()">Check Auth State</button>
+            <button onclick="clearAuthData()" class="danger">Clear All Auth Data</button>
+            <button onclick="setFakeAuthData()" class="warning">Set Fake Auth Data</button>
+            <div id="auth-results" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Route Testing</h3>
+            <p>Test different routes to verify authentication flow. Click on routes to navigate:</p>
+            
+            <h4>Public Routes (should work without login):</h4>
+            <div class="route-list">
+                <a href="http://localhost:3003/" class="route-button" target="_blank">🏠 Home</a>
+                <a href="http://localhost:3003/about" class="route-button" target="_blank">ℹ️ About</a>
+                <a href="http://localhost:3003/blog" class="route-button" target="_blank">📝 Blog</a>
+                <a href="http://localhost:3003/login" class="route-button" target="_blank">🔑 Login</a>
+                <a href="http://localhost:3003/signup" class="route-button" target="_blank">📝 Signup</a>
+            </div>
+
+            <h4>Protected Routes (should redirect to login if not authenticated):</h4>
+            <div class="route-list">
+                <a href="http://localhost:3003/jobs" class="route-button" target="_blank">💼 Jobs</a>
+                <a href="http://localhost:3003/jobseeker-dashboard" class="route-button" target="_blank">👤 Job Seeker Dashboard</a>
+                <a href="http://localhost:3003/recruiter-dashboard" class="route-button" target="_blank">🏢 Recruiter Dashboard</a>
+                <a href="http://localhost:3003/profile" class="route-button" target="_blank">👤 Profile</a>
+                <a href="http://localhost:3003/application-tracker" class="route-button" target="_blank">📋 Applications</a>
+                <a href="http://localhost:3003/resume-builder" class="route-button" target="_blank">📄 Resume Builder</a>
+            </div>
+
+            <h4>Admin Routes (should require admin role):</h4>
+            <div class="route-list">
+                <a href="http://localhost:3003/admin" class="route-button" target="_blank">⚙️ Admin Dashboard</a>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📋 Test Checklist</h3>
+            <p>Manual testing steps to verify authentication flow:</p>
+            <ol>
+                <li><strong>Initial State (Logged Out):</strong>
+                    <ul>
+                        <li>Visit home page - should show Login/Signup buttons in header</li>
+                        <li>Profile dropdown should NOT be visible</li>
+                        <li>Try accessing protected routes - should redirect to login</li>
+                    </ul>
+                </li>
+                <li><strong>Login Process:</strong>
+                    <ul>
+                        <li>Go to login page and login with valid credentials</li>
+                        <li>Should redirect to appropriate dashboard based on role</li>
+                        <li>Header should now show profile dropdown instead of Login/Signup</li>
+                    </ul>
+                </li>
+                <li><strong>Authenticated State:</strong>
+                    <ul>
+                        <li>Should be able to access protected routes</li>
+                        <li>Profile dropdown should show user info</li>
+                        <li>Role-specific routes should work based on user role</li>
+                    </ul>
+                </li>
+                <li><strong>Logout Process:</strong>
+                    <ul>
+                        <li>Click logout from profile dropdown</li>
+                        <li>Should redirect to home page</li>
+                        <li>Header should immediately show Login/Signup buttons</li>
+                        <li>Profile dropdown should disappear</li>
+                        <li>Trying to access protected routes should redirect to login</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>🐛 Console Debugging</h3>
+            <p>Open browser DevTools (F12) and look for these console messages:</p>
+            <ul>
+                <li><code>🔐 AuthContext useEffect triggered - checking localStorage</code></li>
+                <li><code>🔐 AuthContext - localStorage values:</code></li>
+                <li><code>🔐 Header - Authentication State Changed:</code></li>
+                <li><code>🔐 ModernProfileDropdown - User not authenticated, not rendering</code> (when logged out)</li>
+                <li><code>🔐 AuthContext - logout() called, clearing all auth data</code> (when logging out)</li>
+            </ul>
+            <button onclick="showConsoleInstructions()">Show Console Instructions</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Test Results</h3>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        function updateResults(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            results.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            results.scrollTop = results.scrollHeight;
+        }
+
+        async function checkServers() {
+            const statusDiv = document.getElementById('server-status');
+            statusDiv.innerHTML = 'Checking servers...';
+            
+            let frontendStatus = '🔴 Offline';
+            let backendStatus = '🔴 Offline';
+            
+            // Check frontend
+            try {
+                const frontendResponse = await fetch('http://localhost:3003', { 
+                    method: 'HEAD',
+                    mode: 'no-cors' // This will always succeed but we can check if the server is responding
+                });
+                frontendStatus = '🟢 Online';
+                updateResults('Frontend server is accessible', 'success');
+            } catch (error) {
+                frontendStatus = '🔴 Offline';
+                updateResults('Frontend server is not accessible', 'error');
+            }
+            
+            // Check backend
+            try {
+                const backendResponse = await fetch('http://localhost:3002/health', {
+                    method: 'GET'
+                });
+                if (backendResponse.ok) {
+                    backendStatus = '🟢 Online';
+                    updateResults('Backend server is online', 'success');
+                } else {
+                    backendStatus = '🟡 Issues';
+                    updateResults('Backend server responded but with issues', 'error');
+                }
+            } catch (error) {
+                backendStatus = '🔴 Offline';
+                updateResults('Backend server is not accessible', 'error');
+            }
+            
+            statusDiv.innerHTML = `
+                <div><span class="status-indicator ${frontendStatus.includes('🟢') ? 'status-online' : 'status-offline'}"></span>Frontend (http://localhost:3003): ${frontendStatus}</div>
+                <div><span class="status-indicator ${backendStatus.includes('🟢') ? 'status-online' : 'status-offline'}"></span>Backend (http://localhost:3002): ${backendStatus}</div>
+            `;
+        }
+
+        function checkAuthState() {
+            const authKeys = [
+                'token', 'role', 'userId', 'userEmail', 'userFirstName', 'userLastName',
+                'user', 'authToken', 'userRole', 'currentUser', 'userData'
+            ];
+            
+            let output = 'localStorage Authentication Data:\n';
+            output += '=====================================\n';
+            
+            let hasAuthData = false;
+            authKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    hasAuthData = true;
+                    output += `${key}: ${value.length > 50 ? value.substring(0, 50) + '...' : value}\n`;
+                } else {
+                    output += `${key}: null\n`;
+                }
+            });
+            
+            output += '\nSessionStorage:\n';
+            output += '===============\n';
+            output += `intendedDestination: ${sessionStorage.getItem('intendedDestination') || 'null'}\n`;
+            
+            output += '\nStatus: ';
+            if (hasAuthData) {
+                output += '🟢 User appears to be logged in\n';
+                updateResults('User authentication data found in localStorage', 'success');
+            } else {
+                output += '🔴 User appears to be logged out\n';
+                updateResults('No authentication data found - user is logged out', 'info');
+            }
+            
+            document.getElementById('auth-results').innerHTML = `<pre>${output}</pre>`;
+        }
+
+        function clearAuthData() {
+            const authKeys = [
+                'token', 'role', 'userId', 'userEmail', 'userFirstName', 'userLastName',
+                'user', 'authToken', 'userRole', 'currentUser', 'userData'
+            ];
+            
+            let clearedCount = 0;
+            authKeys.forEach(key => {
+                if (localStorage.getItem(key)) {
+                    localStorage.removeItem(key);
+                    clearedCount++;
+                }
+            });
+            
+            sessionStorage.removeItem('intendedDestination');
+            
+            document.getElementById('auth-results').innerHTML = `<div class="success">✅ Cleared ${clearedCount} authentication keys from localStorage and sessionStorage.</div>`;
+            updateResults(`Cleared ${clearedCount} authentication keys`, 'success');
+        }
+
+        function setFakeAuthData() {
+            localStorage.setItem('token', 'fake-jwt-token-for-testing');
+            localStorage.setItem('role', 'jobSeeker');
+            localStorage.setItem('userId', 'test-user-123');
+            localStorage.setItem('userEmail', 'test@example.com');
+            localStorage.setItem('userFirstName', 'Test');
+            localStorage.setItem('userLastName', 'User');
+            
+            document.getElementById('auth-results').innerHTML = '<div class="warning">⚠️ Set fake authentication data. Refresh the page to see how the app behaves with this data.</div>';
+            updateResults('Set fake authentication data for testing', 'info');
+        }
+
+        function showConsoleInstructions() {
+            alert(`Console Debugging Instructions:
+
+1. Open Browser DevTools (F12)
+2. Go to the Console tab
+3. Navigate through your app and look for messages starting with 🔐
+4. Key messages to look for:
+   - AuthContext initialization messages
+   - Header authentication state changes
+   - Profile dropdown rendering decisions
+   - Logout process messages
+
+5. If you don't see these messages, there might be an issue with the authentication system.`);
+        }
+
+        // Auto-check auth state on page load
+        window.addEventListener('load', () => {
+            updateResults('Auth Flow Test Tool loaded', 'success');
+            checkAuthState();
+        });
+    </script>
+</body>
+</html>

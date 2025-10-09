@@ -1,1 +1,236 @@
+# ===================================
+# AksharJobs .gitignore
+# ===================================
+
+# ===================================
+# SENSITIVE FILES - NEVER COMMIT!
+# ===================================
 .env
+.env.local
+.env.production
+.edn.local
+*.pem
+*.ppk
+aksharjobs-key.*
+
+# API Keys and Secrets
+**/secrets.json
+**/credentials.json
+
+# ===================================
+# Python
+# ===================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+venv/
+venv38/
+ENV/
+env/
+.venv
+
+# PyCharm
+.idea/
+
+# ===================================
+# Node.js / React
+# ===================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Build outputs
+frontend/build/
+build/
+dist/
+
+# Testing
+coverage/
+.nyc_output
+
+# ===================================
+# Logs
+# ===================================
+*.log
+logs/
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# PM2
+.pm2/
+pm2-*.log
+
+# ===================================
+# Uploads & User Data
+# ===================================
+uploads/
+*.pdf
+*.doc
+*.docx
+*.csv
+*.xlsx
+
+# Resume uploads
+backend/uploads/
+frontend/public/uploads/
+
+# ===================================
+# Backups
+# ===================================
+mongodb_backup*/
+backups/
+*.backup
+*.bak
+*.sql
+*.dump
+
+# ===================================
+# MongoDB
+# ===================================
+*.bson
+*.metadata.json
+
+# ===================================
+# Operating System
+# ===================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===================================
+# IDE / Editor
+# ===================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ===================================
+# Certificates & Keys
+# ===================================
+*.key
+*.cert
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# ===================================
+# Temporary Files
+# ===================================
+tmp/
+temp/
+*.tmp
+*.temp
+
+# ===================================
+# Package Manager Locks (Optional)
+# ===================================
+# Uncomment if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+
+# ===================================
+# ML Models & Large Files
+# ===================================
+*.h5
+*.pkl
+*.joblib
+fine_tuned_sbert/
+*.model
+*.bin
+
+# ===================================
+# Documentation Build Files
+# ===================================
+_build/
+.doctrees/
+
+# ===================================
+# Cache
+# ===================================
+.cache/
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ===================================
+# Coverage Reports
+# ===================================
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+
+# ===================================
+# Jupyter Notebook
+# ===================================
+.ipynb_checkpoints
+*.ipynb
+
+# ===================================
+# AWS
+# ===================================
+.elasticbeanstalk/
+*.pem
+
+# ===================================
+# Docker
+# ===================================
+*.docker
+docker-compose.override.yml
+
+# ===================================
+# Misc
+# ===================================
+.env.backup
+.env.test
+colab files/
+XAMPP_SETUP.md
+xampp_vhost.conf

@@ -2,14 +2,15 @@
 
 .back_button_container {
   position: absolute;
-  z-index: 100;
+  z-index: 1000;
   transition: all 0.3s ease;
 }
 
 /* Position variants */
 .back_button_container.top-left {
-  top: 30px;
-  left: 30px;
+  top: 10px;
+  left: 20px;
+  z-index: 1000;
 }
 
 .back_button_container.top-center {
@@ -38,8 +39,9 @@
   transition: all 0.3s ease;
   text-decoration: none;
   font-family: inherit;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
   white-space: nowrap;
+  backdrop-filter: blur(10px);
 }
 
 .back_button:hover {
@@ -98,8 +100,8 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .back_button_container.top-left {
-    top: 20px;
-    left: 20px;
+    top: 10px;
+    left: 15px;
   }
   
   .back_button_container.top-center {
@@ -129,8 +131,8 @@
 
 @media (max-width: 480px) {
   .back_button_container.top-left {
-    top: 15px;
-    left: 15px;
+    top: 10px;
+    left: 10px;
   }
   
   .back_button_container.top-center {

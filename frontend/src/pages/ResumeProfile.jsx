@@ -5,10 +5,11 @@ import { buildApiUrl } from "../config/api";
 import { useAuth } from "../context/AuthContext";
 
 import BackButton from "../components/BackButton";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 const ResumeProfile = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const token = user?.token || localStorage.getItem("token");
 
   const [userData, setUserData] = useState(null);
@@ -35,7 +36,7 @@ const ResumeProfile = () => {
         // First, try to get resume data from the new API endpoint
         try {
           const resumeResponse = await axios.get(
-            buildApiUrl('/api/resumes/profile'),
+            buildApiUrl('/api/modern-resumes/profile'),
             { 
               headers: { 
                 Authorization: `Bearer ${token}`,
@@ -156,10 +157,12 @@ const ResumeProfile = () => {
               <li>Checking if you're properly logged in</li>
             </ul>
             <button 
-              onClick={() => window.location.href = '/upload'} 
-              className="upload_resume_btn"
+              onClick={() => navigate('/modern-upload')} 
+              className="upload_resume_btn enhanced_upload_btn"
             >
+              <span className="upload-icon">📄</span>
               Upload Resume
+              <span className="ai-badge">AI-Powered</span>
             </button>
           </div>
         </div>

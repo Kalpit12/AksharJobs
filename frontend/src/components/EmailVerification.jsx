@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { buildApiUrl } from '../config/api';
 import '../styles/EmailVerification.css';
 
 const EmailVerification = ({ isOpen, onClose, onVerificationComplete }) => {
@@ -21,7 +22,7 @@ const EmailVerification = ({ isOpen, onClose, onVerificationComplete }) => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/send-email-verification', {
+      const response = await fetch(buildApiUrl('/api/send-email-verification'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ const EmailVerification = ({ isOpen, onClose, onVerificationComplete }) => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/verify-email', {
+      const response = await fetch(buildApiUrl('/api/verify-email'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -95,7 +96,7 @@ const EmailVerification = ({ isOpen, onClose, onVerificationComplete }) => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:5000/api/resend-email-code', {
+      const response = await fetch(buildApiUrl('/api/resend-email-code'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

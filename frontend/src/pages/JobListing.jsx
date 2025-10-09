@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-import LoadingSpinner from "../components/LoadingSpinner";
+import ModernLoadingSpinner from "../components/ModernLoadingSpinner";
 import Button from "../components/Button";
 import "../styles/JobListing.css";
 import { buildApiUrl } from '../config/api';
@@ -49,7 +49,10 @@ const JobListing = () => {
         } catch (error) {
             console.error("Failed to update job views:", error);
         }
-        const matchRes = await axios.get(buildApiUrl("/api/applications/get_applications"), { params: { userId, jobId } });
+        // Use the new endpoint that doesn't require authentication
+        const allAppsResponse = await axios.get(buildApiUrl("/api/applications/all"));
+        const allApplications = allAppsResponse.data.applications || [];
+        const matchRes = { data: allApplications.filter(app => app.applicant_id === userId && app.job_id === jobId) };
 
         //  If no match data exists, create a new entry 
         if (matchRes.data.length === 0) {
@@ -71,16 +74,17 @@ const JobListing = () => {
         if (!userId) return;
 
         try {
-            const response = await axios.get(buildApiUrl("/api/applications/get_applications"), {
-                params: { userId },
-            });
+            // Use the new endpoint that doesn't require authentication
+            const allAppsResponse = await axios.get(buildApiUrl("/api/applications/all"));
+            const allApplications = allAppsResponse.data.applications || [];
+            const response = { data: allApplications.filter(app => app.applicant_id === userId) };
 
-            if (!response.data || !Array.isArray(response.data.applications)) return;
+            if (!response.data || !Array.isArray(response.data)) return;
 
             const appliedJobIds = new Set();
             const matchScoreJobs = new Map();
 
-            response.data.applications.forEach((app) => {
+            response.data.forEach((app) => {
                 if (app.status !== "") appliedJobIds.add(app.jobId);
                 if (app.matchScore && app.status === "") matchScoreJobs.set(app.jobId, app.matchScore);
             });
@@ -98,36 +102,50 @@ const JobListing = () => {
         const userId = localStorage.getItem("userId");
         if (!userId) return;
 
-        try {
-            if (appliedJobs.has(jobId)) {
-                await axios.put(buildApiUrl("/api/applications/update_status"), { userId, jobId, status: "applied" });
-            } else {
-                await axios.post(buildApiUrl("/api/applications/apply"), { userId, jobId, status: "applied" });
-            }
+        // Prevent multiple applications for the same job
+        if (appliedJobs.has(jobId)) {
+            console.log("Already applied for this job, skipping duplicate application");
+            setLoadingApply((prev) => new Map(prev).set(jobId, false));
+            return;
+        }
 
+        try {
+            // Only call the main application endpoint
+            await axios.post(buildApiUrl("/api/applications/apply"), { 
+                job_id: jobId, 
+                cover_letter: "I am interested in this position and would like to be considered for the role." 
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Update view count (non-critical, don't fail if this fails)
             try {
                 await axios.post(buildApiUrl(`/api/jobs/increase_views/${jobId}`));
                 console.log("View count updated successfully");
             } catch (error) {
                 console.error("Failed to update job views:", error);
             }
-            try {
-                await axios.post(buildApiUrl(`/api/jobs/apply/${jobId}`), {
-                    applicant_id: userId,
-                });
-                console.log("Applicant updated")
-            } catch (error) {
-                console.error("Failed to apply for job:", error);
-            }
 
+            // Update local state to prevent duplicate applications
             setAppliedJobs((prev) => new Set([...prev, jobId]));
             fetchAppliedJobs(); // Refresh application status
             
-            // Redirect to job details page after successful application
-            navigate(`/job-details/${jobId}`);
+            // Show success message
+            alert("Application submitted successfully!");
             
         } catch (error) {
             console.error("Application error:", error);
+            if (error.response?.status === 400 && error.response?.data?.error?.includes("already applied")) {
+                alert("You have already applied for this job.");
+                // Update local state to reflect the existing application
+                setAppliedJobs((prev) => new Set([...prev, jobId]));
+                fetchAppliedJobs();
+            } else {
+                alert("Failed to apply for job. Please try again.");
+            }
         }
         setLoadingApply((prev) => new Map(prev).set(jobId, false));
     };
@@ -155,7 +173,7 @@ const JobListing = () => {
         <div className="job_listing_wrapper">
             {isLoadingJobs ? (
                 <div className="loading-container">
-                    <LoadingSpinner
+                    <ModernLoadingSpinner
                         type="skeleton"
                         size="large"
                         text="Loading job opportunities..."

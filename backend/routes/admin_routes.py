@@ -6,30 +6,85 @@ import json
 from bson import ObjectId
 from utils.db import get_db
 
+print("🔵 Loading admin_routes.py...")
 admin_routes = Blueprint('admin_routes', __name__)
+print("✅ Admin routes Blueprint created")
+
+# Test route to verify blueprint is registered
+@admin_routes.route('/test', methods=['GET'])
+def test_route():
+    return jsonify({"message": "Admin routes are working!"}), 200
 
 # Admin middleware decorator
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
+        print(f"🔐 Admin auth check for: {request.path}")
         try:
-            verify_jwt_in_request()
-            current_user_id = get_jwt_identity()
+            # First try to get token from Authorization header
+            auth_header = request.headers.get('Authorization')
+            print(f"  Auth header: {auth_header[:50] if auth_header else 'None'}...")
             
-            # Direct database connection to ensure we get the right database
-            from pymongo import MongoClient
-            client = MongoClient('mongodb://localhost:27017/')
-            db = client['resume_matcher']  # Direct connection to resume_matcher
+            if auth_header and auth_header.startswith('Bearer '):
+                token = auth_header.split(' ')[1]
+                
+                # Verify token using auth_token utility
+                from utils.auth_token import verify_token
+                try:
+                    print(f"  Verifying token...")
+                    decoded_token = verify_token(token)
+                    print(f"  Token decoded: {decoded_token}")
+                    if not decoded_token:
+                        print(f"  ❌ Token verification returned None")
+                        return jsonify({"error": "Invalid token"}), 401
+                    
+                    # Get user ID from decoded token (sub is the standard JWT claim for user ID)
+                    current_user_id = decoded_token.get('sub') or decoded_token.get('userId') or decoded_token.get('user_id')
+                    print(f"  User ID from token: {current_user_id}")
+                except Exception as e:
+                    print(f"  ❌ Token verification failed: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    return jsonify({"error": "Token verification failed"}), 401
+            else:
+                # Fallback to JWT-Extended
+                try:
+                    verify_jwt_in_request()
+                    current_user_id = get_jwt_identity()
+                except Exception as e:
+                    return jsonify({"error": "No valid authorization token provided"}), 401
+            
+            if not current_user_id:
+                print(f"  ❌ No user ID extracted from token")
+                return jsonify({"error": "Could not extract user ID from token"}), 401
+            
+            print(f"  Checking user in database...")
+            # Use the same database connection as other routes
+            db = get_db()
             
             user = db.users.find_one({"_id": ObjectId(current_user_id)})
+            print(f"  User found: {user is not None}")
             
-            if not user or user.get("role") != "admin":
-                return jsonify({"error": "Admin access required"}), 403
-                
+            if not user:
+                print(f"  ❌ User not found in database")
+                return jsonify({"error": "User not found"}), 404
+            
+            # Check if user is admin (check both role and userType)
+            is_admin = user.get("role") == "admin" or user.get("userType") == "admin"
+            print(f"  Is admin: {is_admin} (role={user.get('role')}, userType={user.get('userType')})")
+            
+            if not is_admin:
+                print(f"  ❌ User is not admin")
+                return jsonify({"error": "Admin access required", "role": user.get("role"), "userType": user.get("userType")}), 403
+            
+            print(f"  ✅ Admin auth passed, calling function...")
             return f(*args, **kwargs)
             
         except Exception as e:
-            return jsonify({"error": "Authentication failed"}), 422
+            print(f"Admin auth error: {str(e)}")  # Debug logging
+            import traceback
+            traceback.print_exc()
+            return jsonify({"error": "Authentication failed", "details": str(e)}), 401
     return decorated_function
 
 # System Statistics
@@ -37,10 +92,8 @@ def admin_required(f):
 @admin_required
 def get_system_stats():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Count users by type
         total_job_seekers = db.users.count_documents({"userType": "job_seeker"})
@@ -85,10 +138,8 @@ def get_system_stats():
 @admin_required
 def get_jobseeker_settings():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         settings = db.admin_settings.find_one({"type": "jobseeker"})
         
         if not settings:
@@ -126,10 +177,8 @@ def update_jobseeker_settings():
     try:
         data = request.get_json()
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Update or create settings
         db.admin_settings.update_one(
@@ -154,10 +203,8 @@ def update_jobseeker_settings():
 @admin_required
 def get_recruiter_settings():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         settings = db.admin_settings.find_one({"type": "recruiter"})
         
         if not settings:
@@ -205,10 +252,8 @@ def update_recruiter_settings():
     try:
         data = request.get_json()
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Update or create settings
         db.admin_settings.update_one(
@@ -235,10 +280,8 @@ def update_recruiter_settings():
 @admin_required
 def get_plans():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         plans = list(db.subscription_plans.find({}))
         
         # Convert ObjectId to string for JSON serialization
@@ -256,10 +299,8 @@ def create_plan():
     try:
         data = request.get_json()
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Add creation timestamp
         data["createdAt"] = datetime.utcnow()
@@ -281,10 +322,8 @@ def update_plan(plan_id):
     try:
         data = request.get_json()
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Add update timestamp
         data["updatedAt"] = datetime.utcnow()
@@ -306,10 +345,8 @@ def update_plan(plan_id):
 @admin_required
 def delete_plan(plan_id):
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         result = db.subscription_plans.delete_one({"_id": ObjectId(plan_id)})
         
@@ -326,10 +363,8 @@ def delete_plan(plan_id):
 @admin_required
 def get_analytics():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         range_param = request.args.get('range', '30d')
         
         # Calculate date range
@@ -434,10 +469,8 @@ def export_analytics():
         range_param = request.args.get('range', '30d')
         
         # Get analytics data
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         if format_type == 'csv':
             # Generate CSV content
@@ -469,10 +502,8 @@ def export_analytics():
 @admin_required
 def get_users():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         users = list(db.users.find({}, {
             "password": 0,  # Exclude password
             "verificationToken": 0,
@@ -496,10 +527,8 @@ def get_users():
 @admin_required
 def user_action(user_id, action):
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         if action == 'suspend':
             result = db.users.update_one(
@@ -535,10 +564,8 @@ def bulk_user_action():
         if not user_ids or not action:
             return jsonify({"error": "Missing user IDs or action"}), 400
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Convert string IDs to ObjectId
         object_ids = [ObjectId(uid) for uid in user_ids]
@@ -572,10 +599,8 @@ def export_users():
     try:
         format_type = request.args.get('format', 'csv')
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         users = list(db.users.find({}, {
             "password": 0,
             "verificationToken": 0,
@@ -615,10 +640,8 @@ def export_users():
 @admin_required
 def get_swahili_analysis_settings():
     try:
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         settings = db.admin_settings.find_one({"type": "swahili_analysis"})
         
@@ -655,10 +678,8 @@ def update_swahili_analysis_settings():
     try:
         data = request.get_json()
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Update or create settings
         db.admin_settings.update_one(
@@ -690,10 +711,8 @@ def toggle_swahili_feature():
         if not feature_name or enabled is None:
             return jsonify({"error": "Missing feature name or enabled status"}), 400
         
-        # Direct database connection to ensure we get the right database
-        from pymongo import MongoClient
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']  # Direct connection to resume_matcher
+        # Use the same database as other routes
+        db = get_db()
         
         # Update the specific feature
         result = db.admin_settings.update_one(
@@ -715,3 +734,4 @@ def toggle_swahili_feature():
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+# (Removed duplicate route definitions to avoid endpoint conflicts)

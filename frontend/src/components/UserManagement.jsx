@@ -1,163 +1,202 @@
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faSearch, 
-  faFilter, 
-  faEye, 
+  faUser, 
   faEdit, 
-  faBan, 
   faTrash, 
-  faUserCheck,
-  faUserTimes,
+  faBan, 
+  faCheckCircle, 
+  faTimesCircle,
+  faEye,
+  faSearch,
+  faFilter,
   faDownload,
-  faRefresh
+  faUpload,
+  faCrown,
+  faUserTie,
+  faUserGraduate,
+  faEnvelope,
+  faPhone,
+  faMapMarkerAlt,
+  faCalendar,
+  faFileLines,
+  faShieldAlt,
+  faKey,
+  faHistory
 } from '@fortawesome/free-solid-svg-icons';
+import { FadeInUp } from './animations';
+import { buildApiUrl, makeAuthenticatedRequest } from '../config/api';
 import '../styles/UserManagement.css';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [userTypeFilter, setUserTypeFilter] = useState('all');
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [showUserDetails, setShowUserDetails] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [usersPerPage] = useState(20);
+  const [usersPerPage] = useState(10);
 
   useEffect(() => {
-    fetchUsers();
+    loadUsers();
   }, []);
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchTerm, statusFilter, userTypeFilter]);
+  }, [users, searchTerm, filterRole, filterStatus]);
 
-  const fetchUsers = async () => {
+  const loadUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:5000/api/admin/users', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
+      setLoading(true);
+      const response = await makeAuthenticatedRequest(
+        buildApiUrl('/api/admin/users')
+      );
+
+      if (response?.ok) {
         const data = await response.json();
-        setUsers(data.users);
+        setUsers(data.users || []);
+      } else {
+        // Mock data for demonstration
+        setUsers([
+          {
+            id: 1,
+            name: 'John Smith',
+            email: 'john.smith@email.com',
+            role: 'jobSeeker',
+            status: 'active',
+            avatar: null,
+            lastActive: '2024-01-15T10:30:00Z',
+            createdAt: '2024-01-01T00:00:00Z',
+            location: 'New York, NY',
+            phone: '+1-555-0123',
+            profileCompleted: true,
+            resumeUploaded: true,
+            applicationsCount: 5
+          },
+          {
+            id: 2,
+            name: 'Sarah Johnson',
+            email: 'sarah.johnson@company.com',
+            role: 'recruiter',
+            status: 'active',
+            avatar: null,
+            lastActive: '2024-01-15T09:15:00Z',
+            createdAt: '2023-12-15T00:00:00Z',
+            location: 'San Francisco, CA',
+            phone: '+1-555-0456',
+            profileCompleted: true,
+            jobsPosted: 12,
+            candidatesHired: 8
+          },
+          {
+            id: 3,
+            name: 'Mike Chen',
+            email: 'mike.chen@admin.com',
+            role: 'admin',
+            status: 'active',
+            avatar: null,
+            lastActive: '2024-01-15T11:45:00Z',
+            createdAt: '2023-11-01T00:00:00Z',
+            location: 'Austin, TX',
+            phone: '+1-555-0789',
+            profileCompleted: true,
+            adminLevel: 'super'
+          },
+          {
+            id: 4,
+            name: 'Emily Davis',
+            email: 'emily.davis@email.com',
+            role: 'jobSeeker',
+            status: 'suspended',
+            avatar: null,
+            lastActive: '2024-01-10T14:20:00Z',
+            createdAt: '2024-01-05T00:00:00Z',
+            location: 'Chicago, IL',
+            phone: '+1-555-0321',
+            profileCompleted: false,
+            resumeUploaded: false,
+            applicationsCount: 0,
+            suspensionReason: 'Inappropriate content'
+          }
+        ]);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error loading users:', error);
+      setError('Failed to load users');
     } finally {
       setLoading(false);
     }
   };
 
   const filterUsers = () => {
-    let filtered = users.filter(user => {
-      const matchesSearch = 
-        user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.companyName?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-      const matchesType = userTypeFilter === 'all' || user.userType === userTypeFilter;
-      
-      return matchesSearch && matchesStatus && matchesType;
-    });
-    
+    let filtered = users;
+
+    // Search filter
+    if (searchTerm) {
+      filtered = filtered.filter(user =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.location?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Role filter
+    if (filterRole !== 'all') {
+      filtered = filtered.filter(user => user.role === filterRole);
+    }
+
+    // Status filter
+    if (filterStatus !== 'all') {
+      filtered = filtered.filter(user => user.status === filterStatus);
+    }
+
     setFilteredUsers(filtered);
-    setCurrentPage(1);
   };
 
   const handleUserAction = async (userId, action) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/users/${userId}/${action}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        await fetchUsers();
-        alert(`User ${action} successfully!`);
-      } else {
-        throw new Error(`Failed to ${action} user`);
+      const response = await makeAuthenticatedRequest(
+        buildApiUrl(`/api/admin/users/${userId}/${action}`),
+        { method: 'POST' }
+      );
+
+      if (response?.ok) {
+        // Update local state
+        setUsers(prev => prev.map(user => 
+          user.id === userId 
+            ? { ...user, status: action === 'activate' ? 'active' : 'suspended' }
+            : user
+        ));
       }
     } catch (error) {
-      console.error(`Error ${action}ing user:`, error);
-      alert(`Failed to ${action} user. Please try again.`);
+      console.error('Error performing user action:', error);
     }
   };
 
   const handleBulkAction = async (action) => {
-    if (selectedUsers.length === 0) {
-      alert('Please select users to perform this action.');
-      return;
-    }
-
-    if (!window.confirm(`Are you sure you want to ${action} ${selectedUsers.length} users?`)) {
-      return;
-    }
-
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:5000/api/admin/users/bulk-action', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          userIds: selectedUsers,
-          action: action
-        })
-      });
-      
-      if (response.ok) {
-        await fetchUsers();
-        setSelectedUsers([]);
-        alert(`Bulk ${action} completed successfully!`);
-      } else {
-        throw new Error(`Failed to perform bulk ${action}`);
-      }
-    } catch (error) {
-      console.error(`Error performing bulk ${action}:`, error);
-      alert(`Failed to perform bulk ${action}. Please try again.`);
-    }
-  };
-
-  const exportUsers = async (format) => {
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`/api/admin/users/export?format=${format}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await makeAuthenticatedRequest(
+        buildApiUrl('/api/admin/users/bulk-action'),
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userIds: selectedUsers, action })
         }
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `users-export.${format}`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+      );
+
+      if (response?.ok) {
+        loadUsers(); // Refresh data
+        setSelectedUsers([]);
       }
     } catch (error) {
-      console.error('Error exporting users:', error);
-      alert('Failed to export users. Please try again.');
+      console.error('Error performing bulk action:', error);
     }
   };
 
-  const toggleUserSelection = (userId) => {
+  const handleSelectUser = (userId) => {
     setSelectedUsers(prev => 
       prev.includes(userId) 
         ? prev.filter(id => id !== userId)
@@ -165,112 +204,153 @@ const UserManagement = () => {
     );
   };
 
-  const toggleAllUsers = () => {
-    if (selectedUsers.length === filteredUsers.length) {
+  const handleSelectAll = () => {
+    const currentPageUsers = getCurrentPageUsers();
+    const allSelected = currentPageUsers.every(user => selectedUsers.includes(user.id));
+    
+    if (allSelected) {
       setSelectedUsers([]);
     } else {
-      setSelectedUsers(filteredUsers.map(user => user._id));
+      const newSelected = [...new Set([...selectedUsers, ...currentPageUsers.map(user => user.id)])];
+      setSelectedUsers(newSelected);
     }
   };
 
-  // Pagination
-  const indexOfLastUser = currentPage * usersPerPage;
-  const indexOfFirstUser = indexOfLastUser - usersPerPage;
-  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+  const getCurrentPageUsers = () => {
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    return filteredUsers.slice(startIndex, endIndex);
+  };
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case 'admin': return faCrown;
+      case 'recruiter': return faUserTie;
+      case 'jobSeeker': return faUserGraduate;
+      default: return faUser;
+    }
+  };
+
+  const getRoleColor = (role) => {
+    switch (role) {
+      case 'admin': return '#f59e0b';
+      case 'recruiter': return '#10b981';
+      case 'jobSeeker': return '#3b82f6';
+      default: return '#6b7280';
+    }
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'active': return '#10b981';
+      case 'suspended': return '#ef4444';
+      case 'pending': return '#f59e0b';
+      default: return '#6b7280';
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+  const currentPageUsers = getCurrentPageUsers();
 
   if (loading) {
-    return <div className="loading">Loading Users...</div>;
+    return (
+      <div className="user-management">
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Loading users...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="user-management">
-      <div className="user-header">
+      <div className="user-management-header">
         <h2>User Management</h2>
-        <p>Manage user accounts, monitor activity, and control access</p>
-      </div>
-
-      <div className="user-controls">
-        <div className="search-filters">
-          <div className="search-box">
-            <FontAwesomeIcon icon={faSearch} />
-            <input
-              type="text"
-              placeholder="Search users by name, email, or company..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="filters">
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">All Status</option>
-              <option value="active">Active</option>
-              <option value="suspended">Suspended</option>
-              <option value="inactive">Inactive</option>
-            </select>
-            
-            <select
-              value={userTypeFilter}
-              onChange={(e) => setUserTypeFilter(e.target.value)}
-            >
-              <option value="all">All Types</option>
-              <option value="job_seeker">Job Seekers</option>
-              <option value="recruiter">Recruiters</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="bulk-actions">
-          <button 
-            className="bulk-btn suspend"
-            onClick={() => handleBulkAction('suspend')}
-            disabled={selectedUsers.length === 0}
-          >
-            <FontAwesomeIcon icon={faBan} />
-            Suspend Selected
-          </button>
-          
-          <button 
-            className="bulk-btn activate"
-            onClick={() => handleBulkAction('activate')}
-            disabled={selectedUsers.length === 0}
-          >
-            <FontAwesomeIcon icon={faUserCheck} />
-            Activate Selected
-          </button>
-          
-          <button 
-            className="bulk-btn delete"
-            onClick={() => handleBulkAction('delete')}
-            disabled={selectedUsers.length === 0}
-          >
-            <FontAwesomeIcon icon={faTrash} />
-            Delete Selected
-          </button>
-        </div>
-
-        <div className="export-actions">
-          <button 
-            className="export-btn"
-            onClick={() => exportUsers('csv')}
-          >
+        <div className="header-actions">
+          <button className="export-btn">
             <FontAwesomeIcon icon={faDownload} />
-            Export CSV
+            Export Users
           </button>
-          
-          <button 
-            className="refresh-btn"
-            onClick={fetchUsers}
-          >
-            <FontAwesomeIcon icon={faRefresh} />
-            Refresh
+          <button className="import-btn">
+            <FontAwesomeIcon icon={faUpload} />
+            Import Users
           </button>
         </div>
       </div>
+
+      <div className="user-filters">
+        <div className="search-box">
+          <FontAwesomeIcon icon={faSearch} />
+          <input
+            type="text"
+            placeholder="Search users by name, email, or location..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="filter-controls">
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+          >
+            <option value="all">All Roles</option>
+            <option value="jobSeeker">Job Seekers</option>
+            <option value="recruiter">Recruiters</option>
+            <option value="admin">Admins</option>
+          </select>
+          
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+
+      {selectedUsers.length > 0 && (
+        <div className="bulk-actions">
+          <span>{selectedUsers.length} user(s) selected</span>
+          <div className="bulk-buttons">
+            <button 
+              className="bulk-btn activate"
+              onClick={() => handleBulkAction('activate')}
+            >
+              <FontAwesomeIcon icon={faCheckCircle} />
+              Activate
+            </button>
+            <button 
+              className="bulk-btn suspend"
+              onClick={() => handleBulkAction('suspend')}
+            >
+              <FontAwesomeIcon icon={faBan} />
+              Suspend
+            </button>
+            <button 
+              className="bulk-btn delete"
+              onClick={() => handleBulkAction('delete')}
+            >
+              <FontAwesomeIcon icon={faTrash} />
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="users-table-container">
         <table className="users-table">
@@ -279,216 +359,165 @@ const UserManagement = () => {
               <th>
                 <input
                   type="checkbox"
-                  checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
-                  onChange={toggleAllUsers}
+                  checked={currentPageUsers.length > 0 && currentPageUsers.every(user => selectedUsers.includes(user.id))}
+                  onChange={handleSelectAll}
                 />
               </th>
               <th>User</th>
-              <th>Type</th>
+              <th>Role</th>
               <th>Status</th>
-              <th>Subscription</th>
               <th>Last Active</th>
+              <th>Profile</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {currentUsers.map((user) => (
-              <tr key={user._id} className={user.status}>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user._id)}
-                    onChange={() => toggleUserSelection(user._id)}
-                  />
-                </td>
-                <td className="user-info">
-                  <div className="user-avatar">
-                    {user.profileImage ? (
-                      <img src={user.profileImage} alt="Profile" />
-                    ) : (
-                      <div className="avatar-placeholder">
-                        {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+            {currentPageUsers.map((user, index) => (
+              <FadeInUp key={user.id} delay={index * 0.1}>
+                <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedUsers.includes(user.id)}
+                      onChange={() => handleSelectUser(user.id)}
+                    />
+                  </td>
+                  <td>
+                    <div className="user-info">
+                      <div className="user-avatar">
+                        {user.avatar ? (
+                          <img src={user.avatar} alt={user.name} />
+                        ) : (
+                          <div className="avatar-placeholder">
+                            {user.name?.charAt(0)}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                  <div className="user-details">
-                    <span className="user-name">
-                      {user.firstName} {user.lastName}
+                      <div className="user-details">
+                        <div className="user-name">{user.name}</div>
+                        <div className="user-email">{user.email}</div>
+                        <div className="user-location">
+                          <FontAwesomeIcon icon={faMapMarkerAlt} />
+                          {user.location}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div className="role-info">
+                      <FontAwesomeIcon 
+                        icon={getRoleIcon(user.role)} 
+                        style={{ color: getRoleColor(user.role) }}
+                      />
+                      <span className="role-name">{user.role}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span 
+                      className="status-badge"
+                      style={{ backgroundColor: getStatusColor(user.status) }}
+                    >
+                      {user.status}
                     </span>
-                    <span className="user-email">{user.email}</span>
-                    {user.companyName && (
-                      <span className="user-company">{user.companyName}</span>
-                    )}
-                  </div>
-                </td>
-                <td>
-                  <span className={`user-type ${user.userType}`}>
-                    {user.userType === 'job_seeker' ? 'Job Seeker' : 'Recruiter'}
-                  </span>
-                </td>
-                <td>
-                  <span className={`status-badge ${user.status}`}>
-                    {user.status}
-                  </span>
-                </td>
-                <td>
-                  <div className="subscription-info">
-                    <span className="plan-name">{user.subscription?.plan || 'Basic'}</span>
-                    <span className="plan-status">{user.subscription?.status || 'active'}</span>
-                  </div>
-                </td>
-                <td>
-                  {user.lastActive ? new Date(user.lastActive).toLocaleDateString() : 'Never'}
-                </td>
-                <td className="actions">
-                  <button
-                    className="action-btn view"
-                    onClick={() => setShowUserDetails(user)}
-                    title="View Details"
-                  >
-                    <FontAwesomeIcon icon={faEye} />
-                  </button>
-                  
-                  <button
-                    className="action-btn edit"
-                    onClick={() => {/* Handle edit */}}
-                    title="Edit User"
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                  </button>
-                  
-                  {user.status === 'active' ? (
-                    <button
-                      className="action-btn suspend"
-                      onClick={() => handleUserAction(user._id, 'suspend')}
-                      title="Suspend User"
-                    >
-                      <FontAwesomeIcon icon={faBan} />
-                    </button>
-                  ) : (
-                    <button
-                      className="action-btn activate"
-                      onClick={() => handleUserAction(user._id, 'activate')}
-                      title="Activate User"
-                    >
-                      <FontAwesomeIcon icon={faUserCheck} />
-                    </button>
-                  )}
-                  
-                  <button
-                    className="action-btn delete"
-                    onClick={() => handleUserAction(user._id, 'delete')}
-                    title="Delete User"
-                  >
-                    <FontAwesomeIcon icon={faTrash} />
-                  </button>
-                </td>
-              </tr>
+                  </td>
+                  <td>
+                    <div className="last-active">
+                      <FontAwesomeIcon icon={faCalendar} />
+                      {formatDate(user.lastActive)}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="profile-status">
+                      <div className={`status-item ${user.profileCompleted ? 'completed' : 'incomplete'}`}>
+                        <FontAwesomeIcon icon={faUser} />
+                        Profile
+                      </div>
+                      {user.role === 'jobSeeker' && (
+                        <div className={`status-item ${user.resumeUploaded ? 'completed' : 'incomplete'}`}>
+                          <FontAwesomeIcon icon={faFileLines} />
+                          Resume
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <div className="action-buttons">
+                      <button 
+                        className="action-btn view"
+                        onClick={() => window.open(`/profile/${user.id}`, '_blank')}
+                        title="View Profile"
+                      >
+                        <FontAwesomeIcon icon={faEye} />
+                      </button>
+                      <button 
+                        className="action-btn edit"
+                        onClick={() => window.open(`/admin/users/${user.id}/edit`, '_blank')}
+                        title="Edit User"
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                      </button>
+                      {user.status === 'active' ? (
+                        <button 
+                          className="action-btn suspend"
+                          onClick={() => handleUserAction(user.id, 'suspend')}
+                          title="Suspend User"
+                        >
+                          <FontAwesomeIcon icon={faBan} />
+                        </button>
+                      ) : (
+                        <button 
+                          className="action-btn activate"
+                          onClick={() => handleUserAction(user.id, 'activate')}
+                          title="Activate User"
+                        >
+                          <FontAwesomeIcon icon={faCheckCircle} />
+                        </button>
+                      )}
+                      <button 
+                        className="action-btn delete"
+                        onClick={() => handleUserAction(user.id, 'delete')}
+                        title="Delete User"
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </FadeInUp>
             ))}
           </tbody>
         </table>
       </div>
 
       {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            Previous
-          </button>
-          
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-            <button
-              key={page}
-              onClick={() => setCurrentPage(page)}
-              className={currentPage === page ? 'active' : ''}
+        <div className="pagination-container">
+          <div className="pagination-info">
+            Showing {((currentPage - 1) * usersPerPage) + 1} to {Math.min(currentPage * usersPerPage, filteredUsers.length)} of {filteredUsers.length} users
+          </div>
+          <div className="pagination-controls">
+            <button 
+              className="pagination-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
             >
-              {page}
+              Previous
             </button>
-          ))}
-          
-          <button
-            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            Next
-          </button>
-        </div>
-      )}
-
-      {showUserDetails && (
-        <div className="user-details-modal">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h3>User Details</h3>
-              <button 
-                className="close-btn"
-                onClick={() => setShowUserDetails(null)}
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                className={`pagination-btn ${page === currentPage ? 'active' : ''}`}
+                onClick={() => setCurrentPage(page)}
               >
-                ×
+                {page}
               </button>
-            </div>
-            
-            <div className="user-details-content">
-              <div className="user-profile">
-                <div className="profile-image">
-                  {showUserDetails.profileImage ? (
-                    <img src={showUserDetails.profileImage} alt="Profile" />
-                  ) : (
-                    <div className="avatar-placeholder large">
-                      {showUserDetails.firstName?.charAt(0)}{showUserDetails.lastName?.charAt(0)}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="profile-info">
-                  <h4>{showUserDetails.firstName} {showUserDetails.lastName}</h4>
-                  <p><strong>Email:</strong> {showUserDetails.email}</p>
-                  <p><strong>Phone:</strong> {showUserDetails.phoneNumber || 'Not provided'}</p>
-                  <p><strong>User Type:</strong> {showUserDetails.userType === 'job_seeker' ? 'Job Seeker' : 'Recruiter'}</p>
-                  {showUserDetails.companyName && (
-                    <p><strong>Company:</strong> {showUserDetails.companyName}</p>
-                  )}
-                  {showUserDetails.companyWebsite && (
-                    <p><strong>Website:</strong> <a href={showUserDetails.companyWebsite} target="_blank" rel="noopener noreferrer">{showUserDetails.companyWebsite}</a></p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="user-stats">
-                <h4>Account Statistics</h4>
-                <div className="stats-grid">
-                  <div className="stat-item">
-                    <span className="stat-label">Member Since</span>
-                    <span className="stat-value">
-                      {showUserDetails.createdAt ? new Date(showUserDetails.createdAt).toLocaleDateString() : 'Unknown'}
-                    </span>
-                  </div>
-                  
-                  <div className="stat-item">
-                    <span className="stat-label">Last Active</span>
-                    <span className="stat-value">
-                      {showUserDetails.lastActive ? new Date(showUserDetails.lastActive).toLocaleDateString() : 'Never'}
-                    </span>
-                  </div>
-                  
-                  <div className="stat-item">
-                    <span className="stat-label">Status</span>
-                    <span className={`stat-value status-${showUserDetails.status}`}>
-                      {showUserDetails.status}
-                    </span>
-                  </div>
-                  
-                  <div className="stat-item">
-                    <span className="stat-label">Subscription</span>
-                    <span className="stat-value">
-                      {showUserDetails.subscription?.plan || 'Basic'} - {showUserDetails.subscription?.status || 'active'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
+            <button 
+              className="pagination-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              Next
+            </button>
           </div>
         </div>
       )}

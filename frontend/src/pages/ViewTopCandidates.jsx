@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 import { Bar, Line } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, LineElement, PointElement } from "chart.js";
 import "../styles/ViewTopCandidates.css";
@@ -10,11 +11,11 @@ import BackButton from "../components/BackButton";
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend);
 
 const Card = ({ candidate, updateStatus, handleScheduleChange, interviewSchedules, interviewModes, setInterviewModes }) => {
-  // Safety check for candidate data
-  if (!candidate || typeof candidate !== 'object' || !candidate.userId) {
-    console.warn('Invalid candidate data passed to Card component:', candidate);
-    return null; // Don't render anything if candidate data is invalid
-  }
+     // Safety check for candidate data
+   if (!candidate || typeof candidate !== 'object' || !candidate.applicant_id) {
+     console.warn('Invalid candidate data passed to Card component:', candidate);
+     return null; // Don't render anything if candidate data is invalid
+   }
 
   return (
     <div className="candidate_card">
@@ -45,12 +46,12 @@ const Card = ({ candidate, updateStatus, handleScheduleChange, interviewSchedule
           <button className="rejected" disabled>Rejected</button>
         ) : (
           <>
-            <button onClick={() => updateStatus(candidate.userId, "shortlisted", interviewSchedules[candidate.userId], interviewModes[candidate.userId])} className="shortlist">Shortlist</button>
-            <button onClick={() => updateStatus(candidate.userId, "accepted", interviewSchedules[candidate.userId], interviewModes[candidate.userId])} className="accept">Accept</button>
-            <button onClick={() => updateStatus(candidate.userId, "rejected", interviewSchedules[candidate.userId], interviewModes[candidate.userId])} className="reject">Reject</button>
+                         <button onClick={() => updateStatus(candidate.applicant_id, "shortlisted", interviewSchedules[candidate.applicant_id], interviewModes[candidate.applicant_id])} className="shortlist">Shortlist</button>
+             <button onClick={() => updateStatus(candidate.applicant_id, "accepted", interviewSchedules[candidate.applicant_id], interviewModes[candidate.applicant_id])} className="accept">Accept</button>
+             <button onClick={() => updateStatus(candidate.applicant_id, "rejected", interviewSchedules[candidate.applicant_id], interviewModes[candidate.applicant_id])} className="reject">Reject</button>
           </>
         )}
-        <button onClick={() => window.open(`/profile/${candidate.userId}`, "_blank")} className="top_candidates_view_profile">View Profile</button>
+                 <button onClick={() => window.open(`/profile/${candidate.applicant_id}`, "_blank")} className="top_candidates_view_profile">View Profile</button>
       </div>
 
       {candidate.status === "shortlisted" && (
@@ -63,14 +64,14 @@ const Card = ({ candidate, updateStatus, handleScheduleChange, interviewSchedule
           ) : (
             <>
               <label>Schedule Interview:</label>
-              <input type="datetime-local" onChange={(e) => handleScheduleChange(candidate.userId, e.target.value)} />
-              <select onChange={(e) => setInterviewModes(prev => ({ ...prev, [candidate.userId]: e.target.value }))}>
+                             <input type="datetime-local" onChange={(e) => handleScheduleChange(candidate.applicant_id, e.target.value)} />
+               <select onChange={(e) => setInterviewModes(prev => ({ ...prev, [candidate.applicant_id]: e.target.value }))}>
                 <option value="">Select Mode</option>
                 <option value="online">Online</option>
                 <option value="in-person">In-Person</option>
                 <option value="telephonic">Telephonic</option>
               </select>
-              <button className="schedule_btn" onClick={() => updateStatus(candidate.userId, candidate.status, interviewSchedules[candidate.userId], interviewModes[candidate.userId])}>Confirm</button>
+                             <button className="schedule_btn" onClick={() => updateStatus(candidate.applicant_id, candidate.status, interviewSchedules[candidate.applicant_id], interviewModes[candidate.applicant_id])}>Confirm</button>
             </>
           )}
         </div>
@@ -91,30 +92,37 @@ const ViewTopCandidates = () => {
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/applications/get_applications?jobId=${jobId}`);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError("Authentication token not found. Please log in again.");
+          return;
+        }
+        
+        // Use the new endpoint that returns all applications with user and job details
+        const response = await axios.get(buildApiUrl(`/api/applications/all`));
         const applications = response.data.applications || [];
-        const enrichedCandidates = await Promise.all(
-          applications.map(async (candidate) => {
-            try {
-              const userResponse = await axios.get(`http://localhost:5000/api/auth/get_user?userId=${candidate.userId}`);
-              // Ensure userResponse.data is valid and not an empty object
-              if (userResponse.data && typeof userResponse.data === 'object' && Object.keys(userResponse.data).length > 0) {
-                return { ...candidate, ...userResponse.data };
-              } else {
-                console.warn('Invalid user data received for candidate:', candidate.userId);
-                return candidate; // Return original candidate data if user data is invalid
-              }
-            } catch (error) {
-              console.error('Error fetching user data for candidate:', candidate.userId, error);
-              return candidate; // Return original candidate data if user fetch fails
-            }
-          })
-        );
+        
+        // Filter applications for the specific job
+        const jobApplications = applications.filter(app => app.job_id === jobId);
+        
+        // The applications already have user and job details, so we can use them directly
+        const enrichedCandidates = jobApplications.map(candidate => ({
+          ...candidate,
+          // Map the fields to match what the component expects
+          fullName: candidate.applicant_name,
+          email: candidate.applicant_email,
+          phone: candidate.applicant_phone,
+          jobTitle: candidate.job_title,
+          companyName: candidate.company_name,
+          // Keep original fields for compatibility
+          userId: candidate.applicant_id,
+          jobId: candidate.job_id
+        }));
 
         // Exclude candidates with empty status and filter out invalid candidates
         const sortedCandidates = enrichedCandidates
-          .filter((c) => c && typeof c === 'object' && c.status && c.status !== "" && c.userId) // Filter out invalid candidates
-          .sort((a, b) => (b.final_score || 0) - (a.final_score || 0))
+          .filter((c) => c && typeof c === 'object' && c.status && c.status !== "" && c.applicant_id) // Filter out invalid candidates
+          .sort((a, b) => (b.final_score || b.matchScore || 0) - (a.final_score || a.matchScore || 0))
           .slice(0, 10);
 
         console.log('Raw candidates:', sortedCandidates);
@@ -132,28 +140,42 @@ const ViewTopCandidates = () => {
 
   const updateStatus = async (userId, status, interviewDate, interviewMode) => {
     try {
-      await axios.put("http://localhost:5000/api/applications/update_status", { userId, jobId, status, interviewDate, interviewMode });
-      setCandidates((prev) => prev.map((c) => (c.userId === userId ? { ...c, status, interviewDate, interviewMode } : c)));
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Authentication token not found. Please log in again.");
+        return;
+      }
+      
+      await axios.put(buildApiUrl("/api/applications/update_status"), 
+        { userId, jobId, status, interviewDate, interviewMode },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+             setCandidates((prev) => prev.map((c) => (c.applicant_id === userId ? { ...c, status, interviewDate, interviewMode } : c)));
     } catch (err) {
       alert("Failed to update status");
     }
   };
 
-  // Filter out any candidates with empty objects or invalid data
-  const validCandidatesForCharts = candidates.filter(c => 
-    c && 
-    typeof c === 'object' && 
-    Object.keys(c).length > 0 && // Ensure not an empty object
-    c.firstName && 
-    c.lastName && 
-    typeof c.firstName === 'string' && 
-    typeof c.lastName === 'string' &&
-    c.firstName.trim() !== '' &&
-    c.lastName.trim() !== '' &&
-    typeof c.final_score === 'number' && 
-    !isNaN(c.final_score) &&
-    c.final_score >= 0
-  );
+     // Filter out any candidates with empty objects or invalid data
+   const validCandidatesForCharts = candidates.filter(c => 
+     c && 
+     typeof c === 'object' && 
+     Object.keys(c).length > 0 && // Ensure not an empty object
+     c.firstName && 
+     c.lastName && 
+     typeof c.firstName === 'string' && 
+     typeof c.lastName === 'string' &&
+     c.firstName.trim() !== '' &&
+     c.lastName.trim() !== '' &&
+     typeof c.final_score === 'number' && 
+     !isNaN(c.final_score) &&
+     c.final_score >= 0 &&
+     c.applicant_id // Ensure applicant_id exists
+   );
 
   const barChartData = {
     labels: validCandidatesForCharts.map((c) => `${c.firstName} ${c.lastName}`),
@@ -204,8 +226,8 @@ const ViewTopCandidates = () => {
     ],
   };
 
-  const sortedComparisonCandidates = [...candidates]
-    .filter(c => c && typeof c === 'object' && c.userId) // Filter out invalid candidates
+     const sortedComparisonCandidates = [...candidates]
+     .filter(c => c && typeof c === 'object' && c.applicant_id) // Filter out invalid candidates
     .sort((a, b) => {
       const aValue = sortKey === "skills_avg" ? (a.skills_match + a.skill_score) / 2 : a[sortKey] || 0;
       const bValue = sortKey === "skills_avg" ? (b.skills_match + b.skill_score) / 2 : b[sortKey] || 0;
@@ -331,11 +353,11 @@ const ViewTopCandidates = () => {
               </div>
             )}
             <div className="top_candidates_list">
-              {candidates
-                .filter(candidate => candidate && typeof candidate === 'object' && Object.keys(candidate).length > 0 && candidate.userId && 
-                                   candidate.firstName && candidate.lastName && 
-                                   typeof candidate.firstName === 'string' && typeof candidate.lastName === 'string' &&
-                                   candidate.firstName.trim() !== '' && candidate.lastName.trim() !== '') // Filter out invalid candidates
+                           {candidates
+               .filter(candidate => candidate && typeof candidate === 'object' && Object.keys(candidate).length > 0 && candidate.applicant_id && 
+                                  candidate.firstName && candidate.lastName && 
+                                  typeof candidate.firstName === 'string' && typeof candidate.lastName === 'string' &&
+                                  candidate.firstName.trim() !== '' && candidate.lastName.trim() !== '') // Filter out invalid candidates
                 .map((candidate) => {
                   // Additional safety check for required candidate properties
                   if (!candidate.firstName || !candidate.lastName || typeof candidate.final_score !== 'number') {
@@ -344,8 +366,8 @@ const ViewTopCandidates = () => {
                   }
                   
                   return (
-                    <Card
-                      key={candidate.userId}
+                                         <Card
+                       key={candidate.applicant_id}
                       candidate={candidate}
                       updateStatus={updateStatus}
                       handleScheduleChange={handleScheduleChange}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 
 import Button from "../components/Button";
 import BackButton from "../components/BackButton";
@@ -27,11 +28,19 @@ const MatchScore = () => {
         console.log("🔍 Fetching data for userId:", userId, "jobId:", jobId);
         
         const [matchRes, resumeRes, jobRes] = await Promise.all([
-          axios.get(`http://127.0.0.1:5000/api/applications/get_applications`, { 
-            params: { userId, jobId } 
+          // Get match score directly from the match score endpoint
+          axios.get(`http://localhost:3002/api/applications/match-score/${jobId}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          }).then(res => ({
+            data: res.data.match_data || {}
+          })).catch(err => {
+            console.log("No existing match score, will calculate new one");
+            return { data: {} };
           }),
-          axios.get(`http://127.0.0.1:5000/api/resumes/get_resumes/${userId}`),
-          axios.get(`http://127.0.0.1:5000/api/jobs/get_job/${jobId}`),
+          axios.get(`http://localhost:3002/api/modern-resumes/profile`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          }),
+          axios.get(`http://localhost:3002/api/jobs/get_job/${jobId}`),
         ]);
 
         console.log("📊 Match response:", matchRes.data);
@@ -44,48 +53,27 @@ const MatchScore = () => {
         });
         console.log("💼 Job response:", jobRes.data);
 
-        // Check if we have applications data
-        if (matchRes.data.applications && matchRes.data.applications.length > 0) {
-          console.log("✅ Found existing application:", matchRes.data.applications[0]);
-          setMatchDetails(matchRes.data.applications[0]);
+        // Check if we have match score data
+        if (matchRes.data && matchRes.data.final_score !== undefined) {
+          console.log("✅ Found match score data:", matchRes.data);
+          setMatchDetails({
+            final_score: matchRes.data.final_score,
+            skills_match: matchRes.data.skills_match,
+            experience_match: matchRes.data.experience_match,
+            education_match: matchRes.data.education_match,
+            cached: matchRes.data.cached,
+            status: "" // Not applied yet
+          });
         } else {
-          console.log("⚠️ No applications found, creating new one...");
-          
-          try {
-            const response = await axios.post(
-              "http://127.0.0.1:5000/api/applications/apply",
-              { userId, jobId, status: "" },
-              { 
-                headers: { 
-                  Authorization: `Bearer ${localStorage.getItem("token")}`, 
-                  "Content-Type": "application/json" 
-                } 
-              }
-            );
-
-            console.log("✅ New application created:", response.data);
-
-            // Fetch updated match details after applying
-            const updatedMatchRes = await axios.get(
-              `http://127.0.0.1:5000/api/applications/get_applications`, 
-              { params: { userId, jobId } }
-            );
-            
-            if (updatedMatchRes.data.applications && updatedMatchRes.data.applications.length > 0) {
-              console.log("✅ Updated application data:", updatedMatchRes.data.applications[0]);
-              setMatchDetails(updatedMatchRes.data.applications[0]);
-            } else {
-              setError("Failed to create application data");
-            }
-          } catch (error) {
-            console.error("❌ Error creating application:", error.response?.data || error.message);
-            setError("Failed to create application: " + (error.response?.data?.error || error.message));
-          }
+          console.log("⚠️ No match score found - this should trigger calculation");
+          // The match score endpoint should calculate it automatically
+          // If it doesn't work, there might be a resume issue
+          setError("Unable to calculate match score. Please ensure your resume is properly uploaded.");
         }
 
         // Set resume and job details
-        if (resumeRes.data.resumes && resumeRes.data.resumes.length > 0) {
-          setResumeDetails(resumeRes.data.resumes[0]);
+        if (resumeRes.data.resume_data && !resumeRes.data.is_default) {
+          setResumeDetails(resumeRes.data);
         } else {
           setError("No resume found for this user");
         }
@@ -113,24 +101,28 @@ const MatchScore = () => {
     console.log("🚀 Attempting to apply for job:", { userId, jobId });
 
     try {
-      // First, process the application (this creates the application record and calculates match score)
-      const processResponse = await axios.post(
-        `http://127.0.0.1:5000/api/applications/apply`,
-        { userId, jobId, status: "applied" }
+      // Apply for the job using the correct endpoint
+      const response = await axios.post(
+        `http://localhost:3002/api/applications/apply`,
+        { job_id: jobId, cover_letter: "" },
+        { 
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem("token")}`, 
+            "Content-Type": "application/json" 
+          } 
+        }
       );
-      console.log("✅ Application processed:", processResponse.data);
+      
+      console.log("✅ Application submitted:", response.data);
       setMatchDetails((prev) => ({ ...prev, status: "applied" }));
 
-      try {
-        await axios.post(`http://127.0.0.1:5000/api/jobs/apply/${jobId}`, {
-          applicant_id: userId,
-        });
-        console.log("✅ Applicant updated in job");
-      } catch (error) {
-        console.error("❌ Failed to apply for job:", error);
-      }
     } catch (error) {
-      console.error("❌ Error processing application:", error.response?.data || error.message);
+      console.error("❌ Error applying for job:", error.response?.data || error.message);
+      if (error.response?.status === 402) {
+        alert("Application processing temporarily disabled. Please contact support if you need assistance.");
+      } else {
+        alert("Failed to apply for job. Please try again.");
+      }
     }
   };
 
@@ -246,28 +238,71 @@ const MatchScore = () => {
         {/* Job Seeker Insights */}
         {matchDetails.job_seeker_insights && (
           <div className="match_score_insights">
-            <p><strong>Overall Feedback:</strong> {matchDetails.job_seeker_insights?.overall_feedback || 'Not available'}</p>
+            <h3>📊 AI Analysis & Insights</h3>
+            
+            <div className="insight_section">
+              <h4>🎯 Overall Feedback</h4>
+              <p>{matchDetails.job_seeker_insights?.overall_feedback || 'Not available'}</p>
+            </div>
 
-            <p><strong>Strengths:</strong></p>
-            <ul>
-              {matchDetails.job_seeker_insights?.strengths?.map((strength, index) => (
-                <li key={index}>{strength}</li>
-              )) || <li>No strengths data available</li>}
-            </ul>
+            <div className="insight_section">
+              <h4>✅ Your Strengths</h4>
+              <ul>
+                {matchDetails.job_seeker_insights?.strengths?.map((strength, index) => (
+                  <li key={index}>{strength}</li>
+                )) || <li>No strengths data available</li>}
+              </ul>
+            </div>
 
-            <p><strong>Gaps:</strong></p>
-            <ul>
-              {matchDetails.job_seeker_insights?.gaps?.map((gap, index) => (
-                <li key={index}>{gap}</li>
-              )) || <li>No gaps data available</li>}
-            </ul>
+            <div className="insight_section">
+              <h4>⚠️ Areas for Improvement</h4>
+              <ul>
+                {matchDetails.job_seeker_insights?.gaps?.map((gap, index) => (
+                  <li key={index}>{gap}</li>
+                )) || <li>No gaps data available</li>}
+              </ul>
+            </div>
 
-            <p><strong>Improvement Suggestions:</strong></p>
-            <ul>
-              {matchDetails.job_seeker_insights?.improvement_suggestions?.map((suggestion, index) => (
-                <li key={index}>{suggestion}</li>
-              )) || <li>No improvement suggestions available</li>}
-            </ul>
+            <div className="insight_section">
+              <h4>💡 Improvement Suggestions</h4>
+              <ul>
+                {matchDetails.job_seeker_insights?.improvement_suggestions?.map((suggestion, index) => (
+                  <li key={index}>{suggestion}</li>
+                )) || <li>No improvement suggestions available</li>}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Recruiter Insights */}
+        {matchDetails.recruiter_insights && (
+          <div className="match_score_recruiter_insights">
+            <h3>👔 Recruiter's Perspective</h3>
+            
+            <div className="insight_section">
+              <h4>🔑 Key Qualifications</h4>
+              <ul>
+                {matchDetails.recruiter_insights?.key_qualifications?.map((qual, index) => (
+                  <li key={index}>{qual}</li>
+                )) || <li>No key qualifications data available</li>}
+              </ul>
+            </div>
+
+            <div className="insight_section">
+              <h4>⚠️ Areas of Concern</h4>
+              <ul>
+                {matchDetails.recruiter_insights?.concerns?.map((concern, index) => (
+                  <li key={index}>{concern}</li>
+                )) || <li>No concerns data available</li>}
+              </ul>
+            </div>
+
+            <div className="insight_section">
+              <h4>📋 Hiring Recommendation</h4>
+              <div className={`recommendation ${matchDetails.recruiter_insights?.hiring_recommendation?.toLowerCase().replace(' ', '_')}`}>
+                <strong>{matchDetails.recruiter_insights?.hiring_recommendation || 'Not available'}</strong>
+              </div>
+            </div>
           </div>
         )}
 

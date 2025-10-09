@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Referral System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        .error {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Referral System Test</h1>
+        <p>This page tests the referral system to ensure it properly stores data in Google Sheets.</p>
+        
+        <h2>Test Actions</h2>
+        <button class="test-button" onclick="testReferralShare('whatsapp')">Test WhatsApp Share</button>
+        <button class="test-button" onclick="testReferralShare('linkedin')">Test LinkedIn Share</button>
+        <button class="test-button" onclick="testReferralShare('email')">Test Email Share</button>
+        <button class="test-button" onclick="testReferralShare('copy')">Test Copy Share</button>
+        <button class="test-button" onclick="clearResults()">Clear Results</button>
+        
+        <h2>Test Results</h2>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Google Sheets integration
+        const REFERRAL_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxluQuX4nSErpZq_41Udaz1aDS6lWHC-VaUkwoBn3JBnqtXQ0MGZo1CBW_B8_fNCDOMiw/exec';
+        
+        // AksharCoins reward system                 
+        const AKSHAR_COINS_REWARDS = {
+            'whatsapp': 5,
+            'linkedin': 4,
+            'email': 3,
+            'twitter': 3,
+            'facebook': 2,
+            'telegram': 3,
+            'native': 2,
+            'copy': 1
+        };
+
+        function testReferralShare(platform) {
+            const testData = {
+                type: 'referral',
+                referrerName: 'Test User',
+                referrerEmail: 'testv2@example.com',
+                referrerPhone: '9876543210',
+                referrerRole: 'job_seeker',
+                platform: platform,
+                coinsEarned: AKSHAR_COINS_REWARDS[platform] || 1,
+                timestamp: new Date().toISOString(),
+                referralCode: 'AKSHAR2025',
+                totalCoins: AKSHAR_COINS_REWARDS[platform] || 1,
+                shareCount: 1,
+                source: 'test'
+            };
+            
+            addResult(`Testing ${platform} share...`, 'info');
+            addResult(`Data being sent: ${JSON.stringify(testData, null, 2)}`, 'info');
+            
+            sendReferralDataToSheets(testData);
+        }
+
+        function sendReferralDataToSheets(data) {
+            try {
+                console.log('Sending referral data to Google Sheets:', data);
+                
+                const params = new URLSearchParams(data);
+                const url = `${REFERRAL_WEBHOOK_URL}?${params.toString()}`;
+                
+                console.log('Referral webhook URL:', url);
+                
+                // Use fetch API for better error handling
+                fetch(url, {
+                    method: 'GET',
+                    mode: 'no-cors' // This is required for cross-origin requests to Google Apps Script
+                })
+                .then(() => {
+                    addResult(`✅ ${data.platform} share data sent successfully!`, 'success');
+                    addResult(`Coins earned: ${data.coinsEarned}`, 'success');
+                })
+                .catch(error => {
+                    addResult(`❌ Error sending ${data.platform} share data: ${error.message}`, 'error');
+                });
+                
+                // Also try with iframe method as backup
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.style.width = '1px';
+                iframe.style.height = '1px';
+                iframe.src = url;
+                
+                iframe.onload = () => {
+                    console.log('Referral iframe loaded successfully');
+                };
+                
+                iframe.onerror = (error) => {
+                    console.error('Referral iframe error:', error);
+                };
+                
+                document.body.appendChild(iframe);
+                
+                setTimeout(() => {
+                    if (iframe.parentNode) {
+                        iframe.parentNode.removeChild(iframe);
+                        console.log('Referral iframe removed');
+                    }
+                }, 3000);
+                
+            } catch (error) {
+                console.error('Failed to send referral data to Google Sheets:', error);
+                addResult(`❌ Failed to send referral data: ${error.message}`, 'error');
+            }
+        }
+
+        function addResult(message, type = 'info') {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${type}`;
+            resultDiv.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            resultsDiv.appendChild(resultDiv);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        // Initialize with some test data
+        addResult('Referral system test page loaded. Ready to test!', 'info');
+    </script>
+</body>
+</html>

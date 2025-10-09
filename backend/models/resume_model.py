@@ -9,3 +9,4 @@ resume_collection = db.get_collection("resume_data")
 
 # Ensure Indexing for Faster Lookups
 resume_collection.create_index([("userId", 1)])
+resume_collection.create_index([("published", 1)])  # For filtering published resumes

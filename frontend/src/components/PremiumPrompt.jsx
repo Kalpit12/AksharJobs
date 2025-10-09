@@ -61,7 +61,7 @@ const PremiumPrompt = ({ userType = 'job_seeker', onClose }) => {
     <div className="premium-banner-overlay">
       <div className="premium-banner">
         <button className="close-button" onClick={onClose}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
             <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </button>

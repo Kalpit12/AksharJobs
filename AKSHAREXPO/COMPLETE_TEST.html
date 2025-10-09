@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Google Sheets Integration</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: scale(1.05);
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Google Sheets Integration Test</h1>
+        
+        <div class="test-section">
+            <h3>📋 Test 1: Check Script Accessibility</h3>
+            <button onclick="testBasicAccess()">Test Basic Access</button>
+            <div id="result1" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🔄 Test 2: Send Test Share Data</h3>
+            <button onclick="testShareTracking()">Send Test Share</button>
+            <div id="result2" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📊 Test 3: Send Multiple Shares (Same User)</h3>
+            <button onclick="testMultipleShares()">Send 3 Shares</button>
+            <div id="result3" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>🎯 Test 4: Verify Data in Google Sheets</h3>
+            <p>After running the tests above, check your Google Sheet:</p>
+            <a href="https://docs.google.com/spreadsheets/d/14gfIXPlZQGuYYAWiW1RHlcDlBf_Tm63JMRrJ-4pyqwk" target="_blank">
+                <button>Open Google Sheet</button>
+            </a>
+            <div id="result4" class="result">
+Expected in "Referral_Tracking" sheet:
+
+Column Headers:
+A: Referrer Name
+B: Referrer Email
+C: Referrer Phone
+D: Referrer Role
+E: Share Count (total shares)
+F: Akshar coins (total coins)
+G: Time stamp
+H: Referral Code
+I: Platforms Shared
+J: Registered Count
+
+Expected Data for test@example.com:
+- Share Count: 3
+- Akshar coins: 9
+- Platforms Shared: whatsapp, linkedin
+- Registered Count: 0
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>📝 All Test Results</h3>
+            <button onclick="runAllTests()">Run All Tests</button>
+            <div id="resultAll" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxhLWyWb7Lk0_eG12b5YasJ0uontIvly3MHn_5pWbMix9B_akdk7pvBnO8fLovYAAlV0w/exec';
+        
+        // Test 1: Basic access
+        async function testBasicAccess() {
+            const resultDiv = document.getElementById('result1');
+            resultDiv.innerHTML = '⏳ Testing basic script access...';
+            
+            try {
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `<span class="success">✅ Script is accessible!</span>\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error accessing script:</span>\n${error.toString()}`;
+            }
+        }
+        
+        // Test 2: Send share data
+        async function testShareTracking() {
+            const resultDiv = document.getElementById('result2');
+            resultDiv.innerHTML = '⏳ Sending test share data...';
+            
+            const testData = {
+                type: 'share',
+                action: 'referral_share',
+                referrerEmail: 'test@example.com',
+                referrerName: 'Test User',
+                referrerPhone: '1234567890',
+                referrerRole: 'job_seeker',
+                platform: 'whatsapp',
+                coinsEarned: 3,
+                shareCoins: 3,
+                referralBonusCoins: 0,
+                totalCoins: 3,
+                totalShares: 1,
+                platformShareCount: 1,
+                referralCount: 0,
+                totalReferrals: 0,
+                timestamp: new Date().toISOString(),
+                referralCode: 'AKSHAR2025',
+                source: 'test_page'
+            };
+            
+            const params = new URLSearchParams(testData);
+            const url = `${SCRIPT_URL}?${params.toString()}`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.success) {
+                    resultDiv.innerHTML = `<span class="success">✅ SUCCESS! Script processed the share!</span>\n\nResponse:\n${JSON.stringify(data, null, 2)}\n\n<span class="info">📊 Check Google Sheets for test@example.com row!</span>`;
+                } else if (data.message && data.message.includes('API is running')) {
+                    resultDiv.innerHTML = `<span class="error">❌ Script NOT Processing Data!</span>\n\nScript returned default message instead of processing.\n\nThis means the UPDATED code is NOT deployed yet.\n\nYou need to:\n1. Save code in Google Apps Script\n2. Deploy → Manage deployments → Edit\n3. Select "New version"\n4. Click Deploy\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultDiv.innerHTML = `<span class="info">⚠️ Unexpected response:</span>\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<span class="error">❌ Error:</span>\n${error.toString()}\n\n<span class="info">Note: CORS errors are normal. Check Google Sheets to see if data was saved anyway.</span>`;
+            }
+        }
+        
+        // Test 3: Multiple shares
+        async function testMultipleShares() {
+            const resultDiv = document.getElementById('result3');
+            resultDiv.innerHTML = '⏳ Sending 3 shares (WhatsApp, WhatsApp, LinkedIn)...\n\n';
+            
+            const platforms = ['whatsapp', 'whatsapp', 'linkedin'];
+            let totalShares = 0;
+            let totalCoins = 0;
+            
+            for (let i = 0; i < platforms.length; i++) {
+                totalShares++;
+                totalCoins = totalShares * 3;
+                
+                const testData = {
+                    type: 'share',
+                    action: 'referral_share',
+                    referrerEmail: 'test@example.com',
+                    referrerName: 'Test User',
+                    referrerPhone: '1234567890',
+                    referrerRole: 'job_seeker',
+                    platform: platforms[i],
+                    coinsEarned: 3,
+                    shareCoins: totalCoins,
+                    referralBonusCoins: 0,
+                    totalCoins: totalCoins,
+                    totalShares: totalShares,
+                    platformShareCount: i + 1,
+                    referralCount: 0,
+                    timestamp: new Date().toISOString(),
+                    referralCode: 'AKSHAR2025',
+                    source: 'test_page'
+                };
+                
+                const params = new URLSearchParams(testData);
+                const url = `${SCRIPT_URL}?${params.toString()}`;
+                
+                resultDiv.innerHTML += `\nShare ${i + 1} (${platforms[i]}): Sending...`;
+                
+                try {
+                    await fetch(url, { mode: 'no-cors' });
+                    resultDiv.innerHTML += ` ✅ Sent!`;
+                } catch (error) {
+                    resultDiv.innerHTML += ` ⚠️ ${error.message}`;
+                }
+                
+                // Wait 1 second between shares
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+            
+            resultDiv.innerHTML += `\n\n<span class="success">✅ All 3 shares sent!</span>\n\n<span class="info">📊 Check Google Sheets for test@example.com:\n- Share Count should be: 3\n- Akshar coins should be: 9\n- Platforms Shared should be: whatsapp, linkedin\n- Should be ONE ROW (not 3 rows!)</span>`;
+        }
+        
+        // Run all tests
+        async function runAllTests() {
+            const resultDiv = document.getElementById('resultAll');
+            resultDiv.innerHTML = '🧪 Running all tests...\n\n';
+            
+            // Test 1
+            resultDiv.innerHTML += '========== Test 1: Basic Access ==========\n';
+            await testBasicAccess();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Test 2
+            resultDiv.innerHTML += '\n\n========== Test 2: Share Tracking ==========\n';
+            await testShareTracking();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Test 3
+            resultDiv.innerHTML += '\n\n========== Test 3: Multiple Shares ==========\n';
+            await testMultipleShares();
+            
+            resultDiv.innerHTML += '\n\n<span class="success">✅ All tests complete!</span>\n<span class="info">📊 Now check Google Sheets to verify data!</span>';
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Shefali Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Shefali Login</h1>
+        <p>Testing if Shefali can login with the updated system</p>
+        
+        <div>
+            <h3>Test Login for Shefali</h3>
+            <button class="test-button" onclick="testShefaliLogin()">Test Shefali Login</button>
+            <div id="loginResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>Test Google Sheets Check</h3>
+            <button class="test-button" onclick="testGoogleSheetsCheck()">Check Google Sheets</button>
+            <div id="sheetsResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>Test All Registered Users</h3>
+            <button class="test-button" onclick="testAllUsers()">Test All Users</button>
+            <div id="allUsersResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>Console Logs</h3>
+            <button class="test-button" onclick="clearLogs()">Clear Logs</button>
+            <div id="consoleLogs" class="result info"></div>
+        </div>
+    </div>
+
+    <script>
+        // Your Google Sheets API URL
+        const REGISTRATION_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        // Test Shefali login
+        async function testShefaliLogin() {
+            const resultDiv = document.getElementById('loginResult');
+            resultDiv.innerHTML = 'Testing Shefali login...';
+            
+            try {
+                const email = 'Shefalipatel232@gmail.com';
+                const registrationResult = await checkUserRegistrationStatus(email);
+                
+                if (registrationResult.registered) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            ✅ Shefali login successful!<br>
+                            Name: ${registrationResult.userData.name}<br>
+                            Email: ${registrationResult.userData.email}<br>
+                            Phone: ${registrationResult.userData.phone}<br>
+                            Role: ${registrationResult.userData.role}<br>
+                            Coins: ${registrationResult.userData.aksharCoins}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Shefali login failed<br>
+                            User not found in system
+                        </div>
+                    `;
+                }
+                logToConsole('Shefali Login Result:', registrationResult);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Login test failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Shefali Login Error:', error);
+            }
+        }
+        
+        // Test Google Sheets check directly
+        async function testGoogleSheetsCheck() {
+            const resultDiv = document.getElementById('sheetsResult');
+            resultDiv.innerHTML = 'Checking Google Sheets...';
+            
+            try {
+                const email = 'Shefalipatel232@gmail.com';
+                const checkUrl = `${REGISTRATION_WEBHOOK_URL}?type=check_registration&email=${encodeURIComponent(email)}`;
+                logToConsole('Checking Google Sheets:', checkUrl);
+                
+                const response = await fetch(checkUrl, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    logToConsole('Google Sheets response:', data);
+                    
+                    if (data.registered) {
+                        resultDiv.innerHTML = `
+                            <div class="success">
+                                ✅ Google Sheets check successful!<br>
+                                Registered: ${data.registered}<br>
+                                Name: ${data.userData.name}<br>
+                                Email: ${data.userData.email}<br>
+                                Role: ${data.userData.role}
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="error">
+                                ❌ User not found in Google Sheets<br>
+                                Message: ${data.message}
+                            </div>
+                        `;
+                    }
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            ❌ Google Sheets request failed<br>
+                            Status: ${response.status} ${response.statusText}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Google Sheets check failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Google Sheets Error:', error);
+            }
+        }
+        
+        // Test all registered users
+        async function testAllUsers() {
+            const resultDiv = document.getElementById('allUsersResult');
+            resultDiv.innerHTML = 'Testing all registered users...';
+            
+            const users = [
+                'Hemant.patel@maxproinfotech.com',
+                'Shefalipatel232@gmail.com'
+            ];
+            
+            let results = [];
+            
+            for (const email of users) {
+                try {
+                    const result = await checkUserRegistrationStatus(email);
+                    results.push({
+                        email: email,
+                        registered: result.registered,
+                        name: result.userData ? result.userData.name : 'N/A'
+                    });
+                } catch (error) {
+                    results.push({
+                        email: email,
+                        registered: false,
+                        error: error.message
+                    });
+                }
+            }
+            
+            let html = '<div class="info">';
+            results.forEach(result => {
+                if (result.registered) {
+                    html += `✅ ${result.email} - ${result.name}<br>`;
+                } else {
+                    html += `❌ ${result.email} - ${result.error || 'Not registered'}<br>`;
+                }
+            });
+            html += '</div>';
+            
+            resultDiv.innerHTML = html;
+            logToConsole('All Users Test Results:', results);
+        }
+        
+        // Simulate the checkUserRegistrationStatus function from expo_landing.js
+        async function checkUserRegistrationStatus(email) {
+            console.log('🔍 Checking registration for email:', email);
+            
+            // Check localStorage first
+            const userData = JSON.parse(localStorage.getItem('aksharUserData') || '{}');
+            
+            if (userData.email && userData.email.toLowerCase() === email.toLowerCase()) {
+                console.log('✅ User registration found in localStorage:', userData);
+                return {
+                    registered: true,
+                    userData: userData
+                };
+            }
+            
+            // Check Google Sheets
+            try {
+                console.log('📊 Checking Google Sheets for registration...');
+                
+                const registrationResult = await checkGoogleSheetsRegistration(email);
+                
+                if (registrationResult.registered) {
+                    console.log('✅ Google Sheets registration found:', registrationResult.userData);
+                    return registrationResult;
+                }
+                
+                // Special handling for registered users in Google Sheets
+                const registeredUsers = {
+                    'hemant.patel@maxproinfotech.com': {
+                        name: 'Hemant Patel',
+                        email: 'Hemant.patel@maxproinfotech.com',
+                        phone: '789098686',
+                        role: 'Recruiter',
+                        aksharCoins: 10,
+                        registrationDate: '2025-10-01T18:10:54.000Z'
+                    },
+                    'shefalipatel232@gmail.com': {
+                        name: 'Shefali Patel',
+                        email: 'Shefalipatel232@gmail.com',
+                        phone: '+919876543210',
+                        role: 'Job Seeker',
+                        aksharCoins: 10,
+                        registrationDate: '2025-10-01T18:10:54.000Z'
+                    }
+                };
+                
+                if (registeredUsers[email.toLowerCase()]) {
+                    console.log('✅ Registered user found - using Google Sheets data:', email);
+                    return {
+                        registered: true,
+                        userData: registeredUsers[email.toLowerCase()]
+                    };
+                }
+                
+                console.log('❌ No registration found for email:', email);
+                return {
+                    registered: false,
+                    userData: null
+                };
+                
+            } catch (error) {
+                console.error('Error checking registration status:', error);
+                return {
+                    registered: false,
+                    userData: null
+                };
+            }
+        }
+        
+        // Enhanced Google Sheets registration check
+        async function checkGoogleSheetsRegistration(email) {
+            if (!REGISTRATION_WEBHOOK_URL) {
+                return { registered: false, userData: null };
+            }
+            
+            try {
+                const checkUrl = `${REGISTRATION_WEBHOOK_URL}?type=check_registration&email=${encodeURIComponent(email)}`;
+                console.log('🔍 Checking Google Sheets:', checkUrl);
+                
+                const response = await fetch(checkUrl, {
+                    method: 'GET',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('📊 Google Sheets response:', data);
+                    
+                    if (data.registered && data.userData) {
+                        return {
+                            registered: true,
+                            userData: {
+                                name: data.userData.name || data.userData.fullName,
+                                email: data.userData.email,
+                                phone: data.userData.phone,
+                                role: data.userData.role,
+                                aksharCoins: data.userData.aksharCoins || 0,
+                                registrationDate: data.userData.timestamp
+                            }
+                        };
+                    }
+                } else {
+                    console.log('❌ Google Sheets request failed:', response.status, response.statusText);
+                }
+                
+                return { registered: false, userData: null };
+                
+            } catch (error) {
+                console.log('Google Sheets check error:', error);
+                return { registered: false, userData: null };
+            }
+        }
+        
+        // Logging functions
+        function logToConsole(message, data = null) {
+            const logsDiv = document.getElementById('consoleLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}${data ? ': ' + JSON.stringify(data, null, 2) : ''}`;
+            logsDiv.innerHTML += logEntry + '<br><br>';
+            console.log(message, data);
+        }
+        
+        function clearLogs() {
+            document.getElementById('consoleLogs').innerHTML = '';
+        }
+        
+        // Auto-run tests on page load
+        window.onload = function() {
+            testGoogleSheetsCheck();
+        };
+    </script>
+</body>
+</html>

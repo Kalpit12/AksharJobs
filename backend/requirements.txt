@@ -11,6 +11,7 @@ python-dotenv
 python-dateutil
 pandas
 numpy
+openpyxl
 scikit-learn
 requests
 python-docx
@@ -68,3 +69,6 @@ jinja2
 itsdangerous
 click
 blinker
+flask-socketio
+redis
+gunicorn

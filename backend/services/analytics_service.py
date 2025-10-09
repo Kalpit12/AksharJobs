@@ -199,7 +199,7 @@ class AnalyticsService:
             # Get basic job counts and thresholds
             jobs = list(self.jobs.find(
                 {"recruiter_id": recruiter_id},
-                {"_id": 1, "job_title": 1, "match_threshold": 1, "auto_reject_threshold": 1}
+                {"_id": 1, "job_title": 1, "match_threshold": 1, "auto_reject_threshold": 1, "created_at": 1, "views": 1}
             ))
             
             # Get recent applications by getting job IDs first, then applications
@@ -246,6 +246,125 @@ class AnalyticsService:
             }
         except Exception as e:
             print(f"Error getting dashboard summary: {e}")
+            return None
+
+    def get_recruitment_analytics(self, recruiter_id, days=30):
+        """Get comprehensive recruitment analytics for dashboard cards"""
+        try:
+            start_date = datetime.utcnow() - timedelta(days=days)
+            
+            # Get all jobs by this recruiter (remove date filter for now to include all jobs)
+            jobs = list(self.jobs.find(
+                {"recruiter_id": recruiter_id},
+                {"_id": 1, "job_title": 1, "created_at": 1, "views": 1, "status": 1}
+            ))
+            
+            job_ids = [str(job["_id"]) for job in jobs]
+            
+            # Get applications for these jobs
+            applications = []
+            if job_ids:
+                applications = list(self.applications.find(
+                    {"jobId": {"$in": job_ids}},
+                    {"_id": 1, "jobId": 1, "matchScore": 1, "created_at": 1, "status": 1}
+                ))
+            
+            # Calculate Application Trends
+            total_applications_30 = len(applications)
+            applications_by_day = {}
+            for app in applications:
+                app_date = app.get("created_at", datetime.utcnow())
+                if isinstance(app_date, str):
+                    try:
+                        app_date = datetime.fromisoformat(app_date.replace('Z', '+00:00'))
+                    except:
+                        app_date = datetime.utcnow()
+                elif not isinstance(app_date, datetime):
+                    app_date = datetime.utcnow()
+                
+                app_date_only = app_date.date()
+                # Convert date to string for JSON serialization
+                date_str = app_date_only.isoformat()
+                applications_by_day[date_str] = applications_by_day.get(date_str, 0) + 1
+            
+            # Calculate Job Performance
+            total_views_30 = sum(job.get("views", 0) for job in jobs)
+            conversion_rate = (total_applications_30 / total_views_30 * 100) if total_views_30 > 0 else 0
+            
+            # Calculate Candidate Quality
+            high_quality_threshold = 80
+            high_quality_candidates = len([app for app in applications if app.get("matchScore", 0) >= high_quality_threshold])
+            high_quality_rate = (high_quality_candidates / total_applications_30 * 100) if total_applications_30 > 0 else 0
+            
+            # Calculate Time to Hire
+            avg_days_to_fill = 0
+            if jobs:
+                # Calculate average days since posting for jobs with applications
+                jobs_with_apps = [job for job in jobs if any(app.get("jobId") == str(job["_id"]) for app in applications)]
+                if jobs_with_apps:
+                    now = datetime.utcnow()
+                    days_since_posting = []
+                    for job in jobs_with_apps:
+                        job_date = job.get("created_at")
+                        if isinstance(job_date, str):
+                            try:
+                                job_date = datetime.fromisoformat(job_date.replace('Z', '+00:00'))
+                            except:
+                                job_date = now
+                        elif not isinstance(job_date, datetime):
+                            job_date = now
+                        
+                        days_since_posting.append((now - job_date).days)
+                    
+                    avg_days_to_fill = sum(days_since_posting) / len(days_since_posting)
+            
+            # Calculate additional metrics
+            avg_match_score = sum(app.get("matchScore", 0) for app in applications) / len(applications) if applications else 0
+            
+            # Get recent activity (last 7 days)
+            recent_activity = 0
+            for app in applications:
+                app_date = app.get("created_at", datetime.utcnow())
+                if isinstance(app_date, str):
+                    try:
+                        app_date = datetime.fromisoformat(app_date.replace('Z', '+00:00'))
+                    except:
+                        app_date = datetime.utcnow()
+                elif not isinstance(app_date, datetime):
+                    app_date = datetime.utcnow()
+                
+                if app_date > datetime.utcnow() - timedelta(days=7):
+                    recent_activity += 1
+            
+            return {
+                "application_trends": {
+                    "total_applications_30": total_applications_30,
+                    "applications_by_day": applications_by_day,
+                    "trend_direction": "up" if total_applications_30 > 0 else "stable"
+                },
+                "job_performance": {
+                    "total_views_30": total_views_30,
+                    "conversion_rate": round(conversion_rate, 1),
+                    "total_jobs": len(jobs)
+                },
+                "candidate_quality": {
+                    "high_quality_candidates": high_quality_candidates,
+                    "high_quality_rate": round(high_quality_rate, 1),
+                    "avg_match_score": round(avg_match_score, 1)
+                },
+                "time_to_hire": {
+                    "avg_days_to_fill": round(avg_days_to_fill, 1),
+                    "jobs_with_applications": len([job for job in jobs if any(app.get("jobId") == str(job["_id"]) for app in applications)])
+                },
+                "overview": {
+                    "total_jobs": len(jobs),
+                    "total_applications": total_applications_30,
+                    "total_views": total_views_30,
+                    "recent_activity": recent_activity
+                }
+            }
+        except Exception as e:
+            print(f"Error getting recruitment analytics: {e}")
             return None
 
     def get_job_performance_metrics(self, job_id):

@@ -4,7 +4,7 @@ from flask_cors import cross_origin
 import os
 import logging
 from services.local_language_resume_service import LocalLanguageResumeService
-from services.resume_service import ResumeService
+from services.new_resume_service import ModernResumeService
 from utils.GeminiResult import call_gemini_free
 import google.generativeai as genai
 from dotenv import load_dotenv
@@ -18,7 +18,7 @@ gemini_model = genai.GenerativeModel('gemini-1.5-flash')
 
 # Initialize services
 local_language_service = LocalLanguageResumeService(gemini_model)
-resume_service = ResumeService(gemini_model)
+modern_resume_service = ModernResumeService(os.getenv("GEMINI_API_KEY"))
 
 local_language_routes = Blueprint("local_language_routes", __name__)
 
@@ -116,13 +116,13 @@ def enhanced_resume_analysis():
         
         try:
             # Extract text content
-            text_content = resume_service._extract_text(temp_path, file_extension)
+            text_content = modern_resume_service._extract_text(temp_path, file_extension)
             
             if not text_content:
                 return jsonify({"error": "Failed to extract text from resume"}), 500
             
             # Perform standard resume analysis
-            resume_data, ai_recommendations = resume_service.process_resume(temp_path, file_extension)
+            resume_data = modern_resume_service.process_resume(temp_path, file_extension)
             
             # Perform local language analysis
             local_analysis = local_language_service.analyze_local_context(text_content)

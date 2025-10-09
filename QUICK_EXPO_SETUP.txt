@@ -1,0 +1,114 @@
+╔══════════════════════════════════════════════════════════════╗
+║          AKSHARJOBS EXPO - QUICK SETUP GUIDE                 ║
+║              MongoDB + Backend + Frontend                    ║
+╚══════════════════════════════════════════════════════════════╝
+
+⏱️  TOTAL TIME: 30-40 minutes
+💰 TOTAL COST: $0 (Free tier)
+
+═══════════════════════════════════════════════════════════════
+
+STEP 1: MongoDB Atlas (10 min)
+───────────────────────────────
+1. Go to: mongodb.com/cloud/atlas
+2. Sign up (free)
+3. Create M0 FREE cluster
+4. Create database user (save password!)
+5. Allow all IPs (0.0.0.0/0)
+6. Get connection string
+   mongodb+srv://username:password@cluster.mongodb.net/
+7. ✅ SAVE CONNECTION STRING
+
+═══════════════════════════════════════════════════════════════
+
+STEP 2: Deploy Backend - Render.com (15 min)
+────────────────────────────────────────────
+1. Go to: render.com
+2. Sign up (free)
+3. New+ → Web Service
+4. Upload backend folder or connect GitHub
+5. Configure:
+   Name: aksharjobs-expo-api
+   Runtime: Python 3
+   Build: pip install -r requirements.txt
+   Start: gunicorn app:app
+   
+6. Environment Variables:
+   MONGO_URI = [your connection string]
+   DB_NAME = TalentMatchDB
+   FLASK_ENV = production
+
+7. Create → Wait 5-10 min
+8. Get URL: https://aksharjobs-expo-api.onrender.com
+9. ✅ SAVE BACKEND URL
+
+═══════════════════════════════════════════════════════════════
+
+STEP 3: Update Frontend (2 min)
+────────────────────────────────
+1. Open: AKSHAREXPO/expo_api_config.js
+2. Line 9: Update with YOUR backend URL
+   const MONGO_API_BASE_URL = 'https://YOUR-BACKEND.onrender.com/api/expo';
+3. Line 12: Make sure it's true
+   const USE_MONGODB_API = true;
+4. ✅ SAVE FILE
+
+═══════════════════════════════════════════════════════════════
+
+STEP 4: Deploy Frontend - Vercel (10 min)
+──────────────────────────────────────────
+1. Go to: vercel.com
+2. Sign up (free)
+3. Add New Project
+4. Upload AKSHAREXPO folder
+5. Deploy → Wait 2-3 min
+6. Get URL: https://aksharjobs-expo.vercel.app
+7. ✅ SAVE FRONTEND URL
+
+═══════════════════════════════════════════════════════════════
+
+STEP 5: Test Everything (5 min)
+────────────────────────────────
+1. Open your Vercel URL
+2. Click "Register Now"
+3. Fill form → Submit
+4. Check MongoDB Atlas:
+   Browse Collections → EXPO_REGISTRATION → registrations
+5. ✅ See your test data!
+
+═══════════════════════════════════════════════════════════════
+
+READY FOR EXPO! 🎉
+──────────────────
+Share this with attendees:
+📱 https://your-vercel-url.vercel.app
+
+Create QR Code:
+🔲 Use qr-code-generator.com
+
+═══════════════════════════════════════════════════════════════
+
+IMPORTANT URLS TO SAVE:
+───────────────────────
+Frontend: https://aksharjobs-expo.vercel.app
+Backend: https://aksharjobs-expo-api.onrender.com  
+MongoDB: https://cloud.mongodb.com
+
+═══════════════════════════════════════════════════════════════
+
+DURING EXPO:
+────────────
+✅ All data saves to MongoDB automatically
+✅ View real-time: MongoDB Atlas → Browse Collections
+✅ First backend request may take 30-60 sec (waking up)
+✅ Backup available: Google Sheets (already configured)
+
+═══════════════════════════════════════════════════════════════
+
+NEED HELP?
+──────────
+📖 Read: EXPO_DEPLOYMENT_SIMPLE.md (detailed guide)
+📖 Read: FULL_DEPLOYMENT_GUIDE_EXPO.md (advanced)
+
+═══════════════════════════════════════════════════════════════
+

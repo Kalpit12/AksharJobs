@@ -16,66 +16,66 @@ import {
   faInfoCircle,
   faAngleDown,
   faBars,
-  faTimes
+  faTimes,
+  faCrown,
+  faGift,
+  faSearch,
+  faClipboardList,
+  faRocket,
+  faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+import NetworkStatus from './NetworkStatus';
+import ModernProfileDropdown from './ModernProfileDropdown';
 import '../styles/Header.css';
+import akLogo from '../assets/AK logo.jpg';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'job',
-      title: 'New job match found',
-      message: 'A new job matching your profile has been posted',
-      time: '2 hours ago',
-      isRead: false
-    },
-    {
-      id: 2,
-      type: 'message',
-      title: 'New message from recruiter',
-      message: 'Sarah from Google has sent you a message',
-      time: '4 hours ago',
-      isRead: false
-    },
-    {
-      id: 3,
-      type: 'application',
-      title: 'Application status updated',
-      message: 'Your application has been reviewed',
-      time: '1 day ago',
-      isRead: true
-    }
-  ]);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, forceLogout } = useAuth();
+  const { 
+    notifications, 
+    messages, 
+    unreadNotificationCount, 
+    unreadMessageCount,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    clearAllNotifications,
+    markMessageAsRead,
+    isWebSocketConnected
+  } = useNotifications();
   
-  // Debug: Log user object to see what's available
-  useEffect(() => {
-    if (user) {
-      console.log('User object in Header:', user);
-    }
-  }, [user]);
   const location = useLocation();
   const notificationsRef = useRef(null);
   const messagesRef = useRef(null);
-  const userMenuRef = useRef(null);
+  
+  // Debug: Log authentication state to see what's available
+  useEffect(() => {
+    console.log('🔐 Header - Authentication State Changed:', {
+      isAuthenticated,
+      user: user ? {
+        role: user.role,
+        userId: user.userId,
+        email: user.email,
+        hasToken: !!user.token
+      } : null,
+      location: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+  }, [isAuthenticated, user, location.pathname]);
 
-  // Extract user name from firstName or email
-  const getUserDisplayName = () => {
-    if (user?.firstName && user.firstName !== 'undefined') {
-      return user.firstName;
-    } else if (user?.email && user.email !== 'undefined') {
-      // Extract name from email (e.g., kalpitpatel751@gmail.com -> Kalpit)
-      const emailName = user.email.split('@')[0];
-      return emailName.replace(/[0-9]/g, '').replace(/\./g, ' ').replace(/_/g, ' ').trim();
-    }
-    return 'User';
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
   };
 
   // Get user role from context
@@ -86,42 +86,25 @@ const Header = () => {
     return user.role;
   };
 
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
-
-  const toggleUserMenu = () => {
-    setIsUserMenuOpen(!isUserMenuOpen);
-    setShowNotifications(false);
-    setShowMessages(false);
-  };
-
   const handleLogout = () => {
     logout();
-    setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
   };
 
-  const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false);
-  };
-
-  const markAllNotificationsAsRead = () => {
-    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
-  };
-
-  const markNotificationAsRead = (id) => {
-    setNotifications(prev => prev.map(notif =>
-      notif.id === id ? { ...notif, isRead: true } : notif
-    ));
-  };
-
-  const getUnreadCount = () => {
-    return notifications.filter(notif => !notif.isRead).length;
-  };
-
-  const clearAllNotifications = () => {
-    setNotifications([]);
+  // Format time for display
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = Math.floor((now - date) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+      return `${diffInDays} day${diffInDays > 1 ? 's' : ''} ago`;
+    }
   };
 
   // Handle click outside to close dropdowns
@@ -132,9 +115,6 @@ const Header = () => {
       }
       if (messagesRef.current && !messagesRef.current.contains(event.target)) {
         setShowMessages(false);
-      }
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-        setIsUserMenuOpen(false);
       }
     };
 
@@ -148,18 +128,6 @@ const Header = () => {
     return location.pathname === path;
   };
 
-  const getRoleDisplayName = (role) => {
-    if (!role || role === 'undefined') return 'User';
-    
-    const roleMap = {
-      'recruiter': 'Recruiter',
-      'jobSeeker': 'Job Seeker',
-      'jobseeker': 'Job Seeker',
-      'admin': 'Administrator'
-    };
-    
-    return roleMap[role.toLowerCase()] || 'User';
-  };
 
   const getDashboardRoute = () => {
     if (!user || !user.role) return '/';
@@ -174,13 +142,14 @@ const Header = () => {
 
   return (
     <header className="header">
+      
       <div className="header-container">
         {/* Logo */}
         <Link to={getDashboardRoute()} className="header-logo">
-          <img src="/RocketJobs_Logo.jpg" alt="AksharJobs Logo" />
+          <img src={akLogo} alt="AksharJobs logo" />
           <div>
             <div className="header-logo-text">AksharJobs</div>
-            <div className="header-logo-tagline">AI-Powered Job Matching</div>
+            <div className="header-logo-tagline">Where Opportunity Meets Talent</div>
           </div>
         </Link>
 
@@ -195,11 +164,11 @@ const Header = () => {
           </Link>
           
           <Link 
-            to="/jobs" 
-            className={isActiveRoute('/jobs') ? 'active' : ''}
+            to="/premium" 
+            className={`premium-nav-button ${isActiveRoute('/premium') ? 'active' : ''}`}
           >
-            <FontAwesomeIcon icon={faBriefcase} />
-            Find Jobs
+            <FontAwesomeIcon icon={faCrown} />
+            GET PREMIUM
           </Link>
           
           <Link 
@@ -209,6 +178,7 @@ const Header = () => {
             <FontAwesomeIcon icon={faInfoCircle} />
             About Us
           </Link>
+          
           
           <Link 
             to="/blog" 
@@ -221,16 +191,18 @@ const Header = () => {
 
         {/* Header Actions */}
         <div className="header-actions">
-          {/* Notifications */}
-          <div className="notifications-wrapper" ref={notificationsRef}>
+          {isAuthenticated ? (
+            <>
+              {/* Notifications */}
+              <div className="notifications-wrapper" ref={notificationsRef}>
             <button 
               className="action-button notifications-btn" 
               onClick={() => setShowNotifications(!showNotifications)}
               aria-label="Toggle notifications"
             >
               <FontAwesomeIcon icon={faBell} />
-              {getUnreadCount() > 0 && (
-                <span className="notification-badge">{getUnreadCount()}</span>
+              {unreadNotificationCount > 0 && (
+                <span className="notification-badge">{unreadNotificationCount}</span>
               )}
             </button>
             
@@ -238,12 +210,12 @@ const Header = () => {
             {showNotifications && (
               <div className="notifications-dropdown show">
                 <div className="notifications-header">
-                  <h3>Notifications ({getUnreadCount()} unread)</h3>
+                  <h3>Notifications ({unreadNotificationCount} unread)</h3>
                   <div className="notifications-actions">
                     <button 
                       className="mark-all-read" 
                       onClick={markAllNotificationsAsRead}
-                      disabled={getUnreadCount() === 0}
+                      disabled={unreadNotificationCount === 0}
                     >
                       Mark all read
                     </button>
@@ -257,28 +229,37 @@ const Header = () => {
                   </div>
                 </div>
                 <div className="notifications-list">
-                  {notifications.map(notification => (
-                    <div 
-                      key={notification.id} 
-                      className={`notification-item ${!notification.isRead ? 'unread' : ''}`}
-                      onClick={() => markNotificationAsRead(notification.id)}
-                    >
-                      <div className="notification-icon">
-                        <FontAwesomeIcon 
-                          icon={
-                            notification.type === 'job' ? faBriefcase :
-                            notification.type === 'message' ? faEnvelope :
-                            faUser
-                          } 
-                        />
-                      </div>
-                      <div className="notification-content">
-                        <h4>{notification.title}</h4>
-                        <p>{notification.message}</p>
-                        <span className="notification-time">{notification.time}</span>
-                      </div>
+                  {notifications.length === 0 ? (
+                    <div className="no-notifications">
+                      <p>No notifications yet</p>
                     </div>
-                  ))}
+                  ) : (
+                    notifications.map(notification => (
+                      <div 
+                        key={notification.id} 
+                        className={`notification-item ${!notification.is_read ? 'unread' : ''}`}
+                        onClick={() => markNotificationAsRead(notification.id)}
+                      >
+                        <div className="notification-icon">
+                          <FontAwesomeIcon 
+                            icon={
+                              notification.type === 'job' ? faBriefcase :
+                              notification.type === 'message' ? faEnvelope :
+                              notification.type === 'application' ? faFileAlt :
+                              faBell
+                            } 
+                          />
+                        </div>
+                        <div className="notification-content">
+                          <h4>{notification.title}</h4>
+                          <p>{notification.message}</p>
+                          <span className="notification-time">
+                            {formatTime(notification.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div className="notifications-footer">
                   <Link to="/notifications" className="view-all-notifications">
@@ -292,12 +273,14 @@ const Header = () => {
           {/* Messages */}
           <div className="messages-wrapper" ref={messagesRef}>
             <button 
-              className="action-button messages-btn"
+              className="action-button messages-btn" 
               onClick={() => setShowMessages(!showMessages)}
               aria-label="Toggle messages"
             >
               <FontAwesomeIcon icon={faEnvelope} />
-              <span className="message-badge">5</span>
+              {unreadMessageCount > 0 && (
+                <span className="message-badge">{unreadMessageCount}</span>
+              )}
             </button>
             
             {/* Messages Dropdown */}
@@ -315,16 +298,32 @@ const Header = () => {
                   </div>
                 </div>
                 <div className="messages-list">
-                  <div className="message-item">
-                    <div className="message-icon">
-                      <FontAwesomeIcon icon={faEnvelope} />
+                  {messages.length === 0 ? (
+                    <div className="no-messages">
+                      <p>No messages yet</p>
                     </div>
-                    <div className="message-content">
-                      <h4>New Message</h4>
-                      <p>You have 5 unread messages</p>
-                      <span className="message-time">Just now</span>
-                    </div>
-                  </div>
+                  ) : (
+                    messages.slice(0, 5).map(message => (
+                      <div 
+                        key={message.id} 
+                        className={`message-item ${!message.is_read ? 'unread' : ''}`}
+                        onClick={() => markMessageAsRead(message.id)}
+                      >
+                        <div className="message-icon">
+                          <FontAwesomeIcon icon={faEnvelope} />
+                        </div>
+                        <div className="message-content">
+                          <h4>
+                            {message.is_sent ? 'You' : 'New Message'}
+                          </h4>
+                          <p>{message.content}</p>
+                          <span className="message-time">
+                            {formatTime(message.created_at)}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div className="messages-footer">
                   <Link to="/messages" className="view-all-messages">
@@ -335,128 +334,20 @@ const Header = () => {
             )}
           </div>
           
-          {/* User Profile - New Clean Minimal Design */}
-          <div className="user-profile" ref={userMenuRef}>
-            <div className="profile-trigger" onClick={toggleUserMenu}>
-              <div className="profile-avatar">
-                <img 
-                  src="https://www.w3schools.com/w3images/avatar2.png" 
-                  alt="User Avatar" 
-                  className="avatar-image" 
-                />
-                <div className="profile-status-indicator"></div>
-              </div>
-              <div className="profile-info">
-                <div className="profile-name">{getUserDisplayName()}</div>
-                <div className="profile-role">{getRoleDisplayName(getUserRole()) || 'User'}</div>
-              </div>
-              <div className="profile-chevron">
-                <FontAwesomeIcon 
-                  icon={faAngleDown} 
-                  className={`chevron-icon ${isUserMenuOpen ? 'rotate' : ''}`}
-                />
-              </div>
+          {/* Modern Profile Dropdown */}
+          <ModernProfileDropdown />
+            </>
+          ) : (
+            /* Unauthenticated User Actions */
+            <div className="auth-actions">
+              <Link to="/login" className="auth-button login-btn">
+                Login
+              </Link>
+              <Link to="/signup" className="auth-button signup-btn">
+                Sign Up
+              </Link>
             </div>
-            
-            {/* New Profile Menu */}
-            <div className={`profile-menu ${isUserMenuOpen ? 'show' : ''}`}>
-              <div className="profile-menu-header">
-                <div className="profile-menu-avatar">
-                  <img 
-                    src="https://www.w3schools.com/w3images/avatar2.png" 
-                    alt="User Avatar" 
-                  />
-                </div>
-                <div className="profile-menu-details">
-                  <h3 className="profile-menu-name">{getUserDisplayName()}</h3>
-                  <p className="profile-menu-email">{user?.email && user.email !== 'undefined' ? user.email : 'No email available'}</p>
-                  <span className="profile-menu-role-badge">{getRoleDisplayName(getUserRole()) || 'User'}</span>
-                </div>
-              </div>
-              
-              <div className="profile-menu-divider"></div>
-              
-              <div className="profile-menu-actions">
-                <Link 
-                  to="/profile" 
-                  className="profile-menu-item" 
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <div className="menu-item-icon">
-                    <FontAwesomeIcon icon={faUser} />
-                  </div>
-                  <span className="menu-item-text">My Profile</span>
-                  <div className="menu-item-arrow">→</div>
-                </Link>
-                
-                <Link 
-                  to="/settings" 
-                  className="profile-menu-item" 
-                  onClick={() => setIsUserMenuOpen(false)}
-                >
-                  <div className="menu-item-icon">
-                    <FontAwesomeIcon icon={faCog} />
-                  </div>
-                  <span className="menu-item-text">Settings</span>
-                  <div className="menu-item-arrow">→</div>
-                </Link>
-                
-                {getUserRole() === 'recruiter' && (
-                  <Link 
-                    to="/post-job" 
-                    className="profile-menu-item" 
-                    onClick={() => setIsUserMenuOpen(false)}
-                  >
-                    <div className="menu-item-icon">
-                      <FontAwesomeIcon icon={faUpload} />
-                    </div>
-                    <span className="menu-item-text">Post Job</span>
-                    <div className="menu-item-arrow">→</div>
-                  </Link>
-                )}
-                
-                {getUserRole() === 'jobSeeker' && (
-                  <>
-                    <Link 
-                      to="/jobs" 
-                      className="profile-menu-item" 
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <div className="menu-item-icon">
-                        <FontAwesomeIcon icon={faBriefcase} />
-                      </div>
-                      <span className="menu-item-text">Browse Jobs</span>
-                      <div className="menu-item-arrow">→</div>
-                    </Link>
-                    
-                    <Link 
-                      to="/upload-resume" 
-                      className="profile-menu-item" 
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      <div className="menu-item-icon">
-                        <FontAwesomeIcon icon={faFileAlt} />
-                      </div>
-                      <span className="menu-item-text">Upload Resume</span>
-                      <div className="menu-item-arrow">→</div>
-                    </Link>
-                  </>
-                )}
-              </div>
-              
-              <div className="profile-menu-divider"></div>
-              
-              <button 
-                onClick={handleLogout} 
-                className="profile-menu-logout"
-              >
-                <div className="logout-icon">
-                  <FontAwesomeIcon icon={faSignOutAlt} />
-                </div>
-                <span className="logout-text">Sign Out</span>
-              </button>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Mobile Menu Toggle */}
@@ -476,6 +367,10 @@ const Header = () => {
                 <FontAwesomeIcon icon={faHome} />
                 Home
               </Link>
+              <Link to="/premium" className="mobile-menu-link premium-mobile-nav" onClick={closeMobileMenu}>
+                <FontAwesomeIcon icon={faCrown} />
+                GET PREMIUM
+              </Link>
               <Link to="/jobs" className="mobile-menu-link" onClick={closeMobileMenu}>
                 <FontAwesomeIcon icon={faBriefcase} />
                 Browse Jobs
@@ -492,43 +387,65 @@ const Header = () => {
           </div>
 
           {/* User Actions */}
-          <div className="mobile-menu-section">
-            <div className="mobile-menu-title">Account</div>
-            <div className="mobile-menu-links">
-              <Link to="/profile" className="mobile-menu-link" onClick={closeMobileMenu}>
-                <FontAwesomeIcon icon={faUser} />
-                Profile
-              </Link>
-              <Link to="/settings" className="mobile-menu-link" onClick={closeMobileMenu}>
-                <FontAwesomeIcon icon={faCog} />
-                Settings
-              </Link>
-              {getUserRole() === 'recruiter' && (
-                <Link to="/post-job" className="mobile-menu-link" onClick={closeMobileMenu}>
-                  <FontAwesomeIcon icon={faUpload} />
-                  Post Job
+          {isAuthenticated ? (
+            <div className="mobile-menu-section">
+              <div className="mobile-menu-title">Account</div>
+              <div className="mobile-menu-links">
+                <Link to="/profile" className="mobile-menu-link" onClick={closeMobileMenu}>
+                  <FontAwesomeIcon icon={faUser} />
+                  Profile
                 </Link>
-              )}
-              {getUserRole() === 'jobSeeker' && (
-                <>
-                  <Link to="/jobs" className="mobile-menu-link" onClick={closeMobileMenu}>
-                    <FontAwesomeIcon icon={faBriefcase} />
-                    Browse Jobs
+                <Link to="/settings" className="mobile-menu-link" onClick={closeMobileMenu}>
+                  <FontAwesomeIcon icon={faCog} />
+                  Settings
+                </Link>
+                {getUserRole() === 'recruiter' && (
+                  <Link to="/post-job" className="mobile-menu-link" onClick={closeMobileMenu}>
+                    <FontAwesomeIcon icon={faUpload} />
+                    Post Job
                   </Link>
-                  <Link to="/upload-resume" className="mobile-menu-link" onClick={closeMobileMenu}>
-                    <FontAwesomeIcon icon={faFileAlt} />
-                    Upload Resume
-                  </Link>
-                </>
-              )}
-              <button onClick={handleLogout} className="mobile-menu-link">
-                <FontAwesomeIcon icon={faSignOutAlt} />
-                Logout
-              </button>
+                )}
+                {getUserRole() === 'jobSeeker' && (
+                  <>
+                    <Link to="/jobs" className="mobile-menu-link" onClick={closeMobileMenu}>
+                      <FontAwesomeIcon icon={faBriefcase} />
+                      Browse Jobs
+                    </Link>
+                                        <Link to="/modern-upload" className="mobile-menu-link upload-resume-mobile" onClick={closeMobileMenu}>
+                      <FontAwesomeIcon icon={faFileAlt} />
+                      Upload Resume
+                      <span className="mobile-ai-badge">AI</span>
+                    </Link>
+                  </>
+                )}
+                <button onClick={handleLogout} className="mobile-menu-link">
+                  <FontAwesomeIcon icon={faSignOutAlt} />
+                  Logout
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="mobile-menu-section">
+              <div className="mobile-menu-title">Account</div>
+              <div className="mobile-menu-links">
+                <Link to="/login" className="mobile-menu-link" onClick={closeMobileMenu}>
+                  <FontAwesomeIcon icon={faUser} />
+                  Login
+                </Link>
+                <Link to="/signup" className="mobile-menu-link" onClick={closeMobileMenu}>
+                  <FontAwesomeIcon icon={faUser} />
+                  Sign Up
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
+      
+      {/* Network Status Component */}
+      <NetworkStatus />
+      
+      {/* Connection Status Component */}
     </header>
   );
 };

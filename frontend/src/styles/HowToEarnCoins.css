@@ -1,0 +1,254 @@
+.how-to-earn-coins {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.earn-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.earn-header .header-icon {
+  font-size: 3rem;
+  color: #f59e0b;
+  margin-bottom: 15px;
+}
+
+.earn-header h2 {
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+  color: #1f2937;
+}
+
+.header-subtitle {
+  color: #6b7280;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.earning-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 25px;
+  margin-bottom: 40px;
+}
+
+.earning-method-card {
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 15px;
+  padding: 25px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.earning-method-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.earning-method-card:hover::before {
+  transform: scaleX(1);
+}
+
+.earning-method-card:hover {
+  border-color: #667eea;
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15);
+}
+
+.method-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.earning-method-card:hover .method-icon {
+  transform: scale(1.1) rotate(5deg);
+}
+
+.method-content h3 {
+  margin: 0 0 10px 0;
+  font-size: 1.3rem;
+  color: #1f2937;
+}
+
+.method-description {
+  color: #6b7280;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.method-reward {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.reward-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 15px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.reward-action {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.earning-tips {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 15px;
+  padding: 30px;
+  margin-bottom: 30px;
+}
+
+.tips-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+  color: #92400e;
+}
+
+.tips-header svg {
+  font-size: 2rem;
+}
+
+.tips-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.tip-item {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  gap: 15px;
+  transition: all 0.3s ease;
+}
+
+.tip-item:hover {
+  background: white;
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(146, 64, 14, 0.1);
+}
+
+.tip-number {
+  background: #f59e0b;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.tip-item p {
+  margin: 0;
+  color: #92400e;
+  line-height: 1.6;
+}
+
+.earning-benefits {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 15px;
+  padding: 30px;
+}
+
+.earning-benefits h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: #1e40af;
+  text-align: center;
+}
+
+.benefits-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.benefit-item {
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.3s ease;
+}
+
+.benefit-item:hover {
+  background: white;
+  transform: translateX(5px);
+}
+
+.benefit-item svg {
+  font-size: 1.8rem;
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.benefit-item p {
+  margin: 0;
+  color: #1e40af;
+  font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .how-to-earn-coins {
+    padding: 25px;
+  }
+
+  .earning-methods-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tips-grid,
+  .benefits-list {
+    grid-template-columns: 1fr;
+  }
+
+  .earn-header h2 {
+    font-size: 1.5rem;
+  }
+}
+

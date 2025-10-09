@@ -143,7 +143,7 @@ const Sidebar = () => {
           <NavLink to="/jobseeker-dashboard" activeClassName="active-link">Dashboard</NavLink>
           <NavLink to="/jobs" activeClassName="active-link">Find Jobs</NavLink>
           <NavLink to="/joblisting" activeClassName="active-link">All Jobs</NavLink>
-          <NavLink to="/appliedjobs" activeClassName="active-link">Match Scores</NavLink>
+          <NavLink to="/application-tracker" activeClassName="active-link">Application Tracker</NavLink>
           <NavLink to="/upload" activeClassName="active-link">Update Resume</NavLink>
           <NavLink to="/profile" activeClassName="active-link">Profile</NavLink>
           <button onClick={handleLogout} className="logout-btn">Logout</button>

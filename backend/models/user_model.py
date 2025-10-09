@@ -1,6 +1,7 @@
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
 from utils.db import get_db
+from datetime import datetime
 
 # Don't initialize database connection at module import time
 # This can cause crashes if MongoDB is not running
@@ -29,6 +30,43 @@ def _get_collections():
     return users, users_collection
 
 class User:
+    """
+    User Model for AksharJobs
+    
+    Base Fields (All Users):
+    - userType, firstName, lastName, email, password, phoneNumber
+    - profileImage, linkedInProfile, communities, primary_community
+    - subscription, akshar_coins, coin_transactions
+    
+    Comprehensive Recruiter Fields:
+    Section 1 - Company Information:
+    - companyName, websiteURL, companyLinkedIn, industries (array)
+    - companySize, headquartersCountry, headquartersCity
+    - operatingRegions (array), companyDescription, companyLogo
+    
+    Section 2 - Recruiter/HR Details:
+    - recruiterFullName, designation, officialEmail, contactNumber
+    - recruiterLinkedIn, preferredCommunication
+    
+    Section 3 - Job Preferences:
+    - positionTypes (array), workType, hiringDepartments (array)
+    - numberOfPositions, expectedStartDate, duration
+    - compensationAmount, compensationCurrency, applicationDeadline, workHours
+    
+    Section 4 - Candidate Requirements:
+    - preferredEducation, preferredFields (array), preferredSkills (array)
+    - preferredSoftSkills (array), internSearchKeywords (array)
+    - languageRequirements (array), minimumExperience, minimumAcademic
+    
+    Section 5 - Company Policy & Benefits:
+    - provideCertificate, offerStipend, stipendRange, provideLOR, offerPPO
+    - workCulture, perks (array)
+    
+    Section 6 - Hiring Process:
+    - hiringStages (array), processDuration, interviewMode
+    - interviewPlatforms (array), profileCompleted, profileCompletedAt
+    """
+    
     @staticmethod
     def create_user(data, profile_image=None, company_logo=None):
         users, _ = _get_collections()
@@ -42,19 +80,39 @@ class User:
             "lastName": data["lastName"],
             "email": data["email"],
             "password": hashed_password,
-            "phoneNumber": data["phoneNumber"],
+            "phoneNumber": data.get("phoneNumber", ""),
             "linkedInProfile": data.get("linkedInProfile", ""),
             "companyName": data.get("companyName", ""),
             "companyWebsite": data.get("companyWebsite", ""),
+            "location": data.get("location", ""),
+            "industry": data.get("industry", ""),
+            "companySize": data.get("companySize", ""),
+            "foundedYear": data.get("foundedYear", ""),
+            "companyDescription": data.get("companyDescription", ""),
             "profileImage": profile_image if data["userType"] == "job_seeker" else None,  # Profile for Job Seeker
             "companyLogo": company_logo if data["userType"] == "recruiter" else None,  # Logo for Recruiter
+            # Community-related fields
+            "communities": data.get("communities", []),  # List of community IDs user belongs to
+            "primary_community": data.get("primary_community", ""),  # Primary community ID
+            "community_preferences": data.get("community_preferences", {}),  # Additional community settings
+            # Community verification fields
+            "community_verification_status": "pending",  # pending, verified, rejected
+            "community_verification_requested_at": datetime.utcnow(),
+            "community_verification_verified_at": None,
+            "community_verification_verified_by": None,  # Community leader email who verified
             "subscription": {
                 "plan": "Basic",
                 "status": "active",
                 "startDate": None,
                 "endDate": None,
                 "features": []
-            }
+            },
+            "free_applications": 0,  # For job seekers
+            "free_job_posts": 0,     # For recruiters
+            "free_resume_views": 0,  # For recruiters
+            "promo_code_created": False,
+            "akshar_coins": 10,  # Initial coin balance - everyone starts with 10 coins
+            "coin_transactions": []  # Track coin earning and spending history
         }
         users.insert_one(user)
         return user

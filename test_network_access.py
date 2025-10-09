@@ -1,97 +1,153 @@
 #!/usr/bin/env python3
 """
-Test script to verify network access and CORS functionality
-Run this from another device or use curl to test
+Network Access Test Script for AksharJobs
+This script tests if the website is accessible from the network.
 """
 
 import requests
-import json
+import socket
+import subprocess
+import sys
+import time
+from pathlib import Path
 
-# Your PC's IP address
-BACKEND_URL = "http://192.168.1.145:5000"
-FRONTEND_URL = "http://192.168.1.145:3002"
-
-def test_backend_health():
-    """Test if backend is accessible"""
+def get_local_ip():
+    """Get the local IP address"""
     try:
-        response = requests.get(f"{BACKEND_URL}/")
-        print(f"✅ Backend Health Check: {response.status_code}")
-        print(f"Response: {response.text}")
-        return True
-    except Exception as e:
-        print(f"❌ Backend Health Check Failed: {e}")
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except Exception:
+        return "127.0.0.1"
+
+def check_port_open(host, port):
+    """Check if a port is open and accepting connections"""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(5)
+        result = s.connect_ex((host, port))
+        s.close()
+        return result == 0
+    except Exception:
         return False
 
-def test_cors():
-    """Test CORS functionality"""
-    try:
-        # Test preflight request
-        headers = {
-            'Origin': 'http://192.168.1.145:3002',
-            'Access-Control-Request-Method': 'POST',
-            'Access-Control-Request-Headers': 'Content-Type'
-        }
-        
-        response = requests.options(f"{BACKEND_URL}/api/auth/signup", headers=headers)
-        print(f"✅ CORS Preflight Test: {response.status_code}")
-        print(f"CORS Headers: {dict(response.headers)}")
-        return True
-    except Exception as e:
-        print(f"❌ CORS Test Failed: {e}")
-        return False
+def test_backend_api(host, port):
+    """Test backend API endpoints"""
+    base_url = f"http://{host}:{port}"
+    
+    endpoints = [
+        "/api/auth/get_user?userId=test",
+        "/api/jobs/get_jobs",
+        "/health"
+    ]
+    
+    results = {}
+    
+    for endpoint in endpoints:
+        try:
+            url = f"{base_url}{endpoint}"
+            response = requests.get(url, timeout=10)
+            results[endpoint] = {
+                "status_code": response.status_code,
+                "accessible": True,
+                "error": None
+            }
+        except requests.exceptions.RequestException as e:
+            results[endpoint] = {
+                "status_code": None,
+                "accessible": False,
+                "error": str(e)
+            }
+    
+    return results
 
-def test_signup_endpoint():
-    """Test signup endpoint"""
+def test_frontend(host, port):
+    """Test frontend accessibility"""
     try:
-        # Test data
-        test_data = {
-            "userType": "jobSeeker",
-            "firstName": "Test",
-            "lastName": "User",
-            "email": "test@example.com",
-            "password": "testpassword123",
-            "phoneNumber": "1234567890"
+        url = f"http://{host}:{port}"
+        response = requests.get(url, timeout=10)
+        return {
+            "status_code": response.status_code,
+            "accessible": response.status_code == 200,
+            "content_length": len(response.content),
+            "error": None
         }
-        
-        headers = {
-            'Content-Type': 'application/json',
-            'Origin': 'http://192.168.1.145:3002'
+    except requests.exceptions.RequestException as e:
+        return {
+            "status_code": None,
+            "accessible": False,
+            "content_length": 0,
+            "error": str(e)
         }
-        
-        response = requests.post(f"{BACKEND_URL}/api/auth/signup", 
-                               json=test_data, 
-                               headers=headers)
-        
-        print(f"✅ Signup Test: {response.status_code}")
-        print(f"Response: {response.text}")
-        return True
-    except Exception as e:
-        print(f"❌ Signup Test Failed: {e}")
-        return False
 
 def main():
-    print("🌐 Testing Network Access and CORS...")
+    """Main test function"""
+    print("🌐 AksharJobs Network Access Test")
     print("=" * 50)
     
-    # Test backend health
-    if not test_backend_health():
-        print("\n❌ Backend is not accessible. Make sure it's running!")
-        return
+    local_ip = get_local_ip()
+    print(f"📍 Local IP: {local_ip}")
+    print()
     
-    print("\n" + "=" * 50)
+    # Test backend (port 3002)
+    print("🔧 Testing Backend Server (Port 3002)...")
+    backend_port_open = check_port_open(local_ip, 3002)
+    print(f"   Port 3002 open: {'✅ Yes' if backend_port_open else '❌ No'}")
     
-    # Test CORS
-    if not test_cors():
-        print("\n❌ CORS is not working properly!")
-        return
+    if backend_port_open:
+        print("   Testing API endpoints...")
+        api_results = test_backend_api(local_ip, 3002)
+        for endpoint, result in api_results.items():
+            status = "✅" if result["accessible"] else "❌"
+            print(f"   {endpoint}: {status} (Status: {result['status_code']})")
+    else:
+        print("   ⚠️  Backend server is not running or not accessible")
     
-    print("\n" + "=" * 50)
+    print()
     
-    # Test signup endpoint
-    test_signup_endpoint()
+    # Test frontend (port 3003)
+    print("🎨 Testing Frontend Server (Port 3003)...")
+    frontend_port_open = check_port_open(local_ip, 3003)
+    print(f"   Port 3003 open: {'✅ Yes' if frontend_port_open else '❌ No'}")
     
-    print("\n" + "=" * 50)
-    print("🎯 Test completed! Check the results above.")
+    if frontend_port_open:
+        print("   Testing frontend accessibility...")
+        frontend_result = test_frontend(local_ip, 3003)
+        status = "✅" if frontend_result["accessible"] else "❌"
+        print(f"   Frontend accessible: {status} (Status: {frontend_result['status_code']})")
+        print(f"   Content length: {frontend_result['content_length']} bytes")
+    else:
+        print("   ⚠️  Frontend server is not running or not accessible")
+    
+    print()
+    
+    # Summary
+    print("📊 Test Summary:")
+    print(f"   Backend (Port 3002): {'✅ Working' if backend_port_open else '❌ Not Working'}")
+    print(f"   Frontend (Port 3003): {'✅ Working' if frontend_port_open else '❌ Not Working'}")
+    
+    if backend_port_open and frontend_port_open:
+        print()
+        print("🎉 Network access is working!")
+        print(f"🌍 Share this URL with others: http://{local_ip}:3003")
+        print()
+        print("📱 Test from other devices:")
+        print(f"   - Mobile: http://{local_ip}:3003")
+        print(f"   - Other computers: http://{local_ip}:3003")
+        print()
+        print("✅ Ready for testing with other people on your WiFi!")
+    else:
+        print()
+        print("❌ Network access is not working properly.")
+        print("🔧 Troubleshooting steps:")
+        if not backend_port_open:
+            print("   - Start backend server: cd backend && python start_backend.py")
+        if not frontend_port_open:
+            print("   - Start frontend server: cd frontend && npm start")
+        print("   - Configure firewall: configure_network_access.bat")
+        print("   - Check if ports are being used by other applications")
 
 if __name__ == "__main__":
     main()

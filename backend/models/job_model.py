@@ -26,5 +26,9 @@ job_schema = {
     "applicants": [],  # List of applicants
     "match_threshold": 70,  # Minimum match score threshold
     "auto_reject_threshold": 50,  # Auto-reject below this score
+    # Community-related fields
+    "target_communities": [],  # List of community IDs this job is targeting
+    "all_communities": False,  # Whether job is visible to all communities
+    "community_requirements": "",  # Specific community requirements
     "created_at": datetime.utcnow()
 }

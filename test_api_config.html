@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Configuration Test</title>
+</head>
+<body>
+    <h1>🌐 API Configuration Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Simulate the API configuration logic
+        const API_CONFIG = {
+            get BASE_URL() {
+                if (typeof window !== 'undefined') {
+                    const currentHost = window.location.hostname;
+                    const currentPort = window.location.port;
+                    
+                    // If we're on a local network (development), always use backend port 3002
+                    if (currentHost === 'localhost' || currentHost === '127.0.0.1' || 
+                        currentHost.startsWith('192.168.') || currentHost.startsWith('10.') || 
+                        currentHost.startsWith('172.') || currentPort === '3003') {
+                        const backendPort = '3002';
+                        return `http://${currentHost}:${backendPort}`;
+                    } else {
+                        // Production mode - use relative URLs or configured domain
+                        return window.location.origin;
+                    }
+                }
+                return 'http://localhost:3002';
+            }
+        };
+
+        // Test the configuration
+        function testApiConfig() {
+            const results = document.getElementById('results');
+            
+            const testCases = [
+                { hostname: 'localhost', port: '3003', expected: 'http://localhost:3002' },
+                { hostname: '127.0.0.1', port: '3003', expected: 'http://127.0.0.1:3002' },
+                { hostname: '192.168.1.145', port: '3003', expected: 'http://192.168.1.145:3002' },
+                { hostname: '10.0.1.50', port: '3003', expected: 'http://10.0.1.50:3002' },
+                { hostname: '172.20.1.1', port: '3003', expected: 'http://172.20.1.1:3002' },
+                { hostname: 'yourdomain.com', port: '', expected: 'https://yourdomain.com' }
+            ];
+
+            let html = '<h2>🧪 Test Results:</h2>';
+            
+            testCases.forEach(testCase => {
+                // Mock window.location for testing
+                const originalHostname = window.location.hostname;
+                const originalPort = window.location.port;
+                
+                Object.defineProperty(window.location, 'hostname', {
+                    value: testCase.hostname,
+                    writable: true
+                });
+                Object.defineProperty(window.location, 'port', {
+                    value: testCase.port,
+                    writable: true
+                });
+                
+                const actual = API_CONFIG.BASE_URL;
+                const passed = actual === testCase.expected;
+                
+                html += `
+                    <div style="margin: 10px 0; padding: 10px; border: 1px solid ${passed ? 'green' : 'red'}; border-radius: 5px;">
+                        <strong>Test Case:</strong> ${testCase.hostname}:${testCase.port}<br>
+                        <strong>Expected:</strong> ${testCase.expected}<br>
+                        <strong>Actual:</strong> ${actual}<br>
+                        <strong>Status:</strong> ${passed ? '✅ PASS' : '❌ FAIL'}
+                    </div>
+                `;
+                
+                // Restore original values
+                Object.defineProperty(window.location, 'hostname', {
+                    value: originalHostname,
+                    writable: true
+                });
+                Object.defineProperty(window.location, 'port', {
+                    value: originalPort,
+                    writable: true
+                });
+            });
+            
+            // Current configuration
+            html += `
+                <h2>🔧 Current Configuration:</h2>
+                <div style="margin: 10px 0; padding: 10px; border: 1px solid blue; border-radius: 5px;">
+                    <strong>Current Hostname:</strong> ${window.location.hostname}<br>
+                    <strong>Current Port:</strong> ${window.location.port}<br>
+                    <strong>Current Origin:</strong> ${window.location.origin}<br>
+                    <strong>Calculated BASE_URL:</strong> ${API_CONFIG.BASE_URL}
+                </div>
+            `;
+            
+            results.innerHTML = html;
+        }
+
+        // Run the test when page loads
+        window.onload = testApiConfig;
+    </script>
+</body>
+</html>

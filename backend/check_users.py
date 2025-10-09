@@ -1,53 +1,51 @@
 #!/usr/bin/env python3
 """
-Script to check users in the database and verify collections.
+Check users in database
 """
 
-from pymongo import MongoClient
+from utils.db import get_db
 
 def check_users():
-    """Check users in the database"""
-    
+    """Check users in database"""
     try:
-        client = MongoClient('mongodb://localhost:27017/')
-        db = client['resume_matcher']
+        print("🔍 Checking users in database...")
         
-        print("✅ Connected to MongoDB successfully!")
-        print(f"📊 Database: {db.name}")
+        # Get database connection
+        db = get_db()
+        if db is None:
+            print("❌ Failed to connect to database")
+            return
+            
+        users = db["users"]
         
-        # List all collections
-        collections = db.list_collection_names()
-        print(f"\n📁 Collections found: {collections}")
+        # Find users with email containing "kalpit"
+        users_with_kalpit = list(users.find({"email": {"$regex": "kalpit", "$options": "i"}}))
         
-        # Check users collection
-        if 'users' in collections:
-            users_collection = db['users']
-            user_count = users_collection.count_documents({})
-            print(f"\n👥 Users collection has {user_count} users")
+        print(f"📊 Found {len(users_with_kalpit)} users with 'kalpit' in email:")
+        
+        for user in users_with_kalpit:
+            print(f"  📧 Email: {user['email']}")
+            print(f"  🆔 ID: {str(user['_id'])}")
+            print(f"  👤 Name: {user.get('firstName', '')} {user.get('lastName', '')}")
+            print(f"  🏷️ Type: {user.get('userType', 'Unknown')}")
+            print(f"  📅 Created: {user.get('createdAt', 'Unknown')}")
+            print("  ---")
             
-            # Show all users
-            users = list(users_collection.find({}, {
-                'email': 1, 'firstName': 1, 'lastName': 1, 'userType': 1, 'is_verified': 1, 'is_active': 1, '_id': 0
-            }))
-            
-            if users:
-                print("\n📋 Users found:")
-                for user in users:
-                    print(f"  - {user.get('firstName', 'N/A')} {user.get('lastName', 'N/A')} ({user.get('email', 'N/A')}) - {user.get('userType', 'N/A')}")
-            else:
-                print("❌ No users found in users collection")
-        else:
-            print("❌ No 'users' collection found")
-            
-        # Check if there are other user-related collections
-        user_collections = [col for col in collections if 'user' in col.lower()]
-        if user_collections:
-            print(f"\n🔍 Other user-related collections: {user_collections}")
+        # Also check total user count
+        total_users = users.count_documents({})
+        print(f"\n📊 Total users in database: {total_users}")
+        
+        # Show recent users
+        recent_users = list(users.find({}).sort("createdAt", -1).limit(5))
+        print(f"\n📅 Recent 5 users:")
+        
+        for user in recent_users:
+            print(f"  📧 {user['email']} - {user.get('firstName', '')} {user.get('lastName', '')}")
             
     except Exception as e:
-        print(f"❌ Error: {str(e)}")
+        print(f"❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
-    print("🔍 Checking Database Users...")
-    print("=" * 50)
     check_users()

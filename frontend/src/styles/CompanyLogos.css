@@ -1,0 +1,117 @@
+/* Company Logos Section */
+.company_logos_section {
+  padding: var(--spacing-4xl) 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  overflow: hidden;
+  margin: 0;
+}
+
+.company_logos_container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-lg);
+}
+
+.company_logos_title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--neutral-700);
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--accent-orange) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.company_logos_carousel {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.company_logos_track {
+  display: flex;
+  animation: scroll-logos 30s linear infinite;
+  gap: var(--spacing-3xl);
+  align-items: center;
+}
+
+.company_logo_item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.company_logo_item:hover {
+  opacity: 1;
+  transform: scale(1.05);
+}
+
+.company_logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary-600) 0%, var(--accent-orange) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: var(--spacing-sm);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.company_logo_item:hover .company_logo {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.company_name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--neutral-600);
+  text-align: center;
+  white-space: nowrap;
+}
+
+@keyframes scroll-logos {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Pause animation on hover */
+.company_logos_carousel:hover .company_logos_track {
+  animation-play-state: paused;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .company_logos_title {
+    font-size: 1.25rem;
+  }
+  
+  .company_logo_item {
+    min-width: 100px;
+  }
+  
+  .company_logo {
+    width: 50px;
+    height: 50px;
+    font-size: 1.25rem;
+  }
+  
+  .company_name {
+    font-size: 0.75rem;
+  }
+}

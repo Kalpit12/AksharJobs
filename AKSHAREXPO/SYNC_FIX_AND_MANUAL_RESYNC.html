@@ -1,0 +1,271 @@
+<!-- ========================================
+     COPY THIS CODE INTO referral.html 
+     Add it after the shareVerificationModal div
+     ======================================== -->
+
+<!-- Sync Status Banner -->
+<div id="syncStatusBanner" class="sync-status-banner" style="display: none;">
+    <div class="sync-status-content">
+        <div class="sync-status-icon">⚠️</div>
+        <div class="sync-status-text">
+            <strong>Data Mismatch Detected!</strong>
+            <p>You have <span id="localShareCount">0</span> shares locally, but Google Sheets only shows <span id="sheetsShareCount">0</span>.</p>
+        </div>
+        <button onclick="manualResyncToSheets()" class="sync-button">
+            🔄 Re-sync to Google Sheets
+        </button>
+        <button onclick="closeSyncBanner()" class="close-sync-banner">✕</button>
+    </div>
+</div>
+
+<style>
+.sync-status-banner {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #ff9a56 0%, #ff6a00 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 10000;
+    max-width: 600px;
+    width: 90%;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+    }
+}
+
+.sync-status-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+}
+
+.sync-status-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.sync-status-text {
+    flex-grow: 1;
+}
+
+.sync-status-text strong {
+    font-size: 18px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.sync-status-text p {
+    margin: 0;
+    font-size: 14px;
+    opacity: 0.95;
+}
+
+.sync-button {
+    background: white;
+    color: #ff6a00;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.sync-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+.close-sync-banner {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    line-height: 1;
+}
+
+.close-sync-banner:hover {
+    opacity: 0.7;
+}
+</style>
+
+<script>
+// ========================================
+// COPY THESE FUNCTIONS INTO referral.html
+// Add them in the <script> section
+// ========================================
+
+// Check sync status and show banner if mismatch
+async function checkSyncStatus() {
+    const userData = getUserData();
+    const userEmail = userData.email || getCurrentUserEmail();
+    
+    if (!userEmail || userEmail === 'anonymous@example.com') {
+        return;
+    }
+    
+    // Count local shares
+    const shareHistory = getUserShareHistory(userEmail);
+    let localShareCount = 0;
+    const platforms = ['whatsapp', 'email', 'linkedin', 'twitter', 'facebook', 'telegram', 'sms', 'native'];
+    
+    platforms.forEach(platform => {
+        if (shareHistory[platform] && Array.isArray(shareHistory[platform])) {
+            localShareCount += shareHistory[platform].length;
+        }
+    });
+    
+    // Fetch Google Sheets count
+    try {
+        const apiUrl = `${REFERRAL_WEBHOOK_URL}?action=get_referrals&email=${encodeURIComponent(userEmail)}`;
+        const response = await fetch(apiUrl, { method: 'GET', mode: 'cors' }).catch(() => null);
+        
+        if (response && response.ok) {
+            const data = await response.json();
+            const sheetsShareCount = (data.records && data.records.length) || 0;
+            
+            console.log('🔍 Sync Check:', {
+                localShares: localShareCount,
+                sheetsShares: sheetsShareCount,
+                mismatch: localShareCount !== sheetsShareCount
+            });
+            
+            // Show banner if mismatch (local has more than sheets)
+            if (localShareCount > sheetsShareCount && localShareCount > 0) {
+                document.getElementById('localShareCount').textContent = localShareCount;
+                document.getElementById('sheetsShareCount').textContent = sheetsShareCount;
+                document.getElementById('syncStatusBanner').style.display = 'block';
+            }
+        }
+    } catch (error) {
+        console.log('Could not check sync status:', error);
+    }
+}
+
+// Manual re-sync all local shares to Google Sheets
+async function manualResyncToSheets() {
+    const userData = getUserData();
+    const userEmail = userData.email || getCurrentUserEmail();
+    
+    if (!userEmail || userEmail === 'anonymous@example.com') {
+        showNotification('❌ Please login first', 'error');
+        return;
+    }
+    
+    const syncButton = document.querySelector('.sync-button');
+    syncButton.textContent = '🔄 Syncing...';
+    syncButton.disabled = true;
+    
+    // Get all local shares
+    const shareHistory = getUserShareHistory(userEmail);
+    const platforms = ['whatsapp', 'email', 'linkedin', 'twitter', 'facebook', 'telegram', 'sms', 'native'];
+    
+    let totalShares = 0;
+    let sentCount = 0;
+    
+    // Send each share to Google Sheets
+    for (const platform of platforms) {
+        if (shareHistory[platform] && Array.isArray(shareHistory[platform])) {
+            for (const share of shareHistory[platform]) {
+                totalShares++;
+                
+                const shareData = {
+                    type: 'share',
+                    action: 'referral_share',
+                    referrerName: userData.fullName || userData.name || 'Anonymous',
+                    referrerEmail: userEmail,
+                    referrerPhone: userData.phone || '',
+                    referrerRole: userData.role || 'unknown',
+                    platform: platform,
+                    coinsEarned: 3,
+                    shareCoins: totalShares * 3,
+                    referralBonusCoins: 0,
+                    totalCoins: totalShares * 3,
+                    totalShares: totalShares,
+                    platformShareCount: shareHistory[platform].length,
+                    referralCount: 0,
+                    timestamp: share.timestamp || new Date().toISOString(),
+                    referralCode: 'AKSHAR2025',
+                    source: 'manual_resync'
+                };
+                
+                // Send to Google Sheets
+                await sendShareDataWithRetry(shareData);
+                sentCount++;
+                
+                // Update progress
+                syncButton.textContent = `🔄 Syncing... ${sentCount}/${totalShares}`;
+                
+                // Small delay between sends
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+    }
+    
+    // Done!
+    syncButton.textContent = `✅ Synced ${sentCount} shares!`;
+    
+    setTimeout(() => {
+        closeSyncBanner();
+        showNotification(`✅ Successfully synced ${sentCount} shares to Google Sheets!`, 'success');
+        
+        // Reload page to show updated data
+        setTimeout(() => {
+            window.location.reload();
+        }, 1500);
+    }, 2000);
+}
+
+// Send share data with retry logic
+async function sendShareDataWithRetry(data) {
+    const params = new URLSearchParams(data);
+    const url = `${REFERRAL_WEBHOOK_URL}?${params.toString()}`;
+    
+    // Try multiple methods
+    try {
+        // Method 1: Fetch
+        await fetch(url, { method: 'GET', mode: 'no-cors', cache: 'no-cache' });
+        
+        // Method 2: Image pixel
+        const img = new Image();
+        img.src = url + '&_t=' + Date.now();
+        
+        console.log('✅ Sent share to Google Sheets:', data.platform);
+    } catch (error) {
+        console.log('⚠️ Error sending share:', error);
+    }
+}
+
+// Close sync banner
+function closeSyncBanner() {
+    document.getElementById('syncStatusBanner').style.display = 'none';
+}
+
+// Check sync status on page load
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        checkSyncStatus();
+    }, 2000); // Check after 2 seconds
+});
+</script>
+

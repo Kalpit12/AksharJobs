@@ -76,7 +76,7 @@ const Contact = () => {
         
         <div className="contact-footer">
           <p>We typically respond within 24 hours during business days.</p>
-          <p>Thank you for choosing RocketJobs!</p>
+          <p>Thank you for choosing AksharJobs!</p>
         </div>
       </div>
     </div>

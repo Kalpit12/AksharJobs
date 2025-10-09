@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUserTie, faBriefcase, faRocket } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
+import { buildApiUrl } from '../config/api';
 import '../styles/OAuthRoleSelection.css';
 
 const OAuthRoleSelection = () => {
@@ -35,7 +36,7 @@ const OAuthRoleSelection = () => {
     setIsLoading(true);
     try {
       // Call backend to complete OAuth signup with selected role
-      const response = await fetch('http://localhost:3002/api/auth/oauth/signup', {
+      const response = await fetch(buildApiUrl('/api/auth/oauth/signup'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,8 +58,14 @@ const OAuthRoleSelection = () => {
         localStorage.setItem('userFirstName', oauthData.first_name);
         localStorage.setItem('userLastName', oauthData.last_name);
         
-        // For new OAuth users, always go to profile setup first
-        navigate('/user-profile-setup');
+        // For new OAuth users, redirect based on role
+        if (role === 'jobSeeker') {
+          // Job seekers go directly to upload resume page
+          navigate('/modern-upload');
+        } else {
+          // Recruiters go to profile setup
+          navigate('/user-profile-setup');
+        }
       } else {
         alert(result.message || 'Signup failed. Please try again.');
       }

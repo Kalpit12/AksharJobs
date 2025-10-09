@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration & Referral Debug Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f3f4f6;
+        }
+        .test-section {
+            background: white;
+            padding: 30px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .test-button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .success { background: #10b981; }
+        .success:hover { background: #059669; }
+        .warning { background: #f59e0b; }
+        .warning:hover { background: #d97706; }
+        .result {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .result.success { border-color: #10b981; background: #f0fdf4; }
+        .result.error { border-color: #ef4444; background: #fef2f2; }
+        .log-line { padding: 5px 0; border-bottom: 1px solid #e2e8f0; }
+        .log-success { color: #10b981; }
+        .log-error { color: #ef4444; }
+        .log-info { color: #3b82f6; }
+        .log-warning { color: #f59e0b; }
+        .badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-error { background: #fee2e2; color: #991b1b; }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Registration & Referral Debug Test</h1>
+    <p style="color: #666; font-size: 1.1rem;">Diagnose why registrations and referrals aren't being stored in Google Sheets</p>
+
+    <div class="test-section">
+        <h2>1️⃣ Test Registration Data Flow</h2>
+        <p>Test the complete registration flow with multiple roles</p>
+        <button class="test-button" onclick="testRegistration()">Test Registration</button>
+        <button class="test-button success" onclick="testMultipleRoles()">Test Multiple Roles</button>
+        <div id="regResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2️⃣ Test Referral Tracking</h2>
+        <p>Test referral tracking when someone registers via referral link</p>
+        <button class="test-button" onclick="testReferralTracking()">Test Referral Tracking</button>
+        <div id="refResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3️⃣ Test Google Sheets API Response</h2>
+        <p>Check what the API returns for different request types</p>
+        <button class="test-button" onclick="testAPIResponse()">Test API Response</button>
+        <button class="test-button warning" onclick="testRegistrationEndpoint()">Test Registration Endpoint</button>
+        <div id="apiResult"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4️⃣ Comprehensive Test</h2>
+        <p>Run all tests to identify the issue</p>
+        <button class="test-button success" onclick="runAllTests()">🚀 Run All Tests</button>
+        <div id="allResults"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const logClass = `log-${type}`;
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            element.innerHTML += `<div class="log-line ${logClass}">${icon} ${message}</div>`;
+        }
+
+        function showResult(elementId, data, isSuccess = true) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = `<div class="result ${isSuccess ? 'success' : 'error'}">${
+                typeof data === 'object' ? JSON.stringify(data, null, 2) : data
+            }</div>`;
+        }
+
+        async function testRegistration() {
+            const resultDiv = document.getElementById('regResult');
+            resultDiv.innerHTML = '<div class="result">Running test...</div>';
+            
+            try {
+                const testData = {
+                    fullName: 'Test User ' + Date.now(),
+                    email: `test${Date.now()}@example.com`,
+                    phone: '1234567890',
+                    roles: 'job_seeker',
+                    roleCount: '1',
+                    type: 'registration',
+                    timestamp: new Date().toISOString()
+                };
+                
+                log('regResult', 'Preparing test registration...', 'info');
+                log('regResult', 'Test data: ' + JSON.stringify(testData), 'info');
+                
+                const params = new URLSearchParams(testData);
+                const url = `${API_URL}?${params.toString()}`;
+                
+                log('regResult', 'Sending to: ' + url, 'info');
+                
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                const result = await response.json();
+                
+                log('regResult', 'Response received', 'success');
+                log('regResult', JSON.stringify(result, null, 2), 'info');
+                
+                if (result.success) {
+                    log('regResult', '✅ Registration successful!', 'success');
+                } else if (result.error) {
+                    log('regResult', '❌ Error: ' + result.error, 'error');
+                } else {
+                    log('regResult', '⚠️ Unexpected response', 'warning');
+                }
+                
+            } catch (error) {
+                log('regResult', '❌ Fetch error: ' + error.message, 'error');
+            }
+        }
+
+        async function testMultipleRoles() {
+            const resultDiv = document.getElementById('regResult');
+            resultDiv.innerHTML = '<div class="result">Running multiple roles test...</div>';
+            
+            try {
+                const testData = {
+                    fullName: 'Multi Role User ' + Date.now(),
+                    email: `multirole${Date.now()}@example.com`,
+                    phone: '9876543210',
+                    roles: 'job_seeker, mentor, trainer',
+                    roleCount: '3',
+                    type: 'registration',
+                    timestamp: new Date().toISOString()
+                };
+                
+                log('regResult', 'Testing multiple roles registration...', 'info');
+                log('regResult', 'Roles: ' + testData.roles, 'info');
+                
+                const params = new URLSearchParams(testData);
+                const url = `${API_URL}?${params.toString()}`;
+                
+                log('regResult', 'URL: ' + url, 'info');
+                
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                const result = await response.json();
+                
+                log('regResult', 'Response: ' + JSON.stringify(result, null, 2), result.success ? 'success' : 'error');
+                
+                if (result.success) {
+                    log('regResult', '✅ Multiple roles registration successful!', 'success');
+                    log('regResult', '✅ Should be saved to 3 role sheets', 'success');
+                } else {
+                    log('regResult', '❌ Error: ' + (result.error || 'Unknown'), 'error');
+                }
+                
+            } catch (error) {
+                log('regResult', '❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testReferralTracking() {
+            const resultDiv = document.getElementById('refResult');
+            resultDiv.innerHTML = '<div class="result">Running referral test...</div>';
+            
+            try {
+                const referralData = {
+                    type: 'referral',
+                    referrerName: 'Test Referrer',
+                    referrerEmail: 'referrer@example.com',
+                    referrerPhone: '1111111111',
+                    referrerRole: 'job_seeker',
+                    referredEmail: 'referred@example.com',
+                    referredName: 'Referred User',
+                    platform: 'registration',
+                    timestamp: new Date().toISOString(),
+                    referralCode: 'AKSHAR2025',
+                    source: 'test'
+                };
+                
+                log('refResult', 'Testing referral tracking...', 'info');
+                log('refResult', 'Referrer: ' + referralData.referrerEmail, 'info');
+                log('refResult', 'Referred: ' + referralData.referredEmail, 'info');
+                
+                const params = new URLSearchParams(referralData);
+                const url = `${API_URL}?${params.toString()}`;
+                
+                log('refResult', 'URL: ' + url, 'info');
+                
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                const result = await response.json();
+                
+                log('refResult', 'Response: ' + JSON.stringify(result, null, 2), result.success ? 'success' : 'error');
+                
+                if (result.success) {
+                    log('refResult', '✅ Referral tracking successful!', 'success');
+                } else {
+                    log('refResult', '❌ Error: ' + (result.error || 'Unknown'), 'error');
+                }
+                
+            } catch (error) {
+                log('refResult', '❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testAPIResponse() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<div class="result">Testing API...</div>';
+            
+            try {
+                // Test basic API
+                log('apiResult', 'Testing basic API...', 'info');
+                const response = await fetch(API_URL, { method: 'GET' });
+                const data = await response.json();
+                
+                log('apiResult', 'Basic API Response:', 'success');
+                log('apiResult', JSON.stringify(data, null, 2), 'info');
+                
+            } catch (error) {
+                log('apiResult', '❌ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testRegistrationEndpoint() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<div class="result">Testing registration endpoint...</div>';
+            
+            try {
+                const testData = {
+                    fullName: 'API Test User',
+                    email: 'apitest@example.com',
+                    phone: '5555555555',
+                    roles: 'job_seeker, mentor',
+                    roleCount: '2',
+                    type: 'registration',
+                    timestamp: new Date().toISOString()
+                };
+                
+                log('apiResult', 'Test Data:', 'info');
+                log('apiResult', JSON.stringify(testData, null, 2), 'info');
+                
+                const params = new URLSearchParams(testData);
+                const url = `${API_URL}?${params.toString()}`;
+                
+                log('apiResult', 'Full URL:', 'info');
+                log('apiResult', url, 'info');
+                
+                log('apiResult', 'Sending request...', 'info');
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                
+                log('apiResult', 'Response Status: ' + response.status, response.ok ? 'success' : 'error');
+                
+                const result = await response.json();
+                log('apiResult', 'Response Data:', result.success ? 'success' : 'error');
+                log('apiResult', JSON.stringify(result, null, 2), result.success ? 'success' : 'error');
+                
+                if (result.success) {
+                    log('apiResult', '🎉 SUCCESS! Registration should be in Google Sheets!', 'success');
+                    log('apiResult', '📊 Check: https://docs.google.com/spreadsheets/d/14gfIXPlZQGuYYAWiW1RHlcDlBf_Tm63JMRrJ-4pyqwk/', 'success');
+                } else {
+                    log('apiResult', '⚠️ Registration failed: ' + (result.error || 'Unknown error'), 'warning');
+                }
+                
+            } catch (error) {
+                log('apiResult', '❌ Fetch Error: ' + error.message, 'error');
+                log('apiResult', 'This might be a CORS issue or network problem', 'warning');
+            }
+        }
+
+        async function runAllTests() {
+            const resultDiv = document.getElementById('allResults');
+            resultDiv.innerHTML = '<div class="result">Running all tests...</div>';
+            
+            log('allResults', '🧪 Starting comprehensive test suite...', 'info');
+            log('allResults', '═══════════════════════════════════════', 'info');
+            
+            // Test 1: Basic API
+            log('allResults', 'Test 1: Basic API Connection', 'info');
+            try {
+                const response1 = await fetch(API_URL);
+                const data1 = await response1.json();
+                log('allResults', '✅ API is responding', 'success');
+                log('allResults', 'Message: ' + data1.message, 'info');
+            } catch (error) {
+                log('allResults', '❌ API connection failed: ' + error.message, 'error');
+            }
+            
+            log('allResults', '═══════════════════════════════════════', 'info');
+            
+            // Test 2: Single Role Registration
+            log('allResults', 'Test 2: Single Role Registration', 'info');
+            try {
+                const testData2 = {
+                    fullName: 'Single Role Test',
+                    email: `single${Date.now()}@test.com`,
+                    phone: '1111111111',
+                    roles: 'job_seeker',
+                    roleCount: '1',
+                    type: 'registration',
+                    timestamp: new Date().toISOString()
+                };
+                
+                const params2 = new URLSearchParams(testData2);
+                const url2 = `${API_URL}?${params2.toString()}`;
+                const response2 = await fetch(url2);
+                const data2 = await response2.json();
+                
+                if (data2.success) {
+                    log('allResults', '✅ Single role registration: SUCCESS', 'success');
+                } else {
+                    log('allResults', '❌ Single role registration: FAILED - ' + (data2.error || 'Unknown'), 'error');
+                }
+            } catch (error) {
+                log('allResults', '❌ Single role test error: ' + error.message, 'error');
+            }
+            
+            log('allResults', '═══════════════════════════════════════', 'info');
+            
+            // Test 3: Multiple Roles Registration
+            log('allResults', 'Test 3: Multiple Roles Registration', 'info');
+            try {
+                const testData3 = {
+                    fullName: 'Multi Role Test',
+                    email: `multi${Date.now()}@test.com`,
+                    phone: '2222222222',
+                    roles: 'job_seeker, mentor, trainer',
+                    roleCount: '3',
+                    type: 'registration',
+                    timestamp: new Date().toISOString()
+                };
+                
+                const params3 = new URLSearchParams(testData3);
+                const url3 = `${API_URL}?${params3.toString()}`;
+                const response3 = await fetch(url3);
+                const data3 = await response3.json();
+                
+                if (data3.success) {
+                    log('allResults', '✅ Multiple roles registration: SUCCESS', 'success');
+                    log('allResults', '✅ Should be in 3 role sheets', 'success');
+                } else {
+                    log('allResults', '❌ Multiple roles registration: FAILED - ' + (data3.error || 'Unknown'), 'error');
+                }
+            } catch (error) {
+                log('allResults', '❌ Multiple roles test error: ' + error.message, 'error');
+            }
+            
+            log('allResults', '═══════════════════════════════════════', 'info');
+            
+            // Test 4: Referral Tracking
+            log('allResults', 'Test 4: Referral Tracking', 'info');
+            try {
+                const testData4 = {
+                    type: 'referral',
+                    referrerName: 'Test Referrer',
+                    referrerEmail: 'referrer@test.com',
+                    referrerPhone: '3333333333',
+                    referrerRole: 'job_seeker',
+                    referredEmail: `referred${Date.now()}@test.com`,
+                    referredName: 'Referred User',
+                    platform: 'registration',
+                    timestamp: new Date().toISOString(),
+                    referralCode: 'AKSHAR2025',
+                    source: 'test'
+                };
+                
+                const params4 = new URLSearchParams(testData4);
+                const url4 = `${API_URL}?${params4.toString()}`;
+                const response4 = await fetch(url4);
+                const data4 = await response4.json();
+                
+                if (data4.success) {
+                    log('allResults', '✅ Referral tracking: SUCCESS', 'success');
+                } else {
+                    log('allResults', '❌ Referral tracking: FAILED - ' + (data4.error || 'Unknown'), 'error');
+                }
+            } catch (error) {
+                log('allResults', '❌ Referral test error: ' + error.message, 'error');
+            }
+            
+            log('allResults', '═══════════════════════════════════════', 'info');
+            log('allResults', '🏁 All tests completed!', 'success');
+            log('allResults', '📊 Check Google Sheets to verify data was stored', 'info');
+            log('allResults', '🔗 https://docs.google.com/spreadsheets/d/14gfIXPlZQGuYYAWiW1RHlcDlBf_Tm63JMRrJ-4pyqwk/', 'info');
+        }
+    </script>
+</body>
+</html>
+

@@ -18,6 +18,9 @@ import { faGoogle as faGoogleBrand, faLinkedin as faLinkedinBrand } from '@forta
 import { useAuth } from '../context/AuthContext';
 import { buildApiUrl } from '../config/api';
 import { oauthApi } from '../api/oauthApi';
+import { FadeInUp, SlideIn, ScaleIn, StaggerChildren } from '../components/animations';
+import { motion } from 'framer-motion';
+import CommunitySelector from '../components/CommunitySelector';
 import '../styles/Signup.css';
 
 const SignupPage = () => {
@@ -32,15 +35,41 @@ const SignupPage = () => {
     confirmPassword: '',
     accountType: 'jobSeeker',
     company: '',
+    communities: [],
+    primaryCommunity: '',
     agreeToTerms: false
   });
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [signupError, setSignupError] = useState('');
   // Verification will be implemented later with real email/SMS services
+
+  // Calculate password strength
+  const calculatePasswordStrength = (password) => {
+    let score = 0;
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /(?=.*[a-z])/.test(password),
+      uppercase: /(?=.*[A-Z])/.test(password),
+      number: /(?=.*\d)/.test(password),
+      special: /(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(password)
+    };
+    
+    Object.values(checks).forEach(check => {
+      if (check) score++;
+    });
+    
+    if (score <= 2) return { strength: 'Weak', color: '#ef4444', width: '20%' };
+    if (score <= 3) return { strength: 'Fair', color: '#f59e0b', width: '40%' };
+    if (score <= 4) return { strength: 'Good', color: '#3b82f6', width: '60%' };
+    return { strength: 'Strong', color: '#10b981', width: '100%' };
+  };
+
+  const passwordStrength = calculatePasswordStrength(formData.password);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -56,6 +85,14 @@ const SignupPage = () => {
         [name]: ''
       }));
     }
+  };
+
+  const handleCommunityChange = (selectedCommunities) => {
+    setFormData(prev => ({
+      ...prev,
+      communities: selectedCommunities,
+      primaryCommunity: selectedCommunities.length > 0 ? selectedCommunities[0] : ''
+    }));
   };
 
   const validateForm = () => {
@@ -94,8 +131,8 @@ const SignupPage = () => {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
-    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
-      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(formData.password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character';
     }
 
     // Confirm Password validation
@@ -108,6 +145,11 @@ const SignupPage = () => {
     // Company validation for recruiters
     if (formData.accountType === 'recruiter' && !formData.company.trim()) {
       newErrors.company = 'Company name is required for recruiters';
+    }
+
+    // Community validation
+    if (!formData.communities || formData.communities.length === 0) {
+      newErrors.communities = 'Please select at least one community';
     }
 
     // Terms agreement validation
@@ -138,7 +180,9 @@ const SignupPage = () => {
         email: formData.email,
         password: formData.password,
         phoneNumber: formData.phone,
-        companyName: formData.accountType === 'recruiter' ? formData.company : ''
+        companyName: formData.accountType === 'recruiter' ? formData.company : '',
+        communities: formData.communities,
+        primary_community: formData.primaryCommunity
       };
       
       console.log('Sending signup request:', requestBody);
@@ -155,10 +199,76 @@ const SignupPage = () => {
       console.log('Signup response:', response.status, data);
 
       if (response.ok) {
-        // Account created successfully - redirect to login
+        // Account created successfully
         setSignupError('');
-        alert('Account created successfully! Please check your email for verification and then login.');
-        navigate('/login');
+        
+        if (formData.accountType === 'recruiter') {
+          // For recruiters, store the token and redirect to comprehensive recruiter registration form
+          if (data.token) {
+            // Store authentication data
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('role', data.role);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userFirstName', data.firstName);
+            localStorage.setItem('userLastName', data.lastName);
+          }
+          
+          navigate('/recruiter-registration', { 
+            state: { 
+              userData: {
+                email: formData.email,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                companyName: formData.company
+              }
+            } 
+          });
+        } else if (formData.accountType === 'intern') {
+          // For interns, store the token and redirect to intern details form
+          if (data.token) {
+            // Store authentication data
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('role', data.role);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userFirstName', data.firstName);
+            localStorage.setItem('userLastName', data.lastName);
+          }
+          
+          navigate('/intern-details', { 
+            state: { 
+              userData: {
+                email: formData.email,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                userId: data.userId
+              }
+            } 
+          });
+        } else {
+          // For job seekers, store token and redirect to comprehensive registration form
+          if (data.token) {
+            // Store authentication data
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('role', data.role);
+            localStorage.setItem('userId', data.userId);
+            localStorage.setItem('userEmail', data.email);
+            localStorage.setItem('userFirstName', data.firstName);
+            localStorage.setItem('userLastName', data.lastName);
+          }
+          
+          navigate('/jobseeker-registration', { 
+            state: { 
+              userData: {
+                email: formData.email,
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                userId: data.userId
+              }
+            } 
+          });
+        }
       } else {
         console.error('Signup failed:', data);
         setSignupError(data.error || 'Failed to create account. Please try again.');
@@ -203,7 +313,8 @@ const SignupPage = () => {
   };
 
   const renderForm = () => (
-    <form className="signup_form" onSubmit={handleSubmit}>
+    <FadeInUp delay={0.4}>
+      <form className="signup_form" onSubmit={handleSubmit}>
       {signupError && (
         <div className="error_message">
           {signupError}
@@ -328,6 +439,23 @@ const SignupPage = () => {
               </div>
             </span>
           </label>
+
+          <label className="account_type_option">
+            <input
+              type="radio"
+              name="accountType"
+              value="intern"
+              checked={formData.accountType === 'intern'}
+              onChange={handleInputChange}
+            />
+            <span className="option_content">
+              <div className="option_icon">🎓</div>
+              <div className="option_text">
+                <h4>Intern</h4>
+                <p>Start your career journey with internship opportunities</p>
+              </div>
+            </span>
+          </label>
         </div>
       </div>
 
@@ -353,6 +481,27 @@ const SignupPage = () => {
         </div>
       )}
 
+      {/* Community Selection */}
+      <div className="form_row">
+        <div className="form_group">
+                <CommunitySelector
+                    selectedCommunities={formData.communities}
+                    onSelectionChange={handleCommunityChange}
+                    multiple={true}
+                    showDescription={false}
+                    placeholder="Select your communities..."
+                    className={`compact ${errors.communities ? 'error' : ''}`}
+                />
+          {errors.communities && (
+            <span className="error_text">{errors.communities}</span>
+          )}
+          <div className="form_help_text">
+            <span className="help_icon">💡</span>
+            <span>Select your religious/ethnic community. After signup, a verification email will be sent to community leaders for approval.</span>
+          </div>
+        </div>
+      </div>
+
       {/* Password Fields */}
       <div className="form_row">
         <div className="form_group">
@@ -369,6 +518,13 @@ const SignupPage = () => {
               placeholder="Create a strong password"
               value={formData.password}
               onChange={handleInputChange}
+              onFocus={() => setShowPasswordRequirements(true)}
+              onBlur={() => {
+                // Keep requirements visible if there's an error or if password is being typed
+                if (!errors.password && formData.password.length === 0) {
+                  setShowPasswordRequirements(false);
+                }
+              }}
             />
             <button
               type="button"
@@ -378,6 +534,48 @@ const SignupPage = () => {
               <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
             </button>
           </div>
+          
+          {/* Password Feedback Box - Only show when focused or has content */}
+          {showPasswordRequirements && (
+            <div className="password_feedback_box">
+              <h4 className="password_strength_title" style={{ color: passwordStrength.color }}>
+                {passwordStrength.strength}
+              </h4>
+              <div className="strength_bar">
+                <div 
+                  className="strength_fill" 
+                  style={{ 
+                    width: passwordStrength.width, 
+                    backgroundColor: passwordStrength.color 
+                  }}
+                ></div>
+              </div>
+              
+              <ul className="requirements_list">
+                <li className={`requirement_item ${formData.password.length >= 8 ? 'valid' : ''}`}>
+                  <FontAwesomeIcon icon={formData.password.length >= 8 ? faCheck : faTimes} />
+                  Is at least 8 characters long
+                </li>
+                <li className={`requirement_item ${/(?=.*[a-z])/.test(formData.password) ? 'valid' : ''}`}>
+                  <FontAwesomeIcon icon={/(?=.*[a-z])/.test(formData.password) ? faCheck : faTimes} />
+                  Contains a lowercase letter (a-z)
+                </li>
+                <li className={`requirement_item ${/(?=.*[A-Z])/.test(formData.password) ? 'valid' : ''}`}>
+                  <FontAwesomeIcon icon={/(?=.*[A-Z])/.test(formData.password) ? faCheck : faTimes} />
+                  Contains an uppercase letter (A-Z)
+                </li>
+                <li className={`requirement_item ${/(?=.*\d)/.test(formData.password) ? 'valid' : ''}`}>
+                  <FontAwesomeIcon icon={/(?=.*\d)/.test(formData.password) ? faCheck : faTimes} />
+                  Contains a number (0-9)
+                </li>
+                <li className={`requirement_item ${/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(formData.password) ? 'valid' : ''}`}>
+                  <FontAwesomeIcon icon={/(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])/.test(formData.password) ? faCheck : faTimes} />
+                  Contains a special character (!, @, #, etc.)
+                </li>
+              </ul>
+            </div>
+          )}
+          
           {errors.password && (
             <span className="error_text">{errors.password}</span>
           )}
@@ -434,10 +632,12 @@ const SignupPage = () => {
       </div>
 
       {/* Submit Button */}
-      <button 
+      <motion.button 
         type="submit" 
         className="signup_submit_btn"
         disabled={isLoading}
+        whileHover={{ scale: 1.02, y: -2 }}
+        whileTap={{ scale: 0.98 }}
       >
         {isLoading ? (
           <div className="loading_spinner">
@@ -447,8 +647,9 @@ const SignupPage = () => {
         ) : (
           'Create Account'
         )}
-      </button>
+      </motion.button>
     </form>
+    </FadeInUp>
   );
 
   // Verification components will be implemented later
@@ -460,11 +661,15 @@ const SignupPage = () => {
         <div className="header_container">
           <div className="logo_section">
             <div className="logo_icon">
-              <FontAwesomeIcon icon={faRocket} />
+              <img src="/AK_logo.jpg" alt="AksharJobs Logo" onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }} />
+              <FontAwesomeIcon icon={faRocket} style={{ display: 'none' }} />
             </div>
             <div className="logo_text">
-              <div className="logo_title">RocketJobs</div>
-              <div className="logo_subtitle">AI-Powered Job Matching</div>
+              <div className="logo_title">AksharJobs</div>
+              <div className="logo_subtitle">Where Opportunity Meets Talent</div>
             </div>
           </div>
           
@@ -483,37 +688,45 @@ const SignupPage = () => {
           <div className="signup_content">
             {/* Left Side - Form/Verification */}
             <div className="signup_form_section">
-              <div className="signup_form_container">
-                                 <div className="signup_header_content">
-                   <h1 className="signup_title">Join RocketJobs</h1>
-                   <p className="signup_subtitle">
-                     Create your account and start your career journey with AI-powered job matching
-                   </p>
-                 </div>
+              <SlideIn direction="left" delay={0.2}>
+                <div className="signup_form_container">
+                  <FadeInUp>
+                    <div className="signup_header_content">
+                      <h1 className="signup_title">Join AksharJobs</h1>
+                      <p className="signup_subtitle">
+                        Create your account and start your career journey with AI-powered job matching
+                      </p>
+                    </div>
+                  </FadeInUp>
 
                  {/* Social Signup Buttons */}
-                 <div className="social_signup_section">
-                   <button 
+                 <StaggerChildren staggerDelay={0.1}>
+                   <motion.button 
                      className="social_signup_btn google"
                      onClick={() => handleSocialSignup('google')}
+                     whileHover={{ scale: 1.02, y: -2 }}
+                     whileTap={{ scale: 0.98 }}
                    >
                      <FontAwesomeIcon icon={faGoogleBrand} />
                      Continue with Google
-                   </button>
-                   <button 
+                   </motion.button>
+                   <motion.button 
                      className="social_signup_btn linkedin"
                      onClick={() => handleSocialSignup('linkedin')}
+                     whileHover={{ scale: 1.02, y: -2 }}
+                     whileTap={{ scale: 0.98 }}
                    >
                      <FontAwesomeIcon icon={faLinkedinBrand} />
                      Continue with LinkedIn
-                   </button>
-                 </div>
+                   </motion.button>
+                 </StaggerChildren>
 
                  <div className="divider">
                    <span>or</span>
                  </div>
 
                  {renderForm()}
+
 
                  {/* Sign In Link */}
                  <div className="signin_prompt">
@@ -524,14 +737,19 @@ const SignupPage = () => {
                      </Link>
                    </p>
                  </div>
-              </div>
+               </div>
+               </SlideIn>
             </div>
 
             {/* Right Side - Features */}
-            <div className="signup_features_section">
-              <div className="features_content">
-                <h2 className="features_title">Why Choose RocketJobs?</h2>
-                <div className="features_list">
+            <SlideIn direction="right" delay={0.3}>
+              <div className="signup_features_section">
+                <div className="features_content">
+                  <FadeInUp>
+                    <h2 className="features_title">Why Choose AksharJobs?</h2>
+                  </FadeInUp>
+                  <StaggerChildren staggerDelay={0.15}>
+                    <div className="features_list">
                   <div className="feature_item">
                     <div className="feature_icon">
                       <FontAwesomeIcon icon={faRocket} />
@@ -561,9 +779,11 @@ const SignupPage = () => {
                       <p>Your data is protected with enterprise-grade security and privacy controls</p>
                     </div>
                   </div>
+                    </div>
+                  </StaggerChildren>
                 </div>
               </div>
-            </div>
+            </SlideIn>
           </div>
         </div>
       </main>

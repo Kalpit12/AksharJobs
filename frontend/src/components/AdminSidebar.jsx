@@ -8,7 +8,8 @@ import {
   faCreditCard, 
   faChartBar, 
   faCog, 
-  faShieldAlt 
+  faShieldAlt,
+  faFileUpload
 } from '@fortawesome/free-solid-svg-icons';
 import '../styles/AdminSidebar.css';
 
@@ -49,6 +50,12 @@ const AdminSidebar = ({ activeView, setActiveView }) => {
       label: 'User Management',
       icon: faUsers,
       description: 'Manage User Accounts'
+    },
+    {
+      id: 'bulk-import',
+      label: 'Bulk Import',
+      icon: faFileUpload,
+      description: 'Import Users from CSV/Excel'
     },
     {
       id: 'settings',

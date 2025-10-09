@@ -9,10 +9,10 @@ const About = () => {
         <div className="hero_section">
           <h1>About Us</h1>
           <p className="hero_subtitle">
-            Welcome to <strong>RocketJobs</strong> – your intelligent career companion!
+            Welcome to <strong>AksharJobs</strong> – your intelligent career companion!
           </p>
           <p className="hero_description">
-            At RocketJobs, we are revolutionizing the recruitment landscape through the power of Artificial Intelligence. 
+            At AksharJobs, we are revolutionizing the recruitment landscape through the power of Artificial Intelligence. 
             Our platform is designed to bridge the gap between job seekers and recruiters by offering seamless, smart, 
             and secure matchmaking of resumes with job descriptions.
           </p>

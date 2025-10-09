@@ -109,10 +109,10 @@ def evaluate_application(resume_list, job_data):
     certificates = resume.get('certificates', [])
 
     resume_text = f"{profile_summary} {', '.join(skills) if skills else 'No skills specified'}. "\
-              f"{' '.join([edu.get('degree', 'Unknown degree') for edu in education]) if education else 'No education specified'}. "\
-              f"{' '.join([format_experience(exp) for exp in experience]) if experience else 'No experience specified'}. "\
-              f"{' '.join([pro.get('title', 'Unknown project') + ': ' + pro.get('description', 'No description') for pro in projects]) if projects else 'No projects specified'}. "\
-              f"{', '.join([cert.get('name', 'Unknown certificate') for cert in certificates]) if certificates else 'No certificates specified'}."
+              f"{' '.join([edu.get('degree', 'Unknown degree') for edu in education if edu and edu.get('degree')]) if education else 'No education specified'}. "\
+              f"{' '.join([format_experience(exp) for exp in experience if exp]) if experience else 'No experience specified'}. "\
+              f"{' '.join([pro.get('title', 'Unknown project') + ': ' + pro.get('description', 'No description') for pro in projects if pro]) if projects else 'No projects specified'}. "\
+              f"{', '.join([cert.get('name', 'Unknown certificate') for cert in certificates if cert and cert.get('name')]) if certificates else 'No certificates specified'}."
 
     job_text = f"{job_data.get('job_title', 'Unknown job')} "\
                f" Experience Required: {job_data.get('experience_required', 'Not specified')}. "\

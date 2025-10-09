@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Authentication Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .result {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success { color: #4CAF50; }
+        .error { color: #f44336; }
+        .warning { color: #ff9800; }
+    </style>
+</head>
+<body>
+    <h1>🔐 Frontend Authentication Test</h1>
+    
+    <div class="test-section">
+        <h2>📊 Current Authentication State</h2>
+        <div id="auth-state" class="result"></div>
+        <button class="test-button" onclick="checkAuthState()">🔄 Refresh State</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧪 Test Authentication Flow</h2>
+        <button class="test-button" onclick="testLogin()">🔑 Test Login</button>
+        <button class="test-button" onclick="testProtectedEndpoint()">🔒 Test Protected Endpoint</button>
+        <button class="test-button" onclick="testResumeUpload()">📄 Test Resume Upload</button>
+        <div id="test-results" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Debug Information</h2>
+        <button class="test-button" onclick="showDebugInfo()">📋 Show Debug Info</button>
+        <div id="debug-info" class="result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🧹 Cleanup</h2>
+        <button class="test-button" onclick="clearStorage()">🗑️ Clear Storage</button>
+        <button class="test-button" onclick="logout()">🚪 Logout</button>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3002';
+        
+        function checkAuthState() {
+            const token = localStorage.getItem('token');
+            const role = localStorage.getItem('role');
+            const userId = localStorage.getItem('userId');
+            const email = localStorage.getItem('userEmail');
+            
+            const state = {
+                hasToken: !!token,
+                tokenLength: token ? token.length : 0,
+                tokenPreview: token ? token.substring(0, 20) + '...' : 'None',
+                role: role || 'None',
+                userId: userId || 'None',
+                email: email || 'None',
+                timestamp: new Date().toLocaleString()
+            };
+            
+            document.getElementById('auth-state').innerHTML = `
+                <div class="success">✅ Token: ${state.hasToken ? 'Present' : 'Missing'}</div>
+                <div>🔑 Token Length: ${state.tokenLength}</div>
+                <div>🔑 Token Preview: ${state.tokenPreview}</div>
+                <div>👤 Role: ${state.role}</div>
+                <div>🆔 User ID: ${state.userId}</div>
+                <div>📧 Email: ${state.email}</div>
+                <div>⏰ Last Check: ${state.timestamp}</div>
+            `;
+        }
+        
+        async function testLogin() {
+            const testUser = {
+                email: 'test@example.com',
+                password: 'testpassword123'
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testUser)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="success">✅ Login successful!</div>
+                        <div>Token: ${result.token ? 'Present' : 'Missing'}</div>
+                        <div>Role: ${result.role || 'None'}</div>
+                        <div>User ID: ${result.userId || 'None'}</div>
+                    `;
+                    
+                    // Store the token
+                    if (result.token) {
+                        localStorage.setItem('token', result.token);
+                        localStorage.setItem('role', result.role);
+                        localStorage.setItem('userId', result.userId);
+                        localStorage.setItem('userEmail', result.email);
+                        localStorage.setItem('userFirstName', result.firstName);
+                        localStorage.setItem('userLastName', result.lastName);
+                        checkAuthState();
+                    }
+                } else {
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="error">❌ Login failed: ${result.error || 'Unknown error'}</div>
+                        <div>Status: ${response.status}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = `
+                    <div class="error">❌ Network error: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function testProtectedEndpoint() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                document.getElementById('test-results').innerHTML = `
+                    <div class="warning">⚠️ No token available. Please login first.</div>
+                `;
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/modern-resumes/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="success">✅ Protected endpoint accessible!</div>
+                        <div>Response: ${JSON.stringify(result, null, 2)}</div>
+                    `;
+                } else {
+                    const result = await response.json();
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="error">❌ Protected endpoint failed: ${result.error || 'Unknown error'}</div>
+                        <div>Status: ${response.status}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = `
+                    <div class="error">❌ Network error: ${error.message}</div>
+                `;
+            }
+        }
+        
+        async function testResumeUpload() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                document.getElementById('test-results').innerHTML = `
+                    <div class="warning">⚠️ No token available. Please login first.</div>
+                `;
+                return;
+            }
+            
+            // Create a simple test file
+            const testContent = "This is a test resume content for testing purposes.";
+            const testFile = new File([testContent], "test_resume.txt", { type: "text/plain" });
+            
+            const formData = new FormData();
+            formData.append('resume', testFile);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/modern-resumes/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="success">✅ Resume upload successful!</div>
+                        <div>Response: ${JSON.stringify(result, null, 2)}</div>
+                    `;
+                } else {
+                    const result = await response.json();
+                    document.getElementById('test-results').innerHTML = `
+                        <div class="error">❌ Resume upload failed: ${result.error || 'Unknown error'}</div>
+                        <div>Status: ${response.status}</div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('test-results').innerHTML = `
+                    <div class="error">❌ Network error: ${error.message}</div>
+                `;
+            }
+        }
+        
+        function showDebugInfo() {
+            const debugInfo = {
+                userAgent: navigator.userAgent,
+                localStorage: {
+                    token: localStorage.getItem('token') ? 'Present' : 'Missing',
+                    role: localStorage.getItem('role') || 'None',
+                    userId: localStorage.getItem('userId') || 'None',
+                    email: localStorage.getItem('userEmail') || 'None'
+                },
+                sessionStorage: {
+                    token: sessionStorage.getItem('token') ? 'Present' : 'Missing'
+                },
+                cookies: document.cookie || 'None',
+                timestamp: new Date().toISOString()
+            };
+            
+            document.getElementById('debug-info').innerHTML = `
+                <div>🌐 User Agent: ${debugInfo.userAgent}</div>
+                <div>💾 Local Storage: ${JSON.stringify(debugInfo.localStorage, null, 2)}</div>
+                <div>📝 Session Storage: ${JSON.stringify(debugInfo.sessionStorage, null, 2)}</div>
+                <div>🍪 Cookies: ${debugInfo.cookies}</div>
+                <div>⏰ Timestamp: ${debugInfo.timestamp}</div>
+            `;
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('auth-state').innerHTML = '<div class="warning">🗑️ Storage cleared</div>';
+            document.getElementById('test-results').innerHTML = '';
+            document.getElementById('debug-info').innerHTML = '';
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('role');
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('userFirstName');
+            localStorage.removeItem('userLastName');
+            checkAuthState();
+        }
+        
+        // Initialize on page load
+        window.onload = function() {
+            checkAuthState();
+        };
+    </script>
+</body>
+</html>

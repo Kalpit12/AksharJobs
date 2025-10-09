@@ -59,6 +59,9 @@ def extract_education_level(text):
     Returns:
         str: The extracted education level ('PhD', "Master's", "Bachelor's", 'School', or 'Unknown').
     """
+    if not text or not isinstance(text, str):
+        return 'Unknown'
+    
     text = text.lower()  
 
     patterns = {

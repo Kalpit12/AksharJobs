@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Referral Tracking Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+        .success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+        .info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Test Referral Tracking Fix</h1>
+        <p>Testing if referral shares are now properly syncing with Google Sheets</p>
+        
+        <div>
+            <h3>1. Test Referral Share (type=share)</h3>
+            <button class="test-button" onclick="testReferralShare()">Test WhatsApp Share</button>
+            <div id="shareResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>2. Test Referral Share (type=referral_share)</h3>
+            <button class="test-button" onclick="testReferralShareNew()">Test LinkedIn Share</button>
+            <div id="shareNewResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>3. Check Referral Data</h3>
+            <button class="test-button" onclick="checkReferralData()">Check All Referral Data</button>
+            <div id="dataResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>4. Check Specific User Data</h3>
+            <button class="test-button" onclick="checkUserData()">Check krishkumar514@gmail.com</button>
+            <div id="userResult" class="result"></div>
+        </div>
+        
+        <div>
+            <h3>5. Console Logs</h3>
+            <button class="test-button" onclick="clearLogs()">Clear Logs</button>
+            <div id="consoleLogs" class="result info"></div>
+        </div>
+    </div>
+
+    <script>
+        // New Google Apps Script URL
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwjl75BoBiVOf2vEKXSioM7_ZhY1n5q5DluxxgGjx6uHK21b6KffVC94NGMqlaUN3XklQ/exec';
+        
+        // Test referral share with type=share (from referral.html)
+        async function testReferralShare() {
+            const resultDiv = document.getElementById('shareResult');
+            resultDiv.innerHTML = 'Testing referral share with type=share...';
+            
+            try {
+                const shareData = {
+                    type: 'share',
+                    action: 'referral_share',
+                    referrerName: 'Test User',
+                    referrerEmail: 'test@example.com',
+                    referrerPhone: '+1234567890',
+                    referrerRole: 'job_seeker',
+                    platform: 'whatsapp',
+                    coinsEarned: 3,
+                    shareCoins: 3,
+                    referralBonusCoins: 0,
+                    totalCoins: 3,
+                    totalShares: 1,
+                    platformShareCount: 1,
+                    referralCount: 0,
+                    totalReferrals: 0,
+                    timestamp: new Date().toISOString(),
+                    referralCode: 'AKSHAR2025',
+                    source: 'referral_page',
+                    shareId: 'test_' + Date.now()
+                };
+                
+                const shareUrl = `${API_URL}?${Object.keys(shareData).map(key => `${key}=${encodeURIComponent(shareData[key])}`).join('&')}`;
+                logToConsole('Testing referral share (type=share):', shareUrl);
+                
+                const response = await fetch(shareUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Referral share (type=share) successful!<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('Referral Share (type=share) Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Referral share (type=share) failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Referral Share (type=share) Error:', error);
+            }
+        }
+        
+        // Test referral share with type=referral_share (from expo_landing.js)
+        async function testReferralShareNew() {
+            const resultDiv = document.getElementById('shareNewResult');
+            resultDiv.innerHTML = 'Testing referral share with type=referral_share...';
+            
+            try {
+                const shareData = {
+                    type: 'referral_share',
+                    referrerEmail: 'test2@example.com',
+                    referrerName: 'Test User 2',
+                    platform: 'linkedin',
+                    coinsEarned: 3,
+                    totalShares: 1,
+                    shareCount: 1,
+                    timestamp: new Date().toISOString()
+                };
+                
+                const shareUrl = `${API_URL}?${Object.keys(shareData).map(key => `${key}=${encodeURIComponent(shareData[key])}`).join('&')}`;
+                logToConsole('Testing referral share (type=referral_share):', shareUrl);
+                
+                const response = await fetch(shareUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Referral share (type=referral_share) successful!<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('Referral Share (type=referral_share) Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Referral share (type=referral_share) failed: ${error.message}
+                    </div>
+                `;
+                logToConsole('Referral Share (type=referral_share) Error:', error);
+            }
+        }
+        
+        // Check all referral data
+        async function checkReferralData() {
+            const resultDiv = document.getElementById('dataResult');
+            resultDiv.innerHTML = 'Checking all referral data...';
+            
+            try {
+                const dataUrl = `${API_URL}?action=get_referral_data`;
+                logToConsole('Checking all referral data:', dataUrl);
+                
+                const response = await fetch(dataUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Referral data retrieved!<br>
+                        Found ${data.records ? data.records.length : 0} records<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('Referral Data Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Failed to get referral data: ${error.message}
+                    </div>
+                `;
+                logToConsole('Referral Data Error:', error);
+            }
+        }
+        
+        // Check specific user data
+        async function checkUserData() {
+            const resultDiv = document.getElementById('userResult');
+            resultDiv.innerHTML = 'Checking krishkumar514@gmail.com data...';
+            
+            try {
+                const userUrl = `${API_URL}?action=get_referral_data&email=krishkumar514@gmail.com`;
+                logToConsole('Checking user data:', userUrl);
+                
+                const response = await fetch(userUrl);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ User data retrieved!<br>
+                        Found ${data.records ? data.records.length : 0} records for krishkumar514@gmail.com<br>
+                        Response: ${JSON.stringify(data, null, 2)}
+                    </div>
+                `;
+                logToConsole('User Data Result:', data);
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        ❌ Failed to get user data: ${error.message}
+                    </div>
+                `;
+                logToConsole('User Data Error:', error);
+            }
+        }
+        
+        // Logging functions
+        function logToConsole(message, data = null) {
+            const logsDiv = document.getElementById('consoleLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] ${message}${data ? ': ' + JSON.stringify(data, null, 2) : ''}`;
+            logsDiv.innerHTML += logEntry + '<br><br>';
+            console.log(message, data);
+        }
+        
+        function clearLogs() {
+            document.getElementById('consoleLogs').innerHTML = '';
+        }
+        
+        // Auto-run tests on page load
+        window.onload = function() {
+            checkReferralData();
+        };
+    </script>
+</body>
+</html>

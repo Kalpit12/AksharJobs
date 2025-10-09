@@ -175,6 +175,19 @@ class OAuthService:
             result = users_collection.insert_one(new_user_data)
             
             if result.inserted_id:
+                # Create promo code for new user
+                try:
+                    from services.promo_code_service import PromoCodeService
+                    promo_result = PromoCodeService.create_user_promo_code(
+                        str(result.inserted_id),
+                        user_info['first_name'],
+                        user_info['last_name'],
+                        user_type
+                    )
+                    print(f"Promo code creation result: {promo_result}")
+                except Exception as e:
+                    print(f"Error creating promo code for OAuth user: {e}")
+                
                 # Generate JWT token
                 user_data = {
                     '_id': result.inserted_id,

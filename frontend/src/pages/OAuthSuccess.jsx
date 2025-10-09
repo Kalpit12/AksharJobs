@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from '../components/LoadingSpinner';
+import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
 import '../styles/Global.css';
 import '../styles/OAuth.css';
 
@@ -11,10 +11,16 @@ const OAuthSuccess = () => {
   const { login } = useAuth();
   const [status, setStatus] = useState('processing');
   const [error, setError] = useState('');
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
+    // Prevent multiple executions
+    if (hasProcessed.current) return;
+    
     const handleOAuthSuccess = async () => {
       try {
+        hasProcessed.current = true;
+        
         const token = searchParams.get('token');
         const userData = searchParams.get('user');
 
@@ -37,8 +43,8 @@ const OAuthSuccess = () => {
           lastName: user.lastName
         };
 
-        // Login the user
-        login(loginData);
+        // Login the user without automatic navigation
+        login(loginData, false);
         
         setStatus('success');
         
@@ -68,13 +74,13 @@ const OAuthSuccess = () => {
     };
 
     handleOAuthSuccess();
-  }, [searchParams, login, navigate]);
+  }, []); // Empty dependency array since we only want this to run once
 
   if (status === 'processing') {
     return (
       <div className="oauth-success-page">
         <div className="oauth-content">
-          <LoadingSpinner 
+          <ModernLoadingSpinner 
             type="rocket" 
             size="large" 
             text="Completing your login..." 

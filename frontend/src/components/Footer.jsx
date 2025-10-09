@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt,
@@ -19,8 +20,8 @@ const Footer = () => {
         {/* Footer Brand Section */}
         <div className="footer-brand">
           <div className="footer-logo">
-            <img src="/RocketJobs_Logo.jpg" alt="RocketJobs Logo" />
-            <div className="footer-logo-text">RocketJobs</div>
+            <img src="/AK_logo.jpg" alt="AksharJobs Logo" />
+            <div className="footer-logo-text">AksharJobs</div>
           </div>
           <p className="footer-tagline">
             Connecting top talent with amazing opportunities through AI-powered job matching. 
@@ -34,11 +35,11 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Company</h3>
             <ul>
-              <li><a href="/about">About Us</a></li>
-              <li><a href="/careers">Careers</a></li>
-              <li><a href="/press">Press</a></li>
-              <li><a href="/blog">Blog</a></li>
-              <li><a href="/partners">Partners</a></li>
+              <li><Link to="/about">About Us</Link></li>
+              <li><Link to="/careers">Careers</Link></li>
+              <li><Link to="/press">Press</Link></li>
+              <li><Link to="/blog">Blog</Link></li>
+              <li><Link to="/partners">Partners</Link></li>
             </ul>
           </div>
 
@@ -46,11 +47,11 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Job Seekers</h3>
             <ul>
-              <li><a href="/allJobs">Browse Jobs</a></li>
-              <li><a href="/upload">Upload Resume</a></li>
-              <li><a href="/profile">Create Profile</a></li>
-              <li><a href="/salary-guide">Salary Guide</a></li>
-              <li><a href="/career-advice">Career Advice</a></li>
+              <li><Link to="/jobs">Browse Jobs</Link></li>
+              <li><Link to="/modern-upload">Upload Resume</Link></li>
+              <li><Link to="/profile">Create Profile</Link></li>
+              <li><Link to="/salary-guide">Salary Guide</Link></li>
+              <li><Link to="/career-advice">Career Advice</Link></li>
             </ul>
           </div>
 
@@ -58,11 +59,11 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Employers</h3>
             <ul>
-              <li><a href="/post-job">Post a Job</a></li>
-              <li><a href="/pricing">Pricing</a></li>
-              <li><a href="/recruitment-solutions">Recruitment Solutions</a></li>
-              <li><a href="/employer-resources">Resources</a></li>
-              <li><a href="/contact">Contact Sales</a></li>
+              <li><Link to="/post-job">Post a Job</Link></li>
+              <li><Link to="/pricing">Pricing</Link></li>
+              <li><Link to="/recruitment-solutions">Recruitment Solutions</Link></li>
+              <li><Link to="/resources">Resources</Link></li>
+              <li><Link to="/contact-sales">Contact Sales</Link></li>
             </ul>
           </div>
 
@@ -70,11 +71,11 @@ const Footer = () => {
           <div className="footer-section">
             <h3>Support & Legal</h3>
             <ul>
-              <li><a href="/help">Help Center</a></li>
-              <li><a href="/contact">Contact Us</a></li>
-              <li><a href="/privacy">Privacy Policy</a></li>
-              <li><a href="/terms">Terms of Service</a></li>
-              <li><a href="/cookies">Cookie Policy</a></li>
+              <li><Link to="/help-center">Help Center</Link></li>
+              <li><Link to="/contact-us">Contact Us</Link></li>
+              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link to="/terms">Terms of Service</Link></li>
+              <li><Link to="/cookie-policy">Cookie Policy</Link></li>
             </ul>
           </div>
 
@@ -92,11 +93,11 @@ const Footer = () => {
               </div>
               <div className="contact-item">
                 <FontAwesomeIcon icon={faEnvelope} />
-                <span>hello@rocketjobs.com</span>
+                <span>hello@aksharjobs.com</span>
               </div>
               <div className="contact-item">
                 <FontAwesomeIcon icon={faGlobe} />
-                <span>www.rocketjobs.com</span>
+                <span>www.aksharjobs.com</span>
               </div>
             </div>
             
@@ -141,13 +142,13 @@ const Footer = () => {
         <div className="footer-bottom">
           <div className="footer-bottom-content">
             <div className="footer-copyright">
-              © {currentYear} RocketJobs. All rights reserved. Made with <FontAwesomeIcon icon={faHeart} className="heart-icon" /> for job seekers and employers.
+              © {currentYear} AksharJobs. All rights reserved. Made with <FontAwesomeIcon icon={faHeart} className="heart-icon" /> for job seekers and employers.
             </div>
             <div className="footer-links">
-              <a href="/sitemap" className="footer-bottom-link">Sitemap</a>
-              <a href="/accessibility" className="footer-bottom-link">Accessibility</a>
-              <a href="/security" className="footer-bottom-link">Security</a>
-              <a href="/status" className="footer-bottom-link">Status</a>
+              <Link to="/sitemap" className="footer-bottom-link">Sitemap</Link>
+              <Link to="/accessibility" className="footer-bottom-link">Accessibility</Link>
+              <Link to="/security" className="footer-bottom-link">Security</Link>
+              <Link to="/status" className="footer-bottom-link">Status</Link>
             </div>
           </div>
         </div>

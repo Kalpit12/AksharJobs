@@ -380,6 +380,426 @@
     background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
+/* Section Header with Edit Button */
+.section_title_group {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.edit_skills_btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.edit_skills_btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Skills Edit Form */
+.skills_edit_form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.skills_edit_group {
+    background: rgba(255, 255, 255, 0.8);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.skills_edit_group h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.skills_edit_list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.skill_edit_item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.remove_skill_btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.remove_skill_btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+/* Skill Input */
+.skill_input_container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: white;
+    padding: 0.25rem;
+    border-radius: 8px;
+    border: 2px dashed #d1d5db;
+    transition: all 0.3s ease;
+}
+
+.skill_input_container:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.skill_input,
+.skill_dropdown {
+    border: none;
+    outline: none;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+    background: transparent;
+    flex: 1;
+    min-width: 120px;
+}
+
+.skill_dropdown {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.skill_input::placeholder {
+    color: #9ca3af;
+}
+
+.add_skill_btn {
+    background: #10b981;
+    color: white;
+    border: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.add_skill_btn:hover:not(:disabled) {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.add_skill_btn:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+}
+
+/* Skills Edit Actions */
+.skills_edit_actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 1rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: none;
+}
+
+.btn_primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn_primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn_primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn_secondary {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+}
+
+.btn_secondary:hover {
+    background: #e5e7eb;
+    border-color: #9ca3af;
+}
+
+/* Personal Info Edit Form */
+.personal_edit_form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}
+
+.edit_field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.edit_field.full_width {
+    grid-column: 1 / -1;
+}
+
+.edit_field label {
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+}
+
+.edit_input {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.edit_input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.edit_textarea {
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+    background: white;
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.edit_textarea:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Experience Edit Form */
+.experience_edit_form,
+.education_edit_form,
+.projects_edit_form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.experience_edit_item,
+.education_edit_item,
+.project_edit_item {
+    background: rgba(255, 255, 255, 0.9);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    position: relative;
+}
+
+.edit_item_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.edit_item_header h4 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.remove_item_btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-weight: bold;
+}
+
+.remove_item_btn:hover {
+    background: #dc2626;
+    transform: scale(1.05);
+}
+
+.edit_fields_grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.add_item_btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 2px dashed #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.add_item_btn:hover {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Edit Actions */
+.edit_actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+    margin-top: 1rem;
+}
+
+/* Responsive Design for Edit Mode */
+@media (max-width: 768px) {
+    .section_header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .section_title_group {
+        justify-content: center;
+    }
+    
+    .edit_skills_btn {
+        margin-left: 0;
+        align-self: center;
+    }
+    
+    .skills_edit_actions,
+    .edit_actions {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .edit_fields_grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .personal_edit_form {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .personal_edit_form,
+    .experience_edit_item,
+    .education_edit_item,
+    .project_edit_item {
+        padding: 1rem;
+    }
+    
+    .edit_item_header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .remove_item_btn {
+        align-self: flex-end;
+    }
+}
+
 .skills_container {
     display: flex;
     flex-direction: column;
@@ -933,4 +1353,123 @@
         align-items: flex-start;
         gap: 0.5rem;
     }
+}
+
+/* Commute Options Styles for ResumeProfile */
+.commute-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.commute-input-container input,
+.commute-dropdown {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    transition: all 0.3s ease;
+}
+
+.commute-input-container input:focus,
+.commute-dropdown:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.commute-dropdown {
+    background-color: white;
+    cursor: pointer;
+}
+
+.commute-custom-input {
+    margin-top: 8px;
+}
+
+.commute-custom-input input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    background-color: #f9fafb;
+    transition: all 0.3s ease;
+}
+
+.commute-custom-input input:focus {
+    outline: none;
+    border-color: #10b981;
+    border-style: solid;
+    background-color: white;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.commute-custom-input input::placeholder {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.commute-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+}
+
+.commute-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #10b981;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.commute-remove {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    margin-left: 4px;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+}
+
+.commute-remove:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Commute Options Display */
+.commute-options-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.commute-option-display {
+    background: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-block;
 }

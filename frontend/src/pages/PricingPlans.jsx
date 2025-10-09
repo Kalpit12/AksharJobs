@@ -37,6 +37,7 @@ const PricingPlans = () => {
       price: '0',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: null, // Free plan, no Pesapal product
       features: [
         'Post 2 jobs per month',
         'Basic candidate matching',
@@ -53,6 +54,7 @@ const PricingPlans = () => {
       price: '3,500',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: '12f90718-bd75-4f58-99ca-2cd1952163cd', // Recruiter Starter Plan
       features: [
         'Post 10 jobs per month',
         'Advanced candidate matching',
@@ -70,6 +72,7 @@ const PricingPlans = () => {
       price: '7,500',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: '355a90e6-e207-4657-822b-407db98d152f', // Recruiter Professional Plan
       features: [
         'Unlimited job postings',
         'AI-powered candidate matching',
@@ -89,6 +92,7 @@ const PricingPlans = () => {
       price: '15,000',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: 'cbaef385-750f-44d6-9de1-2e6e802edb8d', // Recruiter Enterprise Plan
       features: [
         'All Professional features',
         'Dedicated account manager',
@@ -111,6 +115,7 @@ const PricingPlans = () => {
       price: '0',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: null, // Free plan, no Pesapal product
       features: [
         'Basic job matching',
         'Limited job applications (5/month)',
@@ -127,6 +132,7 @@ const PricingPlans = () => {
       price: '1,500',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: '1440504c-a199-4dab-8fc5-6a609e6c4358', // Job Seeker Starter Plan
       features: [
         'Advanced job matching',
         'Unlimited job applications',
@@ -144,6 +150,7 @@ const PricingPlans = () => {
       price: '3,500',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: '1440504c-a199-4dab-8fc5-6a609e6c4358', // Job Seeker Professional Plan (using same code as starter for now)
       features: [
         'AI-powered job matching',
         'Unlimited applications',
@@ -163,6 +170,7 @@ const PricingPlans = () => {
       price: '5,500',
       currency: 'KSH',
       period: 'month',
+      pesapalProductCode: '1440504c-a199-4dab-8fc5-6a609e6c4358', // Job Seeker Premium Plan (using same code for now)
       features: [
         'All Professional features',
         'Personal career advisor',
@@ -355,20 +363,22 @@ const PricingPlans = () => {
 
   const handlePlanSelect = (plan) => {
     setSelectedPlan(plan);
-    // Redirect to Pesapal payment page
-    const paymentData = {
-      planId: plan.id,
-      planName: plan.name,
-      amount: plan.price,
-      currency: plan.currency,
-      userRole: userRole
-    };
     
-    // Store plan data in localStorage for payment processing
-    localStorage.setItem('selectedPlan', JSON.stringify(paymentData));
+    // For free plans, handle differently
+    if (plan.price === '0') {
+      alert('This is a free plan! You can start using it immediately.');
+      // You can add logic here to activate the free plan
+      return;
+    }
     
-    // Redirect to payment page (you'll need to implement this)
-    navigate('/payment', { state: { plan: paymentData } });
+    // Direct redirect to Pesapal product page
+    if (plan.pesapalProductCode) {
+      const pesapalUrl = `https://store.pesapal.com/shop/cptjqn-rocketmatch?productCode=${plan.pesapalProductCode}`;
+      window.location.href = pesapalUrl;
+    } else {
+      // Fallback to general Pesapal store
+      window.location.href = 'https://store.pesapal.com/aksharjobs';
+    }
   };
 
   const handleGoBack = () => {
@@ -465,7 +475,7 @@ const PricingPlans = () => {
               onClick={() => handlePlanSelect(plan)}
               style={{ backgroundColor: plan.color }}
             >
-              {plan.price === '0' ? 'Get Started Free' : 'Choose Plan'}
+              {plan.price === '0' ? 'Get Started Free' : 'Pay with Pesapal'}
             </button>
           </div>
         ))}

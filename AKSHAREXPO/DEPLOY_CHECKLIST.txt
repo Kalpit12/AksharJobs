@@ -1,0 +1,126 @@
+═══════════════════════════════════════════════════════════
+    VERCEL DEPLOYMENT - QUICK CHECKLIST
+═══════════════════════════════════════════════════════════
+
+📦 FILES TO UPLOAD (Copy these to Vercel):
+═══════════════════════════════════════════════════════════
+
+✅ REQUIRED FILES (Must include):
+   1. index.html
+   2. expo_landing.html  
+   3. expo_landing.js
+   4. expo_landing.css
+   5. expo_api_config.js
+   6. AK logo.jpg
+   7. favicon.ico
+   8. vercel.json (✅ Created!)
+   9. _redirects
+
+⚪ OPTIONAL FILES:
+   10. registration.html
+   11. referral.html
+
+❌ DO NOT UPLOAD:
+   - google_sheets_integration.gs
+   - Any .md files
+   - Test files
+
+═══════════════════════════════════════════════════════════
+🔧 BEFORE DEPLOYING
+═══════════════════════════════════════════════════════════
+
+[ ] Step 1: Update expo_api_config.js
+    
+    Option A - Use Google Sheets Only (Simplest):
+    -------------------------------------------
+    Line 12: const USE_MONGODB_API = false;
+    
+    Option B - Use MongoDB Backend (Need backend URL):
+    -------------------------------------------------
+    Line 9:  const MONGO_API_BASE_URL = 'https://YOUR-BACKEND-URL/api/expo';
+    Line 12: const USE_MONGODB_API = true;
+
+[ ] Step 2: Check vercel.json exists ✅ (Already created!)
+
+[ ] Step 3: Test locally (Optional)
+    - Open expo_landing.html in browser
+    - Try registering
+    - Check if form works
+
+═══════════════════════════════════════════════════════════
+🚀 DEPLOYMENT STEPS
+═══════════════════════════════════════════════════════════
+
+METHOD 1: Upload via Dashboard (Easiest)
+-----------------------------------------
+1. Go to https://vercel.com
+2. Sign up/Login (free)
+3. Click "Add New Project"
+4. Click "Upload Folder"
+5. Select AKSHAREXPO folder
+6. Click "Deploy"
+7. Done! ✅
+
+METHOD 2: Connect GitHub (Best for updates)
+-------------------------------------------
+1. Push AKSHAREXPO to GitHub
+2. Go to vercel.com
+3. Click "Import Project"
+4. Select your repository
+5. Vercel auto-configures
+6. Click "Deploy"
+7. Done! ✅
+
+═══════════════════════════════════════════════════════════
+📝 IMPORTANT NOTES
+═══════════════════════════════════════════════════════════
+
+⚠️  BACKEND (If using MongoDB):
+    - MongoDB backend needs SEPARATE hosting
+    - Use: Render, Railway, or Heroku
+    - Update expo_api_config.js with backend URL
+
+✅  GOOGLE SHEETS (Simplest option):
+    - Already configured and working
+    - No backend needed
+    - Set USE_MONGODB_API = false
+
+🌐  AFTER DEPLOYMENT:
+    - Your site will be at: https://YOUR-PROJECT.vercel.app
+    - Test all features
+    - Check registration works
+    - Check referral links work
+
+═══════════════════════════════════════════════════════════
+✅ FINAL CHECKLIST
+═══════════════════════════════════════════════════════════
+
+Before clicking "Deploy":
+
+[ ] All required files included
+[ ] expo_api_config.js updated (MongoDB URL or disabled)
+[ ] vercel.json exists ✅
+[ ] Logo and favicon present
+[ ] Tested locally
+[ ] Google Sheets webhook working (if using)
+
+After deployment:
+
+[ ] Test registration form
+[ ] Test referral sharing
+[ ] Check mobile responsive
+[ ] Verify images load
+[ ] Test all buttons/links
+
+═══════════════════════════════════════════════════════════
+
+🎯 RECOMMENDED FOR QUICK LAUNCH:
+1. Set USE_MONGODB_API = false (use Google Sheets)
+2. Upload AKSHAREXPO folder to Vercel
+3. Deploy!
+4. Add MongoDB backend later if needed
+
+═══════════════════════════════════════════════════════════
+Ready to deploy! 🚀
+═══════════════════════════════════════════════════════════
+

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 
 import "../styles/ViewAllCandidates.css";
 import BackButton from "../components/BackButton";
@@ -20,31 +21,41 @@ const ViewAllCandidates = () => {
   useEffect(() => {
     const fetchCandidates = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/applications/get_applications?jobId=${jobId}`);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError("Authentication token not found. Please log in again.");
+          return;
+        }
+        
+        // Use the new endpoint that returns all applications with user and job details
+        const response = await axios.get(buildApiUrl(`/api/applications/all`));
         const applications = response.data.applications || [];
-        const enrichedCandidates = await Promise.all(
-          applications.map(async (candidate) => {
-            try {
-              const userResponse = await axios.get(`http://localhost:5000/api/auth/get_user?userId=${candidate.userId}`);
-              // Ensure userResponse.data is valid and not an empty object
-              if (userResponse.data && typeof userResponse.data === 'object' && Object.keys(userResponse.data).length > 0) {
-                return { ...candidate, ...userResponse.data };
-              } else {
-                console.warn('Invalid user data received for candidate:', candidate.userId);
-                return candidate; // Return original candidate data if user data is invalid
-              }
-            } catch (error) {
-              console.error('Error fetching user data for candidate:', candidate.userId, error);
-              return candidate; // Return original candidate data if user fetch fails
-            }
-          })
-        );
+        
+        // Filter applications for the specific job
+        const jobApplications = applications.filter(app => app.job_id === jobId);
+        
+        // The applications already have user and job details, so we can use them directly
+        const enrichedCandidates = jobApplications.map(candidate => ({
+          ...candidate,
+          // Map the fields to match what the component expects
+          fullName: candidate.applicant_name,
+          email: candidate.applicant_email,
+          phone: candidate.applicant_phone,
+          jobTitle: candidate.job_title,
+          companyName: candidate.company_name,
+          // Keep original fields for compatibility
+          userId: candidate.applicant_id,
+          jobId: candidate.job_id
+        }));
 
         // Filter out invalid candidates and those with empty status
         const sortedCandidates = enrichedCandidates
-          .filter((c) => c && typeof c === 'object' && c.status && c.userId) // Filter out invalid candidates
-          .sort((a, b) => (b.final_score || 0) - (a.final_score || 0));
-        console.log(sortedCandidates);
+          .filter((c) => c && typeof c === 'object' && c.status && c.applicant_id) // Filter out invalid candidates
+          .sort((a, b) => (b.final_score || b.matchScore || 0) - (a.final_score || a.matchScore || 0));
+        
+        console.log('Raw applications:', applications);
+        console.log('Enriched candidates:', enrichedCandidates);
+        console.log('Final sorted candidates:', sortedCandidates);
         setCandidates(sortedCandidates);
       } catch (err) {
         setError("Failed to fetch candidates.");
@@ -58,10 +69,23 @@ const ViewAllCandidates = () => {
 
   const updateStatus = async (userId, jobId, status, interviewDate, interviewMode) => {
     try {
-      await axios.put("http://localhost:5000/api/applications/update_status", { userId, jobId, status, interviewDate, interviewMode });
-      setCandidates((prev) =>
-        prev.map((c) => (c.userId === userId && c.jobId === jobId ? { ...c, status, interviewDate, interviewMode } : c))
+      const token = localStorage.getItem('token');
+      if (!token) {
+        alert("Authentication token not found. Please log in again.");
+        return;
+      }
+      
+      await axios.put(buildApiUrl("/api/applications/update_status"), 
+        { userId, jobId, status, interviewDate, interviewMode },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
       );
+             setCandidates((prev) =>
+         prev.map((c) => (c.applicant_id === userId && c.job_id === jobId ? { ...c, status, interviewDate, interviewMode } : c))
+       );
     } catch (err) {
       alert("Failed to update status");
     }
@@ -102,9 +126,14 @@ const ViewAllCandidates = () => {
 
         <select onChange={(e) => setStatusFilter(e.target.value)} className="recruiter_applicants_select">
           <option value="">All Status</option>
+          <option value="applied">Applied</option>
+          <option value="to_review">To Review</option>
           <option value="shortlisted">Shortlisted</option>
-          <option value="accepted">Accepted</option>
+          <option value="to_interview">To Interview</option>
+          <option value="interviewed">Interviewed</option>
           <option value="rejected">Rejected</option>
+          <option value="selected">Selected</option>
+          <option value="hired">Hired</option>
         </select>
 
         {loading ? (
@@ -129,18 +158,18 @@ const ViewAllCandidates = () => {
                 </tr>
               </thead>
               <tbody>
-                {candidates
-                  .filter((c) => c && typeof c === 'object' && c.status) // Only show valid candidates
-                  .map((candidate) => (
-                    <tr key={candidate.userId} onClick={() => setSelectedCandidate(candidate)}>
+                                 {candidates
+                   .filter((c) => c && typeof c === 'object' && c.status) // Only show valid candidates
+                   .map((candidate) => (
+                     <tr key={candidate.applicant_id} onClick={() => setSelectedCandidate(candidate)}>
                       <td>
                         <img src={candidate.profileImage || "https://www.w3schools.com/w3images/avatar2.png"} alt="Profile" className="table_candidate_image" />
                       </td>
                       <td>{candidate.firstName}</td>
                       <td>{candidate.email}</td>
                       <td>{candidate.phoneNumber}</td>
-                      <td>{candidate.final_score.toFixed(2)}%</td>
-                      <td>{((candidate.skill_score + candidate.skills_match) / 2).toFixed(2)}%</td>
+                                             <td>{candidate.final_score ? candidate.final_score.toFixed(2) : 'N/A'}%</td>
+                       <td>{candidate.skill_score && candidate.skills_match ? ((candidate.skill_score + candidate.skills_match) / 2).toFixed(2) : 'N/A'}%</td>
                       <td className="tooltip">
                         {candidate.recruiter_insights?.hiring_recommendation || "N/A"}
                         <span className="tooltiptext">
@@ -148,19 +177,23 @@ const ViewAllCandidates = () => {
                         </span>
                       </td>
                       <td>
-                        {candidate.status === "accepted" || candidate.status === "rejected" ? (
+                        {candidate.status === "rejected" || candidate.status === "selected" || candidate.status === "hired" ? (
                           <span>{candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}</span>
                         ) : (
-                          <select onChange={(e) => updateStatus(candidate.userId, candidate.jobId, e.target.value, interviewSchedules[candidate.userId], interviewModes[candidate.userId])} value={candidate.status || "pending"}>
-                            <option value="pending">Pending Review</option>
-                            <option value="shortlisted">Shortlist</option>
-                            <option value="accepted">Accept</option>
-                            <option value="rejected">Reject</option>
+                                                     <select onChange={(e) => updateStatus(candidate.applicant_id, candidate.job_id, e.target.value, interviewSchedules[candidate.applicant_id], interviewModes[candidate.applicant_id])} value={candidate.status || "applied"}>
+                            <option value="applied">Applied</option>
+                            <option value="to_review">To Review</option>
+                            <option value="shortlisted">Shortlisted</option>
+                            <option value="to_interview">To Interview</option>
+                            <option value="interviewed">Interviewed</option>
+                            <option value="rejected">Rejected</option>
+                            <option value="selected">Selected</option>
+                            <option value="hired">Hired</option>
                           </select>
                         )}
                       </td>
                       <td>
-                        {candidate.status === "shortlisted" && (
+                        {(candidate.status === "shortlisted" || candidate.status === "to_interview") && (
                           <div className="schedule_interview">
                             {candidate.interviewDate && candidate.interviewMode ? (
                               <div>
@@ -170,26 +203,26 @@ const ViewAllCandidates = () => {
                             ) : (
                               <>
                                 <label>Interview:</label>
-                                <input
-                                  type="datetime-local"
-                                  onChange={(e) => handleScheduleChange(candidate.userId, e.target.value)}
-                                />
-                                <select onChange={(e) => handleModeChange(candidate.userId, e.target.value)}>
+                                                                 <input
+                                   type="datetime-local"
+                                   onChange={(e) => handleScheduleChange(candidate.applicant_id, e.target.value)}
+                                 />
+                                 <select onChange={(e) => handleModeChange(candidate.applicant_id, e.target.value)}>
                                   <option value="">Select Mode</option>
                                   <option value="online">Online</option>
                                   <option value="in-person">In-Person</option>
                                 </select>
                                 <button
                                   className="schedule_btn"
-                                  onClick={() =>
-                                    updateStatus(
-                                      candidate.userId,
-                                      candidate.jobId,
-                                      candidate.status,
-                                      interviewSchedules[candidate.userId],
-                                      interviewModes[candidate.userId]
-                                    )
-                                  }
+                                                                     onClick={() =>
+                                     updateStatus(
+                                       candidate.applicant_id,
+                                       candidate.job_id,
+                                       candidate.status,
+                                       interviewSchedules[candidate.applicant_id],
+                                       interviewModes[candidate.applicant_id]
+                                     )
+                                   }
                                 >
                                   Confirm
                                 </button>
@@ -199,7 +232,7 @@ const ViewAllCandidates = () => {
                         )}
                       </td>
                       <td>
-                        <button onClick={() => window.open(`/profile/${candidate.userId}`, "_blank")} className="view_profile">
+                                                 <button onClick={() => window.open(`/profile/${candidate.applicant_id}`, "_blank")} className="view_profile">
                           View Profile
                         </button>
                       </td>
@@ -218,10 +251,10 @@ const ViewAllCandidates = () => {
                 <p><strong>LinkedIn:</strong> {selectedCandidate.linkedInProfile}</p>
 
                 <h4>Match Scores</h4>
-                <p><strong>Final Match Score:</strong> {selectedCandidate.final_score.toFixed(2)}%</p>
-                <p><strong>Skill Match:</strong> {((selectedCandidate.skill_score + selectedCandidate.skills_match) / 2).toFixed(2)}%</p>
-                <p><strong>Education Match:</strong> {selectedCandidate.education_score.toFixed(2)}%</p>
-                <p><strong>Experience Match:</strong> {selectedCandidate.experience_score.toFixed(2)}%</p>
+                                 <p><strong>Final Match Score:</strong> {selectedCandidate.final_score ? selectedCandidate.final_score.toFixed(2) : 'N/A'}%</p>
+                 <p><strong>Skill Match:</strong> {selectedCandidate.skill_score && selectedCandidate.skills_match ? ((selectedCandidate.skill_score + selectedCandidate.skills_match) / 2).toFixed(2) : 'N/A'}%</p>
+                 <p><strong>Education Match:</strong> {selectedCandidate.education_score ? selectedCandidate.education_score.toFixed(2) : 'N/A'}%</p>
+                 <p><strong>Experience Match:</strong> {selectedCandidate.experience_score ? selectedCandidate.experience_score.toFixed(2) : 'N/A'}%</p>
 
                 <h4>Insights</h4>
                 <p><strong>AI Recommendation:</strong> {selectedCandidate.recruiter_insights?.hiring_recommendation || "N/A"}</p>

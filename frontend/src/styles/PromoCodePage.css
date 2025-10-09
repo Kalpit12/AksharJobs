@@ -1,0 +1,532 @@
+/* Promo Code Page Styles */
+.promo-code-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  padding: 0;
+  margin: 0;
+}
+
+/* Remove any default margins/padding that might be inherited */
+.promo-code-page * {
+  box-sizing: border-box;
+}
+
+/* Header */
+.promo-page-header {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  color: white;
+  padding: 1rem 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.promo-page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(3px 3px at 20px 30px, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(3px 3px at 40px 70px, rgba(255, 255, 255, 0.2), transparent),
+    radial-gradient(2px 2px at 90px 40px, rgba(255, 255, 255, 0.4), transparent);
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.back-button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  margin: 0 2rem 0.5rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 2rem;
+  position: relative;
+  z-index: 1;
+}
+
+.header-icon {
+  font-size: 2.5rem;
+  color: #fbbf24;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-10px); }
+  60% { transform: translateY(-5px); }
+}
+
+.header-text h1 {
+  margin: 0 0 0.25rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-text p {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+/* Simple Header (No Blue Background) */
+.promo-page-header-simple {
+  background: transparent;
+  padding: 2rem 0 1rem 0;
+}
+
+.promo-page-header-simple .header-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 2rem;
+  justify-content: center;
+}
+
+.promo-page-header-simple .header-icon {
+  font-size: 2.5rem;
+  color: #8b5cf6;
+  animation: bounce 2s ease-in-out infinite;
+}
+
+.promo-page-header-simple .header-text h1 {
+  margin: 0 0 0.25rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  text-shadow: none;
+}
+
+.promo-page-header-simple .header-text p {
+  margin: 0;
+  font-size: 1rem;
+  color: #6b7280;
+  font-weight: 400;
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  background: white;
+  border-bottom: none;
+  padding: 0 2rem;
+  display: flex;
+  gap: 0;
+  box-shadow: none;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.tab-button {
+  background: none;
+  border: none;
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6b7280;
+  border-bottom: none;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tab-button:hover {
+  color: #1f2937;
+  background: #f9fafb;
+}
+
+.tab-button.active {
+  color: #1e40af;
+  border-bottom: none;
+  background: #f0f9ff;
+}
+
+.tab-button svg {
+  font-size: 1rem;
+}
+
+/* Tab Content */
+.tab-content {
+  padding: 1rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* My Code Section */
+.my-code-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.code-display,
+.analytics-display {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+/* Use Code Section */
+.use-code-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.use-code-container {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+/* Instructions Section */
+.instructions-section {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.instructions-section h2 {
+  color: #1f2937;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  position: relative;
+}
+
+.instructions-section h2::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  border-radius: 2px;
+}
+
+/* Steps Section */
+.steps-section {
+  margin-bottom: 4rem;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.step-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.step-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+}
+
+.step-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.step-number {
+  position: absolute;
+  top: -10px;
+  right: 20px;
+  background: #1e40af;
+  color: white;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.step-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.step-card h3 {
+  color: #1f2937;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.step-card p {
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Benefits Section */
+.benefits-section {
+  margin-bottom: 4rem;
+}
+
+.benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.benefit-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.benefit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.benefit-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.benefit-card h3 {
+  color: #1f2937;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.benefit-card p {
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Tips Section */
+.tips-section {
+  margin-bottom: 2rem;
+}
+
+.tips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.tip-card {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 16px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+}
+
+.tip-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgba(59, 130, 246, 0.15);
+}
+
+.tip-icon {
+  color: #0ea5e9;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.tip-card h3 {
+  color: #0c4a6e;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.tip-card p {
+  color: #0369a1;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .my-code-section {
+    grid-template-columns: 1fr;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
+  
+  .header-text h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .promo-page-header {
+    padding: 0.75rem 0;
+  }
+  
+  .header-content {
+    padding: 0 1rem;
+  }
+  
+  .back-button {
+    margin: 0 1rem 0.5rem 1rem;
+  }
+  
+  .tab-navigation {
+    padding: 0 1rem;
+    overflow-x: auto;
+  }
+  
+  .tab-button {
+    padding: 0.75rem 1.5rem;
+    white-space: nowrap;
+  }
+  
+  .tab-content {
+    padding: 0.75rem 1rem;
+  }
+  
+  .steps-grid,
+  .benefits-grid,
+  .tips-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .use-code-container {
+    padding: 2rem 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-text h1 {
+    font-size: 1.75rem;
+  }
+  
+  .header-text p {
+    font-size: 1rem;
+  }
+  
+  .header-icon {
+    font-size: 2.5rem;
+  }
+  
+  .tab-button {
+    padding: 0.75rem 1rem;
+    font-size: 0.75rem;
+  }
+  
+  .step-card,
+  .benefit-card,
+  .tip-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Akshar Coins Section */
+.akshar-coins-section {
+  padding: 2rem;
+}
+
+.coins-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.coins-balance-wrapper {
+  margin-bottom: 2rem;
+}
+
+.coins-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.coins-earn-section,
+.coins-use-section {
+  min-height: 400px;
+}
+
+/* Responsive for Akshar Coins Section */
+@media (max-width: 1024px) {
+  .coins-tabs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .akshar-coins-section {
+    padding: 1rem;
+  }
+
+  .coins-tabs {
+    gap: 1.5rem;
+  }
+}

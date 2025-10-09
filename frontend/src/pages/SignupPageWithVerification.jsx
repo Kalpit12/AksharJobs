@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 import InputField from "../components/InputField";
 import Button from "../components/Button";
 import PhoneVerification from "../components/PhoneVerification";
@@ -120,7 +121,7 @@ const SignupPageWithVerification = () => {
     setIsLoading(true);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/signup", {
+              const response = await axios.post(buildApiUrl("/api/signup"), {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: verificationStatus.email.value,

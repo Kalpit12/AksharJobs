@@ -1,4 +1,26 @@
-/* Modern Signup Page Styles - Matching RocketJobs Design */
+/* Modern Signup Page Styles - Matching AksharJobs Design */
+@import './Animations.css';
+
+/* Community Selector Help Text */
+.form_help_text {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 12px;
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #0C4A6E;
+  line-height: 1.4;
+}
+
+.help_icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 
 /* Signup Page Container */
 .signup_wrapper {
@@ -8,12 +30,13 @@
 
 /* Header Styles */
 .signup_header {
-  background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
-  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
   position: sticky;
   top: 0;
   z-index: 1000;
   backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header_container {
@@ -24,6 +47,7 @@
   align-items: center;
   justify-content: space-between;
   height: 80px;
+  position: relative;
 }
 
 .logo_section {
@@ -35,7 +59,7 @@
 .logo_icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--accent-green) 0%, var(--accent-green-light) 100%);
+  background: linear-gradient(135deg, #8B5CF6 0%, #A855F7 100%);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -44,6 +68,15 @@
   transition: transform var(--transition-normal);
   color: white;
   font-size: 1.25rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.logo_icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-full);
 }
 
 .logo_icon:hover {
@@ -57,13 +90,17 @@
 .logo_title {
   font-size: 1.5rem;
   font-weight: 700;
+  color: #ffffff;
   margin-bottom: 0.125rem;
+  letter-spacing: -0.025em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .logo_subtitle {
   font-size: 0.875rem;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .header_actions {
@@ -87,15 +124,21 @@
 }
 
 .btn_secondary {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.1);
   color: white;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .btn_secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Main Content */
@@ -133,7 +176,9 @@
   box-shadow: var(--shadow-2xl);
   border: 1px solid var(--neutral-200);
   width: 100%;
-  max-width: 520px;
+  max-width: 480px;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .signup_header_content {
@@ -238,13 +283,18 @@
 .form_row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form_group {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .form_label {
@@ -263,6 +313,14 @@
   font-size: 1rem;
   transition: all var(--transition-fast);
   background: white;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+/* Special padding for password inputs to accommodate toggle button */
+.password_input_wrapper .form_input {
+  padding-right: 48px;
 }
 
 .form_input:focus {
@@ -290,6 +348,8 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .account_type_option {
@@ -310,6 +370,9 @@
   border-radius: var(--radius-lg);
   transition: all var(--transition-fast);
   background: white;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .account_type_option input[type="radio"]:checked + .option_content {
@@ -323,27 +386,38 @@
   flex-shrink: 0;
 }
 
+.option_text {
+  flex: 1;
+  min-width: 0;
+}
+
 .option_text h4 {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--neutral-800);
   margin-bottom: var(--spacing-xs);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .option_text p {
   color: var(--neutral-600);
   font-size: 0.875rem;
   line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Password Input Wrapper */
 .password_input_wrapper {
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .password_toggle {
   position: absolute;
-  right: var(--spacing-md);
+  right: var(--spacing-sm);
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -352,11 +426,91 @@
   cursor: pointer;
   padding: var(--spacing-xs);
   transition: color var(--transition-fast);
+  z-index: 10;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .password_toggle:hover {
   color: var(--neutral-700);
 }
+
+/* Password Feedback Box */
+.password_feedback_box {
+  margin-top: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  background: white;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--neutral-200);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.password_strength_title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+  margin-top: 0;
+}
+
+.strength_bar {
+  height: 8px;
+  background: var(--neutral-200);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: var(--spacing-lg);
+}
+
+.strength_fill {
+  height: 100%;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+}
+
+/* Password Requirements List */
+.requirements_list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.requirement_item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: 0.8rem;
+  color: var(--neutral-600);
+  transition: all var(--transition-fast);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--neutral-100);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.requirement_item.valid {
+  color: var(--success);
+  background: var(--success-50);
+  border: 1px solid var(--success-200);
+}
+
+.requirement_item.valid .fa-check {
+  color: var(--success);
+}
+
+.requirement_item .fa-times {
+  color: var(--neutral-400);
+}
+
+.requirement_item .fa-check {
+  color: var(--success);
+}
+
 
 /* Terms Checkbox */
 .terms_checkbox {
@@ -639,11 +793,32 @@
   z-index: 2;
 }
 
+.signup_features_section .features_title,
 .features_title {
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: var(--spacing-2xl);
   text-align: center;
+  color: #ffffff !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Force white color with maximum specificity */
+.signup_wrapper .signup_features_section .features_content .features_title,
+.signup_wrapper .signup_features_section .features_content h2.features_title {
+  color: #ffffff !important;
+  white-space: nowrap !important;
+}
+
+/* Ultimate override - highest specificity possible */
+div.signup_wrapper div.signup_features_section div.features_content h2.features_title {
+  color: #ffffff !important;
+  white-space: nowrap !important;
+  text-shadow: none !important;
+  background: none !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 .features_list {
@@ -702,6 +877,7 @@
   .form_row {
     grid-template-columns: 1fr;
     gap: var(--spacing-md);
+    width: 100%;
   }
 }
 
@@ -722,6 +898,15 @@
   .features_list {
     gap: var(--spacing-lg);
   }
+  
+  .requirements_list {
+    flex-direction: column;
+  }
+  
+  .requirement_item {
+    font-size: 0.8rem;
+  }
+  
   
   .feature_item {
     flex-direction: column;
@@ -750,6 +935,7 @@
   
   .signup_form_container {
     padding: var(--spacing-xl);
+    margin: 0 var(--spacing-sm);
   }
   
   .signup_features_section {
@@ -760,8 +946,45 @@
     font-size: 1.75rem;
   }
   
+  .form_row {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+  }
+  
+  .option_content {
+    padding: var(--spacing-md);
+  }
+  
+  .option_text h4 {
+    font-size: 1rem;
+  }
+  
+  .option_text p {
+    font-size: 0.8rem;
+  }
+  
+  .requirements_list {
+    gap: var(--spacing-xs);
+    flex-direction: column;
+  }
+  
+  .requirement_item {
+    font-size: 0.75rem;
+    padding: var(--spacing-xs);
+  }
+  
+  .password_requirements {
+    padding: var(--spacing-sm);
+  }
+  
+  
+  .signup_features_section .features_title,
   .features_title {
     font-size: 1.5rem;
+    color: #ffffff !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   
   .social_signup_btn {
@@ -776,4 +999,52 @@
   .verification_complete h2 {
     font-size: 1.5rem;
   }
+}
+
+/* Community selector in forms */
+.form_group .community-selector.compact {
+  margin-top: 8px;
+}
+
+.form_group .community-selector.compact .selector-header {
+  margin-bottom: 0;
+  min-width: 140px;
+}
+
+.form_group .community-selector.compact .dropdown-trigger {
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  padding: 10px 12px;
+  min-height: 40px;
+}
+
+.form_group .community-selector.compact .dropdown-trigger:hover {
+  border-color: #9CA3AF;
+}
+
+.form_group .community-selector.compact .dropdown-trigger.open {
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Ensure community dropdown displays properly */
+.form_group .community-selector .dropdown-menu {
+  min-width: 250px;
+  width: max-content;
+  max-width: 90vw;
+}
+
+.form_group .community-selector .option-name,
+.form_group .community-selector .option-category,
+.form_group .community-selector .option-description {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.form_group .community-selector .search-input {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }

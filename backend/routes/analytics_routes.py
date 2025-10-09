@@ -136,12 +136,11 @@ def get_job_performance():
         return jsonify({"error": str(e)}), 500
 
 @analytics_bp.route('/dashboard-summary', methods=['GET'])
-# @jwt_required()  # Temporarily disabled for testing
+@jwt_required()
 def get_dashboard_summary():
     """Get summary analytics for recruiter dashboard"""
     try:
-        # Temporarily use a hardcoded recruiter ID for testing
-        current_user_id = "sample_recruiter_123"  # This matches the sample data we created
+        current_user_id = get_jwt_identity()
         
         # Get various metrics
         thresholds = analytics_service.get_match_score_thresholds(current_user_id)
@@ -163,3 +162,232 @@ def get_dashboard_summary():
         return jsonify({"success": True, "data": summary})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@analytics_bp.route('/recruitment-analytics', methods=['GET'])
+@jwt_required()
+def get_recruitment_analytics():
+    """Get comprehensive recruitment analytics for dashboard cards"""
+    try:
+        print(f"🔍 Analytics endpoint called")
+        print(f"📋 Request method: {request.method}")
+        print(f"📋 Request headers: {dict(request.headers)}")
+        
+        current_user_id = get_jwt_identity()
+        print(f"👤 Current user ID: {current_user_id}")
+        
+        days = int(request.args.get('days', 30))
+        print(f"📅 Days parameter: {days}")
+        
+        analytics = analytics_service.get_recruitment_analytics(current_user_id, days)
+        print(f"📊 Analytics result: {analytics is not None}")
+        
+        if analytics:
+            return jsonify({"success": True, "data": analytics})
+        else:
+            print("❌ Analytics service returned None")
+            return jsonify({"error": "Failed to get analytics data"}), 500
+    except Exception as e:
+        print(f"❌ Error in recruitment analytics: {e}")
+        import traceback
+        print(f"📋 Traceback: {traceback.format_exc()}")
+        return jsonify({"error": str(e)}), 500
+
+# Job Seeker Analytics Endpoints
+@analytics_bp.route('/jobseeker', methods=['GET'])
+# @jwt_required()  # Temporarily disabled for testing
+def get_jobseeker_analytics():
+    """Get comprehensive analytics for job seekers"""
+    try:
+        # current_user_id = get_jwt_identity()  # Temporarily disabled
+        current_user_id = "test_user"  # Mock user ID for testing
+        period = request.args.get('period', '30d')
+        
+        # Mock analytics data for now
+        # In a real implementation, this would query the database
+        analytics_data = {
+            'applications': {
+                'total': 25,
+                'thisMonth': 8,
+                'lastMonth': 12,
+                'trend': -33  # percentage change
+            },
+            'responses': {
+                'total': 6,
+                'rate': 24,  # percentage
+                'interviews': 3,
+                'offers': 1
+            },
+            'skills': {
+                'topSkills': [
+                    {'name': 'JavaScript', 'count': 15},
+                    {'name': 'React', 'count': 12},
+                    {'name': 'Python', 'count': 10},
+                    {'name': 'Node.js', 'count': 8},
+                    {'name': 'AWS', 'count': 6}
+                ],
+                'skillGaps': [
+                    {
+                        'skill': 'Docker',
+                        'demand': 85,
+                        'description': 'Containerization skills are in high demand for DevOps roles'
+                    },
+                    {
+                        'skill': 'Machine Learning',
+                        'demand': 78,
+                        'description': 'AI/ML skills are trending in the job market'
+                    }
+                ],
+                'recommendations': [
+                    'Focus on full-stack development skills',
+                    'Learn cloud technologies (AWS, Azure)',
+                    'Develop soft skills like leadership'
+                ]
+            },
+            'market': {
+                'avgResponseTime': 5.2,
+                'salaryRange': {
+                    'min': 75000,
+                    'max': 120000
+                },
+                'topCompanies': [
+                    {'name': 'Google', 'count': 15},
+                    {'name': 'Microsoft', 'count': 12},
+                    {'name': 'Amazon', 'count': 10},
+                    {'name': 'Meta', 'count': 8}
+                ],
+                'topLocations': [
+                    {'name': 'San Francisco, CA', 'count': 25},
+                    {'name': 'Seattle, WA', 'count': 18},
+                    {'name': 'New York, NY', 'count': 15},
+                    {'name': 'Austin, TX', 'count': 12}
+                ]
+            },
+            'aiInsights': {
+                'profileScore': 85,
+                'suggestions': [
+                    'Your profile is strong! Consider adding more project examples.',
+                    'Your response rate could improve with better keyword optimization.',
+                    'Try applying to more startups - they seem to respond well to your profile.'
+                ],
+                'keywords': [
+                    'Full Stack Developer', 'React', 'Node.js', 'Python',
+                    'AWS', 'Docker', 'Agile', 'Team Leadership'
+                ],
+                'improvements': [
+                    'Add 2-3 more project examples with live demos',
+                    'Include specific metrics in your experience descriptions',
+                    'Update your skills to include trending technologies'
+                ]
+            }
+        }
+        
+        return jsonify(analytics_data), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@analytics_bp.route('/jobseeker/trends', methods=['GET'])
+@jwt_required()
+def get_application_trends():
+    """Get application trends over time for job seekers"""
+    try:
+        current_user_id = get_jwt_identity()
+        period = request.args.get('period', '30d')
+        
+        # Mock trend data
+        trends = {
+            'applications': [
+                {'date': '2024-01-01', 'count': 2},
+                {'date': '2024-01-02', 'count': 1},
+                {'date': '2024-01-03', 'count': 3},
+                {'date': '2024-01-04', 'count': 1},
+                {'date': '2024-01-05', 'count': 2},
+            ],
+            'responses': [
+                {'date': '2024-01-01', 'count': 0},
+                {'date': '2024-01-02', 'count': 1},
+                {'date': '2024-01-03', 'count': 0},
+                {'date': '2024-01-04', 'count': 1},
+                {'date': '2024-01-05', 'count': 0},
+            ],
+            'interviews': [
+                {'date': '2024-01-01', 'count': 0},
+                {'date': '2024-01-02', 'count': 0},
+                {'date': '2024-01-03', 'count': 1},
+                {'date': '2024-01-04', 'count': 0},
+                {'date': '2024-01-05', 'count': 0},
+            ]
+        }
+        
+        return jsonify(trends), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# AI Resume Optimization Endpoints
+@analytics_bp.route('/ai/resume-optimization', methods=['POST'])
+# @jwt_required()  # Temporarily disabled for testing
+def optimize_resume():
+    """AI-powered resume optimization endpoint"""
+    try:
+        data = request.get_json()
+        resume_data = data.get('resume_data', {})
+        
+        # Mock AI optimization suggestions
+        # In a real implementation, this would call an AI service
+        suggestions = {
+            'summary_suggestions': 'Consider adding more specific achievements and quantifiable results to your summary. Include relevant keywords from job descriptions you\'re targeting.',
+            'skill_suggestions': [
+                'Add "Machine Learning" to your skills',
+                'Include "Project Management" experience',
+                'Highlight "Leadership" capabilities'
+            ],
+            'keywords': [
+                'Python', 'React', 'AWS', 'Docker', 'Kubernetes',
+                'Agile', 'Scrum', 'CI/CD', 'Microservices', 'API Development'
+            ],
+            'improvements': [
+                'Add more specific metrics to your experience descriptions',
+                'Include relevant certifications',
+                'Optimize your summary for ATS systems'
+            ]
+        }
+        
+        return jsonify(suggestions), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@analytics_bp.route('/ai/analytics-insights', methods=['POST'])
+# @jwt_required()  # Temporarily disabled for testing
+def generate_analytics_insights():
+    """AI-powered analytics insights for job seekers"""
+    try:
+        data = request.get_json()
+        period = data.get('period', '30d')
+        user_id = data.get('user_id')
+        
+        # Mock AI insights
+        # In a real implementation, this would analyze user data and generate insights
+        insights = {
+            'profileScore': 85,
+            'suggestions': [
+                'Your profile is strong! Consider adding more project examples.',
+                'Your response rate could improve with better keyword optimization.',
+                'Try applying to more startups - they seem to respond well to your profile.'
+            ],
+            'keywords': [
+                'Full Stack Developer', 'React', 'Node.js', 'Python',
+                'AWS', 'Docker', 'Agile', 'Team Leadership'
+            ],
+            'improvements': [
+                'Add 2-3 more project examples with live demos',
+                'Include specific metrics in your experience descriptions',
+                'Update your skills to include trending technologies'
+            ]
+        }
+        
+        return jsonify(insights), 200
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500

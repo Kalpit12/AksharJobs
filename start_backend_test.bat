@@ -1,17 +1,5 @@
 @echo off
-echo 🔧 Starting Backend Server for Testing...
-echo ================================================
-
+echo Starting AksharJobs Backend Server...
 cd backend
-
-echo.
-echo 🚀 Starting Flask server...
-echo.
-
 python app.py
-
-echo.
-echo ================================================
-echo ✅ Backend server stopped!
-echo.
 pause

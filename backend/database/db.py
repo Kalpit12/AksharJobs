@@ -14,7 +14,7 @@ def get_mongo_client():
         return None
 
     try:
-        client = MongoClient(MONGO_URI, tls=True)  
+        client = MongoClient(MONGO_URI, tls=False)  
         logging.info("Connected to MongoDB successfully")
         return client
     except Exception as e:

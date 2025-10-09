@@ -143,6 +143,31 @@
   margin:15px 15px;
 }
 
+.header_section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.tracker_btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+  .header_section {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .recruiter_applicant_title {
+    margin-bottom: 15px;
+  }
+}
+
 .candidate_details {
   background-color: #f9f9f9;
   border-radius: 10px;

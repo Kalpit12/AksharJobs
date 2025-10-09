@@ -1,0 +1,214 @@
+.registration-success-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.success-card {
+  background: white;
+  border-radius: 20px;
+  padding: 60px 50px;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.success-icon {
+  font-size: 5rem;
+  color: #10b981;
+  margin-bottom: 30px;
+  animation: scaleIn 0.6s ease-out 0.2s both;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.success-card h1 {
+  font-size: 2.5rem;
+  color: #1f2937;
+  margin-bottom: 20px;
+  font-weight: 700;
+}
+
+.success-message {
+  font-size: 1.15rem;
+  color: #4b5563;
+  margin-bottom: 40px;
+  line-height: 1.6;
+}
+
+.success-details {
+  background: #f0fdf4;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  border: 2px solid #10b981;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 0;
+  font-size: 1.05rem;
+  color: #065f46;
+  font-weight: 500;
+}
+
+.check-mark {
+  font-size: 1.5rem;
+  color: #10b981;
+  font-weight: bold;
+}
+
+.next-steps {
+  text-align: left;
+  margin-bottom: 30px;
+  padding: 25px;
+  background: #f9fafb;
+  border-radius: 12px;
+}
+
+.next-steps h3 {
+  font-size: 1.3rem;
+  color: #1f2937;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.next-steps ul {
+  list-style: none;
+  padding: 0;
+}
+
+.next-steps li {
+  padding: 8px 0;
+  color: #4b5563;
+  position: relative;
+  padding-left: 25px;
+}
+
+.next-steps li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.redirect-info {
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #ede9fe;
+  border-radius: 8px;
+  color: #5b21b6;
+  font-size: 1rem;
+}
+
+.redirect-info strong {
+  font-size: 1.3rem;
+  color: #7c3aed;
+}
+
+.btn {
+  padding: 16px 40px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .success-card {
+    padding: 40px 30px;
+  }
+
+  .success-card h1 {
+    font-size: 2rem;
+  }
+
+  .success-icon {
+    font-size: 4rem;
+  }
+
+  .success-message {
+    font-size: 1rem;
+  }
+
+  .next-steps {
+    padding: 20px;
+  }
+
+  .btn {
+    padding: 14px 30px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-success-container {
+    padding: 20px 10px;
+  }
+
+  .success-card {
+    padding: 30px 20px;
+  }
+
+  .success-card h1 {
+    font-size: 1.5rem;
+  }
+
+  .success-icon {
+    font-size: 3rem;
+  }
+
+  .detail-item {
+    font-size: 0.95rem;
+  }
+
+  .next-steps h3 {
+    font-size: 1.1rem;
+  }
+}
+

@@ -1,0 +1,92 @@
+.circular-gallery {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: grab;
+  position: relative;
+}
+
+.circular-gallery:active {
+  cursor: grabbing;
+}
+
+/* Testimonial overlay styles */
+.testimonial-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.testimonial-card {
+  position: absolute;
+  width: 300px;
+  height: 400px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border-radius: 20px;
+  padding: 30px;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(20px) scale(0.9);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.testimonial-card.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.testimonial-quote {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.testimonial-name {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: white;
+}
+
+.testimonial-role {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 12px;
+}
+
+.testimonial-company {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: inline-block;
+}
+
+/* Company color variations */
+.testimonial-company.microsoft { color: #00A4EF; }
+.testimonial-company.google { color: #4285F4; }
+.testimonial-company.apple { color: #000000; }
+.testimonial-company.netflix { color: #E50914; }
+.testimonial-company.amazon { color: #FF9900; }
+.testimonial-company.safaricom { color: #0066CC; }
+.testimonial-company.cellulant { color: #00D4AA; }
+.testimonial-company.kcb { color: #FF6B35; }

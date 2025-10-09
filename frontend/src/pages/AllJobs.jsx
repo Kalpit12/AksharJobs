@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { buildApiUrl } from "../config/api";
 
 import Header from "../components/Header";
 import BackButton from "../components/BackButton";
-import LoadingSpinner from "../components/LoadingSpinner";
+import ModernLoadingSpinner from "../components/ModernLoadingSpinner";
 import JobCardSkeleton from "../components/JobCardSkeleton";
 import "../styles/AllJobs.css";
 
@@ -22,7 +23,7 @@ const AllJobs = () => {
   useEffect(() => {
     const fetchJobs = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/api/jobs/jobs_by_user/${userId}`);
+        const response = await axios.get(buildApiUrl(`/api/jobs/jobs_by_user/${userId}`));
         setJobPostings(response.data || []);
       } catch (err) {
         setError("Failed to fetch job postings.");

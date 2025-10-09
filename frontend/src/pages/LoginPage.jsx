@@ -15,6 +15,8 @@ import { faGoogle as faGoogleBrand, faLinkedin as faLinkedinBrand } from '@forta
 import { useAuth } from '../context/AuthContext';
 import { buildApiUrl } from '../config/api';
 import { oauthApi } from '../api/oauthApi';
+import { FadeInUp, SlideIn, ScaleIn, StaggerChildren } from '../components/animations';
+import { motion } from 'framer-motion';
 import '../styles/Login.css';
 
 const LoginPage = () => {
@@ -107,9 +109,13 @@ const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Login successful - use the AuthContext
-        login(data);
-        // The AuthContext will handle navigation based on user role
+        // Login successful - check for intended destination
+        const intendedDestination = sessionStorage.getItem('intendedDestination');
+        console.log('🔐 LoginPage - Intended destination:', intendedDestination);
+        
+        // Use the AuthContext with intended destination
+        login(data, true, intendedDestination);
+        // The AuthContext will handle navigation based on intended destination or user role
       } else {
         setLoginError(data.error || 'Login failed. Please try again.');
       }
@@ -159,11 +165,11 @@ const LoginPage = () => {
         <div className="header_container">
           <div className="logo_section">
             <div className="logo_icon">
-              <FontAwesomeIcon icon={faRocket} />
+              <img src="/AK_logo.jpg" alt="AksharJobs Logo" />
             </div>
             <div className="logo_text">
-              <div className="logo_title">RocketJobs</div>
-              <div className="logo_subtitle">AI-Powered Job Matching</div>
+              <div className="logo_title">AksharJobs</div>
+              <div className="logo_subtitle">Where Opportunity Meets Talent</div>
             </div>
           </div>
           
@@ -182,38 +188,46 @@ const LoginPage = () => {
           <div className="login_content">
             {/* Left Side - Form */}
             <div className="login_form_section">
-              <div className="login_form_container">
-                <div className="login_header_content">
-                  <h1 className="login_title">Welcome Back!</h1>
-                  <p className="login_subtitle">
-                    Sign in to your RocketJobs account and continue your career journey
-                  </p>
-                </div>
+              <SlideIn direction="left" delay={0.2}>
+                <div className="login_form_container">
+                  <FadeInUp>
+                    <div className="login_header_content">
+                      <h1 className="login_title">Welcome Back!</h1>
+                      <p className="login_subtitle">
+                        Sign in to your AksharJobs account and continue your career journey
+                      </p>
+                    </div>
+                  </FadeInUp>
 
                 {/* Social Login Buttons */}
-                <div className="social_login_section">
-                  <button 
+                <StaggerChildren staggerDelay={0.1}>
+                  <motion.button 
                     className="social_login_btn google"
                     onClick={() => handleSocialLogin('google')}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <FontAwesomeIcon icon={faGoogleBrand} />
                     Continue with Google
-                  </button>
-                  <button 
+                  </motion.button>
+                  <motion.button 
                     className="social_login_btn linkedin"
                     onClick={() => handleSocialLogin('linkedin')}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     <FontAwesomeIcon icon={faLinkedinBrand} />
                     Continue with LinkedIn
-                  </button>
-                </div>
+                  </motion.button>
+                </StaggerChildren>
 
                 <div className="divider">
                   <span>or</span>
                 </div>
 
                 {/* Login Form */}
-                <form className="login_form" onSubmit={handleSubmit}>
+                <FadeInUp delay={0.4}>
+                  <form className="login_form" onSubmit={handleSubmit}>
                   {sessionMessage && (
                     <div className="session_message">
                       <FontAwesomeIcon icon={faClock} />
@@ -289,10 +303,12 @@ const LoginPage = () => {
                   </div>
 
                   {/* Submit Button */}
-                  <button 
+                  <motion.button 
                     type="submit" 
                     className="login_submit_btn"
                     disabled={isLoading}
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    whileTap={{ scale: 0.98 }}
                   >
                     {isLoading ? (
                       <div className="loading_spinner">
@@ -302,8 +318,9 @@ const LoginPage = () => {
                     ) : (
                       'Sign In'
                     )}
-                  </button>
+                  </motion.button>
                 </form>
+                </FadeInUp>
 
                 {/* Sign Up Link */}
                 <div className="signup_prompt">
@@ -314,14 +331,19 @@ const LoginPage = () => {
                     </Link>
                   </p>
                 </div>
-              </div>
+                </div>
+              </SlideIn>
             </div>
 
             {/* Right Side - Features */}
-            <div className="login_features_section">
-              <div className="features_content">
-                <h2 className="features_title">Why Choose RocketJobs?</h2>
-                <div className="features_list">
+            <SlideIn direction="right" delay={0.3}>
+              <div className="login_features_section">
+                <div className="features_content">
+                  <FadeInUp>
+                    <h2 className="features_title">Why Choose AksharJobs?</h2>
+                  </FadeInUp>
+                  <StaggerChildren staggerDelay={0.15}>
+                    <div className="features_list">
                   <div className="feature_item">
                     <div className="feature_icon">
                       <FontAwesomeIcon icon={faRocket} />
@@ -361,9 +383,11 @@ const LoginPage = () => {
                       <p>Find companies that align with your values, work style, and career aspirations</p>
                     </div>
                   </div>
+                    </div>
+                  </StaggerChildren>
                 </div>
               </div>
-            </div>
+            </SlideIn>
           </div>
         </div>
       </main>

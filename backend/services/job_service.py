@@ -31,6 +31,10 @@ def create_job(data):
         "description": data["description"],
         "views": 0,
         "applicants": [],
+        # Community-related fields
+        "target_communities": data.get("target_communities", []),
+        "all_communities": data.get("all_communities", False),
+        "community_requirements": data.get("community_requirements", ""),
         "created_at": datetime.utcnow(),
     }
 

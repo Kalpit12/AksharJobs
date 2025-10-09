@@ -1,19 +1,44 @@
 // URL Interceptor - Automatically fixes hardcoded localhost URLs
 import API_CONFIG from '../config/api.js';
 
-// Store original fetch function
+// Store original functions
 const originalFetch = window.fetch;
 const originalAxios = window.axios;
+let originalAxiosRequest = null; // Declare globally
 
 // Function to fix URLs
 const fixUrl = (url) => {
   if (typeof url === 'string') {
     let fixedUrl = url;
     
-    // Replace all variations of hardcoded localhost URLs
+    // Get the dynamic base URL from API config - Global accessibility
+    const getBaseUrl = () => {
+      if (typeof window !== 'undefined') {
+        const currentHost = window.location.hostname;
+        const currentPort = window.location.port;
+        
+        // Always use the same host as the frontend with backend port
+        // This works from anywhere - localhost, local network, or external access
+        if (currentPort === '3002') {
+          // If we're already on the backend port, use the same host
+          return window.location.origin;
+        } else {
+          // Use the same host with backend port 3002
+          // This allows access from anywhere - localhost, local network, or external
+          return `http://${currentHost}:3002`;
+        }
+      }
+      // Fallback for SSR
+      return 'http://localhost:3002';
+    };
+    
+    const baseUrl = getBaseUrl();
+    
+    // Replace all variations of hardcoded localhost URLs with dynamic base URL
     const patterns = [
       /http:\/\/(127\.0\.0\.1|localhost):5000/g,
       /http:\/\/(127\.0\.0\.1|localhost):3001/g,
+      /http:\/\/(127\.0\.0\.1|localhost):3002/g,  // Add this pattern
       /http:\/\/(127\.0\.0\.1|localhost):3004/g,
       /http:\/\/(127\.0\.0\.1|localhost):3005/g,
       /http:\/\/(127\.0\.0\.1|localhost):8000/g,
@@ -21,17 +46,18 @@ const fixUrl = (url) => {
     ];
     
     patterns.forEach(pattern => {
-      fixedUrl = fixedUrl.replace(pattern, 'http://localhost:3002');
+      fixedUrl = fixedUrl.replace(pattern, baseUrl);
     });
     
     // Also fix any URLs without protocol
     if (fixedUrl.startsWith('//127.0.0.1:5000') || fixedUrl.startsWith('//localhost:5000')) {
-      fixedUrl = fixedUrl.replace(/\/\/(127\.0\.0\.1|localhost):5000/g, '//localhost:3002');
+      fixedUrl = fixedUrl.replace(/\/\/(127\.0\.0\.1|localhost):5000/g, baseUrl.replace('http:', ''));
     }
     
     // Log all URL changes for debugging
     if (fixedUrl !== url) {
       console.log(`[URL Interceptor] Fixed: ${url} -> ${fixedUrl}`);
+      console.log(`[URL Interceptor] Using base URL: ${baseUrl}`);
     }
     
     return fixedUrl;
@@ -47,7 +73,7 @@ window.fetch = function(url, options = {}) {
 
 // Override axios if it exists
 if (window.axios) {
-  const originalAxiosRequest = window.axios.request;
+  originalAxiosRequest = window.axios.request;
   window.axios.request = function(config) {
     if (config.url) {
       config.url = fixUrl(config.url);
@@ -68,8 +94,8 @@ if (window.axios) {
     return window.axios.request({ ...config, method: 'put', url: fixUrl(url), data });
   };
   
-  window.axios.delete = function(url, config) {
-    return window.axios.request({ ...config, method: 'delete', url: fixUrl(url) });
+  window.axios.delete = function(url, data, config) {
+    return window.axios.request({ ...config, method: 'delete', url: fixUrl(url), data });
   };
   
   // Override axios.create instances
@@ -86,6 +112,23 @@ if (window.axios) {
       return originalInstanceRequest.call(this, config);
     };
     
+    // Also override individual methods on the instance
+    instance.get = function(url, config) {
+      return instance.request({ ...config, method: 'get', url: fixUrl(url) });
+    };
+    
+    instance.post = function(url, data, config) {
+      return instance.request({ ...config, method: 'post', url: fixUrl(url), data });
+    };
+    
+    instance.put = function(url, data, config) {
+      return instance.request({ ...config, method: 'put', url: fixUrl(url), data });
+    };
+    
+    instance.delete = function(url, config) {
+      return instance.request({ ...config, method: 'delete', url: fixUrl(url) });
+    };
+    
     return instance;
   };
 }
@@ -97,7 +140,56 @@ XMLHttpRequest.prototype.open = function(method, url, ...args) {
   return originalXHROpen.call(this, method, fixedUrl, ...args);
 };
 
+// More aggressive interception - catch any remaining hardcoded URLs
+let interceptCount = 0;
+const aggressiveIntercept = () => {
+  interceptCount++;
+  
+  // Only log every 10th time to reduce spam
+  const shouldLog = interceptCount % 10 === 0;
+  
+  // Intercept any remaining fetch calls
+  if (window.fetch !== originalFetch) {
+    if (shouldLog) console.log('[URL Interceptor] Fetch already intercepted');
+  } else {
+    window.fetch = function(url, options = {}) {
+      const fixedUrl = fixUrl(url);
+      return originalFetch(fixedUrl, options);
+    };
+  }
+  
+  // Intercept any remaining axios calls
+  if (window.axios && originalAxiosRequest && window.axios.request !== originalAxiosRequest) {
+    if (shouldLog) console.log('[URL Interceptor] Axios already intercepted');
+  }
+  
+  // Intercept any remaining XMLHttpRequest calls
+  if (XMLHttpRequest.prototype.open !== originalXHROpen) {
+    if (shouldLog) console.log('[URL Interceptor] XMLHttpRequest already intercepted');
+  } else {
+    XMLHttpRequest.prototype.open = function(method, url, ...args) {
+      const fixedUrl = fixUrl(url);
+      return originalXHROpen.call(this, method, fixedUrl, ...args);
+    };
+  }
+};
+
+// Run aggressive interception immediately and also on DOM ready
+aggressiveIntercept();
+
+// Also run when DOM is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', aggressiveIntercept);
+} else {
+  aggressiveIntercept();
+}
+
+// Run periodically to catch any late-loaded components (reduced frequency)
+// Disabled for localhost development
+// setInterval(aggressiveIntercept, 5000);
+
 // Log that interceptor is active
-console.log('[URL Interceptor] Active - Automatically fixing ALL hardcoded localhost URLs to use port 3002');
+console.log('[URL Interceptor] Active - Automatically fixing ALL hardcoded localhost URLs to use dynamic backend URL');
+console.log('[URL Interceptor] Periodic interception disabled for localhost development');
 
 export default { fixUrl };

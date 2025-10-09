@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
+import { buildApiUrl } from '../config/api';
+import ModernLoadingSpinner from './ModernLoadingSpinner';
 
 const ProfileCompletionCheck = ({ children, requiredRole }) => {
   const [isChecking, setIsChecking] = useState(true);
@@ -17,7 +18,7 @@ const ProfileCompletionCheck = ({ children, requiredRole }) => {
       }
 
       try {
-        const response = await fetch('http://localhost:3002/api/users/profile', {
+        const response = await fetch(buildApiUrl('/api/users/profile'), {
           headers: {
             'Authorization': `Bearer ${user.token}`,
             'Content-Type': 'application/json'
@@ -54,7 +55,7 @@ const ProfileCompletionCheck = ({ children, requiredRole }) => {
   if (isChecking) {
     return (
       <div className="profile-check-loading">
-        <LoadingSpinner 
+        <ModernLoadingSpinner 
           type="rocket" 
           size="large" 
           text="Checking your profile..." 

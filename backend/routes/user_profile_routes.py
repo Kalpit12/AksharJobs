@@ -79,6 +79,13 @@ def profile_setup():
                 resume_file_path = file_path
                 print(f"Resume saved to: {resume_file_path}")
         
+        # Get additional location fields from request
+        current_address = request.form.get('currentAddress', '')
+        current_address_pin = request.form.get('currentAddressPin', '')
+        home_address = request.form.get('homeAddress', '')
+        home_address_pin = request.form.get('homeAddressPin', '')
+        commute_options = json.loads(request.form.get('commuteOptions', '[]'))
+        
         # Update user profile
         update_data = {
             'fullName': full_name,
@@ -86,6 +93,11 @@ def profile_setup():
             'dateOfBirth': date_of_birth,
             'gender': gender,
             'location': location,
+            'currentAddress': current_address,
+            'currentAddressPin': current_address_pin,
+            'homeAddress': home_address,
+            'homeAddressPin': home_address_pin,
+            'commuteOptions': commute_options,
             'education': education,
             'experience': experience,
             'skills': skills,
@@ -170,21 +182,48 @@ def get_user_profile():
         # Check if profile is completed
         profile_completed = user.get('profileCompleted', False)
         
-        # Return profile data
+        # Return profile data (including company fields for recruiters)
         profile_data = {
+            "_id": str(user.get('_id')) if user.get('_id') else "",
             "fullName": user.get('fullName', ''),
+            "firstName": user.get('firstName', ''),
+            "lastName": user.get('lastName', ''),
             "email": user.get('email', ''),
             "phone": user.get('phone', ''),
             "dateOfBirth": user.get('dateOfBirth', ''),
             "gender": user.get('gender', ''),
+            "bloodGroup": user.get('bloodGroup', ''),
             "location": user.get('location', {}),
+            "currentAddress": user.get('currentAddress', ''),
+            "currentAddressPin": user.get('currentAddressPin', ''),
+            "homeAddress": user.get('homeAddress', ''),
+            "homeAddressPin": user.get('homeAddressPin', ''),
+            "commuteOptions": user.get('commuteOptions', []),
             "education": user.get('education', []),
             "experience": user.get('experience', []),
             "skills": user.get('skills', []),
+            "jobPreferences": user.get('jobPreferences', {}),
+            "salaryExpectations": user.get('salaryExpectations', {}),
+            "availability": user.get('availability', {}),
+            "languages": user.get('languages', []),
+            "linkedinProfile": user.get('linkedinProfile', ''),
+            "portfolio": user.get('portfolio', ''),
+            "bio": user.get('bio', ''),
             "profileCompleted": profile_completed,
             "resumePath": user.get('resumePath', ''),
-            "resumeUploadedAt": user.get('resumeUploadedAt', '')
+            "resumeUploadedAt": user.get('resumeUploadedAt', ''),
+            "userType": user.get('userType', ''),
+            # Recruiter/Company fields
+            "companyName": user.get('companyName', ''),
+            "companyWebsite": user.get('companyWebsite', ''),
+            "industry": user.get('industry', ''),
+            "companySize": user.get('companySize', ''),
+            "foundedYear": user.get('foundedYear', ''),
+            "companyDescription": user.get('companyDescription', ''),
+            "companyLogo": user.get('companyLogo', '')
         }
+        
+        print(f"📋 GET Profile - Returning company fields: companyName={profile_data.get('companyName')}, industry={profile_data.get('industry')}, companySize={profile_data.get('companySize')}")
         
         return jsonify(profile_data), 200
         
@@ -207,11 +246,14 @@ def update_user_profile():
             'updatedAt': datetime.utcnow()
         }
         
-        # Add fields that are provided
-        fields_to_update = ['fullName', 'phone', 'dateOfBirth', 'gender', 'location', 'education', 'experience', 'skills']
+        # Add fields that are provided (including company fields for recruiters)
+        fields_to_update = ['fullName', 'firstName', 'lastName', 'phone', 'dateOfBirth', 'gender', 'bloodGroup', 'location', 'currentAddress', 'currentAddressPin', 'homeAddress', 'homeAddressPin', 'commuteOptions', 'education', 'experience', 'skills', 'jobPreferences', 'salaryExpectations', 'availability', 'languages', 'linkedinProfile', 'portfolio', 'bio', 'companyName', 'companyWebsite', 'industry', 'companySize', 'foundedYear', 'companyDescription']
         for field in fields_to_update:
             if field in data:
                 update_data[field] = data[field]
+        
+        print(f"📋 Updating profile with data: {update_data}")
+        print(f"📋 Company fields being saved: companyName={update_data.get('companyName')}, industry={update_data.get('industry')}, companySize={update_data.get('companySize')}")
         
         # Convert string ID to ObjectId
         try:
@@ -225,8 +267,10 @@ def update_user_profile():
             {'$set': update_data}
         )
         
-        if result.modified_count > 0:
-            # Also update resume profile
+        print(f"📋 Update result: matched={result.matched_count}, modified={result.modified_count}")
+        
+        if result.matched_count > 0:
+            # Also update resume profile for job seekers
             resumes_collection = db.resumes
             resume_update_data = {
                 'updatedAt': datetime.utcnow()
@@ -241,13 +285,72 @@ def update_user_profile():
                 {'$set': resume_update_data}
             )
             
+            print(f"✅ Profile updated successfully for user {current_user_id}")
             return jsonify({
                 "success": True,
-                "message": "Profile updated successfully"
+                "message": "Profile updated successfully",
+                "modified_count": result.modified_count
             }), 200
         else:
-            return jsonify({"error": "No changes made to profile"}), 400
-            
+            print(f"❌ User not found for ID: {current_user_id}")
+            return jsonify({"error": "User not found"}), 404
+        
     except Exception as e:
         print(f"Error updating user profile: {e}")
         return jsonify({"error": "An error occurred while updating profile"}), 500
+
+@user_profile_routes.route("/company-profile", methods=["PUT"])
+@jwt_required()
+def update_company_profile():
+    """Update company profile information for recruiters"""
+    try:
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        print(f"Company profile update request for user {current_user_id}: {data}")
+        db = get_db()
+        users_collection = db.users
+        
+        # Convert string ID to ObjectId
+        try:
+            user_object_id = ObjectId(current_user_id)
+        except Exception as e:
+            print(f"Invalid user ID format: {current_user_id}, error: {e}")
+            return jsonify({"error": "Invalid user ID format"}), 400
+        
+        user = users_collection.find_one({'_id': user_object_id})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Check if user is a recruiter
+        if user.get('userType') != 'recruiter':
+            return jsonify({"error": "Only recruiters can update company profiles"}), 403
+        
+        # Update company profile
+        update_data = {
+            'updatedAt': datetime.utcnow()
+        }
+        
+        # Add company fields that are provided
+        company_fields = ['companyName', 'location', 'industry', 'companyWebsite', 'phone', 'companySize', 'foundedYear', 'companyDescription']
+        for field in company_fields:
+            if field in data:
+                update_data[field] = data[field]
+        
+        result = users_collection.update_one(
+            {'_id': user_object_id},
+            {'$set': update_data}
+        )
+        
+        if result.modified_count > 0:
+            print(f"Company profile updated successfully for user {current_user_id}")
+            return jsonify({
+                "success": True,
+                "message": "Company profile updated successfully"
+            }), 200
+        else:
+            print(f"No changes made to company profile for user {current_user_id}")
+            return jsonify({"error": "No changes made to company profile"}), 400
+            
+    except Exception as e:
+        print(f"Error updating company profile: {e}")
+        return jsonify({"error": "An error occurred while updating company profile"}), 500

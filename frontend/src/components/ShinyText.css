@@ -1,0 +1,37 @@
+.shiny-text {
+  color: #667eea !important; /* Blue color matching website theme */
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.9) 50%,
+    rgba(255, 255, 255, 0) 70%
+  ) !important;
+  background-size: 200% 100% !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  display: inline-block !important;
+  animation: shine 3s linear infinite !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  position: relative;
+  /* Fallback for browsers that don't support background-clip */
+  background-color: #667eea !important;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 200% 0;
+  }
+  50% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shiny-text.disabled {
+  animation: none;
+}
