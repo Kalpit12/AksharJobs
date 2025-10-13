@@ -1,12 +1,16 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import ErrorBoundary from "./components/ErrorBoundary";
 import SignupPage from "./pages/SignupPage";
 import LoginPage from "./pages/LoginPage";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import EmailVerification from "./pages/EmailVerification";
 import CommunityVerificationPage from "./pages/CommunityVerificationPage";
 import ReferenceVerificationPage from "./pages/ReferenceVerificationPage";
 import Community from "./pages/Community";
 import JobSeekerDashboard from "./pages/JobSeekerDashboard";
+import JobSeekerNetworking from "./pages/JobSeekerNetworking";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import ResumeBuilder from "./pages/ResumeBuilder";
@@ -61,14 +65,14 @@ import CompanyDetailsForm from "./pages/CompanyDetailsForm";
 import RecruiterRegistrationForm from "./pages/RecruiterRegistrationForm";
 import Company from "./pages/Company";
 import InternDetailsForm from "./pages/InternDetailsForm";
+import NewInternDetailsForm from "./pages/NewInternDetailsForm";
 import InternSuccess from "./pages/InternSuccess";
 import InternDashboard from "./pages/InternDashboard";
-import JobSeekerRegistrationForm from "./pages/JobSeekerRegistrationForm";
+import JobSeekerRegistrationForm from "./pages/JobSeekerRegistrationFormComprehensive";
 import JobSeekerRegistrationSuccess from "./pages/JobSeekerRegistrationSuccess";
-import NewPostJob from "./pages/NewPostJob";
-import ModernJobPosting from "./pages/ModernJobPosting";
 import PromoCodePage from "./pages/PromoCodePage";
 import ContactMe from "./pages/ContactMe";
+import PostJob from "./pages/PostJob";
 import SalaryGuide from "./pages/SalaryGuide";
 import CareerAdvice from "./pages/CareerAdvice";
 import RecruitmentSolutions from "./pages/RecruitmentSolutions";
@@ -152,6 +156,11 @@ function App() {
                 </>
               </ProtectedRoute>
             } />
+            <Route path="/networking" element={
+              <ProtectedRoute requiredRole="jobSeeker">
+                <JobSeekerNetworking />
+              </ProtectedRoute>
+            } />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/verify-user" element={<CommunityVerificationPage />} />
@@ -166,11 +175,23 @@ function App() {
             } />
             <Route path="/company-details" element={<CompanyDetailsForm />} />
             <Route path="/recruiter-registration" element={<RecruiterRegistrationForm />} />
-            <Route path="/intern-details" element={<InternDetailsForm />} />
+            <Route path="/intern-details" element={
+              <ErrorBoundary>
+                <InternDetailsForm />
+              </ErrorBoundary>
+            } />
+            <Route path="/new-intern-details" element={<NewInternDetailsForm />} />
             <Route path="/intern-success" element={<InternSuccess />} />
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <JobSeekerDashboard />
+              </ProtectedRoute>
+            } />
             <Route path="/jobseeker-registration" element={<JobSeekerRegistrationForm />} />
             <Route path="/jobseeker-registration-success" element={<JobSeekerRegistrationSuccess />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/terms" element={<TermsOfService/>}/>
             <Route path="/about" element={
               <>
@@ -365,16 +386,14 @@ function App() {
              
             <Route path="/post-job" element={
               <ProtectedRoute requiredRole="recruiter">
-                <ModernJobPosting />
+                <>
+                  <Header />
+                  <PostJob />
+                  <Footer />
+                </>
               </ProtectedRoute>
             } />
             
-            {/* Legacy job posting routes - kept for backward compatibility */}
-            <Route path="/post-job-old" element={
-              <ProtectedRoute requiredRole="recruiter">
-                <NewPostJob />
-              </ProtectedRoute>
-            } />
              
              <Route path="/company" element={
                <ProtectedRoute requiredRole="recruiter">
@@ -403,14 +422,11 @@ function App() {
                  </>
                </ProtectedRoute>
              } />
-             <Route path="/complete-profile" element={
-               <ProtectedRoute requiredRole="jobSeeker">
-                 <>
-                   <CompleteProfile />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
+            <Route path="/complete-profile" element={
+              <ProtectedRoute requiredRole="jobSeeker">
+                <JobSeekerRegistrationForm />
+              </ProtectedRoute>
+            } />
              <Route path="/recruiter-complete-profile" element={
                <ProtectedRoute requiredRole="recruiter">
                  <>
@@ -536,15 +552,6 @@ function App() {
                 <>
                   <Header />
                   <ContactMe />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-            <Route path="/complete-profile" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <CompleteProfile />
                   <Footer />
                 </>
               </ProtectedRoute>

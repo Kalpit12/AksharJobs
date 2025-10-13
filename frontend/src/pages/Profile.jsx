@@ -99,6 +99,70 @@ const ProfilePage = () => {
               const isComplete = checkProfileCompleteness(userData, resumeData);
               setIsProfileComplete(isComplete);
             }
+
+            // Fetch comprehensive job seeker profile
+            const jobSeekerProfileResponse = await makeAuthenticatedRequest(
+              buildApiUrl('/api/jobseeker/profile')
+            );
+
+            if (jobSeekerProfileResponse && jobSeekerProfileResponse.ok) {
+              const profileData = await jobSeekerProfileResponse.json();
+              console.log("Comprehensive Job Seeker Profile:", profileData);
+              
+              // Update userData with comprehensive profile data
+              setUserData(prev => ({
+                ...prev,
+                comprehensiveProfile: profileData,
+                // Personal Information
+                firstName: profileData.personalInfo?.firstName || prev.firstName,
+                middleName: profileData.personalInfo?.middleName || '',
+                lastName: profileData.personalInfo?.lastName || prev.lastName,
+                dateOfBirth: profileData.personalInfo?.dateOfBirth || prev.dateOfBirth,
+                gender: profileData.personalInfo?.gender || prev.gender,
+                phoneNumber: profileData.personalInfo?.phone || prev.phoneNumber,
+                altPhone: profileData.personalInfo?.altPhone || '',
+                // Nationality & Residency
+                nationality: profileData.nationalityResidency?.nationality || '',
+                residentCountry: profileData.nationalityResidency?.residentCountry || '',
+                currentCity: profileData.nationalityResidency?.currentCity || '',
+                address: profileData.nationalityResidency?.address || '',
+                postalCode: profileData.nationalityResidency?.postalCode || '',
+                location: profileData.nationalityResidency?.currentCity || prev.location,
+                coordinates: {
+                  latitude: profileData.nationalityResidency?.latitude,
+                  longitude: profileData.nationalityResidency?.longitude
+                },
+                workPermit: profileData.nationalityResidency?.workPermit || '',
+                // Preferred Locations
+                preferredLocations: profileData.preferredLocations || {},
+                // Professional Profile
+                professionalProfile: profileData.professionalProfile || {},
+                professionalTitle: profileData.professionalProfile?.professionalTitle || '',
+                yearsExperience: profileData.professionalProfile?.yearsExperience || '',
+                careerLevel: profileData.professionalProfile?.careerLevel || '',
+                industry: profileData.professionalProfile?.industry || '',
+                summary: profileData.professionalProfile?.summary || '',
+                // Work Experience & Education
+                experienceEntries: profileData.experienceEntries || [],
+                educationEntries: profileData.educationEntries || [],
+                // Skills
+                coreSkills: profileData.skillsInfo?.coreSkills || [],
+                tools: profileData.skillsInfo?.tools || [],
+                skills: [...(profileData.skillsInfo?.coreSkills || []), ...(profileData.skillsInfo?.tools || [])],
+                // Languages
+                languages: profileData.languages || [],
+                // Certifications, Memberships, References
+                certifications: profileData.certifications || [],
+                memberships: profileData.memberships || {},
+                references: profileData.references || [],
+                // Professional Links
+                professionalLinks: profileData.professionalLinks || [],
+                // Job Preferences
+                jobPreferences: profileData.jobPreferences || {},
+                // Additional Information
+                additionalInfo: profileData.additionalInfo || {}
+              }));
+            }
           } else           if (userData.userType === "intern") {
             // Fetch intern details
             const internResponse = await makeAuthenticatedRequest(

@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 import { buildApiUrl } from "../config/api";
 import apiService from "../services/apiService";
 import ModernCompanyProfile from "../components/ModernCompanyProfile";
-import RecruiterProfileTracker from "../components/RecruiterProfileTracker";
 import SplitText from "../components/SplitText";
 import AnimatedCounter from "../components/AnimatedCounter";
 import RecruiterStatsMagicBento from "../components/RecruiterStatsMagicBento";
@@ -32,6 +31,18 @@ import AnalyticsDashboard from "../pages/AnalyticsDashboard";
 import AIJobDescriptionGenerator from "../components/AIJobDescriptionGenerator";
 import AIApplicationReview from "../components/AIApplicationReview";
 import AIOfferPredictor from "../components/AIOfferPredictor";
+
+// New Enhanced Components
+import QuickActionsWidget from "../components/QuickActionsWidget";
+import HiringFunnelVisualization from "../components/HiringFunnelVisualization";
+import NotificationCenter from "../components/NotificationCenter";
+import DarkModeToggle from "../components/DarkModeToggle";
+import ActivityFeed from "../components/ActivityFeed";
+import ConfettiAnimation from "../components/ConfettiAnimation";
+import FloatingActionMenu from "../components/FloatingActionMenu";
+import EnhancedSkeletonLoader from "../components/EnhancedSkeletonLoader";
+import ParticleEffects from "../components/ParticleEffects";
+import Card3D from "../components/Card3D";
 
 const RecruiterDashboard = () => {
   const { user, isAuthenticated, isRecruiter } = useAuth();
@@ -92,8 +103,15 @@ const RecruiterDashboard = () => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [candidateCulturalProfile, setCandidateCulturalProfile] = useState(null);
   const [companyCultureData, setCompanyCultureData] = useState(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
   
   const userId = localStorage.getItem("userId") || user?.userId;
+
+  // Trigger confetti on successful actions
+  const triggerSuccessAnimation = () => {
+    setConfettiTrigger(prev => prev + 1);
+  };
 
   // ---- Cultural Fit helpers: load/store profiles and generate deterministic defaults ----
   const loadStoredJSON = (key) => {
@@ -316,12 +334,32 @@ const RecruiterDashboard = () => {
     return interviews.find(interview => interview.candidateId === candidateId);
   };
   
+  // Show loading skeleton while data is loading
+  if (loading && jobPostings.length === 0) {
+    return (
+      <React.Fragment>
+        <Header />
+        <div className="recruiter_dashboard_wrapper">
+          <div className="recruiter_dashboard_container">
+            <EnhancedSkeletonLoader type="dashboard" />
+          </div>
+        </div>
+      </React.Fragment>
+    );
+  }
+
   return (
     <React.Fragment>
       <Header />
       
+      {/* Particle Background Effect */}
+      <ParticleEffects density={30} color="#667eea" maxSpeed={0.3} interactive={true} />
+      
+      {/* Confetti Animation */}
+      <ConfettiAnimation trigger={confettiTrigger} duration={3000} particleCount={100} />
+      
       <div className="recruiter_dashboard_wrapper">
-        <div className="recruiter_dashboard_container">
+        <div className="recruiter_dashboard_container particle-container">
         
         {/* Premium Prompt - Modern Design */}
                         {showPremiumPrompt && (
@@ -337,6 +375,12 @@ const RecruiterDashboard = () => {
           <div className="dashboard-sidebar">
             <div className="sidebar-header">
               <ModernCompanyProfile userDetails={userDetails} />
+              
+              {/* Dark Mode Toggle & Notifications */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
+                <DarkModeToggle />
+                <NotificationCenter />
+              </div>
             </div>
           
             <nav className="sidebar-nav">
@@ -349,8 +393,8 @@ const RecruiterDashboard = () => {
                       </button>
               
                       <button 
-                className={`nav-item ${currentView === 'post-job' ? 'active' : ''}`}
-                onClick={() => setShowPostJobModal(true)}
+                className="nav-item"
+                onClick={() => navigate('/post-job')}
                       >
                 <span className="nav-icon">➕</span>
                 <span className="nav-text">Post Job</span>
@@ -424,32 +468,44 @@ const RecruiterDashboard = () => {
                   />
               </div>
 
+                {/* Quick Actions Widget */}
+                <QuickActionsWidget
+                  onPostJob={() => navigate('/post-job')}
+                  onViewCandidates={() => setCurrentView('cv-browser')}
+                  onScheduleInterview={() => console.log('Schedule Interview')}
+                  onViewAnalytics={() => setCurrentView('analytics')}
+                />
+
                 {/* Dashboard Grid Layout */}
                 <div className="dashboard-grid-layout">
                   {/* Left Column - Stats */}
                   <div className="stats-column">
-                    <RecruiterStatsMagicBento 
-                      jobPostings={jobPostings}
-                      applications={applications}
-                      interviews={interviews}
-                      textAutoHide={true}
-                      enableStars={true}
-                      enableSpotlight={true}
-                      enableBorderGlow={true}
-                      enableTilt={true}
-                      enableMagnetism={true}
-                      clickEffect={true}
-                      spotlightRadius={200}
-                      particleCount={8}
-                      glowColor="132, 0, 255"
-                    />
+                    <Card3D intensity={10}>
+                      <RecruiterStatsMagicBento 
+                        jobPostings={jobPostings}
+                        applications={applications}
+                        interviews={interviews}
+                        textAutoHide={true}
+                        enableStars={true}
+                        enableSpotlight={true}
+                        enableBorderGlow={true}
+                        enableTilt={true}
+                        enableMagnetism={true}
+                        clickEffect={true}
+                        spotlightRadius={200}
+                        particleCount={8}
+                        glowColor="132, 0, 255"
+                      />
+                    </Card3D>
                   </div>
                   
-                  {/* Right Column - Profile Tracker */}
-                  <div className="tracker-column">
-                    <RecruiterProfileTracker />
-                  </div>
                 </div>
+
+                {/* Hiring Funnel Visualization */}
+                <HiringFunnelVisualization applications={applications} />
+
+                {/* Activity Feed */}
+                <ActivityFeed />
 
                     
                 {/* AI Features Section */}
@@ -541,9 +597,19 @@ const RecruiterDashboard = () => {
             onJobPosted={() => {
               // Refresh job postings
               fetchJobPostings();
+              // Trigger success animation
+              triggerSuccessAnimation();
             }}
           />
         )}
+
+        {/* Floating Action Menu */}
+        <FloatingActionMenu
+          onPostJob={() => navigate('/post-job')}
+          onAIAssist={() => console.log('AI Assist')}
+          onBulkAction={() => console.log('Bulk Action')}
+          onExport={() => console.log('Export Data')}
+        />
       
              {/* Productivity Tools Modals */}
        {showInterviewScorecard && (

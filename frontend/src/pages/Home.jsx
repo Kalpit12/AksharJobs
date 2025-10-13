@@ -232,7 +232,7 @@ const Home = () => {
       companyColor: "#00A4EF"
     },
     { 
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=800&h=600&fit=crop&crop=face", 
+      image: "/default-avatar.png", 
       text: "Google",
       name: "Michael Njoroge",
       role: "Product Manager",
@@ -280,7 +280,7 @@ const Home = () => {
       companyColor: "#00D4AA"
     },
     { 
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=800&h=600&fit=crop&crop=face", 
+      image: "/default-avatar.png", 
       text: "KCB Bank",
       name: "Robert Mwangi",
       role: "Business Analyst",

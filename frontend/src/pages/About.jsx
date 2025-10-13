@@ -27,7 +27,7 @@ const About = () => {
     {
       name: "Sarah Johnson",
       role: "CEO & Founder",
-      image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=300&fit=crop&crop=face",
+      image: "/default-avatar.png",
       description: "Visionary leader with 10+ years in tech innovation"
     },
     {

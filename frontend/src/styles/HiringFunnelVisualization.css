@@ -1,0 +1,230 @@
+/* Hiring Funnel Visualization Styles */
+.hiring-funnel-widget {
+  padding: 32px;
+  margin-bottom: 32px;
+  animation: slideInUp 0.6s ease-out 0.2s both;
+}
+
+.funnel-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 32px;
+  position: relative;
+}
+
+.funnel-stage {
+  position: relative;
+  opacity: 0;
+  transform: translateX(-30px);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.funnel-stage.animated {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 8px;
+}
+
+.stage-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stage-icon {
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.stage-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stage-metrics {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stage-count {
+  font-size: 24px;
+  font-weight: 800;
+  color: #1f2937;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.conversion-rate {
+  font-size: 14px;
+  font-weight: 600;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+}
+
+.funnel-bar-container {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  background: #f3f4f6;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.funnel-bar {
+  position: relative;
+  height: 100%;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 20px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.funnel-bar-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  opacity: 0.3;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, transparent 100%);
+}
+
+.funnel-percentage {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.stage-connector {
+  display: flex;
+  justify-content: center;
+  margin: 4px 0;
+  opacity: 0.5;
+}
+
+.connector-arrow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.funnel-insights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.insight-card {
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.insight-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  border-color: #667eea;
+}
+
+.insight-icon {
+  font-size: 32px;
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.insight-content h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.insight-content p {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .hiring-funnel-widget {
+    padding: 24px;
+  }
+  
+  .stage-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  
+  .funnel-bar-container {
+    height: 50px;
+  }
+  
+  .funnel-insights {
+    grid-template-columns: 1fr;
+  }
+  
+  .stage-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+  
+  .stage-name {
+    font-size: 16px;
+  }
+}
+

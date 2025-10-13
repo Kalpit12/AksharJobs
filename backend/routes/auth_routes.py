@@ -3,6 +3,8 @@ from services.auth_service import AuthService, get_user_by_id_or_email
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import cross_origin
 from utils.auth_token import generate_jwt_token
+from services.email_service import EmailService
+from utils.password_reset import generate_reset_token, verify_reset_token
 
 auth_routes = Blueprint("auth_routes", __name__)
 
@@ -292,3 +294,196 @@ def get_sessions():
     except Exception as e:
         print(f"Error getting sessions: {str(e)}")
         return jsonify({"error": "Failed to get sessions"}), 500
+
+@auth_routes.route("/forgot-password", methods=["POST"])
+@cross_origin()
+def forgot_password():
+    """
+    Handles forgot password requests.
+    
+    Request Body:
+    - JSON with email
+    
+    Returns:
+    - JSON response with success or error message.
+    """
+    try:
+        data = request.json
+        if not data or not data.get('email'):
+            return jsonify({"error": "Email is required"}), 400
+        
+        email = data['email'].strip().lower()
+        
+        # Check if user exists
+        user = get_user_by_id_or_email(email=email)
+        if not user:
+            # For security, don't reveal if email exists or not
+            return jsonify({
+                "message": "If an account with that email exists, we've sent a password reset link."
+            }), 200
+        
+        # Generate reset token
+        reset_token = generate_reset_token(email)
+        
+        # Store reset token in database (with expiration)
+        from database.db import get_db_connection
+        db = get_db_connection()
+        users_collection = db.users
+        
+        # Update user with reset token and expiration
+        import datetime
+        reset_expires = datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # 1 hour expiry
+        
+        users_collection.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "resetToken": reset_token,
+                    "resetTokenExpires": reset_expires
+                }
+            }
+        )
+        
+        # Send reset email
+        reset_link = f"{request.host_url.replace('api.', '')}reset-password?token={reset_token}&email={email}"
+        
+        email_sent = EmailService.send_password_reset_email(email, reset_link, user.get('firstName', ''))
+        
+        if email_sent:
+            return jsonify({
+                "message": "If an account with that email exists, we've sent a password reset link."
+            }), 200
+        else:
+            return jsonify({"error": "Failed to send reset email. Please try again."}), 500
+            
+    except Exception as e:
+        print(f"Forgot password error: {str(e)}")
+        return jsonify({"error": "An error occurred. Please try again."}), 500
+
+@auth_routes.route("/validate-reset-token", methods=["GET"])
+@cross_origin()
+def validate_reset_token():
+    """
+    Validates a password reset token.
+    
+    Query Parameters:
+    - token: The reset token
+    
+    Returns:
+    - JSON response with validation result.
+    """
+    try:
+        token = request.args.get('token')
+        if not token:
+            return jsonify({"error": "Reset token is required"}), 400
+        
+        # Get email from query parameters
+        email = request.args.get('email')
+        if not email:
+            return jsonify({"error": "Email parameter is required"}), 400
+        
+        # Verify token format (we'll validate the token exists in DB in the route)
+        if not token or ':' not in token:
+            return jsonify({"error": "Invalid reset token format"}), 400
+        
+        # Check if token exists in database and is not expired
+        from database.db import get_db_connection
+        db = get_db_connection()
+        users_collection = db.users
+        
+        user = users_collection.find_one({
+            "email": email,
+            "resetToken": token,
+            "resetTokenExpires": {"$gt": datetime.datetime.utcnow()}
+        })
+        
+        if not user:
+            return jsonify({"error": "Invalid or expired reset token"}), 400
+        
+        return jsonify({
+            "message": "Token is valid",
+            "email": email
+        }), 200
+        
+    except Exception as e:
+        print(f"Token validation error: {str(e)}")
+        return jsonify({"error": "Failed to validate reset token"}), 500
+
+@auth_routes.route("/reset-password", methods=["POST"])
+@cross_origin()
+def reset_password():
+    """
+    Handles password reset with token.
+    
+    Request Body:
+    - JSON with token, email, password, confirmPassword
+    
+    Returns:
+    - JSON response with success or error message.
+    """
+    try:
+        data = request.json
+        required_fields = ['token', 'email', 'password', 'confirmPassword']
+        
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"error": f"{field} is required"}), 400
+        
+        token = data['token']
+        email = data['email'].strip().lower()
+        password = data['password']
+        confirm_password = data['confirmPassword']
+        
+        # Validate passwords match
+        if password != confirm_password:
+            return jsonify({"error": "Passwords do not match"}), 400
+        
+        # Validate password strength
+        if len(password) < 8:
+            return jsonify({"error": "Password must be at least 8 characters long"}), 400
+        
+        # Verify token format
+        if not token or ':' not in token:
+            return jsonify({"error": "Invalid reset token format"}), 400
+        
+        # Check if token exists in database and is not expired
+        from database.db import get_db_connection
+        db = get_db_connection()
+        users_collection = db.users
+        
+        import datetime
+        user = users_collection.find_one({
+            "email": email,
+            "resetToken": token,
+            "resetTokenExpires": {"$gt": datetime.datetime.utcnow()}
+        })
+        
+        if not user:
+            return jsonify({"error": "Invalid or expired reset token"}), 400
+        
+        # Hash new password
+        import bcrypt
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+        
+        # Update user password and clear reset token
+        users_collection.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "password": hashed_password.decode('utf-8')
+                },
+                "$unset": {
+                    "resetToken": "",
+                    "resetTokenExpires": ""
+                }
+            }
+        )
+        
+        return jsonify({
+            "message": "Password updated successfully! Please log in with your new password."
+        }), 200
+        
+    except Exception as e:
+        print(f"Reset password error: {str(e)}")
+        return jsonify({"error": "An error occurred. Please try again."}), 500

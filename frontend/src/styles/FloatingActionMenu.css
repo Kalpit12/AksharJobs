@@ -1,0 +1,234 @@
+/* Floating Action Menu Styles */
+.floating-action-menu {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 1000;
+}
+
+.fab-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(2px);
+  z-index: -1;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.fab-main-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.fab-main-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
+
+.fab-main-btn:active {
+  transform: scale(0.95);
+}
+
+.fab-main-icon {
+  font-size: 28px;
+  color: white;
+  transition: transform 0.3s ease;
+  z-index: 2;
+  position: relative;
+}
+
+.fab-main-icon.rotate {
+  transform: rotate(180deg);
+}
+
+.fab-ripple {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+  opacity: 0;
+  animation: ripple 1.5s ease-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.fab-actions {
+  position: absolute;
+  bottom: 80px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  pointer-events: none;
+}
+
+.floating-action-menu.open .fab-actions {
+  pointer-events: auto;
+}
+
+.fab-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  border-radius: 50px;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 56px;
+}
+
+.floating-action-menu.open .fab-action-btn {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation-delay: calc(var(--action-index) * 0.05s);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fab-action-btn:hover {
+  max-width: 200px;
+  padding-right: 20px;
+  border-color: var(--action-color);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  transform: translateX(-8px);
+}
+
+.fab-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--action-color) 0%, var(--action-color)cc 100%);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.fab-action-btn:hover .fab-icon {
+  transform: scale(1.1) rotate(10deg);
+}
+
+.fab-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  opacity: 0;
+  transition: opacity 0.2s ease 0.1s;
+  padding-right: 4px;
+}
+
+.fab-action-btn:hover .fab-label {
+  opacity: 1;
+}
+
+/* Particle effects on click */
+.fab-main-btn::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+  opacity: 0;
+  transform: scale(0);
+}
+
+.fab-main-btn:active::after {
+  animation: click-ripple 0.6s ease-out;
+}
+
+@keyframes click-ripple {
+  0% {
+    opacity: 1;
+    transform: scale(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.5);
+  }
+}
+
+/* Dark Mode Support */
+.dark-mode .fab-action-btn {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark-mode .fab-label {
+  color: #f1f5f9;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .floating-action-menu {
+    bottom: 24px;
+    right: 24px;
+  }
+  
+  .fab-main-btn {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .fab-main-icon {
+    font-size: 24px;
+  }
+  
+  .fab-action-btn {
+    max-width: 48px;
+  }
+  
+  .fab-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 20px;
+  }
+  
+  .fab-action-btn:hover {
+    max-width: 180px;
+  }
+}
+

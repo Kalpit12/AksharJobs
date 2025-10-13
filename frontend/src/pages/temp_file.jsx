@@ -125,7 +125,7 @@ const RecruiterDashboard = () => {
         name: "Sarah Johnson",
         position: "Senior Frontend Developer",
         company: "TechCorp",
-        avatar: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+        avatar: "/default-avatar.png",
         matchScore: 92,
         status: "Interview Scheduled",
         lastContact: "2 days ago",

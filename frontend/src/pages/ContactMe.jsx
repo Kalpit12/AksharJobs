@@ -30,6 +30,7 @@ import { motion } from 'framer-motion';
 import { buildApiUrl, makeAuthenticatedRequest } from '../config/api';
 import { useProfilePhoto } from '../context/ProfilePhotoContext';
 import ProfileAvatar from '../components/ProfileAvatar';
+import CollapsibleProfileCompletion from '../components/CollapsibleProfileCompletion';
 import '../styles/ContactMe.css';
 
 const ContactMe = () => {
@@ -66,7 +67,6 @@ const ContactMe = () => {
       
       // Get userType from localStorage first (most reliable)
       const storedUserType = localStorage.getItem('role') || localStorage.getItem('userRole');
-      console.log('📋 Stored userType/role from localStorage:', storedUserType);
       
       // Fetch user profile (JWT-authenticated current user)
       const userResponse = await makeAuthenticatedRequest(
@@ -75,11 +75,9 @@ const ContactMe = () => {
 
       if (userResponse && userResponse.ok) {
         const raw = await userResponse.json();
-        console.log('📋 Raw profile data from API:', raw);
         
         // Determine userType priority: localStorage > API > default
         const determinedUserType = storedUserType || raw.userType || 'jobSeeker';
-        console.log('📋 Determined userType:', determinedUserType);
         
         // Map to frontend structure expected by this page
         const mapped = {
@@ -107,87 +105,240 @@ const ContactMe = () => {
           userType: determinedUserType,
           // Recruiter-specific fields
           companyName: raw.companyName || '',
-          companyWebsite: raw.companyWebsite || '',
+          companyWebsite: raw.companyWebsite || raw.websiteURL || '',
           industry: raw.industry || '',
           companySize: raw.companySize || '',
           foundedYear: raw.foundedYear || '',
           companyDescription: raw.companyDescription || '',
-          companyLogo: raw.companyLogo || ''
+          companyLogo: raw.companyLogo || '',
+          companyLocation: raw.companyLocation || '',
+          position: raw.position || raw.designation || '',
+          department: raw.department || '',
+          hiringDepartments: raw.hiringDepartments || [],
+          positionTypes: raw.positionTypes || [],
+          workTypes: raw.workTypes || [],
+          experienceLevels: raw.experienceLevels || [],
+          budgetRange: raw.budgetRange || '',
+          requiredSkills: raw.requiredSkills || [],
+          preferredEducation: raw.preferredEducation || [],
+          numberOfPositions: raw.numberOfPositions || '',
+          urgencyLevel: raw.urgencyLevel || '',
+          companyBenefits: raw.companyBenefits || '',
+          companyValues: raw.companyValues || '',
+          hiringTimeline: raw.hiringTimeline || '',
+          additionalNotes: raw.additionalNotes || ''
         };
         
-        console.log('📋 Mapped userData:', mapped);
-        console.log('📋 UserType in mapped:', mapped.userType);
         setUserData(mapped);
 
         // Fetch resume data ONLY for job seekers
         const isJobSeeker = determinedUserType === 'jobSeeker' || determinedUserType === 'job_seeker';
         const isIntern = determinedUserType === 'intern' || storedUserType === 'intern';
-        console.log('📋 Is job seeker?', isJobSeeker);
-        console.log('📋 Is intern?', isIntern);
-        console.log('📋 determinedUserType:', determinedUserType);
         
         if (isJobSeeker) {
-          console.log('Fetching resume data for job seeker...');
           const resumeResponse = await makeAuthenticatedRequest(
             buildApiUrl('/api/modern-resumes/profile')
           );
 
-          console.log('Resume response status:', resumeResponse?.status);
           if (resumeResponse && resumeResponse.ok) {
             const responseData = await resumeResponse.json();
-            console.log('Resume data received:', responseData);
             const resumeData = responseData.resume_data || responseData;
             setResumeData(resumeData);
             checkProfileCompleteness(mapped, resumeData);
-          } else {
-            console.log('No resume data found or error:', resumeResponse?.status);
           }
 
           // Fetch comprehensive job seeker profile
-          console.log('Fetching comprehensive job seeker profile...');
           const jobSeekerProfileResponse = await makeAuthenticatedRequest(
             buildApiUrl('/api/jobseeker/profile')
           );
 
-          console.log('Job seeker profile response status:', jobSeekerProfileResponse?.status);
           if (jobSeekerProfileResponse && jobSeekerProfileResponse.ok) {
             const profileData = await jobSeekerProfileResponse.json();
-            console.log('✅ Comprehensive job seeker profile received:', profileData);
             setJobSeekerProfile(profileData);
-          } else {
-            console.log('❌ No comprehensive job seeker profile found or error:', jobSeekerProfileResponse?.status);
+            
+            // Map comprehensive profile data to userData for easier display
+            if (profileData) {
+              setUserData(prev => ({
+                ...prev,
+                // Add comprehensive profile fields
+                comprehensiveProfile: profileData,
+                // Personal Information
+                firstName: profileData.personalInfo?.firstName || prev.firstName,
+                middleName: profileData.personalInfo?.middleName || '',
+                lastName: profileData.personalInfo?.lastName || prev.lastName,
+                dateOfBirth: profileData.personalInfo?.dateOfBirth || prev.dateOfBirth,
+                gender: profileData.personalInfo?.gender || prev.gender,
+                phone: profileData.personalInfo?.phone || prev.phone,
+                altPhone: profileData.personalInfo?.altPhone || prev.altPhone,
+                // Nationality & Residency
+                nationality: profileData.nationalityResidency?.nationality || '',
+                residentCountry: profileData.nationalityResidency?.residentCountry || '',
+                currentCity: profileData.nationalityResidency?.currentCity || prev.location,
+                address: profileData.nationalityResidency?.address || prev.currentAddress,
+                postalCode: profileData.nationalityResidency?.postalCode || '',
+                location: {
+                  latitude: profileData.nationalityResidency?.latitude,
+                  longitude: profileData.nationalityResidency?.longitude,
+                  address: profileData.nationalityResidency?.address,
+                  city: profileData.nationalityResidency?.currentCity,
+                  country: profileData.nationalityResidency?.residentCountry
+                },
+                workPermit: profileData.nationalityResidency?.workPermit || '',
+                // Preferred Locations
+                preferredLocations: profileData.preferredLocations || {},
+                // Professional Profile
+                professionalProfile: profileData.professionalProfile || {},
+                professionalTitle: profileData.professionalProfile?.professionalTitle || '',
+                yearsExperience: profileData.professionalProfile?.yearsExperience || '',
+                careerLevel: profileData.professionalProfile?.careerLevel || '',
+                industry: profileData.professionalProfile?.industry || prev.industry,
+                summary: profileData.professionalProfile?.summary || prev.bio,
+                // Work Experience & Education
+                experienceEntries: profileData.experienceEntries || [],
+                educationEntries: profileData.educationEntries || [],
+                // Skills
+                coreSkills: profileData.skillsInfo?.coreSkills || [],
+                tools: profileData.skillsInfo?.tools || [],
+                skills: [...(profileData.skillsInfo?.coreSkills || []), ...(profileData.skillsInfo?.tools || [])],
+                // Languages
+                languages: profileData.languages || [],
+                // Certifications, Memberships, References
+                certifications: profileData.certifications || [],
+                certificationEntries: profileData.certificationEntries || [],
+                memberships: profileData.memberships || {},
+                references: profileData.references || [],
+                referenceEntries: profileData.referenceEntries || [],
+                // Professional Links
+                professionalLinks: profileData.professionalLinks || [],
+                // Job Preferences
+                jobPreferences: profileData.jobPreferences || {},
+                // Additional Information
+                additionalInfo: profileData.additionalInfo || {}
+              }));
+            }
           }
         } else if (isIntern) {
-          console.log('Fetching intern details...');
+          // Try to fetch intern details from API
+          try {
           const internResponse = await makeAuthenticatedRequest(
             buildApiUrl('/api/interns/profile')
           );
 
-          console.log('Intern response status:', internResponse?.status);
           if (internResponse && internResponse.ok) {
             const internData = await internResponse.json();
-            console.log('✅ Intern details received:', internData);
-            console.log('   - Has resumePath?', !!internData.resumePath);
-            console.log('   - ResumePath value:', internData.resumePath);
-            console.log('   - Technical skills:', internData.technicalSkills?.length || 0);
-            console.log('   - Soft skills:', internData.softSkills?.length || 0);
             setInternDetails(internData);
             
-            // Update userData with intern-specific fields
+            // Update userData with comprehensive intern-specific fields
             setUserData(prev => ({
               ...prev,
-              phone: internData.mobile || prev.phone,
-              location: internData.currentLocation || prev.location,
+              // Basic contact info
+              phone: internData.phone || internData.mobile || prev.phone,
+              altPhone: internData.altPhone || prev.altPhone,
               dateOfBirth: internData.dateOfBirth || prev.dateOfBirth,
               gender: internData.gender || prev.gender,
-              linkedinProfile: internData.linkedInProfile || prev.linkedinProfile,
-              portfolio: internData.portfolioWebsite || prev.portfolio,
-              githubProfile: internData.githubProfile || ''
-            }));
-          } else {
-            console.log('❌ No intern details found or error:', internResponse?.status);
-            const errorText = await internResponse?.text();
-            console.log('Error response:', errorText);
+              
+              // Location & address
+              location: internData.currentCity || internData.currentLocation || prev.location,
+              currentAddress: internData.address || prev.currentAddress,
+              addressPinCode: internData.postalCode || prev.addressPinCode,
+              nationality: internData.nationality || prev.nationality,
+              residentCountry: internData.residentCountry || prev.residentCountry,
+                willingToRelocate: internData.willingToRelocate || prev.willingToRelocate,
+              
+              // Online presence
+              linkedinProfile: internData.linkedin || internData.linkedInProfile || prev.linkedinProfile,
+              portfolio: internData.portfolio || internData.portfolioWebsite || prev.portfolio,
+              githubProfile: internData.github || internData.githubProfile || prev.githubProfile,
+              twitter: internData.twitter || prev.twitter,
+              otherLink: internData.otherLink || prev.otherLink,
+              
+              // Education (handle both old and new format)
+              collegeName: internData.education?.[0]?.institution || internData.collegeName || prev.collegeName,
+              degree: internData.education?.[0]?.degree || internData.degree || prev.degree,
+              currentYear: internData.currentSemester || internData.currentYear || prev.currentYear,
+              graduationYear: internData.education?.[0]?.graduationYear || internData.graduationYear || prev.graduationYear,
+              graduationDate: internData.graduationDate || prev.graduationDate,
+              cgpa: internData.education?.[0]?.grade || internData.cgpa || prev.cgpa,
+              majorSubjects: internData.education?.[0]?.fieldOfStudy || internData.majorSubjects || prev.majorSubjects,
+              academicLevel: internData.academicLevel || prev.academicLevel,
+              
+              // Skills & competencies
+              primarySkills: internData.technicalSkills || internData.primarySkills || prev.primarySkills,
+              softSkills: internData.softSkills || prev.softSkills,
+              keywords: internData.technicalSkills || internData.keywords || prev.keywords,
+              languages: internData.languages || prev.languages,
+              interests: internData.interests || prev.interests,
+              
+              // Internship preferences
+                internshipType: internData.internshipType || prev.internshipType,
+              internshipMode: internData.internshipMode || prev.internshipMode,
+                workDomain: internData.workDomain || prev.workDomain,
+                workScope: internData.workScope || prev.workScope,
+                workLocation: internData.workLocation || prev.workLocation,
+                workSector: internData.workSector || prev.workSector,
+                desiredRole: internData.desiredRole || prev.desiredRole,
+                availabilityStartDate: internData.availabilityStartDate || prev.availabilityStartDate,
+                duration: internData.duration || prev.duration,
+              weeklyAvailability: internData.weeklyHours || internData.weeklyAvailability || prev.weeklyAvailability,
+              stipendExpectation: internData.stipendExpectation || prev.stipendExpectation,
+              
+              // Experience & projects
+              priorExperience: internData.experience || internData.priorExperience || prev.priorExperience,
+              projects: internData.projects || prev.projects,
+              activities: internData.activities || prev.activities,
+              certifications: internData.certifications || prev.certifications,
+              references: internData.references || prev.references,
+              
+              // Career goals
+                postGradRoles: internData.postGradRoles || prev.postGradRoles,
+                learningGoals: internData.learningGoals || prev.learningGoals,
+              careerVision: internData.careerGoals || internData.careerVision || prev.careerVision,
+              internshipObjectives: internData.internshipObjectives || prev.internshipObjectives,
+              skillsToDevelop: internData.skillsToDevelop || prev.skillsToDevelop,
+              
+              // Additional info
+              additionalInfo: internData.additionalInfo || prev.additionalInfo,
+              hearAboutUs: internData.hearAboutUs || prev.hearAboutUs,
+              community: internData.community || prev.community,
+              
+              // Professional profile
+              professionalTitle: internData.professionalTitle || prev.professionalTitle,
+              yearsExperience: internData.yearsExperience || prev.yearsExperience,
+              careerLevel: internData.careerLevel || prev.careerLevel,
+              industry: internData.industry || prev.industry,
+              summary: internData.summary || prev.summary,
+              
+              // Files
+              resumePath: internData.resumePath || prev.resumePath,
+              profilePhotoPath: internData.profilePhotoPath || prev.profilePhotoPath
+              }));
+            } else {
+              console.log('No intern data from API, checking localStorage...');
+              // Fallback: Try to load from localStorage if available
+              const savedInternData = localStorage.getItem('internFormData');
+              if (savedInternData) {
+                try {
+                  const parsedData = JSON.parse(savedInternData);
+                  setInternDetails(parsedData);
+                  console.log('Loaded intern data from localStorage:', parsedData);
+                } catch (error) {
+                  console.error('Error parsing saved intern data:', error);
+                }
+              }
+            }
+          } catch (error) {
+            console.error('Error fetching intern details:', error);
+            // Fallback: Try to load from localStorage if available
+            const savedInternData = localStorage.getItem('internFormData');
+            if (savedInternData) {
+              try {
+                const parsedData = JSON.parse(savedInternData);
+                setInternDetails(parsedData);
+                console.log('Loaded intern data from localStorage fallback:', parsedData);
+              } catch (parseError) {
+                console.error('Error parsing saved intern data:', parseError);
+              }
+            }
           }
         }
       }
@@ -213,17 +364,6 @@ const ContactMe = () => {
     const hasUserSkills = user?.skills && user.skills.length > 0;
     
     const hasSkills = hasResumeSkills || hasUserSkills;
-
-    console.log('🔍 Profile completeness check:', {
-      hasBasicInfo,
-      hasResumeInfo,
-      hasExperience,
-      hasResumeSkills,
-      hasUserSkills,
-      hasSkills,
-      userSkills: user?.skills,
-      resumeSkills: resume?.skills
-    });
 
     setIsProfileComplete(hasBasicInfo && hasResumeInfo && hasExperience && hasSkills);
   };
@@ -560,12 +700,6 @@ const ContactMe = () => {
     userType: userData?.userType,
     role: localStorage.getItem('role')
   });
-  
-  console.log('📋 Intern Details State:', internDetails);
-  console.log('📋 userData?.userType:', userData?.userType);
-  console.log('📋 Is equal to intern?', userData?.userType === 'intern');
-  console.log('📋 Has internDetails?', !!internDetails);
-  console.log('📋 Will show intern sections?', userData?.userType === 'intern' && !!internDetails);
 
   return (
     <div className="contact-me-wrapper">
@@ -622,6 +756,10 @@ const ContactMe = () => {
                 {userData?.userType === 'recruiter' ? (
                   <span className="recruiter-badge">
                     <FontAwesomeIcon icon={faBuilding} /> Recruiter
+                  </span>
+                ) : userData?.userType === 'intern' ? (
+                  <span className="intern-badge">
+                    <FontAwesomeIcon icon={faUser} /> Intern
                   </span>
                 ) : (
                   resumeData?.personal_info?.job_title || 
@@ -774,6 +912,124 @@ const ContactMe = () => {
               </div>
             )}
 
+            {/* Role-Specific Profile Completion Sections */}
+            
+            {/* Recruiter Profile Completion - Only for Recruiters viewing their own profile */}
+            {isOwnProfile && userData?.userType === 'recruiter' && (
+              <FadeInUp delay={0.4}>
+                <div className="role-specific-section recruiter-section">
+                  <div className="section-header">
+                    <h3>🏢 Recruiter Profile Management</h3>
+                    <p>Complete your recruiter profile to attract top talent and build your professional network</p>
+                  </div>
+                  <CollapsibleProfileCompletion 
+                    userDetails={{
+                      firstName: userData.firstName,
+                      lastName: userData.lastName,
+                      email: userData.email,
+                      phone: userData.phone,
+                      company: userData.companyName || userData.company || '',
+                      position: userData.position || userData.designation || '',
+                      location: userData.location || '',
+                      bio: userData.bio || userData.about || ''
+                    }}
+                    onProfileUpdate={() => {
+                      // Navigate to recruiter profile completion page
+                      navigate('/recruiter-complete-profile');
+                    }}
+                  />
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Job Seeker Profile Completion - Only for Job Seekers viewing their own profile */}
+            {isOwnProfile && userData?.userType === 'jobSeeker' && (
+              <FadeInUp delay={0.4}>
+                <div className="role-specific-section jobseeker-section">
+                  <div className="section-header">
+                    <h3>👤 Job Seeker Profile Management</h3>
+                    <p>Complete your profile to increase your visibility to recruiters and improve job match quality</p>
+                  </div>
+                  <div className="profile-completion-summary">
+                    <div className="completion-stats">
+                      <div className="stat-item">
+                        <span className="stat-number">{resumeData ? '100%' : '0%'}</span>
+                        <span className="stat-label">Resume Uploaded</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-number">{userData?.skills?.length || 0}</span>
+                        <span className="stat-label">Skills Added</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-number">{userData?.jobPreferences ? '100%' : '0%'}</span>
+                        <span className="stat-label">Preferences Set</span>
+                      </div>
+                    </div>
+                    <div className="completion-actions">
+                      <button 
+                        className="action-btn primary"
+                        onClick={() => navigate('/complete-profile')}
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                        Complete Profile
+                      </button>
+                      <button 
+                        className="action-btn secondary"
+                        onClick={() => navigate('/modern-upload')}
+                      >
+                        <FontAwesomeIcon icon={faUpload} />
+                        Upload Resume
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Intern Profile Completion - Only for Interns viewing their own profile */}
+            {isOwnProfile && userData?.userType === 'intern' && (
+              <FadeInUp delay={0.4}>
+                <div className="role-specific-section intern-section">
+                  <div className="section-header">
+                    <h3>🎓 Intern Profile Management</h3>
+                    <p>Complete your intern profile to showcase your potential and connect with opportunities</p>
+                  </div>
+                  <div className="profile-completion-summary">
+                    <div className="completion-stats">
+                      <div className="stat-item">
+                        <span className="stat-number">{internDetails ? '100%' : '0%'}</span>
+                        <span className="stat-label">Intern Details</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-number">{userData?.skills?.length || 0}</span>
+                        <span className="stat-label">Skills Added</span>
+                      </div>
+                      <div className="stat-item">
+                        <span className="stat-number">{userData?.education?.length || 0}</span>
+                        <span className="stat-label">Education Entries</span>
+                      </div>
+                    </div>
+                    <div className="completion-actions">
+                      <button 
+                        className="action-btn primary"
+                        onClick={() => navigate('/intern-details')}
+                      >
+                        <FontAwesomeIcon icon={faEdit} />
+                        Complete Intern Profile
+                      </button>
+                      <button 
+                        className="action-btn secondary"
+                        onClick={() => navigate('/modern-upload')}
+                      >
+                        <FontAwesomeIcon icon={faUpload} />
+                        Upload Documents
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
             {/* Personal Details */}
             {(userData?.dateOfBirth || userData?.gender || userData?.bloodGroup) && (
               <FadeInUp delay={0.3}>
@@ -868,14 +1124,231 @@ const ContactMe = () => {
               </FadeInUp>
             )}
 
-            {/* Company Description for Recruiters */}
-            {userData?.userType === 'recruiter' && userData?.companyDescription && (
+            {/* COMPREHENSIVE RECRUITER PROFILE SECTIONS */}
+            {userData?.userType === 'recruiter' && (
+              <>
+                <div className="recruiter-section-divider">
+                  <h2>🏢 Complete Recruiter Profile</h2>
+                  <p>Comprehensive company and hiring information</p>
+                </div>
+
+                {/* Company Description */}
+                {userData?.companyDescription && (
               <FadeInUp delay={0.6}>
                 <div className="bio-section company-description-section">
                   <h3>About {userData?.companyName || 'Our Company'}</h3>
                   <p className="bio-text">{userData.companyDescription}</p>
                 </div>
               </FadeInUp>
+                )}
+
+                {/* Company Information */}
+                <FadeInUp delay={0.65}>
+                  <div className="recruiter-company-section">
+                    <h3>🏢 Company Information</h3>
+                    <div className="intern-info-grid">
+                      {userData?.companyName && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Company Name</div>
+                          <div className="info-value">{userData.companyName}</div>
+                        </div>
+                      )}
+                      {userData?.industry && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Industry</div>
+                          <div className="info-value">{userData.industry}</div>
+                        </div>
+                      )}
+                      {userData?.companySize && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Company Size</div>
+                          <div className="info-value">{userData.companySize}</div>
+                        </div>
+                      )}
+                      {userData?.companyWebsite && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Website</div>
+                          <div className="info-value">
+                            <a href={userData.companyWebsite} target="_blank" rel="noopener noreferrer" className="profile-link">
+                              Visit Website
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                      {userData?.companyLocation && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Location</div>
+                          <div className="info-value">{userData.companyLocation}</div>
+                        </div>
+                      )}
+                      {userData?.foundedYear && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Founded</div>
+                          <div className="info-value">{userData.foundedYear}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </FadeInUp>
+
+                {/* Recruiter Details */}
+                {(userData?.position || userData?.department || userData?.linkedinProfile) && (
+                  <FadeInUp delay={0.7}>
+                    <div className="recruiter-details-section">
+                      <h3>👤 Recruiter Details</h3>
+                      <div className="intern-info-grid">
+                        {userData?.position && (
+                          <div className="intern-info-card">
+                            <div className="info-label">Position</div>
+                            <div className="info-value">{userData.position}</div>
+                          </div>
+                        )}
+                        {userData?.department && (
+                          <div className="intern-info-card">
+                            <div className="info-label">Department</div>
+                            <div className="info-value">{userData.department}</div>
+                          </div>
+                        )}
+                        {userData?.linkedinProfile && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">LinkedIn Profile</div>
+                            <div className="info-value">
+                              <a href={userData.linkedinProfile} target="_blank" rel="noopener noreferrer" className="profile-link">
+                                View Profile
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </FadeInUp>
+                )}
+
+                {/* Hiring Preferences */}
+                {(userData?.hiringDepartments || userData?.positionTypes || userData?.workTypes) && (
+                  <FadeInUp delay={0.75}>
+                    <div className="recruiter-hiring-section">
+                      <h3>💼 Hiring Preferences</h3>
+                      <div className="intern-info-grid">
+                        {userData?.hiringDepartments && userData.hiringDepartments.length > 0 && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">Hiring Departments</div>
+                            <div className="skills-tags">
+                              {userData.hiringDepartments.map((dept, index) => (
+                                <span key={index} className="skill-tag technical">{dept}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {userData?.positionTypes && userData.positionTypes.length > 0 && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">Position Types</div>
+                            <div className="skills-tags">
+                              {userData.positionTypes.map((type, index) => (
+                                <span key={index} className="skill-tag soft">{type}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {userData?.workTypes && userData.workTypes.length > 0 && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">Work Types</div>
+                            <div className="skills-tags">
+                              {userData.workTypes.map((type, index) => (
+                                <span key={index} className="skill-tag language">{type}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {userData?.experienceLevels && userData.experienceLevels.length > 0 && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">Experience Levels</div>
+                            <div className="info-value">{userData.experienceLevels.join(', ')}</div>
+                          </div>
+                        )}
+                        {userData?.budgetRange && (
+                          <div className="intern-info-card">
+                            <div className="info-label">Budget Range</div>
+                            <div className="info-value">{userData.budgetRange}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </FadeInUp>
+                )}
+
+                {/* Position Requirements */}
+                {(userData?.requiredSkills || userData?.preferredEducation) && (
+                  <FadeInUp delay={0.8}>
+                    <div className="recruiter-requirements-section">
+                      <h3>🎯 Position Requirements</h3>
+                      <div className="intern-info-grid">
+                        {userData?.requiredSkills && userData.requiredSkills.length > 0 && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">Required Skills</div>
+                            <div className="skills-tags">
+                              {userData.requiredSkills.map((skill, index) => (
+                                <span key={index} className="skill-tag technical">{skill}</span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        {userData?.preferredEducation && userData.preferredEducation.length > 0 && (
+                          <div className="intern-info-card full-width">
+                            <div className="info-label">Preferred Education</div>
+                            <div className="info-value">{userData.preferredEducation.join(', ')}</div>
+                          </div>
+                        )}
+                        {userData?.numberOfPositions && (
+                          <div className="intern-info-card">
+                            <div className="info-label">Number of Positions</div>
+                            <div className="info-value">{userData.numberOfPositions}</div>
+                          </div>
+                        )}
+                        {userData?.urgencyLevel && (
+                          <div className="intern-info-card">
+                            <div className="info-label">Urgency Level</div>
+                            <div className="info-value">{userData.urgencyLevel}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </FadeInUp>
+                )}
+
+                {/* Additional Company Information */}
+                {(userData?.companyBenefits || userData?.companyValues || userData?.hiringTimeline) && (
+                  <FadeInUp delay={0.85}>
+                    <div className="recruiter-additional-section">
+                      <h3>📋 Additional Information</h3>
+                      {userData?.companyBenefits && (
+                        <div className="goal-card">
+                          <div className="goal-title">Company Benefits</div>
+                          <p className="goal-text">{userData.companyBenefits}</p>
+                        </div>
+                      )}
+                      {userData?.companyValues && (
+                        <div className="goal-card">
+                          <div className="goal-title">Company Values</div>
+                          <p className="goal-text">{userData.companyValues}</p>
+                        </div>
+                      )}
+                      {userData?.hiringTimeline && (
+                        <div className="goal-card">
+                          <div className="goal-title">Hiring Timeline</div>
+                          <p className="goal-text">{userData.hiringTimeline}</p>
+                        </div>
+                      )}
+                      {userData?.additionalNotes && (
+                        <div className="goal-card">
+                          <div className="goal-title">Additional Notes</div>
+                          <p className="goal-text">{userData.additionalNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  </FadeInUp>
+                )}
+              </>
             )}
 
             {/* Bio for Job Seekers */}
@@ -948,13 +1421,25 @@ const ContactMe = () => {
             )}
 
             {/* Resume Data - Skills - ONLY for Job Seekers (NOT interns or recruiters) */}
-            {userData?.userType === 'jobSeeker' && (resumeData?.skills || userData?.skills?.length > 0) && (
+            {userData?.userType === 'jobSeeker' && (resumeData?.skills || userData?.skills?.length > 0 || userData?.technicalSkills?.length > 0 || userData?.softSkills?.length > 0) && (
               <FadeInUp delay={0.7}>
                 <div className="resume-skills-section">
-                  <h3>Skills</h3>
+                  <h3>🧠 Skills & Expertise</h3>
                   
-                  {/* Technical Skills */}
-                  {resumeData?.skills?.technical_skills && resumeData.skills.technical_skills.length > 0 && (
+                  {/* Technical Skills from Comprehensive Profile */}
+                  {userData?.technicalSkills && userData.technicalSkills.length > 0 && (
+                    <div className="skills-category">
+                      <h4>Technical Skills</h4>
+                      <div className="skills-tags">
+                        {userData.technicalSkills.map((skill, index) => (
+                          <span key={index} className="skill-tag technical">{skill}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Technical Skills from Resume (fallback) */}
+                  {(!userData?.technicalSkills || userData.technicalSkills.length === 0) && resumeData?.skills?.technical_skills && resumeData.skills.technical_skills.length > 0 && (
                     <div className="skills-category">
                       <h4>Technical Skills</h4>
                       <div className="skills-tags">
@@ -965,8 +1450,20 @@ const ContactMe = () => {
                     </div>
                   )}
                   
-                  {/* Soft Skills */}
-                  {resumeData?.skills?.soft_skills && resumeData.skills.soft_skills.length > 0 && (
+                  {/* Soft Skills from Comprehensive Profile */}
+                  {userData?.softSkills && userData.softSkills.length > 0 && (
+                    <div className="skills-category">
+                      <h4>Soft Skills</h4>
+                      <div className="skills-tags">
+                        {userData.softSkills.map((skill, index) => (
+                          <span key={index} className="skill-tag soft">{skill}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Soft Skills from Resume (fallback) */}
+                  {(!userData?.softSkills || userData.softSkills.length === 0) && resumeData?.skills?.soft_skills && resumeData.skills.soft_skills.length > 0 && (
                     <div className="skills-category">
                       <h4>Soft Skills</h4>
                       <div className="skills-tags">
@@ -977,8 +1474,20 @@ const ContactMe = () => {
                     </div>
                   )}
                   
-                  {/* Languages */}
-                  {resumeData?.skills?.languages && resumeData.skills.languages.length > 0 && (
+                  {/* Languages from Comprehensive Profile */}
+                  {userData?.languagesKnown && userData.languagesKnown.length > 0 && (
+                    <div className="skills-category">
+                      <h4>Languages</h4>
+                      <div className="skills-tags">
+                        {userData.languagesKnown.map((lang, index) => (
+                          <span key={index} className="skill-tag language">{lang}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Languages from Resume (fallback) */}
+                  {(!userData?.languagesKnown || userData.languagesKnown.length === 0) && resumeData?.skills?.languages && resumeData.skills.languages.length > 0 && (
                     <div className="skills-category">
                       <h4>Languages</h4>
                       <div className="skills-tags">
@@ -989,8 +1498,25 @@ const ContactMe = () => {
                     </div>
                   )}
 
-                  {/* Profile Skills (from Complete Profile form) */}
-                  {userData?.skills?.length > 0 && (
+                  {/* Certifications from Comprehensive Profile */}
+                  {userData?.certifications && (
+                    <div className="skills-category">
+                      <h4>Certifications & Licenses</h4>
+                      <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                        {typeof userData.certifications === 'string' 
+                          ? userData.certifications 
+                          : Array.isArray(userData.certifications)
+                            ? userData.certifications.map(cert => 
+                                typeof cert === 'string' ? cert : (cert?.certName || cert?.name || 'Certification')
+                              ).join(', ')
+                            : String(userData.certifications || 'No certifications listed')
+                        }
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Profile Skills (legacy - from old Complete Profile form) */}
+                  {userData?.skills?.length > 0 && !userData?.technicalSkills && !userData?.softSkills && (
                     <div className="skills-category">
                       <h4>Profile Skills</h4>
                       <div className="skills-tags">
@@ -1000,6 +1526,334 @@ const ContactMe = () => {
                       </div>
                     </div>
                   )}
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Profile: Education from New Form */}
+            {userData?.userType === 'jobSeeker' && userData?.educationInfo && (
+              <FadeInUp delay={0.75}>
+                <div className="resume-education-section">
+                  <h3>🎓 Education Details</h3>
+                  <div className="intern-info-grid">
+                    {userData.educationInfo.highestEducationLevel && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Education Level</div>
+                        <div className="info-value">{userData.educationInfo.highestEducationLevel}</div>
+                      </div>
+                    )}
+                    {userData.educationInfo.fieldOfStudy && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Field of Study</div>
+                        <div className="info-value">{userData.educationInfo.fieldOfStudy}</div>
+                      </div>
+                    )}
+                    {userData.educationInfo.institutionName && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Institution</div>
+                        <div className="info-value">{userData.educationInfo.institutionName}</div>
+                      </div>
+                    )}
+                    {userData.educationInfo.countryOfInstitution && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Country</div>
+                        <div className="info-value">{userData.educationInfo.countryOfInstitution}</div>
+                      </div>
+                    )}
+                    {userData.educationInfo.graduationYear && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Graduation Year</div>
+                        <div className="info-value">{userData.educationInfo.graduationYear}</div>
+                      </div>
+                    )}
+                    {userData.educationInfo.academicPerformance && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Academic Performance</div>
+                        <div className="info-value">{userData.educationInfo.academicPerformance}</div>
+                      </div>
+                    )}
+                    {userData.educationInfo.relevantCoursework && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Relevant Coursework</div>
+                        <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: '0.5rem 0' }}>{userData.educationInfo.relevantCoursework}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Profile: Employment Information */}
+            {userData?.userType === 'jobSeeker' && userData?.employmentInfo && (
+              <FadeInUp delay={0.8}>
+                <div className="resume-experience-section">
+                  <h3>💼 Employment Information</h3>
+                  <div className="intern-info-grid">
+                    {userData.employmentInfo.currentEmploymentStatus && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Employment Status</div>
+                        <div className="info-value">{userData.employmentInfo.currentEmploymentStatus}</div>
+                      </div>
+                    )}
+                    {userData.employmentInfo.yearsOfExperience && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Years of Experience</div>
+                        <div className="info-value">{userData.employmentInfo.yearsOfExperience}</div>
+                      </div>
+                    )}
+                    {userData.employmentInfo.mostRecentJobTitle && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Recent Job Title</div>
+                        <div className="info-value">{userData.employmentInfo.mostRecentJobTitle}</div>
+                      </div>
+                    )}
+                    {userData.employmentInfo.mostRecentCompany && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Recent Company</div>
+                        <div className="info-value">{userData.employmentInfo.mostRecentCompany}</div>
+                      </div>
+                    )}
+                    {userData.employmentInfo.employmentType && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Employment Type</div>
+                        <div className="info-value">{userData.employmentInfo.employmentType}</div>
+                      </div>
+                    )}
+                    {userData.employmentInfo.workExperienceSummary && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Work Experience Summary</div>
+                        <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: '0.5rem 0' }}>{userData.employmentInfo.workExperienceSummary}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Profile: Job Preferences */}
+            {userData?.userType === 'jobSeeker' && userData?.jobPreferences && (
+              <FadeInUp delay={0.85}>
+                <div className="recruiter-hiring-section">
+                  <h3>🎯 Job Preferences</h3>
+                  <div className="intern-info-grid">
+                    {userData.jobPreferences.jobTypes && userData.jobPreferences.jobTypes.length > 0 && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Job Types</div>
+                        <div className="skills-tags">
+                          {userData.jobPreferences.jobTypes.map((type, index) => (
+                            <span key={index} className="skill-tag soft">{type}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.preferredWorkMode && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Work Mode</div>
+                        <div className="info-value">{userData.jobPreferences.preferredWorkMode}</div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.preferredIndustries && userData.jobPreferences.preferredIndustries.length > 0 && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Preferred Industries</div>
+                        <div className="skills-tags">
+                          {userData.jobPreferences.preferredIndustries.map((industry, index) => (
+                            <span key={index} className="skill-tag language">{industry}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.preferredJobRoles && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Preferred Roles</div>
+                        <div className="info-value">{userData.jobPreferences.preferredJobRoles}</div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.preferredCountryOfWork && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Preferred Country</div>
+                        <div className="info-value">{userData.jobPreferences.preferredCountryOfWork}</div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.preferredCities && userData.jobPreferences.preferredCities.length > 0 && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Preferred Cities</div>
+                        <div className="info-value">{userData.jobPreferences.preferredCities.join(', ')}</div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.expectedSalaryAmount && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Expected Salary</div>
+                        <div className="info-value">
+                          {userData.jobPreferences.expectedSalaryCurrency} {userData.jobPreferences.expectedSalaryAmount}
+                        </div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.availabilityToJoin && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Availability</div>
+                        <div className="info-value">{userData.jobPreferences.availabilityToJoin}</div>
+                      </div>
+                    )}
+                    {userData.jobPreferences.desiredWorkHours && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Desired Work Hours</div>
+                        <div className="info-value">{userData.jobPreferences.desiredWorkHours}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Profile: Career Goals */}
+            {userData?.userType === 'jobSeeker' && userData?.careerGoals && (
+              <FadeInUp delay={0.9}>
+                <div className="recruiter-additional-section">
+                  <h3>🚀 Career Goals</h3>
+                  {userData.careerGoals.shortTermGoal && (
+                    <div className="goal-card">
+                      <div className="goal-title">Short-Term Goal (1-2 years)</div>
+                      <p className="goal-text">{userData.careerGoals.shortTermGoal}</p>
+                    </div>
+                  )}
+                  {userData.careerGoals.longTermGoal && (
+                    <div className="goal-card">
+                      <div className="goal-title">Long-Term Goal (3-5 years)</div>
+                      <p className="goal-text">{userData.careerGoals.longTermGoal}</p>
+                    </div>
+                  )}
+                  {userData.careerGoals.preferredCompanyType && (
+                    <div className="goal-card">
+                      <div className="goal-title">Preferred Company Type</div>
+                      <p className="goal-text">{userData.careerGoals.preferredCompanyType}</p>
+                    </div>
+                  )}
+                  {userData.careerGoals.motivationForJobChange && (
+                    <div className="goal-card">
+                      <div className="goal-title">Motivation for Job Change</div>
+                      <p className="goal-text">{userData.careerGoals.motivationForJobChange}</p>
+                    </div>
+                  )}
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Profile: Additional Information */}
+            {userData?.userType === 'jobSeeker' && userData?.additionalInfo && (
+              <FadeInUp delay={0.95}>
+                <div className="recruiter-requirements-section">
+                  <h3>📊 Additional Information</h3>
+                  <div className="intern-info-grid">
+                    {userData.additionalInfo.validWorkPermit && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Valid Work Permit</div>
+                        <div className="info-value">{userData.additionalInfo.validWorkPermit}</div>
+                      </div>
+                    )}
+                    {userData.additionalInfo.requireVisaSponsorship && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Visa Sponsorship</div>
+                        <div className="info-value">{userData.additionalInfo.requireVisaSponsorship}</div>
+                      </div>
+                    )}
+                    {userData.additionalInfo.openToRelocation && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Open to Relocation</div>
+                        <div className="info-value">{userData.additionalInfo.openToRelocation}</div>
+                      </div>
+                    )}
+                    {userData.additionalInfo.willingToTravel && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Willing to Travel</div>
+                        <div className="info-value">{userData.additionalInfo.willingToTravel}</div>
+                      </div>
+                    )}
+                    {userData.additionalInfo.ownLaptopAndInternet && (
+                      <div className="intern-info-card">
+                        <div className="info-label">Laptop & Internet</div>
+                        <div className="info-value">{userData.additionalInfo.ownLaptopAndInternet}</div>
+                      </div>
+                    )}
+                    {userData.additionalInfo.physicalLimitations && (
+                      <div className="intern-info-card full-width">
+                        <div className="info-label">Physical Limitations</div>
+                        <p style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', margin: '0.5rem 0' }}>{userData.additionalInfo.physicalLimitations}</p>
+                      </div>
+                    )}
+                    {userData.additionalInfo.howDidYouHear && (
+                      <div className="intern-info-card">
+                        <div className="info-label">How Did You Hear About Us</div>
+                        <div className="info-value">{userData.additionalInfo.howDidYouHear}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Form - Experience Entries */}
+            {userData?.experienceEntries && userData.experienceEntries.length > 0 && (
+              <FadeInUp delay={0.85}>
+                <div className="comprehensive-experience-section">
+                  <h3>💼 Professional Experience</h3>
+                  <div className="experience-list">
+                    {userData.experienceEntries.map((exp, index) => (
+                      <div key={index} className="experience-item">
+                        <div className="experience-header">
+                          <div className="experience-title">{exp.jobTitle || exp.position}</div>
+                          <div className="experience-company">{exp.company}</div>
+                          <div className="experience-location">{exp.companyLocation}</div>
+                        </div>
+                        <div className="experience-details">
+                          <div className="experience-meta">
+                            <span className="employment-type">{exp.employmentType}</span>
+                            {exp.jobIndustry && <span className="industry">{exp.jobIndustry}</span>}
+                            <span className="duration">
+                              {exp.startDate} - {exp.currentJob ? 'Present' : exp.endDate}
+                            </span>
+                          </div>
+                          {exp.jobDescription && (
+                            <div className="experience-description">
+                              {exp.jobDescription}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Form - Education Entries */}
+            {userData?.educationEntries && userData.educationEntries.length > 0 && (
+              <FadeInUp delay={0.9}>
+                <div className="comprehensive-education-section">
+                  <h3>🎓 Educational Background</h3>
+                  <div className="education-list">
+                    {userData.educationEntries.map((edu, index) => (
+                      <div key={index} className="education-item">
+                        <div className="education-header">
+                          <div className="education-degree">{edu.degreeType} in {edu.fieldOfStudy}</div>
+                          <div className="education-institution">{edu.institution}</div>
+                          <div className="education-location">{edu.institutionLocation}</div>
+                        </div>
+                        <div className="education-details">
+                          <div className="education-meta">
+                            {edu.grade && <span className="grade">Grade: {edu.grade}</span>}
+                            <span className="duration">
+                              {edu.eduStartYear} - {edu.eduEndYear}
+                            </span>
+                          </div>
+                          {edu.eduActivities && (
+                            <div className="education-activities">
+                              <strong>Activities:</strong> {edu.eduActivities}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </FadeInUp>
             )}
@@ -1035,6 +1889,63 @@ const ContactMe = () => {
                         <div className="experience-company">{exp.company}</div>
                         {exp.duration && <div className="experience-duration">{exp.duration}</div>}
                         {exp.description && <div className="experience-description">{exp.description}</div>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Form - Certifications */}
+            {userData?.certificationEntries && userData.certificationEntries.length > 0 && (
+              <FadeInUp delay={1.05}>
+                <div className="comprehensive-certifications-section">
+                  <h3>🏆 Professional Certifications</h3>
+                  <div className="certifications-list">
+                    {userData.certificationEntries.map((cert, index) => (
+                      <div key={index} className="certification-item">
+                        <div className="certification-header">
+                          <div className="certification-name">{cert.certificationName}</div>
+                          <div className="certification-issuer">{cert.certIssuer}</div>
+                        </div>
+                        <div className="certification-details">
+                          <div className="certification-meta">
+                            <span className="issue-date">Issued: {cert.certIssueDate}</span>
+                            {cert.certExpiryDate && <span className="expiry-date">Expires: {cert.certExpiryDate}</span>}
+                            {cert.credentialId && <span className="credential-id">ID: {cert.credentialId}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </FadeInUp>
+            )}
+
+            {/* Comprehensive Form - References */}
+            {userData?.referenceEntries && userData.referenceEntries.length > 0 && (
+              <FadeInUp delay={1.1}>
+                <div className="comprehensive-references-section">
+                  <h3>👥 Professional References</h3>
+                  <div className="references-list">
+                    {userData.referenceEntries.map((ref, index) => (
+                      <div key={index} className="reference-item">
+                        <div className="reference-header">
+                          <div className="reference-name">{ref.referenceName}</div>
+                          <div className="reference-title">{ref.referenceTitle}</div>
+                          <div className="reference-company">{ref.referenceCompany}</div>
+                        </div>
+                        <div className="reference-details">
+                          <div className="reference-contact">
+                            <span className="reference-email">📧 {ref.referenceEmail}</span>
+                            <span className="reference-phone">📞 {ref.referencePhone}</span>
+                          </div>
+                          {ref.relationship && (
+                            <div className="reference-relationship">
+                              <strong>Relationship:</strong> {ref.relationship}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -1310,7 +2221,16 @@ const ContactMe = () => {
                       {jobSeekerProfile.skillsInfo.certifications && (
                         <div className="skills-subsection">
                           <h4>Certifications / Licenses</h4>
-                          <div className="info-value">{jobSeekerProfile.skillsInfo.certifications}</div>
+                          <div className="info-value">
+                            {typeof jobSeekerProfile.skillsInfo.certifications === 'string' 
+                              ? jobSeekerProfile.skillsInfo.certifications 
+                              : Array.isArray(jobSeekerProfile.skillsInfo.certifications)
+                                ? jobSeekerProfile.skillsInfo.certifications.map(cert => 
+                                    typeof cert === 'string' ? cert : (cert?.certName || cert?.name || 'Certification')
+                                  ).join(', ')
+                                : String(jobSeekerProfile.skillsInfo.certifications || 'No certifications listed')
+                            }
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1475,70 +2395,93 @@ const ContactMe = () => {
             )}
 
             {/* INTERN-SPECIFIC SECTIONS */}
-            {(userData?.userType === 'intern' || localStorage.getItem('role') === 'intern') && internDetails && (
+            {(userData?.userType === 'intern' || localStorage.getItem('role') === 'intern') && (
               <>
-                {console.log('🎨 RENDERING INTERN SECTIONS NOW!')}
+                {console.log('🎨 RENDERING INTERN SECTIONS NOW!', { internDetails, userData })}
                 {/* Section Separator */}
                 <div className="intern-section-divider">
                   <h2>🎓 Intern Profile Details</h2>
                   <p>Complete information from the intern registration form</p>
                 </div>
 
+                {/* Debug Information - Remove in production */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div style={{ background: '#f0f0f0', padding: '1rem', margin: '1rem 0', borderRadius: '8px', fontSize: '0.8rem' }}>
+                    <h4>🐛 Debug Info:</h4>
+                    <p><strong>Intern Details:</strong> {internDetails ? 'Available' : 'Not Available'}</p>
+                    <p><strong>User Data:</strong> {userData ? 'Available' : 'Not Available'}</p>
+                    <p><strong>User Type:</strong> {userData?.userType || 'Unknown'}</p>
+                    <p><strong>Role from localStorage:</strong> {localStorage.getItem('role') || 'Not set'}</p>
+                    {userData && (
+                      <details>
+                        <summary>UserData Fields</summary>
+                        <pre>{JSON.stringify(userData, null, 2)}</pre>
+                      </details>
+                    )}
+                    {internDetails && (
+                      <details>
+                        <summary>InternDetails Fields</summary>
+                        <pre>{JSON.stringify(internDetails, null, 2)}</pre>
+                      </details>
+                    )}
+                  </div>
+                )}
+
                 {/* Personal Information from Form */}
                 <FadeInUp delay={0.6}>
                   <div className="intern-personal-section">
                     <h3>👤 Personal Information</h3>
                     <div className="intern-info-grid">
-                      {internDetails.fullName && (
+                      {(internDetails?.fullName || userData?.firstName) && (
                         <div className="intern-info-card">
                           <div className="info-label">Full Name</div>
-                          <div className="info-value">{internDetails.fullName}</div>
+                          <div className="info-value">{internDetails?.fullName || `${userData?.firstName || ''} ${userData?.lastName || ''}`.trim()}</div>
                         </div>
                       )}
-                      {internDetails.mobile && (
+                      {(internDetails?.mobile || userData?.phone) && (
                         <div className="intern-info-card">
                           <div className="info-label">Mobile Number</div>
-                          <div className="info-value">{internDetails.mobile}</div>
+                          <div className="info-value">{internDetails?.mobile || userData?.phone}</div>
                         </div>
                       )}
-                      {internDetails.dateOfBirth && (
+                      {(internDetails?.dateOfBirth || userData?.dateOfBirth) && (
                         <div className="intern-info-card">
                           <div className="info-label">Date of Birth</div>
-                          <div className="info-value">{new Date(internDetails.dateOfBirth).toLocaleDateString()}</div>
+                          <div className="info-value">{new Date(internDetails?.dateOfBirth || userData?.dateOfBirth).toLocaleDateString()}</div>
                         </div>
                       )}
-                      {internDetails.gender && (
+                      {(internDetails?.gender || userData?.gender) && (
                         <div className="intern-info-card">
                           <div className="info-label">Gender</div>
-                          <div className="info-value">{internDetails.gender}</div>
+                          <div className="info-value">{internDetails?.gender || userData?.gender}</div>
                         </div>
                       )}
-                      {internDetails.linkedInProfile && (
+                      {(internDetails?.linkedInProfile || userData?.linkedinProfile) && (
                         <div className="intern-info-card full-width">
                           <div className="info-label">LinkedIn Profile</div>
                           <div className="info-value">
-                            <a href={internDetails.linkedInProfile} target="_blank" rel="noopener noreferrer" className="profile-link">
-                              {internDetails.linkedInProfile}
+                            <a href={internDetails?.linkedInProfile || userData?.linkedinProfile} target="_blank" rel="noopener noreferrer" className="profile-link">
+                              {internDetails?.linkedInProfile || userData?.linkedinProfile}
                             </a>
                           </div>
                         </div>
                       )}
-                      {internDetails.githubProfile && (
+                      {(internDetails?.githubProfile || userData?.githubProfile) && (
                         <div className="intern-info-card full-width">
                           <div className="info-label">GitHub Profile</div>
                           <div className="info-value">
-                            <a href={internDetails.githubProfile} target="_blank" rel="noopener noreferrer" className="profile-link">
-                              {internDetails.githubProfile}
+                            <a href={internDetails?.githubProfile || userData?.githubProfile} target="_blank" rel="noopener noreferrer" className="profile-link">
+                              {internDetails?.githubProfile || userData?.githubProfile}
                             </a>
                           </div>
                         </div>
                       )}
-                      {internDetails.portfolioWebsite && (
+                      {(internDetails?.portfolioWebsite || userData?.portfolio) && (
                         <div className="intern-info-card full-width">
                           <div className="info-label">Portfolio Website</div>
                           <div className="info-value">
-                            <a href={internDetails.portfolioWebsite} target="_blank" rel="noopener noreferrer" className="profile-link">
-                              {internDetails.portfolioWebsite}
+                            <a href={internDetails?.portfolioWebsite || userData?.portfolio} target="_blank" rel="noopener noreferrer" className="profile-link">
+                              {internDetails?.portfolioWebsite || userData?.portfolio}
                             </a>
                           </div>
                         </div>
@@ -1552,30 +2495,30 @@ const ContactMe = () => {
                   <div className="intern-location-section">
                     <h3>📍 Location & Address</h3>
                     <div className="intern-info-grid">
-                      {internDetails.currentLocation && (
+                      {(internDetails?.currentLocation || userData?.location) && (
                         <div className="intern-info-card">
                           <div className="info-label">Current Location</div>
-                          <div className="info-value">{internDetails.currentLocation}</div>
+                          <div className="info-value">{internDetails?.currentLocation || userData?.location}</div>
                         </div>
                       )}
-                      {internDetails.currentAddress && (
+                      {(internDetails?.currentAddress || userData?.currentAddress) && (
                         <div className="intern-info-card full-width">
                           <div className="info-label">Full Address</div>
-                          <div className="info-value">{internDetails.currentAddress}</div>
+                          <div className="info-value">{internDetails?.currentAddress || userData?.currentAddress}</div>
                         </div>
                       )}
-                      {internDetails.addressPinCode && (
+                      {(internDetails?.addressPinCode || userData?.addressPinCode) && (
                         <div className="intern-info-card">
                           <div className="info-label">PIN/Postal Code</div>
-                          <div className="info-value">{internDetails.addressPinCode}</div>
+                          <div className="info-value">{internDetails?.addressPinCode || userData?.addressPinCode}</div>
                         </div>
                       )}
-                      {internDetails.willingToRelocate && (
+                      {(internDetails?.willingToRelocate || userData?.willingToRelocate) && (
                         <div className="intern-info-card">
                           <div className="info-label">Willing to Relocate?</div>
                           <div className="info-value">
-                            <span className={`relocate-badge ${internDetails.willingToRelocate === 'Yes' ? 'yes' : 'no'}`}>
-                              {internDetails.willingToRelocate === 'Yes' ? '✅ Yes' : '❌ No'}
+                            <span className={`relocate-badge ${(internDetails?.willingToRelocate || userData?.willingToRelocate) === 'Yes' ? 'yes' : 'no'}`}>
+                              {(internDetails?.willingToRelocate || userData?.willingToRelocate) === 'Yes' ? '✅ Yes' : '❌ No'}
                             </span>
                           </div>
                         </div>
@@ -1589,40 +2532,40 @@ const ContactMe = () => {
                   <div className="intern-education-section">
                     <h3>🎓 Educational Background</h3>
                     <div className="intern-info-grid">
-                      {internDetails.collegeName && (
+                      {(internDetails?.collegeName || userData?.collegeName) && (
                         <div className="intern-info-card">
                           <div className="info-label">College/University</div>
-                          <div className="info-value">{internDetails.collegeName}</div>
+                          <div className="info-value">{internDetails?.collegeName || userData?.collegeName}</div>
                         </div>
                       )}
-                      {internDetails.degree && (
+                      {(internDetails?.degree || userData?.degree) && (
                         <div className="intern-info-card">
                           <div className="info-label">Degree/Program</div>
-                          <div className="info-value">{internDetails.degree}</div>
+                          <div className="info-value">{internDetails?.degree || userData?.degree}</div>
                         </div>
                       )}
-                      {internDetails.currentYear && (
+                      {(internDetails?.currentYear || userData?.currentYear) && (
                         <div className="intern-info-card">
                           <div className="info-label">Current Year</div>
-                          <div className="info-value">{internDetails.currentYear}</div>
+                          <div className="info-value">{internDetails?.currentYear || userData?.currentYear}</div>
                         </div>
                       )}
-                      {internDetails.graduationYear && (
+                      {(internDetails?.graduationYear || userData?.graduationYear) && (
                         <div className="intern-info-card">
                           <div className="info-label">Graduation Year</div>
-                          <div className="info-value">{internDetails.graduationYear}</div>
+                          <div className="info-value">{internDetails?.graduationYear || userData?.graduationYear}</div>
                         </div>
                       )}
-                      {internDetails.cgpa && (
+                      {(internDetails?.cgpa || userData?.cgpa) && (
                         <div className="intern-info-card">
                           <div className="info-label">CGPA/Percentage</div>
-                          <div className="info-value">{internDetails.cgpa}</div>
+                          <div className="info-value">{internDetails?.cgpa || userData?.cgpa}</div>
                         </div>
                       )}
-                      {internDetails.majorSubjects && (
+                      {(internDetails?.majorSubjects || userData?.majorSubjects) && (
                         <div className="intern-info-card full-width">
                           <div className="info-label">Major Subjects</div>
-                          <div className="info-value">{internDetails.majorSubjects}</div>
+                          <div className="info-value">{internDetails?.majorSubjects || userData?.majorSubjects}</div>
                         </div>
                       )}
                     </div>
@@ -1630,7 +2573,7 @@ const ContactMe = () => {
                 </FadeInUp>
 
                 {/* AI Matching Keywords */}
-                {internDetails.keywords && internDetails.keywords.length > 0 && (
+                {((internDetails?.keywords && internDetails.keywords.length > 0) || (userData?.keywords && userData.keywords.length > 0)) && (
                   <FadeInUp delay={0.75}>
                     <div className="intern-keywords-section">
                       <h3>🔍 AI Matching Keywords</h3>
@@ -1638,7 +2581,7 @@ const ContactMe = () => {
                         These keywords help our AI find the most relevant internship opportunities
                       </p>
                       <div className="skills-tags">
-                        {internDetails.keywords.map((keyword, index) => (
+                        {(internDetails?.keywords || userData?.keywords || []).map((keyword, index) => (
                           <span key={index} className="skill-tag keyword">{keyword}</span>
                         ))}
                       </div>
@@ -1651,82 +2594,73 @@ const ContactMe = () => {
                   <div className="intern-preferences-section">
                     <h3>💼 Internship Preferences</h3>
                     <div className="intern-info-grid">
-                      {internDetails.internshipType && internDetails.internshipType.length > 0 && (
+                      {((internDetails?.internshipType && internDetails.internshipType.length > 0) || (userData?.internshipType && userData.internshipType.length > 0)) && (
                         <div className="intern-info-card">
                           <div className="info-label">Preferred Type</div>
                           <div className="info-value">
-                            {internDetails.internshipType.join(', ')}
+                            {(internDetails?.internshipType || userData?.internshipType || []).join(', ')}
                           </div>
                         </div>
                       )}
-                      {internDetails.desiredRole && (
+                      {(internDetails?.desiredRole || userData?.desiredRole) && (
                         <div className="intern-info-card">
                           <div className="info-label">Desired Role</div>
-                          <div className="info-value">{internDetails.desiredRole}</div>
+                          <div className="info-value">{internDetails?.desiredRole || userData?.desiredRole}</div>
                         </div>
                       )}
-                      {internDetails.duration && (
+                      {(internDetails?.duration || userData?.duration) && (
                         <div className="intern-info-card">
                           <div className="info-label">Duration</div>
-                          <div className="info-value">{internDetails.duration}</div>
+                          <div className="info-value">{internDetails?.duration || userData?.duration}</div>
                         </div>
                       )}
-                      {internDetails.weeklyAvailability && (
+                      {(internDetails?.weeklyAvailability || userData?.weeklyAvailability) && (
                         <div className="intern-info-card">
                           <div className="info-label">Availability</div>
-                          <div className="info-value">{internDetails.weeklyAvailability}</div>
+                          <div className="info-value">{internDetails?.weeklyAvailability || userData?.weeklyAvailability}</div>
                         </div>
                       )}
-                      {internDetails.availabilityStartDate && (
+                      {(internDetails?.availabilityStartDate || userData?.availabilityStartDate) && (
                         <div className="intern-info-card">
                           <div className="info-label">Start Date</div>
-                          <div className="info-value">{new Date(internDetails.availabilityStartDate).toLocaleDateString()}</div>
+                          <div className="info-value">{new Date(internDetails?.availabilityStartDate || userData?.availabilityStartDate).toLocaleDateString()}</div>
                         </div>
                       )}
-                      {(internDetails.stipendAmount || internDetails.stipendExpectation) && (
+                      {(internDetails?.workDomain || userData?.workDomain) && (
                         <div className="intern-info-card">
-                          <div className="info-label">Stipend Expectation</div>
-                          <div className="info-value">
-                            {internDetails.stipendAmount ? 
-                              `${internDetails.stipendAmount} ${internDetails.stipendCurrency || 'USD'}/month` : 
-                              internDetails.stipendExpectation
-                            }
-                          </div>
+                          <div className="info-label">Work Domain</div>
+                          <div className="info-value">{internDetails?.workDomain || userData?.workDomain}</div>
                         </div>
                       )}
-                      {internDetails.currentAddress && (
-                        <div className="intern-info-card full-width">
-                          <div className="info-label">Full Address</div>
-                          <div className="info-value">{internDetails.currentAddress}</div>
-                        </div>
-                      )}
-                      {internDetails.addressPinCode && (
+                      {(internDetails?.workScope || userData?.workScope) && (
                         <div className="intern-info-card">
-                          <div className="info-label">PIN/Postal Code</div>
-                          <div className="info-value">{internDetails.addressPinCode}</div>
+                          <div className="info-label">Work Scope</div>
+                          <div className="info-value">{internDetails?.workScope || userData?.workScope}</div>
                         </div>
                       )}
-                      {internDetails.workDomains && internDetails.workDomains.length > 0 && (
-                        <div className="intern-info-card full-width">
-                          <div className="info-label">Work Domains</div>
-                          <div className="skills-tags">
-                            {internDetails.workDomains.map((domain, index) => (
-                              <span key={index} className="skill-tag domain">{domain}</span>
-                            ))}
-                          </div>
+                      {(internDetails?.workLocation || userData?.workLocation) && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Work Location</div>
+                          <div className="info-value">{internDetails?.workLocation || userData?.workLocation}</div>
+                        </div>
+                      )}
+                      {(internDetails?.workSector || userData?.workSector) && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Work Sector</div>
+                          <div className="info-value">{internDetails?.workSector || userData?.workSector}</div>
                         </div>
                       )}
                     </div>
                   </div>
                 </FadeInUp>
 
-                {/* Technical Skills */}
-                {internDetails.technicalSkills && internDetails.technicalSkills.length > 0 && (
+                {/* Primary Skills */}
+                {((internDetails?.primarySkills && internDetails.primarySkills.length > 0) || (userData?.primarySkills && userData.primarySkills.length > 0)) && (
                   <FadeInUp delay={0.9}>
                     <div className="intern-skills-section">
-                      <h3>🛠️ Technical Skills</h3>
+                      <h3>🛠️ Primary Skills</h3>
                       <div className="skills-tags">
-                        {internDetails.technicalSkills.map((skill, index) => (
+                        {(internDetails?.primarySkills || userData?.primarySkills || []).map((skill, index) => (
                           <span key={index} className="skill-tag technical">{skill}</span>
                         ))}
                       </div>
@@ -1735,12 +2669,12 @@ const ContactMe = () => {
                 )}
 
                 {/* Soft Skills */}
-                {internDetails.softSkills && internDetails.softSkills.length > 0 && (
+                {((internDetails?.softSkills && internDetails.softSkills.length > 0) || (userData?.softSkills && userData.softSkills.length > 0)) && (
                   <FadeInUp delay={1.0}>
                     <div className="intern-skills-section">
                       <h3>💡 Soft Skills</h3>
                       <div className="skills-tags">
-                        {internDetails.softSkills.map((skill, index) => (
+                        {(internDetails?.softSkills || userData?.softSkills || []).map((skill, index) => (
                           <span key={index} className="skill-tag soft">{skill}</span>
                         ))}
                       </div>
@@ -1749,58 +2683,239 @@ const ContactMe = () => {
                 )}
 
                 {/* Prior Experience */}
-                {internDetails.priorExperience && (
+                {(internDetails?.priorExperience || userData?.priorExperience) && (
                   <FadeInUp delay={1.1}>
                     <div className="intern-experience-section">
                       <h3>📝 Prior Internship & Project Experience</h3>
-                      <p className="experience-description">{internDetails.priorExperience}</p>
+                      <p className="experience-description">{internDetails?.priorExperience || userData?.priorExperience}</p>
                     </div>
                   </FadeInUp>
                 )}
 
                 {/* Career Goals */}
+                {((internDetails?.postGradRoles || userData?.postGradRoles) || (internDetails?.learningGoals || userData?.learningGoals) || (internDetails?.careerVision || userData?.careerVision) || (internDetails?.internshipObjectives || userData?.internshipObjectives)) && (
                 <FadeInUp delay={1.2}>
                   <div className="intern-goals-section">
                     <h3>🚀 Career Goals & Aspirations</h3>
-                    {internDetails.postGradRoles && (
+                      {(internDetails?.internshipObjectives || userData?.internshipObjectives) && (
+                      <div className="goal-card">
+                        <div className="goal-title">Internship Objectives</div>
+                          <p className="goal-text">{internDetails?.internshipObjectives || userData?.internshipObjectives}</p>
+                      </div>
+                    )}
+                      {(internDetails?.postGradRoles || userData?.postGradRoles) && (
                       <div className="goal-card">
                         <div className="goal-title">Post-Graduation Career Interests</div>
-                        <p className="goal-text">{internDetails.postGradRoles}</p>
+                          <p className="goal-text">{internDetails?.postGradRoles || userData?.postGradRoles}</p>
                       </div>
                     )}
-                    {internDetails.learningGoals && (
+                      {(internDetails?.learningGoals || userData?.learningGoals) && (
                       <div className="goal-card">
                         <div className="goal-title">Top 3 Learning Goals</div>
-                        <p className="goal-text">{internDetails.learningGoals}</p>
+                          <p className="goal-text">{internDetails?.learningGoals || userData?.learningGoals}</p>
                       </div>
                     )}
-                    {internDetails.careerVision && (
+                      {(internDetails?.skillsToDevelop || userData?.skillsToDevelop) && (
+                      <div className="goal-card">
+                        <div className="goal-title">Skills to Develop</div>
+                          <p className="goal-text">{internDetails?.skillsToDevelop || userData?.skillsToDevelop}</p>
+                      </div>
+                    )}
+                      {(internDetails?.careerVision || userData?.careerVision) && (
                       <div className="goal-card">
                         <div className="goal-title">Professional Vision (2-3 Years)</div>
-                        <p className="goal-text">{internDetails.careerVision}</p>
+                          <p className="goal-text">{internDetails?.careerVision || userData?.careerVision}</p>
                       </div>
                     )}
                   </div>
                 </FadeInUp>
+                )}
+
+                {/* Community & Additional Information */}
+                {((internDetails?.community || userData?.community) || (internDetails?.hearAboutUs || userData?.hearAboutUs) || (internDetails?.additionalInfo || userData?.additionalInfo)) && (
+                <FadeInUp delay={1.25}>
+                  <div className="intern-community-section">
+                    <h3>👥 Community & Additional Information</h3>
+                    <div className="intern-info-grid">
+                      {(internDetails?.community || userData?.community) && (
+                        <div className="intern-info-card">
+                          <div className="info-label">Community</div>
+                          <div className="info-value">{internDetails?.community || userData?.community}</div>
+                        </div>
+                      )}
+                      {(internDetails?.hearAboutUs || userData?.hearAboutUs) && (
+                        <div className="intern-info-card">
+                          <div className="info-label">How did you hear about us?</div>
+                          <div className="info-value">{internDetails?.hearAboutUs || userData?.hearAboutUs}</div>
+                        </div>
+                      )}
+                    </div>
+                    {(internDetails?.additionalInfo || userData?.additionalInfo) && (
+                      <div className="additional-info-card">
+                        <div className="info-label">Additional Information</div>
+                        <p className="info-text">{internDetails?.additionalInfo || userData?.additionalInfo}</p>
+                      </div>
+                    )}
+                  </div>
+                </FadeInUp>
+                )}
+
+                {/* Projects & Portfolio */}
+                {(internDetails?.projects || userData?.projects) && (
+                <FadeInUp delay={1.3}>
+                  <div className="intern-projects-section">
+                    <h3>💼 Projects & Portfolio</h3>
+                    <div className="projects-grid">
+                      {Array.isArray(internDetails?.projects || userData?.projects) ? 
+                        (internDetails?.projects || userData?.projects).map((project, index) => (
+                          <div key={index} className="project-card">
+                            <div className="project-title">{project.name || project.title || `Project ${index + 1}`}</div>
+                            <div className="project-role">{project.role || project.position}</div>
+                            {project.description && (
+                              <p className="project-description">{project.description}</p>
+                            )}
+                            {project.url && (
+                              <a href={project.url} target="_blank" rel="noopener noreferrer" className="project-link">
+                                View Project
+                              </a>
+                            )}
+                          </div>
+                        )) : (
+                          <div className="project-card">
+                            <p className="project-description">{internDetails?.projects || userData?.projects}</p>
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                </FadeInUp>
+                )}
+
+                {/* Extracurricular Activities */}
+                {(internDetails?.activities || userData?.activities) && (
+                <FadeInUp delay={1.35}>
+                  <div className="intern-activities-section">
+                    <h3>🎯 Extracurricular Activities & Leadership</h3>
+                    <div className="activities-grid">
+                      {Array.isArray(internDetails?.activities || userData?.activities) ? 
+                        (internDetails?.activities || userData?.activities).map((activity, index) => (
+                          <div key={index} className="activity-card">
+                            <div className="activity-title">{activity.name || activity.title || `Activity ${index + 1}`}</div>
+                            <div className="activity-role">{activity.role || activity.position}</div>
+                            {activity.description && (
+                              <p className="activity-description">{activity.description}</p>
+                            )}
+                            {activity.duration && (
+                              <div className="activity-duration">Duration: {activity.duration}</div>
+                            )}
+                          </div>
+                        )) : (
+                          <div className="activity-card">
+                            <p className="activity-description">{internDetails?.activities || userData?.activities}</p>
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                </FadeInUp>
+                )}
+
+                {/* Certifications */}
+                {(internDetails?.certifications || userData?.certifications) && (
+                <FadeInUp delay={1.4}>
+                  <div className="intern-certifications-section">
+                    <h3>🏆 Certifications & Training</h3>
+                    <div className="certifications-grid">
+                      {Array.isArray(internDetails?.certifications || userData?.certifications) ? 
+                        (internDetails?.certifications || userData?.certifications).map((cert, index) => (
+                          <div key={index} className="cert-card">
+                            <div className="cert-title">
+                              {String(cert?.certName || cert?.name || cert?.title || `Certification ${index + 1}`)}
+                            </div>
+                            {(cert?.certIssuer || cert?.issuer) && (
+                              <div className="cert-issuer">
+                                Issued by: {String(cert?.certIssuer || cert?.issuer)}
+                              </div>
+                            )}
+                            {(cert?.certDate || cert?.date) && (
+                              <div className="cert-date">
+                                Date: {String(cert?.certDate || cert?.date)}
+                              </div>
+                            )}
+                            {(cert?.expiryDate || cert?.credentialId) && (
+                              <div className="cert-credential">
+                                {cert?.expiryDate ? `Expires: ${String(cert.expiryDate)}` : `ID: ${String(cert.credentialId)}`}
+                              </div>
+                            )}
+                          </div>
+                        )) : (
+                          <div className="cert-card">
+                            <p className="cert-description">
+                              {String(internDetails?.certifications || userData?.certifications || 'No certification data available')}
+                            </p>
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                </FadeInUp>
+                )}
+
+                {/* References */}
+                {(internDetails?.references || userData?.references) && (
+                <FadeInUp delay={1.45}>
+                  <div className="intern-references-section">
+                    <h3>📞 Professional References</h3>
+                    <div className="references-grid">
+                      {Array.isArray(internDetails?.references || userData?.references) ? 
+                        (internDetails?.references || userData?.references).map((ref, index) => (
+                          <div key={index} className="reference-card">
+                            <div className="ref-name">{ref.name || `Reference ${index + 1}`}</div>
+                            {ref.title && (
+                              <div className="ref-title">{ref.title}</div>
+                            )}
+                            {ref.company && (
+                              <div className="ref-company">{ref.company}</div>
+                            )}
+                            {ref.relationship && (
+                              <div className="ref-relationship">Relationship: {ref.relationship}</div>
+                            )}
+                            {ref.email && (
+                              <div className="ref-email">📧 {ref.email}</div>
+                            )}
+                            {ref.phone && (
+                              <div className="ref-phone">📞 {ref.phone}</div>
+                            )}
+                          </div>
+                        )) : (
+                          <div className="reference-card">
+                            <p className="ref-description">{internDetails?.references || userData?.references}</p>
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+                </FadeInUp>
+                )}
 
                 {/* Resume Section - Always show for interns */}
                 <FadeInUp delay={1.3}>
                   <div className="intern-resume-section">
                     <h3>📄 Resume</h3>
-                    {internDetails.resumePath ? (
+                    {(internDetails?.resumePath || userData?.resumePath) ? (
                       <div className="resume-container">
                         <div className="resume-info">
                           <div className="resume-icon">📑</div>
                           <div className="resume-details">
                             <p className="resume-filename">
-                              {internDetails.resumePath.split(/[/\\]/).pop()}
+                              {(internDetails?.resumePath || userData?.resumePath).split(/[/\\]/).pop()}
                             </p>
                             <p className="resume-status">✅ Resume uploaded and verified</p>
                           </div>
                         </div>
                         <div className="resume-actions">
                           <a 
-                            href={buildApiUrl(`/${internDetails.resumePath.replace(/\\/g, '/')}`)}
+                            href={buildApiUrl(`/${(internDetails?.resumePath || userData?.resumePath).replace(/\\/g, '/')}`)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="resume-download-button"
@@ -1809,7 +2924,7 @@ const ContactMe = () => {
                             Download Resume
                           </a>
                           <a 
-                            href={buildApiUrl(`/${internDetails.resumePath.replace(/\\/g, '/')}`)}
+                            href={buildApiUrl(`/${(internDetails?.resumePath || userData?.resumePath).replace(/\\/g, '/')}`)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="resume-view-button"

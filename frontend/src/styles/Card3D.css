@@ -1,0 +1,154 @@
+/* 3D Card Effects with Parallax */
+.card-3d {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.1s ease-out;
+  will-change: transform;
+}
+
+.card-3d-glare {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
+}
+
+.card-3d:hover .card-3d-glare {
+  opacity: 1;
+}
+
+.card-3d-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  transform-style: preserve-3d;
+}
+
+/* Parallax layers */
+.card-3d-layer {
+  transform: translateZ(20px);
+}
+
+.card-3d-layer-back {
+  transform: translateZ(-20px);
+}
+
+/* Holographic effect variant */
+.card-3d-holographic {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-3d-holographic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 0, 255, 0.1) 0%,
+    rgba(0, 255, 255, 0.1) 25%,
+    rgba(255, 255, 0, 0.1) 50%,
+    rgba(0, 255, 255, 0.1) 75%,
+    rgba(255, 0, 255, 0.1) 100%
+  );
+  background-size: 200% 200%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: holographic-shift 10s ease infinite;
+  pointer-events: none;
+}
+
+.card-3d-holographic:hover::before {
+  opacity: 1;
+}
+
+@keyframes holographic-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Floating animation */
+.card-3d-float {
+  animation: float-3d 6s ease-in-out infinite;
+}
+
+@keyframes float-3d {
+  0%, 100% {
+    transform: translateY(0px) rotateX(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotateX(2deg);
+  }
+}
+
+/* Tilt container for multiple cards */
+.tilt-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 32px;
+  perspective: 1000px;
+}
+
+/* Shadow enhancement on hover */
+.card-3d:hover {
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.15),
+    0 0 40px rgba(102, 126, 234, 0.2);
+}
+
+/* Dark mode support */
+.dark-mode .card-3d-glare {
+  background: radial-gradient(
+    circle at var(--x, 50%) var(--y, 50%),
+    rgba(102, 126, 234, 0.3) 0%,
+    transparent 50%
+  ) !important;
+}
+
+.dark-mode .card-3d-holographic {
+  background: linear-gradient(
+    135deg,
+    rgba(30, 41, 59, 0.9) 0%,
+    rgba(30, 41, 59, 0.8) 50%,
+    rgba(30, 41, 59, 0.9) 100%
+  );
+  border-color: rgba(102, 126, 234, 0.3);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .card-3d {
+    /* Reduce 3D effect on mobile for better performance */
+    transform: none !important;
+  }
+  
+  .card-3d-glare {
+    display: none;
+  }
+  
+  .tilt-container {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+

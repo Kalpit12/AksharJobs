@@ -314,6 +314,24 @@
   font-size: 1.1rem;
 }
 
+/* Intern Badge */
+.intern-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+}
+
+.intern-badge svg {
+  font-size: 1.1rem;
+}
+
 /* Company Name Display */
 .company-name-display {
   font-size: 1.1rem;
@@ -1963,6 +1981,83 @@
   margin-bottom: 2rem;
 }
 
+/* RECRUITER-SPECIFIC SECTIONS */
+.recruiter-section-divider {
+  text-align: center;
+  padding: 3rem 2rem 2rem;
+  margin: 3rem 0 2rem;
+  border-top: 3px solid #667eea;
+  position: relative;
+}
+
+.recruiter-section-divider::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 6px;
+  background: linear-gradient(90deg, transparent, #667eea, transparent);
+}
+
+.recruiter-section-divider h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1a202c;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.recruiter-section-divider p {
+  font-size: 1.125rem;
+  color: #718096;
+  font-weight: 500;
+}
+
+.recruiter-company-section,
+.recruiter-details-section,
+.recruiter-hiring-section,
+.recruiter-requirements-section,
+.recruiter-additional-section {
+  background: white;
+  border-radius: 1.25rem;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.recruiter-company-section:hover,
+.recruiter-details-section:hover,
+.recruiter-hiring-section:hover,
+.recruiter-requirements-section:hover,
+.recruiter-additional-section:hover {
+  border-color: #667eea;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
+}
+
+.recruiter-company-section h3,
+.recruiter-details-section h3,
+.recruiter-hiring-section h3,
+.recruiter-requirements-section h3,
+.recruiter-additional-section h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px solid #667eea;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .jobseeker-skills-section .skills-subsection:last-child {
   margin-bottom: 0;
 }
@@ -2061,4 +2156,590 @@
   .jobseeker-additional-section h3 {
     font-size: 1.25rem;
   }
+}
+
+/* Role-Specific Profile Management Sections */
+.role-specific-section {
+  margin: 2rem 0;
+  padding: 0;
+  background: transparent;
+}
+
+.section-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.section-header h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--contact-neutral-800);
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.section-header p {
+  font-size: 1rem;
+  color: var(--contact-neutral-600);
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Recruiter Section */
+.recruiter-section .section-header h3 {
+  color: #667eea;
+}
+
+/* Job Seeker Section */
+.jobseeker-section .section-header h3 {
+  color: #10b981;
+}
+
+/* Intern Section */
+.intern-section .section-header h3 {
+  color: #f59e0b;
+}
+
+/* Profile Completion Summary */
+.profile-completion-summary {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--contact-neutral-200);
+}
+
+.completion-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: var(--contact-neutral-100);
+  border-radius: 12px;
+  border: 2px solid var(--contact-neutral-200);
+  transition: all 0.3s ease;
+}
+
+.stat-item:hover {
+  border-color: var(--contact-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--contact-primary);
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: var(--contact-neutral-800);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.completion-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  min-width: 160px;
+  justify-content: center;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, var(--contact-primary) 0%, var(--contact-secondary) 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.action-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+.action-btn.secondary {
+  background: white;
+  color: var(--contact-neutral-700);
+  border: 2px solid var(--contact-neutral-300);
+}
+
+.action-btn.secondary:hover {
+  background: var(--contact-neutral-50);
+  border-color: var(--contact-primary);
+  transform: translateY(-2px);
+}
+
+/* Collapsible Profile Completion Integration */
+.contact-me-wrapper .profile-completion-card {
+  max-width: 100%;
+  margin: 0;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.contact-me-wrapper .profile-toggle-btn {
+  z-index: 100;
+  position: fixed;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Ensure profile completion card has proper spacing */
+.contact-info-section + .role-specific-section {
+  margin-top: 2rem;
+}
+
+/* Animation for profile completion card entrance */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Make sure profile completion fits nicely on mobile */
+@media (max-width: 768px) {
+  .contact-me-wrapper .profile-completion-card {
+    border-radius: 16px;
+    margin: 0;
+  }
+  
+  .contact-me-wrapper .profile-toggle-btn {
+    right: 12px;
+  }
+  
+  .completion-stats {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .completion-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .section-header h3 {
+    font-size: 1.25rem;
+  }
+  
+  .profile-completion-summary {
+    padding: 1.5rem;
+  }
+}
+
+/* Comprehensive Profile Sections */
+.intern-community-section,
+.intern-projects-section,
+.intern-activities-section,
+.intern-certifications-section,
+.intern-references-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--contact-neutral-200);
+}
+
+.intern-community-section h3,
+.intern-projects-section h3,
+.intern-activities-section h3,
+.intern-certifications-section h3,
+.intern-references-section h3 {
+  color: var(--contact-neutral-800);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Projects Grid */
+.projects-grid,
+.activities-grid,
+.certifications-grid,
+.references-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.project-card,
+.activity-card,
+.cert-card,
+.reference-card {
+  background: var(--contact-neutral-50);
+  border: 1px solid var(--contact-neutral-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+}
+
+.project-card:hover,
+.activity-card:hover,
+.cert-card:hover,
+.reference-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.project-title,
+.activity-title,
+.cert-title,
+.ref-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--contact-neutral-800);
+  margin-bottom: 0.5rem;
+}
+
+.project-role,
+.activity-role,
+.cert-issuer,
+.ref-title {
+  font-size: 0.9rem;
+  color: var(--contact-primary);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.project-description,
+.activity-description,
+.cert-description,
+.ref-description {
+  color: var(--contact-neutral-600);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.project-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--contact-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.project-link:hover {
+  color: var(--contact-primary-light);
+}
+
+.activity-duration,
+.cert-date,
+.cert-expiry {
+  font-size: 0.85rem;
+  color: var(--contact-neutral-500);
+  margin-top: 0.5rem;
+}
+
+.ref-company {
+  font-size: 0.9rem;
+  color: var(--contact-neutral-700);
+  margin-bottom: 0.5rem;
+}
+
+.ref-relationship {
+  font-size: 0.85rem;
+  color: var(--contact-neutral-600);
+  margin-bottom: 0.5rem;
+}
+
+.ref-email,
+.ref-phone {
+  font-size: 0.85rem;
+  color: var(--contact-neutral-600);
+  margin-bottom: 0.25rem;
+}
+
+.additional-info-card {
+  background: var(--contact-neutral-50);
+  border: 1px solid var(--contact-neutral-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.additional-info-card .info-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--contact-neutral-800);
+  margin-bottom: 0.75rem;
+}
+
+.additional-info-card .info-text {
+  color: var(--contact-neutral-600);
+  line-height: 1.6;
+}
+
+/* Comprehensive Form Sections */
+.comprehensive-experience-section,
+.comprehensive-education-section,
+.comprehensive-certifications-section,
+.comprehensive-references-section {
+  background: white;
+  border-radius: 1rem;
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--contact-shadow);
+  border: 1px solid var(--contact-neutral-200);
+}
+
+.comprehensive-experience-section h3,
+.comprehensive-education-section h3,
+.comprehensive-certifications-section h3,
+.comprehensive-references-section h3 {
+  color: var(--contact-neutral-800);
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Experience Items */
+.experience-item {
+  background: var(--contact-neutral-50);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--contact-primary);
+}
+
+.experience-header {
+  margin-bottom: 1rem;
+}
+
+.experience-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--contact-neutral-800);
+  margin-bottom: 0.25rem;
+}
+
+.experience-company {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--contact-primary);
+  margin-bottom: 0.25rem;
+}
+
+.experience-location {
+  font-size: 0.9rem;
+  color: var(--contact-neutral-500);
+}
+
+.experience-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.experience-meta span {
+  background: var(--contact-neutral-200);
+  color: var(--contact-neutral-700);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.experience-meta .employment-type {
+  background: var(--contact-primary-light);
+  color: white;
+}
+
+.experience-meta .industry {
+  background: var(--contact-secondary);
+  color: white;
+}
+
+.experience-description {
+  color: var(--contact-neutral-600);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+/* Education Items */
+.education-item {
+  background: var(--contact-neutral-50);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--contact-success);
+}
+
+.education-header {
+  margin-bottom: 1rem;
+}
+
+.education-degree {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--contact-neutral-800);
+  margin-bottom: 0.25rem;
+}
+
+.education-institution {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--contact-success);
+  margin-bottom: 0.25rem;
+}
+
+.education-location {
+  font-size: 0.9rem;
+  color: var(--contact-neutral-500);
+}
+
+.education-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.education-meta span {
+  background: var(--contact-neutral-200);
+  color: var(--contact-neutral-700);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.education-activities {
+  color: var(--contact-neutral-600);
+  line-height: 1.6;
+}
+
+/* Certification Items */
+.certification-item {
+  background: var(--contact-neutral-50);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--contact-warning);
+}
+
+.certification-header {
+  margin-bottom: 1rem;
+}
+
+.certification-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--contact-neutral-800);
+  margin-bottom: 0.25rem;
+}
+
+.certification-issuer {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--contact-warning);
+}
+
+.certification-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.certification-meta span {
+  background: var(--contact-neutral-200);
+  color: var(--contact-neutral-700);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Reference Items */
+.reference-item {
+  background: var(--contact-neutral-50);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border-left: 4px solid var(--contact-secondary);
+}
+
+.reference-header {
+  margin-bottom: 1rem;
+}
+
+.reference-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--contact-neutral-800);
+  margin-bottom: 0.25rem;
+}
+
+.reference-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--contact-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.reference-company {
+  font-size: 0.9rem;
+  color: var(--contact-neutral-500);
+}
+
+.reference-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.reference-contact span {
+  color: var(--contact-neutral-600);
+  font-size: 0.9rem;
+}
+
+.reference-relationship {
+  color: var(--contact-neutral-600);
+  line-height: 1.6;
 }

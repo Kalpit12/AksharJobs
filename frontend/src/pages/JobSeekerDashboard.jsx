@@ -264,24 +264,8 @@ const JobSeekerDashboard = () => {
                         />
                     </section>
 
-                    {/* Profile & Networking Section */}
-                    <section className="profile-networking-section">
-                        <h2 className="section-title">Profile & Networking</h2>
-                        <div className="networking-grid">
-                            <div className="networking-item">
-                                <ProfileViews />
-                            </div>
-                            <div className="networking-item">
-                                <NetworkActivity />
-                            </div>
-                            <div className="networking-item">
-                                <RecommendationRequests />
-                            </div>
-                            <div className="networking-item">
-                                <PortfolioShowcase />
-                            </div>
-                        </div>
-                    </section>
+                    {/* Profile & Networking moved to its own page */}
+                    
 
                     {/* AI Career Path Advisor */}
                     <section className="ai-features-section">

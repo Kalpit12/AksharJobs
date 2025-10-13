@@ -14,7 +14,8 @@ def get_mongo_client():
         return None
 
     try:
-        client = MongoClient(MONGO_URI, tls=False)  
+        # For MongoDB Atlas, explicitly enable SSL/TLS
+        client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)  
         logging.info("Connected to MongoDB successfully")
         return client
     except Exception as e:

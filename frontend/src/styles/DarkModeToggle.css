@@ -1,0 +1,183 @@
+/* Dark Mode Toggle Styles */
+.dark-mode-toggle {
+  position: relative;
+  width: 70px;
+  height: 36px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-track {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: all 0.3s ease;
+}
+
+.dark-mode-toggle.light .toggle-track {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 30px;
+  height: 30px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
+}
+
+.dark-mode-toggle.dark .toggle-thumb {
+  transform: translateX(34px);
+}
+
+.toggle-icon {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.dark-mode-toggle:hover .toggle-icon {
+  transform: scale(1.2) rotate(20deg);
+}
+
+.toggle-stars,
+.toggle-clouds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+}
+
+.star {
+  font-size: 8px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  animation: twinkle 2s ease-in-out infinite;
+}
+
+.dark-mode-toggle.dark .star {
+  opacity: 1;
+}
+
+.star-1 {
+  animation-delay: 0s;
+}
+
+.star-2 {
+  animation-delay: 0.5s;
+}
+
+.star-3 {
+  animation-delay: 1s;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+.cloud {
+  font-size: 10px;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.dark-mode-toggle.light .cloud {
+  opacity: 0.6;
+}
+
+.cloud-1 {
+  animation: float 3s ease-in-out infinite;
+}
+
+.cloud-2 {
+  animation: float 3s ease-in-out infinite 1.5s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+/* Dark Mode Global Styles */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --border-color: #334155;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.dark-mode body {
+  background: #0f172a;
+  color: #f1f5f9;
+}
+
+.dark-mode .glass-card {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(71, 85, 105, 0.3);
+}
+
+.dark-mode .action-card,
+.dark-mode .funnel-bar-container,
+.dark-mode .insight-card {
+  background: #1e293b;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+.dark-mode .action-title,
+.dark-mode .stage-name,
+.dark-mode .insight-content h4 {
+  color: #f1f5f9;
+}
+
+.dark-mode .action-description,
+.dark-mode .widget-subtitle {
+  color: #94a3b8;
+}
+

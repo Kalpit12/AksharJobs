@@ -1,0 +1,144 @@
+/* Profile Completion Demo Styles */
+.profile-demo-container {
+  padding: 32px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+}
+
+.demo-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.demo-header h2 {
+  font-size: 32px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 16px 0;
+}
+
+.demo-header p {
+  font-size: 18px;
+  color: #6b7280;
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.demo-content {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.demo-instructions {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-top: 32px;
+}
+
+.demo-instructions h3 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.demo-instructions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px 0;
+}
+
+.demo-instructions li {
+  padding: 12px 0;
+  font-size: 16px;
+  color: #374151;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.demo-instructions li:last-child {
+  border-bottom: none;
+}
+
+.demo-instructions strong {
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.demo-features h4 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: #f3f4f6;
+  border-color: #667eea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.feature-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  color: white;
+  flex-shrink: 0;
+}
+
+.feature-item span:last-child {
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-demo-container {
+    padding: 16px;
+  }
+  
+  .demo-header h2 {
+    font-size: 24px;
+  }
+  
+  .demo-header p {
+    font-size: 16px;
+  }
+  
+  .demo-instructions {
+    padding: 20px;
+  }
+  
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+}

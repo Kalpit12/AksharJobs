@@ -26,58 +26,124 @@ def allowed_file(filename):
 @jwt_required()
 def submit_intern_details():
     """
-    Submit intern details form
-    Accepts multipart/form-data with intern information and resume file
+    Submit comprehensive intern details form
+    Accepts multipart/form-data with all intern information, profile photo, and resume file
     """
     try:
         current_user_id = get_jwt_identity()
         user_id = ObjectId(current_user_id)
         
-        # Extract form data
+        # Extract comprehensive form data
         intern_data = {
             # Personal Information
-            'fullName': request.form.get('fullName'),
+            'firstName': request.form.get('firstName'),
+            'middleName': request.form.get('middleName', ''),
+            'lastName': request.form.get('lastName'),
             'email': request.form.get('email'),
-            'mobile': request.form.get('mobile'),
+            'phone': request.form.get('phone'),
+            'altPhone': request.form.get('altPhone', ''),
             'dateOfBirth': request.form.get('dateOfBirth'),
             'gender': request.form.get('gender', ''),
-            'currentLocation': request.form.get('currentLocation'),
-            'willingToRelocate': request.form.get('willingToRelocate'),
-            'linkedInProfile': request.form.get('linkedInProfile', ''),
-            'portfolioWebsite': request.form.get('portfolioWebsite', ''),
-            'githubProfile': request.form.get('githubProfile', ''),
             
-            # Educational Details
-            'collegeName': request.form.get('collegeName'),
-            'degree': request.form.get('degree'),
-            'currentYear': request.form.get('currentYear'),
-            'graduationYear': request.form.get('graduationYear'),
-            'cgpa': request.form.get('cgpa', ''),
-            'majorSubjects': request.form.get('majorSubjects', ''),
+            # Nationality & Residency
+            'nationality': request.form.get('nationality'),
+            'residentCountry': request.form.get('residentCountry'),
+            'currentCity': request.form.get('currentCity'),
+            'postalCode': request.form.get('postalCode', ''),
+            'address': request.form.get('address', ''),
+            'workPermit': request.form.get('workPermit', ''),
+            
+            # Preferred Locations
+            'preferredLocation1': request.form.get('preferredLocation1'),
+            'preferredLocation2': request.form.get('preferredLocation2', ''),
+            'preferredLocation3': request.form.get('preferredLocation3', ''),
+            'willingToRelocate': request.form.get('willingToRelocate'),
+            'workLocation': request.form.get('workLocation', ''),
+            
+            # Professional Profile
+            'professionalTitle': request.form.get('professionalTitle', ''),
+            'yearsExperience': request.form.get('yearsExperience', ''),
+            'careerLevel': request.form.get('careerLevel', ''),
+            'industry': request.form.get('industry', ''),
+            'summary': request.form.get('summary', ''),
+            
+            # Education (JSON string)
+            'education': request.form.get('education', '[]'),
+            
+            # Internship Objectives
+            'internshipObjectives': request.form.get('internshipObjectives', ''),
+            'careerGoals': request.form.get('careerGoals', ''),
+            'learningGoals': request.form.get('learningGoals', ''),
+            'skillsToDevelop': request.form.get('skillsToDevelop', ''),
+            
+            # Work Experience (JSON string)
+            'experience': request.form.get('experience', '[]'),
+            
+            # Skills & Competencies (JSON strings)
+            'technicalSkills': request.form.get('technicalSkills', '[]'),
+            'softSkills': request.form.get('softSkills', '[]'),
+            'languages': request.form.get('languages', '[]'),
+            'interests': request.form.get('interests', '[]'),
+            
+            # Projects (JSON string)
+            'projects': request.form.get('projects', '[]'),
+            
+            # Activities (JSON string)
+            'activities': request.form.get('activities', '[]'),
+            
+            # Certifications (JSON string)
+            'certifications': request.form.get('certifications', '[]'),
+            
+            # References (JSON string)
+            'references': request.form.get('references', '[]'),
+            
+            # Online Presence
+            'linkedin': request.form.get('linkedin', ''),
+            'github': request.form.get('github', ''),
+            'portfolio': request.form.get('portfolio', ''),
+            'twitter': request.form.get('twitter', ''),
+            'otherLink': request.form.get('otherLink', ''),
             
             # Internship Preferences
-            'internshipType': eval(request.form.get('internshipType', '[]')),
-            'workDomains': eval(request.form.get('workDomains', '[]')),
-            'desiredRole': request.form.get('desiredRole'),
-            'availabilityStartDate': request.form.get('availabilityStartDate'),
-            'duration': request.form.get('duration'),
-            'weeklyAvailability': request.form.get('weeklyAvailability'),
+            'internshipType': request.form.get('internshipType', ''),
+            'internshipMode': request.form.get('internshipMode', ''),
+            'duration': request.form.get('duration', ''),
+            'availabilityStartDate': request.form.get('availabilityStartDate', ''),
+            'weeklyHours': request.form.get('weeklyHours', ''),
             'stipendExpectation': request.form.get('stipendExpectation', ''),
+            'academicLevel': request.form.get('academicLevel', ''),
+            'currentSemester': request.form.get('currentSemester', ''),
+            'graduationDate': request.form.get('graduationDate', ''),
             
-            # Skills & Experience
-            'technicalSkills': eval(request.form.get('technicalSkills', '[]')),
-            'softSkills': eval(request.form.get('softSkills', '[]')),
-            'priorExperience': request.form.get('priorExperience', ''),
-            
-            # Career Goals
-            'postGradRoles': request.form.get('postGradRoles'),
-            'learningGoals': request.form.get('learningGoals'),
-            'careerVision': request.form.get('careerVision', ''),
+            # Additional Information
+            'additionalInfo': request.form.get('additionalInfo', ''),
+            'hearAboutUs': request.form.get('hearAboutUs', ''),
+            'community': request.form.get('community', ''),
             
             # Metadata
             'profileCompleted': True,
             'submittedAt': intern_service.get_current_timestamp()
         }
+        
+        # Handle profile photo upload (50KB limit)
+        profile_photo_path = None
+        if 'profilePhoto' in request.files:
+            file = request.files['profilePhoto']
+            if file and file.filename:
+                # Check file size (50KB limit)
+                if file.content_length and file.content_length > 50 * 1024:
+                    return jsonify({'error': 'Profile photo must be 50KB or smaller'}), 400
+                
+                # Create upload directory if it doesn't exist
+                photo_folder = 'uploads/intern_photos'
+                os.makedirs(photo_folder, exist_ok=True)
+                
+                # Generate unique filename
+                filename = secure_filename(f"{user_id}_profile.jpg")
+                filepath = os.path.join(photo_folder, filename)
+                file.save(filepath)
+                profile_photo_path = filepath
+                intern_data['profilePhotoPath'] = profile_photo_path
         
         # Handle resume file upload
         resume_path = None
@@ -94,12 +160,12 @@ def submit_intern_details():
                 resume_path = filepath
                 intern_data['resumePath'] = resume_path
         
-        # Save intern details to database
-        result = intern_service.save_intern_details(user_id, intern_data)
+        # Save comprehensive intern details to database
+        result = intern_service.save_comprehensive_intern_details(user_id, intern_data)
         
         if result['success']:
             return jsonify({
-                'message': 'Intern details submitted successfully',
+                'message': 'Comprehensive intern profile submitted successfully',
                 'internId': str(user_id)
             }), 200
         else:

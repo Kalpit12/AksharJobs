@@ -43,10 +43,50 @@ class InternService:
         except Exception as e:
             print(f"Error saving intern details: {str(e)}")
             return {'success': False, 'error': str(e)}
+
+    def save_comprehensive_intern_details(self, user_id, intern_data):
+        """
+        Save or update comprehensive intern details in the database
+        Handles all fields from the comprehensive form
+        """
+        try:
+            import json
+            
+            # Parse JSON fields
+            json_fields = ['education', 'experience', 'technicalSkills', 'softSkills', 
+                          'languages', 'interests', 'projects', 'activities', 
+                          'certifications', 'references']
+            
+            for field in json_fields:
+                if field in intern_data and isinstance(intern_data[field], str):
+                    try:
+                        intern_data[field] = json.loads(intern_data[field])
+                    except json.JSONDecodeError:
+                        intern_data[field] = []
+            
+            # Update user document with comprehensive intern details
+            result = self.users_collection.update_one(
+                {'_id': ObjectId(user_id)},
+                {'$set': {
+                    'comprehensiveInternProfile': intern_data,
+                    'profileCompleted': True,
+                    'profileType': 'comprehensive',
+                    'updatedAt': self.get_current_timestamp()
+                }}
+            )
+            
+            if result.modified_count > 0 or result.matched_count > 0:
+                return {'success': True}
+            else:
+                return {'success': False, 'error': 'User not found'}
+                
+        except Exception as e:
+            print(f"Error saving comprehensive intern details: {str(e)}")
+            return {'success': False, 'error': str(e)}
     
     def get_intern_profile(self, user_id):
         """
-        Retrieve intern profile data
+        Retrieve comprehensive intern profile data
         """
         try:
             user = self.users_collection.find_one(
@@ -54,16 +94,32 @@ class InternService:
                 {'password': 0}  # Exclude password field
             )
             
-            if user and 'internDetails' in user:
-                # Merge user basic info with intern details
-                profile = {
-                    'userId': str(user['_id']),
-                    'email': user.get('email'),
-                    'firstName': user.get('firstName'),
-                    'lastName': user.get('lastName'),
-                    **user.get('internDetails', {})
-                }
-                return profile
+            if user:
+                # Check for comprehensive profile first, then fallback to basic intern details
+                if 'comprehensiveInternProfile' in user:
+                    # Merge user basic info with comprehensive intern details
+                    profile = {
+                        'userId': str(user['_id']),
+                        'email': user.get('email'),
+                        'firstName': user.get('firstName'),
+                        'lastName': user.get('lastName'),
+                        'profileType': 'comprehensive',
+                        **user.get('comprehensiveInternProfile', {})
+                    }
+                    return profile
+                elif 'internDetails' in user:
+                    # Merge user basic info with basic intern details
+                    profile = {
+                        'userId': str(user['_id']),
+                        'email': user.get('email'),
+                        'firstName': user.get('firstName'),
+                        'lastName': user.get('lastName'),
+                        'profileType': 'basic',
+                        **user.get('internDetails', {})
+                    }
+                    return profile
+                else:
+                    return None
             else:
                 return None
                 

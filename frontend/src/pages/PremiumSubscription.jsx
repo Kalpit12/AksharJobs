@@ -282,7 +282,7 @@ const PremiumSubscription = () => {
       company: 'Safaricom',
       text: 'RocketMatch has revolutionized our hiring process. The AI-powered matching saves us hours of screening time and delivers exceptional candidates.',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+      avatar: '/default-avatar.png'
     },
     {
       name: 'John Kamau',
@@ -323,7 +323,7 @@ const PremiumSubscription = () => {
       company: 'Nation Media',
       text: 'The resume optimization tools are game-changing. I got 3 job offers within a month of upgrading to Professional.',
       rating: 5,
-      avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face'
+      avatar: '/default-avatar.png'
     },
     {
       name: 'Peter Kiprop',

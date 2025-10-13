@@ -305,3 +305,250 @@ Connecting Talent with Opportunity
                 sent_count += 1
         
         return sent_count
+
+    def send_password_reset_email(self, to_email, reset_link, user_name=""):
+        """
+        Send password reset email with reset link
+        
+        Args:
+            to_email: Recipient email address
+            reset_link: Password reset link
+            user_name: User's first name (optional)
+        """
+        try:
+            # Create message
+            message = MIMEMultipart("alternative")
+            message["Subject"] = "Reset Your AksharJobs Password 🔐"
+            message["From"] = f"AksharJobs Security <{self.sender_email}>"
+            message["To"] = to_email
+            
+            # Create beautiful HTML email
+            html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }}
+        .container {{
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }}
+        .logo {{
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }}
+        .title {{
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 10px;
+        }}
+        .subtitle {{
+            color: #64748b;
+            font-size: 16px;
+        }}
+        .content {{
+            margin: 30px 0;
+        }}
+        .greeting {{
+            font-size: 18px;
+            color: #374151;
+            margin-bottom: 20px;
+        }}
+        .message {{
+            font-size: 16px;
+            color: #4b5563;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }}
+        .reset-button {{
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 32px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+        }}
+        .reset-button:hover {{
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }}
+        .security-info {{
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+        }}
+        .security-title {{
+            font-weight: 600;
+            color: #0369a1;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }}
+        .security-list {{
+            margin: 0;
+            padding-left: 20px;
+            color: #0c4a6e;
+        }}
+        .security-list li {{
+            margin-bottom: 8px;
+            font-size: 14px;
+        }}
+        .expiry-warning {{
+            background: #fef3c7;
+            border: 1px solid #fcd34d;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #92400e;
+            font-size: 14px;
+        }}
+        .footer {{
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+        }}
+        .contact-info {{
+            margin-top: 15px;
+            font-size: 13px;
+        }}
+        .link {{
+            color: #667eea;
+            text-decoration: none;
+        }}
+        .link:hover {{
+            text-decoration: underline;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">🚀 AksharJobs</div>
+            <div class="title">Password Reset Request</div>
+            <div class="subtitle">Secure your account with a new password</div>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">
+                Hello{f' {user_name}' if user_name else ''}! 👋
+            </div>
+            
+            <div class="message">
+                We received a request to reset your password for your AksharJobs account. 
+                If you made this request, click the button below to set a new password.
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="{reset_link}" class="reset-button">
+                    🔐 Reset My Password
+                </a>
+            </div>
+            
+            <div class="expiry-warning">
+                ⏰ <strong>Important:</strong> This link will expire in 1 hour for security reasons.
+            </div>
+            
+            <div class="security-info">
+                <div class="security-title">🛡️ Security Tips:</div>
+                <ul class="security-list">
+                    <li>Use a strong, unique password</li>
+                    <li>Include uppercase, lowercase, numbers, and symbols</li>
+                    <li>Don't share your password with anyone</li>
+                    <li>If you didn't request this reset, please ignore this email</li>
+                </ul>
+            </div>
+            
+            <div class="message">
+                <strong>Can't click the button?</strong><br>
+                Copy and paste this link into your browser:<br>
+                <a href="{reset_link}" class="link">{reset_link}</a>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>This email was sent by AksharJobs Security Team</p>
+            <p>If you didn't request a password reset, you can safely ignore this email.</p>
+            
+            <div class="contact-info">
+                <p>Need help? Contact us at <a href="mailto:support@aksharjobs.com" class="link">support@aksharjobs.com</a></p>
+                <p>© {datetime.now().year} AksharJobs. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+            """
+            
+            # Create plain text version
+            text_content = f"""
+AksharJobs - Password Reset Request
+
+Hello{f' {user_name}' if user_name else ''}!
+
+We received a request to reset your password for your AksharJobs account.
+
+To reset your password, click the link below:
+{reset_link}
+
+IMPORTANT: This link will expire in 1 hour for security reasons.
+
+If you didn't request this password reset, you can safely ignore this email.
+
+Security Tips:
+- Use a strong, unique password
+- Include uppercase, lowercase, numbers, and symbols  
+- Don't share your password with anyone
+
+Need help? Contact us at support@aksharjobs.com
+
+© {datetime.now().year} AksharJobs. All rights reserved.
+            """
+            
+            # Attach parts
+            text_part = MIMEText(text_content, "plain")
+            html_part = MIMEText(html_content, "html")
+            
+            message.attach(text_part)
+            message.attach(html_part)
+            
+            # Send email
+            with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
+                server.starttls()
+                server.login(self.sender_email, self.sender_password)
+                server.send_message(message)
+            
+            print(f"✅ Password reset email sent successfully to {to_email}!")
+            return True
+            
+        except Exception as e:
+            print(f"❌ Failed to send password reset email to {to_email}: {str(e)}")
+            return False

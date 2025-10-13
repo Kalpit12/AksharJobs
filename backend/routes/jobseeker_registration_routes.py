@@ -50,98 +50,112 @@ def complete_jobseeker_profile():
             return jsonify({"error": "User not found"}), 404
         
         # Check if user is a job seeker
-        if user.get('userType') != 'jobSeeker':
+        if user.get('userType') != 'job_seeker':
             return jsonify({"error": "This endpoint is only for job seekers"}), 403
         
         print(f"Processing comprehensive profile for job seeker: {user.get('email')}")
         
-        # Parse form data
+        # Parse comprehensive form data
         try:
             # Section 1: Personal Information
             personal_info = {
-                'fullName': request.form.get('fullName'),
+                'firstName': request.form.get('firstName'),
+                'middleName': request.form.get('middleName'),
+                'lastName': request.form.get('lastName'),
                 'email': request.form.get('email'),
-                'mobileNumber': request.form.get('mobileNumber'),
-                'countryCode': request.form.get('countryCode'),
+                'phone': request.form.get('phone'),
+                'altPhone': request.form.get('altPhone'),
                 'dateOfBirth': request.form.get('dateOfBirth'),
                 'gender': request.form.get('gender'),
-                'currentLocationCountry': request.form.get('currentLocationCountry'),
-                'currentLocationCity': request.form.get('currentLocationCity'),
-                'willingToRelocate': request.form.get('willingToRelocate'),
+                'community': request.form.get('community')
+            }
+            
+            # Section 2: Nationality & Residency
+            nationality_residency = {
                 'nationality': request.form.get('nationality'),
-                'linkedinProfile': request.form.get('linkedinProfile'),
-                'portfolioWebsite': request.form.get('portfolioWebsite')
+                'residentCountry': request.form.get('residentCountry'),
+                'currentCity': request.form.get('currentCity'),
+                'postalCode': request.form.get('postalCode'),
+                'address': request.form.get('address'),
+                'latitude': request.form.get('latitude'),
+                'longitude': request.form.get('longitude'),
+                'workPermit': request.form.get('workPermit')
             }
             
-            # Section 2: Education Details
-            education_info = {
-                'highestEducationLevel': request.form.get('highestEducationLevel'),
-                'fieldOfStudy': request.form.get('fieldOfStudy'),
-                'institutionName': request.form.get('institutionName'),
-                'countryOfInstitution': request.form.get('countryOfInstitution'),
-                'graduationYear': request.form.get('graduationYear'),
-                'academicPerformance': request.form.get('academicPerformance'),
-                'relevantCoursework': request.form.get('relevantCoursework')
+            # Section 3: Preferred Working Locations
+            preferred_locations = {
+                'preferredLocation1': request.form.get('preferredLocation1'),
+                'preferredLocation2': request.form.get('preferredLocation2'),
+                'preferredLocation3': request.form.get('preferredLocation3'),
+                'willingToRelocate': request.form.get('willingToRelocate'),
+                'workLocation': request.form.get('workLocation')
             }
             
-            # Section 3: Employment Information
-            employment_info = {
-                'currentEmploymentStatus': request.form.get('currentEmploymentStatus'),
-                'yearsOfExperience': request.form.get('yearsOfExperience'),
-                'mostRecentJobTitle': request.form.get('mostRecentJobTitle'),
-                'mostRecentCompany': request.form.get('mostRecentCompany'),
-                'employmentType': request.form.get('employmentType'),
-                'workExperienceSummary': request.form.get('workExperienceSummary')
+            # Section 4: Professional Profile
+            professional_profile = {
+                'professionalTitle': request.form.get('professionalTitle'),
+                'yearsExperience': request.form.get('yearsExperience'),
+                'careerLevel': request.form.get('careerLevel'),
+                'industry': request.form.get('industry'),
+                'summary': request.form.get('summary')
             }
             
-            # Section 4: Skills & Expertise
-            technical_skills = request.form.get('technicalSkills')
-            soft_skills = request.form.get('softSkills')
-            languages_known = request.form.get('languagesKnown')
+            # Section 5: Work Experience (Array)
+            experience_entries_str = request.form.get('experienceEntries')
+            experience_entries = json.loads(experience_entries_str) if experience_entries_str else []
             
+            # Section 6: Education (Array)
+            education_entries_str = request.form.get('educationEntries')
+            education_entries = json.loads(education_entries_str) if education_entries_str else []
+            
+            # Section 7: Skills & Competencies
+            core_skills_str = request.form.get('coreSkills')
+            tools_str = request.form.get('tools')
             skills_info = {
-                'technicalSkills': json.loads(technical_skills) if technical_skills else [],
-                'softSkills': json.loads(soft_skills) if soft_skills else [],
-                'languagesKnown': json.loads(languages_known) if languages_known else [],
-                'certifications': request.form.get('certifications')
+                'coreSkills': json.loads(core_skills_str) if core_skills_str else [],
+                'tools': json.loads(tools_str) if tools_str else []
             }
             
-            # Section 5: Job Preferences
-            job_types = request.form.get('jobTypes')
-            preferred_industries = request.form.get('preferredIndustries')
-            preferred_cities = request.form.get('preferredCities')
+            # Section 8: Languages (Array)
+            languages_str = request.form.get('languages')
+            languages = json.loads(languages_str) if languages_str else []
             
+            # Section 9: Certifications (Array)
+            certification_entries_str = request.form.get('certificationEntries')
+            certification_entries = json.loads(certification_entries_str) if certification_entries_str else []
+            
+            # Section 10: Professional Memberships
+            memberships = {
+                'membershipOrg': request.form.get('membershipOrg'),
+                'membershipType': request.form.get('membershipType'),
+                'membershipDate': request.form.get('membershipDate')
+            }
+            
+            # Section 11: References (Array)
+            reference_entries_str = request.form.get('referenceEntries')
+            reference_entries = json.loads(reference_entries_str) if reference_entries_str else []
+            
+            # Section 12: Professional Online Presence (Array)
+            professional_links_str = request.form.get('professionalLinks')
+            professional_links = json.loads(professional_links_str) if professional_links_str else []
+            
+            # Section 13: Job Preferences & Availability
             job_preferences = {
-                'jobTypes': json.loads(job_types) if job_types else [],
-                'preferredWorkMode': request.form.get('preferredWorkMode'),
-                'preferredIndustries': json.loads(preferred_industries) if preferred_industries else [],
-                'preferredJobRoles': request.form.get('preferredJobRoles'),
-                'preferredCountryOfWork': request.form.get('preferredCountryOfWork'),
-                'preferredCities': json.loads(preferred_cities) if preferred_cities else [],
-                'expectedSalaryCurrency': request.form.get('expectedSalaryCurrency'),
-                'expectedSalaryAmount': request.form.get('expectedSalaryAmount'),
-                'availabilityToJoin': request.form.get('availabilityToJoin'),
-                'desiredWorkHours': request.form.get('desiredWorkHours'),
-                'jobKeywords': request.form.get('jobKeywords')
+                'jobType': request.form.get('jobType'),
+                'noticePeriod': request.form.get('noticePeriod'),
+                'currentSalary': request.form.get('currentSalary'),
+                'expectedSalary': request.form.get('expectedSalary'),
+                'currencyPreference': request.form.get('currencyPreference'),
+                'travelAvailability': request.form.get('travelAvailability')
             }
             
-            # Section 6: Career Goals
-            career_goals = {
-                'shortTermGoal': request.form.get('shortTermGoal'),
-                'longTermGoal': request.form.get('longTermGoal'),
-                'preferredCompanyType': request.form.get('preferredCompanyType'),
-                'motivationForJobChange': request.form.get('motivationForJobChange')
-            }
-            
-            # Section 7: Additional Information
+            # Section 14: Additional Information
             additional_info = {
-                'validWorkPermit': request.form.get('validWorkPermit'),
-                'requireVisaSponsorship': request.form.get('requireVisaSponsorship'),
-                'openToRelocation': request.form.get('openToRelocation'),
-                'willingToTravel': request.form.get('willingToTravel'),
-                'ownLaptopAndInternet': request.form.get('ownLaptopAndInternet'),
-                'physicalLimitations': request.form.get('physicalLimitations'),
-                'howDidYouHear': request.form.get('howDidYouHear')
+                'askCommunity': request.form.get('askCommunity'),
+                'hobbies': request.form.get('hobbies'),
+                'additionalComments': request.form.get('additionalComments'),
+                'agreeTerms': request.form.get('agreeTerms'),
+                'allowContact': request.form.get('allowContact')
             }
             
         except Exception as e:
@@ -181,42 +195,69 @@ def complete_jobseeker_profile():
             print(f"Error handling file uploads: {e}")
             # Continue even if file upload fails
         
-        # Prepare update data
+        # Prepare comprehensive update data
         update_data = {
             # Personal Information
-            'fullName': personal_info['fullName'],
-            'phone': f"{personal_info['countryCode']}{personal_info['mobileNumber']}",
-            'mobileNumber': personal_info['mobileNumber'],
-            'countryCode': personal_info['countryCode'],
+            'firstName': personal_info['firstName'],
+            'middleName': personal_info['middleName'],
+            'lastName': personal_info['lastName'],
+            'fullName': f"{personal_info['firstName']} {personal_info.get('middleName', '')} {personal_info['lastName']}".replace('  ', ' ').strip(),
+            'email': personal_info['email'],
+            'phone': personal_info['phone'],
+            'altPhone': personal_info['altPhone'],
             'dateOfBirth': personal_info['dateOfBirth'],
             'gender': personal_info['gender'],
+            'community': personal_info['community'],
+            
+            # Nationality & Residency
+            'nationality': nationality_residency['nationality'],
+            'residentCountry': nationality_residency['residentCountry'],
+            'currentCity': nationality_residency['currentCity'],
+            'postalCode': nationality_residency['postalCode'],
+            'address': nationality_residency['address'],
             'location': {
-                'country': personal_info['currentLocationCountry'],
-                'city': personal_info['currentLocationCity']
+                'latitude': nationality_residency['latitude'],
+                'longitude': nationality_residency['longitude'],
+                'address': nationality_residency['address'],
+                'city': nationality_residency['currentCity'],
+                'country': nationality_residency['residentCountry']
             },
-            'willingToRelocate': personal_info['willingToRelocate'],
-            'nationality': personal_info['nationality'],
-            'linkedinProfile': personal_info['linkedinProfile'],
-            'portfolio': personal_info['portfolioWebsite'],
+            'workPermit': nationality_residency['workPermit'],
             
-            # Education Details
-            'education': [education_info],
+            # Preferred Working Locations
+            'preferredLocations': preferred_locations,
             
-            # Employment Information
-            'employment': employment_info,
+            # Professional Profile
+            'professionalProfile': professional_profile,
             
-            # Skills & Expertise
-            'skills': skills_info['technicalSkills'] + skills_info['softSkills'],
-            'technicalSkills': skills_info['technicalSkills'],
-            'softSkills': skills_info['softSkills'],
-            'languages': skills_info['languagesKnown'],
-            'certifications': skills_info['certifications'],
+            # Work Experience (Array)
+            'experienceEntries': experience_entries,
             
-            # Job Preferences
+            # Education (Array)
+            'educationEntries': education_entries,
+            
+            # Skills & Competencies
+            'coreSkills': skills_info['coreSkills'],
+            'tools': skills_info['tools'],
+            'skills': skills_info['coreSkills'] + skills_info['tools'],  # Combined for search
+            
+            # Languages (Array)
+            'languages': languages,
+            
+            # Certifications (Array)
+            'certifications': certification_entries,
+            
+            # Professional Memberships
+            'memberships': memberships,
+            
+            # References (Array)
+            'references': reference_entries,
+            
+            # Professional Online Presence (Array)
+            'professionalLinks': professional_links,
+            
+            # Job Preferences & Availability
             'jobPreferences': job_preferences,
-            
-            # Career Goals
-            'careerGoals': career_goals,
             
             # Additional Information
             'additionalInfo': additional_info,
@@ -253,11 +294,20 @@ def complete_jobseeker_profile():
             profile_entry = {
                 'userId': user_object_id,
                 'personalInfo': personal_info,
-                'educationInfo': education_info,
-                'employmentInfo': employment_info,
+                'nationalityResidency': nationality_residency,
+                'preferredLocations': preferred_locations,
+                'professionalProfile': professional_profile,
+                'experienceEntries': experience_entries,
+                'educationEntries': education_entries,
                 'skillsInfo': skills_info,
+                'languages': languages,
+                'certifications': certification_entries,
+                'certificationEntries': certification_entries,
+                'memberships': memberships,
+                'references': reference_entries,
+                'referenceEntries': reference_entries,
+                'professionalLinks': professional_links,
                 'jobPreferences': job_preferences,
-                'careerGoals': career_goals,
                 'additionalInfo': additional_info,
                 'profilePhotoPath': profile_photo_path,
                 'resumePath': resume_file_path,
