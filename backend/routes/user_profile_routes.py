@@ -210,18 +210,30 @@ def get_user_profile():
             # Nationality & Residency
             "nationality": user.get('nationality', ''),
             "residentCountry": user.get('residentCountry', ''),
+            "residentCity": user.get('residentCity', ''),
             "currentCity": user.get('currentCity', ''),
             "workPermit": user.get('workPermit', ''),
+            "workPermitExpiry": user.get('workPermitExpiry', ''),
             # Preferred Working Locations
             "preferredLocations": user.get('preferredLocations', []),
+            "preferredLocation1": user.get('preferredLocation1', ''),
+            "preferredLocation2": user.get('preferredLocation2', ''),
+            "preferredLocation3": user.get('preferredLocation3', ''),
             "willingToRelocate": user.get('willingToRelocate', ''),
             "workLocation": user.get('workLocation', ''),
             # Professional Profile
             "professionalTitle": user.get('professionalTitle', ''),
+            "professionalSummary": user.get('professionalSummary', ''),
+            "currentJobTitle": user.get('currentJobTitle', ''),
+            "currentCompany": user.get('currentCompany', ''),
             "yearsExperience": user.get('yearsExperience', ''),
+            "yearsOfExperience": user.get('yearsOfExperience', ''),
             "careerLevel": user.get('careerLevel', ''),
             "industry": user.get('industry', ''),
             "summary": user.get('summary', ''),
+            "expectedSalary": user.get('expectedSalary', ''),
+            "currency": user.get('currency', ''),
+            "availability": user.get('availability', ''),
             # Work Experience & Education
             "education": user.get('education', []),
             "experience": user.get('experience', []),
@@ -240,12 +252,20 @@ def get_user_profile():
             # Professional Online Presence
             "professionalLinks": user.get('professionalLinks', []),
             "linkedinProfile": user.get('linkedinProfile', ''),
+            "linkedinUrl": user.get('linkedinUrl', ''),
             "portfolio": user.get('portfolio', ''),
+            "portfolioUrl": user.get('portfolioUrl', ''),
             "githubProfile": user.get('githubProfile', ''),
+            "githubUrl": user.get('githubUrl', ''),
             "personalWebsite": user.get('personalWebsite', ''),
+            "websiteUrl": user.get('websiteUrl', ''),
             # Job Preferences
             "jobPreferences": user.get('jobPreferences', {}),
             "jobType": user.get('jobType', ''),
+            "jobTypes": user.get('jobTypes', []),
+            "workArrangements": user.get('workArrangements', []),
+            "industries": user.get('industries', []),
+            "companySizes": user.get('companySizes', []),
             "noticePeriod": user.get('noticePeriod', ''),
             "currentSalary": user.get('currentSalary', ''),
             "expectedSalary": user.get('expectedSalary', ''),
@@ -255,11 +275,15 @@ def get_user_profile():
             "availability": user.get('availability', {}),
             # Additional Information
             "askCommunity": user.get('askCommunity', ''),
-            "hobbies": user.get('hobbies', ''),
+            "hobbies": user.get('hobbies', []),
             "additionalComments": user.get('additionalComments', ''),
+            "additionalInfo": user.get('additionalInfo', ''),
+            "achievements": user.get('achievements', []),
             "agreeTerms": user.get('agreeTerms', False),
             "allowContact": user.get('allowContact', False),
             "bio": user.get('bio', ''),
+            # Professional Memberships
+            "memberships": user.get('memberships', []),
             # Profile status
             "profileCompleted": profile_completed,
             "resumePath": user.get('resumePath', ''),
@@ -318,11 +342,12 @@ def update_user_profile():
             'location', 'currentAddress', 'currentAddressPin', 'homeAddress', 'homeAddressPin', 'commuteOptions',
             'email', 'phoneNumber', 'altPhone', 'postalCode', 'address', 'latitude', 'longitude',
             # Nationality & Residency
-            'nationality', 'residentCountry', 'currentCity', 'workPermit',
+            'nationality', 'residentCountry', 'residentCity', 'currentCity', 'workPermit', 'workPermitExpiry',
             # Preferred Working Locations
-            'preferredLocations', 'willingToRelocate', 'workLocation',
+            'preferredLocations', 'preferredLocation1', 'preferredLocation2', 'preferredLocation3', 'willingToRelocate', 'workLocation',
             # Professional Profile
-            'professionalTitle', 'yearsExperience', 'careerLevel', 'industry', 'summary',
+            'professionalTitle', 'professionalSummary', 'currentJobTitle', 'currentCompany', 'yearsExperience', 'yearsOfExperience', 
+            'careerLevel', 'industry', 'summary', 'expectedSalary', 'currency', 'availability',
             # Work Experience
             'experience', 'workExperience',
             # Education
@@ -334,16 +359,17 @@ def update_user_profile():
             # Certifications & Licenses
             'certifications',
             # Professional Memberships
-            'professionalMemberships',
+            'professionalMemberships', 'memberships',
             # Professional References
             'references',
             # Professional Online Presence
-            'professionalLinks', 'linkedinProfile', 'portfolio', 'githubProfile', 'personalWebsite',
+            'professionalLinks', 'linkedinProfile', 'linkedinUrl', 'portfolio', 'portfolioUrl', 'githubProfile', 'githubUrl', 
+            'personalWebsite', 'websiteUrl',
             # Job Preferences & Availability
-            'jobPreferences', 'jobType', 'noticePeriod', 'currentSalary', 'expectedSalary', 
-            'salaryExpectations', 'currencyPreference', 'travelAvailability', 'availability',
+            'jobPreferences', 'jobType', 'jobTypes', 'workArrangements', 'industries', 'companySizes', 'noticePeriod', 
+            'currentSalary', 'expectedSalary', 'salaryExpectations', 'currencyPreference', 'travelAvailability', 'availability',
             # Additional Information
-            'askCommunity', 'hobbies', 'additionalComments', 'agreeTerms', 'allowContact',
+            'askCommunity', 'hobbies', 'additionalComments', 'additionalInfo', 'achievements', 'agreeTerms', 'allowContact',
             'bio',
             # Company fields for recruiters
             'companyName', 'companyWebsite', 'companySize', 'foundedYear', 'companyDescription'
