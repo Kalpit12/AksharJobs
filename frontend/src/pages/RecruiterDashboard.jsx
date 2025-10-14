@@ -25,7 +25,7 @@ import Header from "../components/Header";
 
 // New components for modern dashboard
 import PostJobModal from "../components/PostJobModal";
-import CVBrowser from "../components/CVBrowser";
+import CVBrowser from "../components/CVBrowser/index.jsx";
 import ApplicationTracker from "../components/ApplicationTracker";
 import AnalyticsDashboard from "../pages/AnalyticsDashboard";
 import AIJobDescriptionGenerator from "../components/AIJobDescriptionGenerator";
