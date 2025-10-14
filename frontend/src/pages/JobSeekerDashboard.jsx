@@ -30,6 +30,7 @@ const JobSeekerDashboard = () => {
         setLoading(true);
         
         // Fetch user profile
+        let userData = null;
         const userResponse = await fetch('/api/user/profile', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -37,17 +38,18 @@ const JobSeekerDashboard = () => {
         });
         
         if (userResponse.ok) {
-          const userData = await userResponse.json();
+          userData = await userResponse.json();
           setUser(userData);
         } else {
           // Fallback to auth user
-          setUser(authUser || {
+          userData = authUser || {
             name: 'Hemant Patel',
             firstName: 'Hemant',
             lastName: 'Patel',
             email: 'hemant@example.com',
             title: 'Software Engineer'
-          });
+          };
+          setUser(userData);
         }
 
         // Fetch user stats
