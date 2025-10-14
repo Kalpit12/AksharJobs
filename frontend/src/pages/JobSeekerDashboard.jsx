@@ -12,6 +12,7 @@ const JobSeekerDashboard = () => {
     profileViews: 142,
     savedJobs: 8
   });
+  const [profileCompletion, setProfileCompletion] = useState(75);
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
@@ -59,6 +60,31 @@ const JobSeekerDashboard = () => {
         if (statsResponse.ok) {
           const stats = await statsResponse.json();
           setUserStats(stats);
+        }
+
+        // Fetch profile completion percentage
+        const completionResponse = await fetch('/api/jobseeker/profile-completion', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (completionResponse.ok) {
+          const completionData = await completionResponse.json();
+          setProfileCompletion(completionData.percentage);
+        } else {
+          // Calculate completion based on user data
+          let completion = 0;
+          if (userData?.firstName) completion += 10;
+          if (userData?.lastName) completion += 10;
+          if (userData?.email) completion += 15;
+          if (userData?.phone) completion += 10;
+          if (userData?.location) completion += 10;
+          if (userData?.title) completion += 10;
+          if (userData?.experience) completion += 10;
+          if (userData?.skills && userData.skills.length > 0) completion += 15;
+          if (userData?.summary) completion += 10;
+          setProfileCompletion(completion);
         }
 
         // Fetch jobs
@@ -143,7 +169,7 @@ const JobSeekerDashboard = () => {
           ...prev,
           applicationsSent: prev.applicationsSent + 1
         }));
-      } else {
+    } else {
         alert('Failed to submit application');
       }
     } catch (error) {
@@ -181,6 +207,10 @@ const JobSeekerDashboard = () => {
     navigate('/profile');
   };
 
+  const handleCompleteProfile = () => {
+    navigate('/complete-profile');
+  };
+
   const handleUpdateResume = () => {
     navigate('/resume-builder');
   };
@@ -191,22 +221,22 @@ const JobSeekerDashboard = () => {
   };
 
   const createJobCard = (job, showUnsaveBtn = false) => (
-    <div key={job.id} className="job-card">
-      <div className="job-header">
-        <div style={{ display: 'flex', flex: 1 }}>
+      <div key={job.id} className="job-card">
+        <div className="job-header">
+          <div style={{ display: 'flex', flex: 1 }}>
           <div className="company-logo">{job.company?.charAt(0) || 'C'}</div>
-          <div className="job-info">
-            <h3>{job.title}</h3>
-            <div className="job-company">{job.company}</div>
-            <div className="job-meta">
-              <span><i className="fas fa-map-marker-alt"></i> {job.location}</span>
-              <span><i className="fas fa-briefcase"></i> {job.type}</span>
-              <span><i className="fas fa-layer-group"></i> {job.experience}</span>
-              <span><i className="fas fa-dollar-sign"></i> {job.salary}</span>
+            <div className="job-info">
+              <h3>{job.title}</h3>
+              <div className="job-company">{job.company}</div>
+              <div className="job-meta">
+                <span><i className="fas fa-map-marker-alt"></i> {job.location}</span>
+                <span><i className="fas fa-briefcase"></i> {job.type}</span>
+                <span><i className="fas fa-layer-group"></i> {job.experience}</span>
+                <span><i className="fas fa-dollar-sign"></i> {job.salary}</span>
+              </div>
             </div>
           </div>
-        </div>
-        <div className="job-actions">
+          <div className="job-actions">
           {showUnsaveBtn ? (
             <button 
               className="btn btn-danger btn-sm"
@@ -222,33 +252,33 @@ const JobSeekerDashboard = () => {
               <i className="far fa-bookmark"></i>
             </button>
           )}
+          </div>
         </div>
-      </div>
-      <div className="job-tags">
+        <div className="job-tags">
         {job.featured && <span className="tag featured"><i className="fas fa-star"></i> Featured</span>}
         {job.skills?.map((skill, index) => (
-          <span key={index} className="tag">{skill}</span>
-        ))}
-        <span className="tag" style={{ marginLeft: 'auto', color: '#999' }}>
-          <i className="fas fa-clock"></i> {job.posted}
-        </span>
-      </div>
-      <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-        <button 
-          className="btn btn-primary btn-sm"
+            <span key={index} className="tag">{skill}</span>
+          ))}
+          <span className="tag" style={{ marginLeft: 'auto', color: '#999' }}>
+            <i className="fas fa-clock"></i> {job.posted}
+          </span>
+        </div>
+        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+          <button 
+            className="btn btn-primary btn-sm"
           onClick={() => handleApplyJob(job.id)}
-        >
-          <i className="fas fa-paper-plane"></i> Apply Now
-        </button>
-        <button 
-          className="btn btn-secondary btn-sm"
+          >
+            <i className="fas fa-paper-plane"></i> Apply Now
+          </button>
+          <button 
+            className="btn btn-secondary btn-sm"
           onClick={() => handleViewJobDetails(job.id)}
-        >
-          <i className="fas fa-eye"></i> View Details
-        </button>
+          >
+            <i className="fas fa-eye"></i> View Details
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
 
   const createApplicationRow = (app) => (
     <tr key={app.id}>
@@ -286,8 +316,8 @@ const JobSeekerDashboard = () => {
       </div>
       <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: '10px' }}>
         <i className="fas fa-calendar"></i> View Details
-      </button>
-    </div>
+        </button>
+      </div>
   );
 
   if (loading) {
@@ -301,8 +331,8 @@ const JobSeekerDashboard = () => {
         color: '#666'
       }}>
         Loading dashboard...
-      </div>
-    );
+    </div>
+  );
   }
 
   return (
@@ -363,7 +393,7 @@ const JobSeekerDashboard = () => {
             <i className="fas fa-search"></i>
             <input 
               type="text" 
-              placeholder="Search jobs, companies, or skills..."
+              placeholder="Search jobs, companies, or skills..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -405,23 +435,20 @@ const JobSeekerDashboard = () => {
               <div className="profile-completion">
                 <div className="completion-header">
                   <div>
-                    <h3 style={{ marginBottom: '5px' }}>Complete Your Profile</h3>
-                    <p style={{ opacity: 0.9, fontSize: '14px' }}>75% Complete - Almost there!</p>
+                    <h3 style={{ marginBottom: '5px', color: 'white' }}>Complete Your Profile</h3>
+                    <p style={{ opacity: 0.9, fontSize: '14px', color: 'white' }}>{profileCompletion}% Complete - Almost there!</p>
                   </div>
-                  <div style={{ fontSize: '32px', fontWeight: '700' }}>75%</div>
+                  <div style={{ fontSize: '32px', fontWeight: '700', color: 'white' }}>{profileCompletion}%</div>
                 </div>
                 <div className="completion-bar">
-                  <div className="completion-fill"></div>
+                  <div className="completion-fill" style={{ width: `${profileCompletion}%` }}></div>
                 </div>
                 <div className="completion-actions">
-                  <button className="btn" onClick={handleUpdateProfile}>
-                    <i className="fas fa-plus"></i> Add Skills
+                  <button className="btn" onClick={handleCompleteProfile}>
+                    <i className="fas fa-user-edit"></i> Complete Profile
                   </button>
                   <button className="btn" onClick={handleUpdateResume}>
                     <i className="fas fa-upload"></i> Upload Resume
-                  </button>
-                  <button className="btn">
-                    <i className="fas fa-certificate"></i> Add Certifications
                   </button>
                 </div>
               </div>
