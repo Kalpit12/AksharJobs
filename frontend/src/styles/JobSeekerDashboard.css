@@ -6,6 +6,7 @@
     box-sizing: border-box;
 }
 
+/* AGGRESSIVE: EXACT COPY FROM HTML - Body styles */
 .dashboard-wrapper {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f5f7fa;
@@ -87,6 +88,7 @@
 }
 
 /* Main Content */
+/* AGGRESSIVE: EXACT COPY FROM HTML - Main content */
 .main-content {
     margin-left: 260px;
     min-height: 100vh;
@@ -199,38 +201,41 @@
     display: block;
 }
 
-/* Dashboard Stats - EXACT COPY FROM HTML - NO REACT DEV EFFECTS */
+/* AGGRESSIVE: EXACT COPY FROM HTML FILE - Dashboard Stats */
+
+/* AGGRESSIVE OVERRIDE: Force exact HTML match */
+.dashboard-wrapper, .main-content, .content-area, .page-section, .stats-grid, .stat-card {
+    border: none !important;
+    outline: none !important;
+}
+
+/* AGGRESSIVE: Force exact spacing from HTML */
+.content-area {
+    padding: 30px !important;
+}
+
+.page-section h1 {
+    margin-bottom: 25px !important;
+}
+
+/* AGGRESSIVE: Remove any dark theme effects */
+.stats-grid .stat-card {
+    background: white !important;
+    color: #333 !important;
+}
+
+.stats-grid .stat-number {
+    color: #333 !important;
+}
+
+.stats-grid .stat-label {
+    color: #666 !important;
+}
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     margin-bottom: 30px;
-}
-
-/* Remove any React dev effects - keep it simple and clean */
-.stats-grid * {
-    text-shadow: none !important;
-    -webkit-text-stroke: none !important;
-    -webkit-font-smoothing: antialiased !important;
-}
-
-/* FORCE EXACT HTML MATCH - Remove any blue borders */
-.dashboard-wrapper, .main-content, .content-area, .page-section, .stats-grid, .stat-card {
-    border: none !important;
-    border-left: none !important;
-    border-right: none !important;
-    border-top: none !important;
-    border-bottom: none !important;
-    outline: none !important;
-}
-
-/* Force exact spacing and sizing from HTML */
-.content-area {
-    padding: 30px;
-}
-
-.page-section h1 {
-    margin-bottom: 25px;
 }
 
 .stat-card {
