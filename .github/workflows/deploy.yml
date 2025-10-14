@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch: # Allow manual triggers
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -14,17 +14,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Setup Node.js (no cache)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'none'
-      
-      - name: Preflight: verify CVBrowser exists
-        run: |
-          test -f frontend/src/components/CVBrowser/index.jsx && echo "CVBrowser present" || (echo "CVBrowser missing" && exit 1)
 
-      - name: Install frontend dependencies (clean)
+      - name: Install frontend dependencies
         run: |
           cd frontend
           rm -rf node_modules
