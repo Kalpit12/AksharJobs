@@ -170,6 +170,24 @@ body {
   box-sizing: border-box;
 }
 
+/* Remove any default borders from body and html */
+html, body {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Remove borders from all elements by default */
+* {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Re-enable borders for specific elements that need them */
+input, textarea, select, button, .card, .job-card, .stat-card, .nav-item, .sidebar-header, .card-header, .status-badge, .tag, .btn, .filter-select, .interview-card, .alert, table, th, td, .search-bar input, .icon-btn, .user-avatar, .company-logo, .stat-icon, .completion-bar, .job-tags, .interview-date {
+  border: initial !important;
+  outline: initial !important;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

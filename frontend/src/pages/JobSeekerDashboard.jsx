@@ -186,12 +186,14 @@ const JobSeekerDashboard = () => {
 
   const handleApplyJob = (job) => {
     // Navigate to job details or application page
-    navigate(`/job/${job.id}`);
+    console.log('Applying to job:', job.title);
+    navigate(`/job-details/${job.id}`);
   };
 
   const handleViewJobDetails = (job) => {
     // Navigate to job details page
-    navigate(`/job/${job.id}`);
+    console.log('Viewing job details:', job.title);
+    navigate(`/job-details/${job.id}`);
   };
 
   const handleViewApplication = (app) => {
@@ -205,10 +207,12 @@ const JobSeekerDashboard = () => {
   };
 
   const handleUpdateProfile = () => {
+    console.log('Navigating to profile page');
     navigate('/profile');
   };
 
   const handleUpdateResume = () => {
+    console.log('Navigating to resume builder');
     navigate('/resume-builder');
   };
 
