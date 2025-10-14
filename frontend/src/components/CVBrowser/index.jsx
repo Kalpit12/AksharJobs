@@ -3,7 +3,7 @@ import axios from "axios";
 import { buildApiUrl } from "../config/api";
 import CommunitySelector from "./CommunitySelector";
 import CommunityApi from "../api/communityApi";
-import "../styles/CVBrowser.css";
+import "../../styles/CVBrowser.css";
 
 const CVBrowser = () => {
   const [candidates, setCandidates] = useState([]);

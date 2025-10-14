@@ -55,7 +55,7 @@ import PaymentCancelled from "./pages/PaymentCancelled";
 import GigDashboard from "./pages/GigDashboard";
 import AdminControlPanel from "./pages/AdminControlPanel";
 import AdminDashboard from "./pages/AdminDashboard";
-import CVBrowser from "./components/CVBrowser.jsx";
+import CVBrowser from "./components/CVBrowser";
 import LocalLanguageAnalysisPage from "./pages/LocalLanguageAnalysisPage";
 import OAuthSuccess from "./pages/OAuthSuccess";
 import OAuthSignup from "./pages/OAuthSignup";
