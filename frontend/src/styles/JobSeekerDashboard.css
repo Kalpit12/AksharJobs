@@ -8,12 +8,12 @@
 
 .dashboard-wrapper {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f5f7fa;
+    background: #f8f9fa;
     color: #333;
     min-height: 100vh;
     display: flex;
-    border: none;
-    outline: none;
+    border: none !important;
+    outline: none !important;
 }
 
 /* Sidebar */
@@ -92,8 +92,9 @@
     min-height: 100vh;
     transition: all 0.3s;
     flex: 1;
-    border: none;
-    outline: none;
+    border: none !important;
+    outline: none !important;
+    background: #f8f9fa;
 }
 
 .top-bar {
@@ -185,8 +186,9 @@
 
 .content-area {
     padding: 30px;
-    border: none;
-    outline: none;
+    border: none !important;
+    outline: none !important;
+    background: transparent;
 }
 
 .page-section {
@@ -206,11 +208,11 @@
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     color: white;
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: all 0.3s;
     border: none;
 }
@@ -265,16 +267,16 @@
 }
 
 .stat-label {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.95);
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
 }
 
 .stat-change {
     font-size: 13px;
     margin-top: 10px;
-    color: rgba(255, 255, 255, 0.7);
-    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
 }
 
 .stat-change.positive {

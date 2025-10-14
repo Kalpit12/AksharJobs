@@ -5,12 +5,74 @@ import '../styles/JobSeekerDashboard.css';
 
 const JobSeekerDashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [savedJobs, setSavedJobs] = useState([1, 3]); // Track saved job IDs
+  const [savedJobs, setSavedJobs] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [userStats, setUserStats] = useState({
+    applicationsSent: 0,
+    interviewsScheduled: 0,
+    profileViews: 0,
+    savedJobs: 0
+  });
+  const [userApplications, setUserApplications] = useState([]);
+  const [userInterviews, setUserInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  // Sample data (same as HTML file)
+  // Fetch real user data
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        
+        // Fetch user stats
+        const statsResponse = await fetch(`/api/jobseeker/stats/${user.id}`);
+        if (statsResponse.ok) {
+          const stats = await statsResponse.json();
+          setUserStats(stats);
+        }
+        
+        // Fetch user applications
+        const applicationsResponse = await fetch(`/api/jobseeker/applications/${user.id}`);
+        if (applicationsResponse.ok) {
+          const applications = await applicationsResponse.json();
+          setUserApplications(applications);
+        }
+        
+        // Fetch user interviews
+        const interviewsResponse = await fetch(`/api/jobseeker/interviews/${user.id}`);
+        if (interviewsResponse.ok) {
+          const interviews = await interviewsResponse.json();
+          setUserInterviews(interviews);
+        }
+        
+        // Fetch saved jobs
+        const savedJobsResponse = await fetch(`/api/jobseeker/saved-jobs/${user.id}`);
+        if (savedJobsResponse.ok) {
+          const saved = await savedJobsResponse.json();
+          setSavedJobs(saved.map(job => job.id));
+        }
+        
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        // Use default data if API fails
+        setUserStats({
+          applicationsSent: 0,
+          interviewsScheduled: 0,
+          profileViews: 0,
+          savedJobs: 0
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [user]);
+
+  // Sample jobs data (can be replaced with API call later)
   const jobs = [
     {
       id: 1,
@@ -487,15 +549,15 @@ const JobSeekerDashboard = () => {
               style={{ cursor: 'pointer' }}
               title="View Profile"
             >
-              <div className="user-avatar">
-                {user?.name ? user.name.charAt(0).toUpperCase() : 'JS'}
+                <div className="user-avatar">
+                {user?.name ? user.name.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
               </div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>
-                  {user?.name || 'John Smith'}
+                  {user?.name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User'}
                 </div>
                 <div style={{ fontSize: '12px', color: '#666' }}>
-                  Software Engineer
+                  {user?.title || user?.jobTitle || 'Job Seeker'}
                 </div>
               </div>
             </div>
@@ -507,7 +569,7 @@ const JobSeekerDashboard = () => {
           {/* Dashboard Section */}
           {activeSection === 'dashboard' && (
             <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.name || 'John'}! 👋</h1>
+              <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.name || user?.firstName || 'User'}! 👋</h1>
 
               {/* Profile Completion */}
               <div className="profile-completion">
@@ -548,7 +610,7 @@ const JobSeekerDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <div>
-                      <div className="stat-number">12</div>
+                      <div className="stat-number">{userStats.applicationsSent}</div>
                       <div className="stat-label">Applications Sent</div>
                     </div>
                     <div className="stat-icon blue">
@@ -563,7 +625,7 @@ const JobSeekerDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <div>
-                      <div className="stat-number">3</div>
+                      <div className="stat-number">{userStats.interviewsScheduled}</div>
                       <div className="stat-label">Interviews Scheduled</div>
                     </div>
                     <div className="stat-icon green">
@@ -578,7 +640,7 @@ const JobSeekerDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <div>
-                      <div className="stat-number">142</div>
+                      <div className="stat-number">{userStats.profileViews}</div>
                       <div className="stat-label">Profile Views</div>
                     </div>
                     <div className="stat-icon purple">
@@ -593,7 +655,7 @@ const JobSeekerDashboard = () => {
                 <div className="stat-card">
                   <div className="stat-header">
                     <div>
-                      <div className="stat-number">8</div>
+                      <div className="stat-number">{userStats.savedJobs}</div>
                       <div className="stat-label">Saved Jobs</div>
                     </div>
                     <div className="stat-icon orange">

@@ -174,10 +174,24 @@ body {
 html, body {
   border: none !important;
   outline: none !important;
+  background: #f8f9fa !important;
 }
 
 /* Remove borders from all elements by default */
 * {
+  border: none !important;
+  outline: none !important;
+}
+
+/* Specific removal for dashboard components */
+.dashboard-wrapper, .main-content, .content-area, .page-section {
+  border: none !important;
+  outline: none !important;
+  background: #f8f9fa !important;
+}
+
+/* Remove any blue borders specifically */
+body, html, div, main, section {
   border: none !important;
   outline: none !important;
 }
