@@ -30,6 +30,10 @@ class WebSocketService {
       return;
     }
 
+    // Temporarily disable WebSocket until server is updated with Socket.IO
+    console.log('🔌 WebSocket connection temporarily disabled - server needs Socket.IO update');
+    return;
+
     try {
       // Connect to the backend WebSocket server using dynamic API config
       const backendUrl = buildApiUrl('');
