@@ -170,30 +170,43 @@ body {
   box-sizing: border-box;
 }
 
-/* Remove any default borders from body and html */
-html, body {
+/* AGGRESSIVE BORDER REMOVAL - FORCE NO BORDERS */
+html, body, div, main, section, article, aside, header, footer, nav {
   border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
   outline: none !important;
   background: #f8f9fa !important;
 }
 
-/* Remove borders from all elements by default */
-* {
+/* Remove ALL possible borders */
+*, *::before, *::after {
   border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
   outline: none !important;
 }
 
-/* Specific removal for dashboard components */
-.dashboard-wrapper, .main-content, .content-area, .page-section {
+/* Dashboard specific border removal */
+.dashboard-wrapper, .main-content, .content-area, .page-section, .stats-grid {
   border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
   outline: none !important;
   background: #f8f9fa !important;
 }
 
-/* Remove any blue borders specifically */
-body, html, div, main, section {
-  border: none !important;
-  outline: none !important;
+/* Remove any blue/cyan borders */
+body, html, div, main, section, .dashboard-wrapper, .main-content {
+  border-color: transparent !important;
+  border-style: none !important;
+  border-width: 0 !important;
 }
 
 /* Re-enable borders for specific elements that need them */
