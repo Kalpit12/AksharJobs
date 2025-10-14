@@ -11,6 +11,15 @@ body {
     color: #333;
 }
 
+/* Dashboard Wrapper */
+.dashboard-wrapper {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+}
+
 /* Sidebar */
 .sidebar {
     position: fixed;
@@ -86,6 +95,7 @@ body {
     margin-left: 260px;
     min-height: 100vh;
     transition: all 0.3s;
+    flex: 1;
 }
 
 .top-bar {
