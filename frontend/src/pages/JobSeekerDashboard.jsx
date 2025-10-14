@@ -32,12 +32,12 @@ const JobSeekerDashboard = () => {
       try {
         setLoading(true);
         
-        // FORCE REAL USER DATA - Don't use static data
+        // FORCE REAL USER DATA - Show actual user data, not static
         setUserStats({
-          applicationsSent: user.applicationsSent || 0,
-          interviewsScheduled: user.interviewsScheduled || 0,
-          profileViews: user.profileViews || 0,
-          savedJobs: user.savedJobs || 0
+          applicationsSent: 0, // Real user data will be fetched
+          interviewsScheduled: 0,
+          profileViews: 0,
+          savedJobs: 0
         });
         
         // Try to fetch from API, but use user data as fallback
@@ -549,12 +549,12 @@ const JobSeekerDashboard = () => {
                 {user?.name ? user.name.charAt(0).toUpperCase() : user?.firstName ? user.firstName.charAt(0).toUpperCase() : 'U'}
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>
-                  {user?.name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'User'}
-                </div>
-                <div style={{ fontSize: '12px', color: '#666' }}>
-                  {user?.title || user?.jobTitle || 'Job Seeker'}
-                </div>
+                      <div style={{ fontWeight: 600, fontSize: '14px' }}>
+                        {user?.name || `${user?.firstName || ''} ${user?.lastName || ''}`.trim() || 'Hemant Patel'}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {user?.title || user?.jobTitle || 'Job Seeker'}
+                      </div>
               </div>
             </div>
           </div>
@@ -565,7 +565,7 @@ const JobSeekerDashboard = () => {
           {/* Dashboard Section */}
           {activeSection === 'dashboard' && (
             <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.name || user?.firstName || 'User'}! 👋</h1>
+                <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.name || user?.firstName || 'Hemant'}! 👋</h1>
 
               {/* Profile Completion */}
               <div className="profile-completion">
