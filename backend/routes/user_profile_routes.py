@@ -182,14 +182,18 @@ def get_user_profile():
         # Check if profile is completed
         profile_completed = user.get('profileCompleted', False)
         
-        # Return profile data (including company fields for recruiters)
+        # Return profile data (including company fields for recruiters and comprehensive job seeker fields)
         profile_data = {
             "_id": str(user.get('_id')) if user.get('_id') else "",
+            # Basic fields
             "fullName": user.get('fullName', ''),
             "firstName": user.get('firstName', ''),
+            "middleName": user.get('middleName', ''),
             "lastName": user.get('lastName', ''),
             "email": user.get('email', ''),
             "phone": user.get('phone', ''),
+            "phoneNumber": user.get('phoneNumber', ''),
+            "altPhone": user.get('altPhone', ''),
             "dateOfBirth": user.get('dateOfBirth', ''),
             "gender": user.get('gender', ''),
             "bloodGroup": user.get('bloodGroup', ''),
@@ -198,25 +202,73 @@ def get_user_profile():
             "currentAddressPin": user.get('currentAddressPin', ''),
             "homeAddress": user.get('homeAddress', ''),
             "homeAddressPin": user.get('homeAddressPin', ''),
+            "postalCode": user.get('postalCode', ''),
+            "address": user.get('address', ''),
+            "latitude": user.get('latitude', ''),
+            "longitude": user.get('longitude', ''),
             "commuteOptions": user.get('commuteOptions', []),
+            # Nationality & Residency
+            "nationality": user.get('nationality', ''),
+            "residentCountry": user.get('residentCountry', ''),
+            "currentCity": user.get('currentCity', ''),
+            "workPermit": user.get('workPermit', ''),
+            # Preferred Working Locations
+            "preferredLocations": user.get('preferredLocations', []),
+            "willingToRelocate": user.get('willingToRelocate', ''),
+            "workLocation": user.get('workLocation', ''),
+            # Professional Profile
+            "professionalTitle": user.get('professionalTitle', ''),
+            "yearsExperience": user.get('yearsExperience', ''),
+            "careerLevel": user.get('careerLevel', ''),
+            "industry": user.get('industry', ''),
+            "summary": user.get('summary', ''),
+            # Work Experience & Education
             "education": user.get('education', []),
             "experience": user.get('experience', []),
+            "workExperience": user.get('workExperience', []),
+            # Skills & Competencies
             "skills": user.get('skills', []),
-            "jobPreferences": user.get('jobPreferences', {}),
-            "salaryExpectations": user.get('salaryExpectations', {}),
-            "availability": user.get('availability', {}),
+            "tools": user.get('tools', []),
+            "softwareTools": user.get('softwareTools', []),
+            # Languages
             "languages": user.get('languages', []),
+            "languageProficiency": user.get('languageProficiency', []),
+            # Certifications & Professional Info
+            "certifications": user.get('certifications', []),
+            "professionalMemberships": user.get('professionalMemberships', {}),
+            "references": user.get('references', []),
+            # Professional Online Presence
+            "professionalLinks": user.get('professionalLinks', []),
             "linkedinProfile": user.get('linkedinProfile', ''),
             "portfolio": user.get('portfolio', ''),
+            "githubProfile": user.get('githubProfile', ''),
+            "personalWebsite": user.get('personalWebsite', ''),
+            # Job Preferences
+            "jobPreferences": user.get('jobPreferences', {}),
+            "jobType": user.get('jobType', ''),
+            "noticePeriod": user.get('noticePeriod', ''),
+            "currentSalary": user.get('currentSalary', ''),
+            "expectedSalary": user.get('expectedSalary', ''),
+            "salaryExpectations": user.get('salaryExpectations', {}),
+            "currencyPreference": user.get('currencyPreference', ''),
+            "travelAvailability": user.get('travelAvailability', ''),
+            "availability": user.get('availability', {}),
+            # Additional Information
+            "askCommunity": user.get('askCommunity', ''),
+            "hobbies": user.get('hobbies', ''),
+            "additionalComments": user.get('additionalComments', ''),
+            "agreeTerms": user.get('agreeTerms', False),
+            "allowContact": user.get('allowContact', False),
             "bio": user.get('bio', ''),
+            # Profile status
             "profileCompleted": profile_completed,
             "resumePath": user.get('resumePath', ''),
             "resumeUploadedAt": user.get('resumeUploadedAt', ''),
+            "profileImage": user.get('profileImage', ''),
             "userType": user.get('userType', ''),
             # Recruiter/Company fields
             "companyName": user.get('companyName', ''),
             "companyWebsite": user.get('companyWebsite', ''),
-            "industry": user.get('industry', ''),
             "companySize": user.get('companySize', ''),
             "foundedYear": user.get('foundedYear', ''),
             "companyDescription": user.get('companyDescription', ''),
@@ -237,7 +289,20 @@ def update_user_profile():
     """Update user profile information"""
     try:
         current_user_id = get_jwt_identity()
-        data = request.get_json()
+        
+        # Check if request has JSON data or form data (for file uploads)
+        if request.is_json:
+            data = request.get_json()
+        else:
+            data = request.form.to_dict()
+            # Handle JSON fields in form data
+            for key in ['skills', 'tools', 'languages', 'workExperience', 'education', 'certifications', 'references', 'professionalLinks', 'professionalMemberships', 'preferredLocations']:
+                if key in data and isinstance(data[key], str):
+                    try:
+                        data[key] = json.loads(data[key])
+                    except:
+                        pass
+        
         db = get_db()
         users_collection = db.users
         
@@ -246,11 +311,63 @@ def update_user_profile():
             'updatedAt': datetime.utcnow()
         }
         
-        # Add fields that are provided (including company fields for recruiters)
-        fields_to_update = ['fullName', 'firstName', 'lastName', 'phone', 'dateOfBirth', 'gender', 'bloodGroup', 'location', 'currentAddress', 'currentAddressPin', 'homeAddress', 'homeAddressPin', 'commuteOptions', 'education', 'experience', 'skills', 'jobPreferences', 'salaryExpectations', 'availability', 'languages', 'linkedinProfile', 'portfolio', 'bio', 'companyName', 'companyWebsite', 'industry', 'companySize', 'foundedYear', 'companyDescription']
+        # Add fields that are provided (including company fields for recruiters and comprehensive job seeker fields)
+        fields_to_update = [
+            # Basic fields
+            'fullName', 'firstName', 'middleName', 'lastName', 'phone', 'dateOfBirth', 'gender', 'bloodGroup', 
+            'location', 'currentAddress', 'currentAddressPin', 'homeAddress', 'homeAddressPin', 'commuteOptions',
+            'email', 'phoneNumber', 'altPhone', 'postalCode', 'address', 'latitude', 'longitude',
+            # Nationality & Residency
+            'nationality', 'residentCountry', 'currentCity', 'workPermit',
+            # Preferred Working Locations
+            'preferredLocations', 'willingToRelocate', 'workLocation',
+            # Professional Profile
+            'professionalTitle', 'yearsExperience', 'careerLevel', 'industry', 'summary',
+            # Work Experience
+            'experience', 'workExperience',
+            # Education
+            'education',
+            # Skills & Competencies
+            'skills', 'tools', 'softwareTools',
+            # Languages
+            'languages', 'languageProficiency',
+            # Certifications & Licenses
+            'certifications',
+            # Professional Memberships
+            'professionalMemberships',
+            # Professional References
+            'references',
+            # Professional Online Presence
+            'professionalLinks', 'linkedinProfile', 'portfolio', 'githubProfile', 'personalWebsite',
+            # Job Preferences & Availability
+            'jobPreferences', 'jobType', 'noticePeriod', 'currentSalary', 'expectedSalary', 
+            'salaryExpectations', 'currencyPreference', 'travelAvailability', 'availability',
+            # Additional Information
+            'askCommunity', 'hobbies', 'additionalComments', 'agreeTerms', 'allowContact',
+            'bio',
+            # Company fields for recruiters
+            'companyName', 'companyWebsite', 'companySize', 'foundedYear', 'companyDescription'
+        ]
         for field in fields_to_update:
             if field in data:
                 update_data[field] = data[field]
+        
+        # Handle profile photo upload
+        if 'profilePhoto' in request.files:
+            profile_photo = request.files['profilePhoto']
+            if profile_photo and profile_photo.filename:
+                filename = secure_filename(profile_photo.filename)
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                unique_filename = f"profile_{current_user_id}_{timestamp}_{filename}"
+                
+                # Create uploads directory if it doesn't exist
+                upload_dir = 'uploads/profiles'
+                os.makedirs(upload_dir, exist_ok=True)
+                
+                file_path = os.path.join(upload_dir, unique_filename)
+                profile_photo.save(file_path)
+                update_data['profileImage'] = file_path
+                print(f"📸 Profile photo saved to: {file_path}")
         
         print(f"📋 Updating profile with data: {update_data}")
         print(f"📋 Company fields being saved: companyName={update_data.get('companyName')}, industry={update_data.get('industry')}, companySize={update_data.get('companySize')}")
