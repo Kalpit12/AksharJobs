@@ -10,7 +10,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  padding: 20px;
+  padding: 10px;
 }
 
 .complete-profile-page.loading-state {
@@ -34,7 +34,7 @@
 }
 
 .profile-container-wrapper {
-  max-width: 1200px;
+  max-width: 95%;
   margin: 0 auto;
   background: white;
   border-radius: 12px;
@@ -85,7 +85,7 @@
 
 /* Form Content */
 .comprehensive-profile-form {
-  padding: 20px 15px;
+  padding: 15px 10px;
 }
 
 .form-section {
@@ -556,7 +556,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
   .complete-profile-page {
-    padding: 10px;
+    padding: 5px;
   }
 
   .profile-header-gradient {
@@ -568,7 +568,7 @@
   }
 
   .comprehensive-profile-form {
-    padding: 15px 10px;
+    padding: 10px 5px;
   }
 
   .form-row-2,
@@ -618,7 +618,7 @@
   }
 
   .comprehensive-profile-form {
-    padding: 10px 5px;
+    padding: 8px 3px;
   }
 
   .form-group input,
