@@ -9,6 +9,7 @@ import {
   faGlobe, faClock, faChartLine, faLaptopCode
 } from '@fortawesome/free-solid-svg-icons';
 import { buildApiUrl, makeAuthenticatedRequest } from '../config/api';
+import LocationMap from '../components/LocationMap';
 import '../styles/CompleteProfile.css';
 
 const CompleteProfile = () => {
@@ -503,7 +504,10 @@ const CompleteProfile = () => {
           formData.preferredLocation1,
           formData.preferredLocation2,
           formData.preferredLocation3
-        ].filter(loc => loc !== '')
+        ].filter(loc => loc !== ''),
+        // Ensure coordinates are included
+        latitude: formData.latitude || '',
+        longitude: formData.longitude || ''
       };
 
       const response = await makeAuthenticatedRequest(
@@ -550,7 +554,7 @@ const CompleteProfile = () => {
             <FontAwesomeIcon icon={faGlobe} />
           </div>
           <h1>Create Job Seeker Profile</h1>
-          <p>Create a comprehensive profile</p>
+          <p>Create a comprehensive profile for global opportunities</p>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${progress}%` }}></div>
           </div>
@@ -734,13 +738,39 @@ const CompleteProfile = () => {
             </div>
 
             <div className="form-group">
+              <label>Pin Your Location on Map</label>
+              <div className="info-badge">
+                <FontAwesomeIcon icon={faInfoCircle} />
+                Click on the map to mark your exact location or search for a place
+              </div>
+              <LocationMap
+                latitude={formData.latitude}
+                longitude={formData.longitude}
+                onLocationChange={(lat, lng) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    latitude: lat.toString(),
+                    longitude: lng.toString()
+                  }));
+                }}
+                address={formData.address}
+                onAddressChange={(newAddress) => {
+                  setFormData(prev => ({
+                    ...prev,
+                    address: newAddress
+                  }));
+                }}
+              />
+            </div>
+
+            <div className="form-group">
               <label>Full Address</label>
               <input
                 type="text"
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
-                placeholder="Street address, building, apartment number"
+                placeholder="Street address, building, apartment number (you can edit this manually)"
               />
             </div>
 

@@ -85,7 +85,7 @@
 
 /* Form Content */
 .comprehensive-profile-form {
-  padding: 40px 50px;
+  padding: 20px 15px;
 }
 
 .form-section {
@@ -568,7 +568,7 @@
   }
 
   .comprehensive-profile-form {
-    padding: 30px 20px;
+    padding: 15px 10px;
   }
 
   .form-row-2,
@@ -618,7 +618,7 @@
   }
 
   .comprehensive-profile-form {
-    padding: 20px 15px;
+    padding: 10px 5px;
   }
 
   .form-group input,
@@ -633,6 +633,64 @@
     padding: 12px 30px;
     font-size: 14px;
   }
+}
+
+/* Map Styles */
+.location-map-container {
+  margin: 10px 0;
+}
+
+.map-search-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.map-search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.map-search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.map-search-button {
+  background: #667eea;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.map-search-button:hover {
+  background: #5568d3;
+}
+
+.map-coordinates-display {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #666;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 6px;
+}
+
+.leaflet-map {
+  z-index: 1;
+}
+
+/* Fix for Leaflet in React */
+.leaflet-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 /* Remove any default browser styling on focus */
