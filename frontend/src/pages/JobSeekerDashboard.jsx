@@ -16,6 +16,19 @@ const JobSeekerDashboard = () => {
   const [userApplications, setUserApplications] = useState([]);
   const [userInterviews, setUserInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showProfileForm, setShowProfileForm] = useState(false);
+  const [profileFormData, setProfileFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    location: '',
+    title: '',
+    experience: '',
+    skills: [],
+    education: '',
+    summary: ''
+  });
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -265,13 +278,49 @@ const JobSeekerDashboard = () => {
   };
 
   const handleUpdateProfile = () => {
-    console.log('Navigating to profile page');
-    navigate('/profile');
+    console.log('Update Profile clicked');
+    setShowProfileForm(true);
   };
 
   const handleUpdateResume = () => {
-    console.log('Navigating to resume builder');
+    console.log('Update Resume clicked');
     navigate('/resume-builder');
+  };
+
+  const handleProfileFormSubmit = (e) => {
+    e.preventDefault();
+    console.log('Profile form submitted:', profileFormData);
+    // Here you would typically save the profile data
+    setShowProfileForm(false);
+    // Update user stats after profile completion
+    setUserStats(prev => ({
+      ...prev,
+      profileViews: prev.profileViews + 1
+    }));
+  };
+
+  const handleProfileFormChange = (e) => {
+    const { name, value } = e.target;
+    setProfileFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddSkill = (skill) => {
+    if (skill.trim() && !profileFormData.skills.includes(skill.trim())) {
+      setProfileFormData(prev => ({
+        ...prev,
+        skills: [...prev.skills, skill.trim()]
+      }));
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove) => {
+    setProfileFormData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
   };
 
   const handleLogout = () => {
@@ -1080,6 +1129,270 @@ const JobSeekerDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Complete Profile Form Modal */}
+      {showProfileForm && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            width: '90%',
+            maxWidth: '600px',
+            maxHeight: '80vh',
+            overflowY: 'auto'
+          }}>
+            <h2 style={{ marginBottom: '20px', color: '#333' }}>Complete Your Profile</h2>
+            
+            <form onSubmit={handleProfileFormSubmit}>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>First Name</label>
+                <input
+                  type="text"
+                  name="firstName"
+                  value={profileFormData.firstName}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Last Name</label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={profileFormData.lastName}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={profileFormData.email}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Phone</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={profileFormData.phone}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={profileFormData.location}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Job Title</label>
+                <input
+                  type="text"
+                  name="title"
+                  value={profileFormData.title}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Experience Level</label>
+                <select
+                  name="experience"
+                  value={profileFormData.experience}
+                  onChange={handleProfileFormChange}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                >
+                  <option value="">Select Experience Level</option>
+                  <option value="entry">Entry Level</option>
+                  <option value="mid">Mid Level</option>
+                  <option value="senior">Senior Level</option>
+                  <option value="executive">Executive</option>
+                </select>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Skills</label>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="Add a skill"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddSkill(e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '10px',
+                      border: '2px solid #e0e0e0',
+                      borderRadius: '8px',
+                      fontSize: '14px'
+                    }}
+                  />
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {profileFormData.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      style={{
+                        background: '#e3f2fd',
+                        color: '#1565c0',
+                        padding: '4px 10px',
+                        borderRadius: '15px',
+                        fontSize: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px'
+                      }}
+                    >
+                      {skill}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSkill(skill)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#1565c0',
+                          cursor: 'pointer',
+                          fontSize: '14px'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Professional Summary</label>
+                <textarea
+                  name="summary"
+                  value={profileFormData.summary}
+                  onChange={handleProfileFormChange}
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    resize: 'vertical'
+                  }}
+                  placeholder="Tell us about yourself..."
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowProfileForm(false)}
+                  style={{
+                    padding: '10px 20px',
+                    border: '2px solid #e0e0e0',
+                    borderRadius: '8px',
+                    background: 'white',
+                    color: '#666',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '10px 20px',
+                    border: 'none',
+                    borderRadius: '8px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontSize: '14px'
+                  }}
+                >
+                  Save Profile
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

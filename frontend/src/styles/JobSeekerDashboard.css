@@ -1,20 +1,14 @@
-/* Job Seeker Dashboard - Exact styling from HTML file */
-
+/* EXACT COPY FROM HTML FILE - Job Seeker Dashboard */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* AGGRESSIVE: EXACT COPY FROM HTML - Body styles */
-.dashboard-wrapper {
+body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f5f7fa;
     color: #333;
-    min-height: 100vh;
-    display: flex;
-    border: none !important;
-    outline: none !important;
 }
 
 /* Sidebar */
@@ -88,15 +82,10 @@
 }
 
 /* Main Content */
-/* AGGRESSIVE: EXACT COPY FROM HTML - Main content */
 .main-content {
     margin-left: 260px;
     min-height: 100vh;
     transition: all 0.3s;
-    flex: 1;
-    border: none !important;
-    outline: none !important;
-    background: #f5f7fa;
 }
 
 .top-bar {
@@ -188,9 +177,6 @@
 
 .content-area {
     padding: 30px;
-    border: none !important;
-    outline: none !important;
-    background: transparent;
 }
 
 .page-section {
@@ -201,36 +187,7 @@
     display: block;
 }
 
-/* AGGRESSIVE: EXACT COPY FROM HTML FILE - Dashboard Stats */
-
-/* AGGRESSIVE OVERRIDE: Force exact HTML match */
-.dashboard-wrapper, .main-content, .content-area, .page-section, .stats-grid, .stat-card {
-    border: none !important;
-    outline: none !important;
-}
-
-/* AGGRESSIVE: Force exact spacing from HTML */
-.content-area {
-    padding: 30px !important;
-}
-
-.page-section h1 {
-    margin-bottom: 25px !important;
-}
-
-/* AGGRESSIVE: Remove any dark theme effects */
-.stats-grid .stat-card {
-    background: white !important;
-    color: #333 !important;
-}
-
-.stats-grid .stat-number {
-    color: #333 !important;
-}
-
-.stats-grid .stat-label {
-    color: #666 !important;
-}
+/* Dashboard Stats */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -390,7 +347,6 @@
     padding: 25px;
     border-radius: 12px;
     margin-bottom: 20px;
-    border: none;
 }
 
 .completion-header {
