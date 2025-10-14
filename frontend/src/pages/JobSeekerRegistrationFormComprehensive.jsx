@@ -12,6 +12,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faGithub, faMedium, faTwitter } from '@fortawesome/free-brands-svg-icons';
 import { buildApiUrl } from '../config/api';
+import { useFormManagement } from '../hooks/useAutoSave';
+import AutoSaveStatus from '../components/AutoSaveStatus';
 import '../styles/JobSeekerRegistrationFormComprehensive.css';
 
 // Import Leaflet

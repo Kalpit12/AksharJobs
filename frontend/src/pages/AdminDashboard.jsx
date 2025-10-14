@@ -64,7 +64,7 @@ const AdminDashboard = () => {
         return;
       }
       
-      const response = await fetch('http://localhost:3002/api/admin/stats', {
+      const response = await fetch('/api/admin/stats', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

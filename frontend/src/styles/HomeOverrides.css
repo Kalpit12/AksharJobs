@@ -1,0 +1,77 @@
+/* Minimal visual clean-up inspired by LinkedIn: calmer colors, tighter spacing, readable contrast */
+
+:root {
+  --aj-bg: #0a0f1f;           /* deep navy */
+  --aj-card: #0f172a;         /* slate */
+  --aj-text: #e6ebff;         /* soft white */
+  --aj-muted: #9bb0ff;        /* muted blue */
+  --aj-primary: #5b8cff;      /* brand blue */
+}
+
+.home_wrapper {
+  background: var(--aj-bg) !important;
+  color: var(--aj-text);
+}
+
+/* Hero: reduce height, remove busy background, improve readability */
+.hero_section {
+  background: radial-gradient(1200px 600px at 80% -10%, #1a2150 0%, transparent 60%),
+              radial-gradient(1000px 700px at -10% 10%, #10204d 0%, transparent 60%),
+              var(--aj-bg) !important;
+  min-height: 72vh !important;
+  padding: 72px 0 !important;
+}
+
+.hero_title {
+  color: var(--aj-text) !important;
+  text-shadow: none !important;
+}
+
+.hero_subtitle { color: var(--aj-muted) !important; }
+
+.hero_search {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  backdrop-filter: blur(8px);
+}
+
+.search_input { color: var(--aj-text) !important; }
+.search_input::placeholder { color: #b9c6ff !important; }
+.search_button {
+  background: var(--aj-primary) !important;
+  color: white !important;
+  border: none !important;
+}
+
+/* Cards/sections: remove bright cyan backgrounds */
+.features_container,
+.platform_stats_container,
+.how_it_works_container,
+.trending_jobs_container,
+.programs_container,
+.cta_section {
+  background: transparent !important;
+}
+
+.feature_card,
+.stat_card,
+.step_card,
+.program_card,
+.cta_container {
+  background: rgba(255,255,255,0.06) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  box-shadow: none !important;
+}
+
+/* Tighten vertical rhythm */
+.features_container { padding: 48px 0 !important; }
+.platform_stats_container { padding: 40px 0 !important; }
+.how_it_works_container { padding: 48px 0 !important; }
+
+/* Ensure any large header logo doesn't blow up */
+header img, .header_logo img, .footer_logo img {
+  max-height: 36px !important;
+  width: auto !important;
+}
+
+

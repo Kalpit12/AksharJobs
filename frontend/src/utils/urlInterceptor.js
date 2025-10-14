@@ -17,19 +17,11 @@ const fixUrl = (url) => {
         const currentHost = window.location.hostname;
         const currentPort = window.location.port;
         
-        // Always use the same host as the frontend with backend port
-        // This works from anywhere - localhost, local network, or external access
-        if (currentPort === '3002') {
-          // If we're already on the backend port, use the same host
-          return window.location.origin;
-        } else {
-          // Use the same host with backend port 3002
-          // This allows access from anywhere - localhost, local network, or external
-          return `http://${currentHost}:3002`;
-        }
+        // Use relative path for production (Nginx proxy)
+        return '';
       }
-      // Fallback for SSR
-      return 'http://localhost:3002';
+      // Fallback for SSR - use relative path
+      return '';
     };
     
     const baseUrl = getBaseUrl();

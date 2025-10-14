@@ -29,7 +29,7 @@ import { useNotifications } from '../context/NotificationContext';
 import NetworkStatus from './NetworkStatus';
 import ModernProfileDropdown from './ModernProfileDropdown';
 import '../styles/Header.css';
-import akLogo from '../assets/AK logo.jpg';
+import akLogo from '../assets/FINAL AKLOGO.jpg';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -153,39 +153,35 @@ const Header = () => {
           </div>
         </Link>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation - Clean primary links */}
         <nav className="header-nav">
-          <Link 
-            to="/" 
-            className={isActiveRoute('/') ? 'active' : ''}
-          >
+          <Link to="/" className={isActiveRoute('/') ? 'active' : ''}>
             <FontAwesomeIcon icon={faHome} />
             Home
           </Link>
-          
-          <Link 
-            to="/premium" 
-            className={`premium-nav-button ${isActiveRoute('/premium') ? 'active' : ''}`}
-          >
-            <FontAwesomeIcon icon={faCrown} />
-            GET PREMIUM
+          <Link to="/jobs" className={isActiveRoute('/jobs') ? 'active' : ''}>
+            <FontAwesomeIcon icon={faBriefcase} />
+            Find Jobs
           </Link>
-          
-          <Link 
-            to="/about" 
-            className={isActiveRoute('/about') ? 'active' : ''}
-          >
-            <FontAwesomeIcon icon={faInfoCircle} />
-            About Us
+          <Link to="/modern-upload" className={isActiveRoute('/modern-upload') ? 'active' : ''}>
+            <FontAwesomeIcon icon={faFileAlt} />
+            CV Builder
           </Link>
-          
-          
-          <Link 
-            to="/blog" 
-            className={isActiveRoute('/blog') ? 'active' : ''}
-          >
+          <Link to="/contact" className={isActiveRoute('/contact') ? 'active' : ''}>
+            <FontAwesomeIcon icon={faEnvelope} />
+            Contact
+          </Link>
+          <Link to="/blog" className={isActiveRoute('/blog') ? 'active' : ''}>
             <FontAwesomeIcon icon={faNewspaper} />
             Blog
+          </Link>
+          <Link to="/about" className={isActiveRoute('/about') ? 'active' : ''}>
+            <FontAwesomeIcon icon={faInfoCircle} />
+            About
+          </Link>
+          <Link to="/post-job" className={isActiveRoute('/post-job') ? 'active' : ''}>
+            <FontAwesomeIcon icon={faUpload} />
+            Post a Job
           </Link>
         </nav>
 

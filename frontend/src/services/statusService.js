@@ -31,7 +31,7 @@ class StatusService {
       }
 
       // Connect to WebSocket
-      this.socket = io(process.env.REACT_APP_BACKEND_URL || 'http://localhost:3002', {
+      this.socket = io(process.env.REACT_APP_BACKEND_URL || '', {
         transports: ['websocket', 'polling']
       });
 

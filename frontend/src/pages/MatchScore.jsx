@@ -29,7 +29,7 @@ const MatchScore = () => {
         
         const [matchRes, resumeRes, jobRes] = await Promise.all([
           // Get match score directly from the match score endpoint
-          axios.get(`http://localhost:3002/api/applications/match-score/${jobId}`, {
+          axios.get(`/api/applications/match-score/${jobId}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
           }).then(res => ({
             data: res.data.match_data || {}
@@ -37,10 +37,10 @@ const MatchScore = () => {
             console.log("No existing match score, will calculate new one");
             return { data: {} };
           }),
-          axios.get(`http://localhost:3002/api/modern-resumes/profile`, {
+          axios.get(`/api/modern-resumes/profile`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
           }),
-          axios.get(`http://localhost:3002/api/jobs/get_job/${jobId}`),
+          axios.get(`/api/jobs/get_job/${jobId}`),
         ]);
 
         console.log("📊 Match response:", matchRes.data);
@@ -103,7 +103,7 @@ const MatchScore = () => {
     try {
       // Apply for the job using the correct endpoint
       const response = await axios.post(
-        `http://localhost:3002/api/applications/apply`,
+        `/api/applications/apply`,
         { job_id: jobId, cover_letter: "" },
         { 
           headers: { 

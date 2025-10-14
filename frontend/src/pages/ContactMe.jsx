@@ -382,12 +382,33 @@ const ContactMe = () => {
     setSubmitStatus(null);
 
     try {
-      // Simulate API call for contact form submission
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      setSubmitStatus('success');
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      // Send contact form data to backend
+      const response = await fetch('/api/contact/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message,
+          userId: localStorage.getItem('userId'),
+          userType: localStorage.getItem('role') || 'visitor'
+        })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        console.log('Contact form submitted successfully:', data);
+      } else {
+        throw new Error(data.error || 'Failed to submit contact form');
+      }
     } catch (error) {
+      console.error('Contact form submission error:', error);
       setSubmitStatus('error');
     } finally {
       setIsSubmitting(false);
@@ -588,11 +609,17 @@ const ContactMe = () => {
     }
 
     if (userData?.location || resumeData?.personal_info?.location) {
-      info.push({
-        icon: faMapMarkerAlt,
-        label: 'Location',
-        value: userData?.location || resumeData?.personal_info?.location
-      });
+      const locationData = userData?.location || resumeData?.personal_info?.location;
+      const locationString = typeof locationData === 'string' 
+        ? locationData 
+        : (locationData?.city || locationData?.address || '');
+      if (locationString) {
+        info.push({
+          icon: faMapMarkerAlt,
+          label: 'Location',
+          value: locationString
+        });
+      }
     }
 
     // Check for current address in userData or resumeData

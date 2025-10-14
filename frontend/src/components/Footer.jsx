@@ -10,6 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faTwitter, faFacebook, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import '../styles/Footer.css';
+import akLogo from '../assets/FINAL AKLOGO.jpg';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -20,7 +21,7 @@ const Footer = () => {
         {/* Footer Brand Section */}
         <div className="footer-brand">
           <div className="footer-logo">
-            <img src="/AK_logo.jpg" alt="AksharJobs Logo" />
+            <img src={akLogo} alt="AksharJobs Logo" />
             <div className="footer-logo-text">AksharJobs</div>
           </div>
           <p className="footer-tagline">

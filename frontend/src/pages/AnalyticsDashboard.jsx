@@ -71,7 +71,7 @@ const AnalyticsDashboard = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3002/api/jobs/jobs_by_user/${userId}`, {
+      const response = await fetch(`/api/jobs/jobs_by_user/${userId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

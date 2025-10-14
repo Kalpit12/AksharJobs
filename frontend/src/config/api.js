@@ -6,12 +6,11 @@ const API_CONFIG = {
     if (typeof window !== 'undefined') {
       const currentHost = window.location.hostname;
       
-      // Always use the same host as the frontend with backend port 3002
-      // This works from anywhere - localhost, local network, or external access
-      return `http://${currentHost}:3002`;
+      // Use relative path for production (Nginx proxy)
+      return '';
     }
-    // Fallback for SSR - use localhost
-    return 'http://localhost:3002';
+    // Fallback for SSR - use relative path
+    return '';
   },
   
   // Frontend URL - for internal redirects

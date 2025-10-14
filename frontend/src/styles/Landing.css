@@ -1,0 +1,51 @@
+.landing-root{--bg:#0a0f1f;--card:#0f172a80;--glass:rgba(255,255,255,.06);--border:rgba(255,255,255,.12);--primary:#5b8cff;--neon:#7c5bff;--text:#e6ebff;--muted:#9bb0ff;background:radial-gradient(1200px 600px at 80% -10%,#1a2150 0%,transparent 60%),radial-gradient(1000px 700px at -10% 10%,#10204d 0%,transparent 60%),var(--bg);color:var(--text);min-height:100vh;}
+.hero{padding:80px 24px 40px;position:relative;overflow:hidden}
+.hero-grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.brand img{width:52px;height:52px;border-radius:12px;box-shadow:0 0 24px #7c5bff50}
+.brand .tag{font-size:12px;letter-spacing:.18em;color:var(--muted)}
+.hero-copy h1{font-size:42px;line-height:1.15;margin:8px 0 12px}
+.glow{color:var(--primary);text-shadow:0 0 16px #5b8cff55}
+.sub{color:var(--muted);max-width:56ch}
+.search{display:flex;gap:12px;margin-top:18px}
+.search input{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);backdrop-filter:blur(8px);color:var(--text);padding:14px 16px;border-radius:12px;outline:none}
+.btn{padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,var(--primary),var(--neon));border:none;box-shadow:0 8px 32px #5b8cff40}
+.btn-ghost:hover{border-color:#7c5bff80}
+.trusted{margin-top:10px;font-size:13px;color:var(--muted)}
+.hero-visual{position:relative;height:340px;border-radius:20px;background:linear-gradient(180deg,#0b1330,#0a0f1f);border:1px solid var(--border);overflow:hidden}
+.grid-waves{position:absolute;inset:0;background-image:linear-gradient(#ffffff08 1px,transparent 1px),linear-gradient(90deg,#ffffff08 1px,transparent 1px);background-size:36px 36px;animation:shift 18s linear infinite}
+@keyframes shift{from{transform:translateY(0)}to{transform:translateY(-36px)}}
+.orb{position:absolute;filter:blur(16px);opacity:.6}
+.orb-1{width:220px;height:220px;background:radial-gradient(#5b8cff,transparent 60%);top:24px;left:24px;border-radius:50%}
+.orb-2{width:280px;height:280px;background:radial-gradient(#7c5bff,transparent 60%);bottom:-40px;right:-20px;border-radius:50%}
+.floating-icons{position:absolute;inset:0;pointer-events:none}
+.floating-icons .fi{position:absolute;width:18px;height:18px;border-radius:6px;background:linear-gradient(180deg,#5b8cff,#7c5bff);opacity:.8;box-shadow:0 0 14px #5b8cff66}
+.fi-briefcase{top:18%;left:10%}
+.fi-resume{top:30%;right:14%}
+.fi-chip{bottom:20%;left:18%}
+.fi-globe{bottom:8%;right:10%}
+.how{padding:48px 24px}
+.how h2{text-align:center;margin-bottom:22px}
+.how-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.glass{background:var(--glass);backdrop-filter:blur(10px);border:1px solid var(--border)}
+.card{padding:22px;border-radius:16px}
+.icon{width:42px;height:42px;border-radius:12px;margin-bottom:10px;background:linear-gradient(180deg,#5b8cff,#7c5bff);box-shadow:0 8px 30px #5b8cff40}
+.audiences{padding:32px 24px}
+.aud-grid{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.aud-card{padding:22px;border-radius:16px}
+.aud-card h3{margin:6px 0 8px}
+.aud-card ul{margin:0 0 10px 18px}
+.aud-card li{color:var(--muted)}
+.insights{padding:28px 24px}
+.stats{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:18px;border:1px solid var(--border);border-radius:14px;text-align:center;background:var(--card)}
+.stat .num{font-size:28px;color:var(--primary);text-shadow:0 0 10px #5b8cff55}
+.stat .label{font-size:13px;color:var(--muted)}
+.cta{padding:40px 24px;text-align:center}
+.cta h2{margin-bottom:14px}
+.cta-actions{display:flex;gap:12px;justify-content:center}
+.chat-fab{position:fixed;right:18px;bottom:18px;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(180deg,#5b8cff,#7c5bff);color:white;cursor:pointer;box-shadow:0 10px 30px #5b8cff66}
+.chat-fab .pulse{position:absolute;inset:-6px;border-radius:50%;border:2px solid #7c5bff66;animation:pulse 2s infinite}
+@keyframes pulse{0%{opacity:.7;transform:scale(.9)}100%{opacity:0;transform:scale(1.4)}}
+@media (max-width: 980px){.hero-grid{grid-template-columns:1fr}.how-grid{grid-template-columns:1fr}.aud-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}}

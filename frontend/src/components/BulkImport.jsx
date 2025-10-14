@@ -63,7 +63,7 @@ const BulkImport = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('http://localhost:3002/api/bulk-import/upload', formData, {
+      const response = await axios.post('/api/bulk-import/upload', formData, {
         headers: { 
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`
@@ -84,7 +84,7 @@ const BulkImport = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:3002/api/bulk-import/validate/${batchId}`,
+        `/api/bulk-import/validate/${batchId}`,
         {},
         {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -116,7 +116,7 @@ const BulkImport = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:3002/api/bulk-import/process/${currentBatchId}`,
+        `/api/bulk-import/process/${currentBatchId}`,
         options,
         {
           headers: { 
@@ -144,7 +144,7 @@ const BulkImport = () => {
   async function fetchImportHistory() {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:3002/api/bulk-import/history', {
+      const response = await axios.get('/api/bulk-import/history', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setImportHistory(response.data.imports);
@@ -154,13 +154,13 @@ const BulkImport = () => {
   }
 
   async function downloadTemplate(userType) {
-    window.open(`http://localhost:3002/api/bulk-import/template/${userType}`, '_blank');
+    window.open(`/api/bulk-import/template/${userType}`, '_blank');
   }
 
   async function downloadReport(batchId) {
     const token = localStorage.getItem('token');
     window.open(
-      `http://localhost:3002/api/bulk-import/report/${batchId}?token=${token}`, 
+      `/api/bulk-import/report/${batchId}?token=${token}`, 
       '_blank'
     );
   }
@@ -173,7 +173,7 @@ const BulkImport = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:3002/api/bulk-import/send-welcome-emails/${batchId}`,
+        `/api/bulk-import/send-welcome-emails/${batchId}`,
         {},
         {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -196,7 +196,7 @@ const BulkImport = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:3002/api/bulk-import/archive/${batchId}`,
+        `/api/bulk-import/archive/${batchId}`,
         {},
         {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -220,7 +220,7 @@ const BulkImport = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.delete(
-        `http://localhost:3002/api/bulk-import/delete/${batchId}`,
+        `/api/bulk-import/delete/${batchId}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -239,7 +239,7 @@ const BulkImport = () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `http://localhost:3002/api/bulk-import/details/${batchId}`,
+        `/api/bulk-import/details/${batchId}`,
         {
           headers: { 'Authorization': `Bearer ${token}` }
         }
@@ -485,7 +485,7 @@ const BulkImport = () => {
                       try {
                         const token = localStorage.getItem('token');
                         await axios.delete(
-                          `http://localhost:3002/api/bulk-import/delete/${currentBatchId}`,
+                          `/api/bulk-import/delete/${currentBatchId}`,
                           {
                             headers: { 'Authorization': `Bearer ${token}` }
                           }

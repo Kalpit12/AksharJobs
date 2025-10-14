@@ -24,6 +24,8 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin } from '@fortawesome/free-brands-svg-icons';
 import { buildApiUrl, makeAuthenticatedRequest } from '../config/api';
+import { useFormManagement } from '../hooks/useAutoSave';
+import AutoSaveStatus from '../components/AutoSaveStatus';
 import '../styles/CompleteProfile.css';
 
 const CompleteProfile = () => {
@@ -31,7 +33,10 @@ const CompleteProfile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
-  const [formData, setFormData] = useState({
+  const [userProfile, setUserProfile] = useState(null);
+  
+  // Initial form data
+  const initialFormData = {
     firstName: '',
     lastName: '',
     email: '',
@@ -68,7 +73,49 @@ const CompleteProfile = () => {
     linkedinProfile: '',
     portfolio: '',
     bio: ''
-  });
+  };
+
+  // Field mapping for auto-fill from user profile
+  const fieldMapping = {
+    firstName: 'firstName',
+    lastName: 'lastName',
+    email: 'email',
+    phoneNumber: 'phone',
+    dateOfBirth: 'dateOfBirth',
+    gender: 'gender',
+    bloodGroup: 'bloodGroup',
+    location: 'location',
+    currentAddress: 'currentAddress',
+    currentAddressPin: 'currentAddressPin',
+    homeAddress: 'homeAddress',
+    homeAddressPin: 'homeAddressPin',
+    commuteOptions: 'commuteOptions',
+    skills: 'skills',
+    jobPreferences: 'jobPreferences',
+    salaryExpectations: 'salaryExpectations',
+    availability: 'availability',
+    languages: 'languages',
+    linkedinProfile: 'linkedinProfile',
+    portfolio: 'portfolio',
+    bio: 'bio'
+  };
+
+  // Auto-save and auto-fill hook
+  const {
+    formData,
+    setFormData,
+    isSaving,
+    saveStatus,
+    clearSavedData,
+    hasAutoFilledData
+  } = useFormManagement(
+    initialFormData,
+    'complete-profile-form',
+    userProfile,
+    fieldMapping,
+    null, // onSave callback - will implement backend save later
+    2000 // 2 second delay
+  );
 
   useEffect(() => {
     fetchUserData();
@@ -81,11 +128,13 @@ const CompleteProfile = () => {
       
       if (response && response.ok) {
         const userData = await response.json();
-        setFormData({
-          firstName: userData.fullName ? userData.fullName.split(' ')[0] : '',
-          lastName: userData.fullName ? userData.fullName.split(' ').slice(1).join(' ') : '',
+        
+        // Process user data for auto-fill
+        const processedUserData = {
+          firstName: userData.fullName ? userData.fullName.split(' ')[0] : userData.firstName || '',
+          lastName: userData.fullName ? userData.fullName.split(' ').slice(1).join(' ') : userData.lastName || '',
           email: userData.email || '',
-          phoneNumber: userData.phone || '',
+          phone: userData.phone || userData.phoneNumber || '',
           dateOfBirth: userData.dateOfBirth || '',
           gender: userData.gender || '',
           bloodGroup: userData.bloodGroup || '',
@@ -118,7 +167,9 @@ const CompleteProfile = () => {
           linkedinProfile: userData.linkedinProfile || '',
           portfolio: userData.portfolio || '',
           bio: userData.bio || ''
-        });
+        };
+        
+        setUserProfile(processedUserData);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -132,18 +183,16 @@ const CompleteProfile = () => {
     
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
-      setFormData(prev => ({
-        ...prev,
+      setFormData({
         [parent]: {
-          ...prev[parent],
+          ...formData[parent],
           [child]: type === 'checkbox' ? checked : value
         }
-      }));
+      });
     } else {
-      setFormData(prev => ({ 
-        ...prev, 
-        [name]: type === 'checkbox' ? checked : value 
-      }));
+      setFormData({
+        [name]: type === 'checkbox' ? checked : value
+      });
     }
   };
 
@@ -213,6 +262,15 @@ const CompleteProfile = () => {
 
   return (
     <div className="complete-profile">
+      {/* Auto-save status indicator */}
+      <AutoSaveStatus 
+        isSaving={isSaving}
+        saveStatus={saveStatus}
+        onClearData={clearSavedData}
+        showClearButton={true}
+        position="top-right"
+      />
+      
       <div className="profile-container">
         <div className="profile-header">
           <button className="back-btn" onClick={() => navigate('/jobseeker-dashboard')}>
@@ -221,6 +279,14 @@ const CompleteProfile = () => {
           </button>
           <h1>Complete Your Profile</h1>
           <p>Fill in your details to get better job matches</p>
+          
+          {/* Auto-fill notification */}
+          {hasAutoFilledData && (
+            <div className="autofill-notification">
+              <FontAwesomeIcon icon={faCheck} />
+              <span>Form auto-filled with your existing profile data</span>
+            </div>
+          )}
         </div>
 
         <form className="profile-form" onSubmit={handleSubmit}>
