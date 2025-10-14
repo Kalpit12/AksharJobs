@@ -34,7 +34,7 @@
 }
 
 .profile-container-wrapper {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   background: white;
   border-radius: 12px;
@@ -63,7 +63,8 @@
 
 .profile-header-gradient p {
   font-size: 16px;
-  opacity: 0.9;
+  color: white;
+  opacity: 1;
 }
 
 /* Progress Bar */
@@ -84,7 +85,7 @@
 
 /* Form Content */
 .comprehensive-profile-form {
-  padding: 40px 30px;
+  padding: 40px 50px;
 }
 
 .form-section {

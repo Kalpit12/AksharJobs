@@ -549,8 +549,8 @@ const CompleteProfile = () => {
           <div className="global-icon">
             <FontAwesomeIcon icon={faGlobe} />
           </div>
-          <h1>International Job Seeker Profile</h1>
-          <p>Create a comprehensive profile for global career opportunities</p>
+          <h1>Create Job Seeker Profile</h1>
+          <p>Create a comprehensive profile</p>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${progress}%` }}></div>
           </div>
@@ -1808,7 +1808,7 @@ const CompleteProfile = () => {
               ) : (
                 <>
                   <FontAwesomeIcon icon={faCheck} />
-                  Create International Profile
+                  Create Job Seeker Profile
                 </>
               )}
             </button>
