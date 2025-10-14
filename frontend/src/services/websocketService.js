@@ -23,6 +23,13 @@ class WebSocketService {
       return;
     }
 
+    // Check if we're on localhost - skip WebSocket if so
+    const backendUrl = buildApiUrl('');
+    if (backendUrl.includes('localhost') || backendUrl.includes('127.0.0.1')) {
+      console.log('🔌 WebSocket connection skipped for localhost development');
+      return;
+    }
+
     try {
       // Connect to the backend WebSocket server using dynamic API config
       const backendUrl = buildApiUrl('');
@@ -56,15 +63,18 @@ class WebSocketService {
       });
 
       this.socket.on('connect_error', (error) => {
-        // Only log WebSocket errors in development if they're not 404s
-        if (process.env.NODE_ENV === 'development' && !error.message.includes('404')) {
-          console.warn('🔌 WebSocket connection error (Socket.IO not configured):', error.message);
-        }
         this.isConnected = false;
-        // Don't emit error for Socket.IO 404 - it's expected
-        if (!error.message.includes('404')) {
-          this.emit('connection_error', { error: error.message });
+        console.warn('🔌 WebSocket connection error:', error.message);
+        
+        // Don't show errors for expected connection issues
+        if (error.message.includes('404') || 
+            error.message.includes('WebSocket connection failed') ||
+            error.message.includes('Transport unknown')) {
+          console.log('🔌 WebSocket not available on server - continuing without real-time features');
+          return;
         }
+        
+        this.emit('connection_error', { error: error.message });
       });
 
       // Authentication handlers

@@ -46,6 +46,9 @@ from routes.cv_access_routes import cv_access_routes
 from routes.user_settings_routes import user_settings_routes
 from routes.candidates_routes import candidates_bp
 from routes.community_routes import community_routes
+
+# Import WebSocket service
+from services.websocket_service import init_websocket
 from routes.community_verification_routes import community_verification_routes
 from routes.email_verification_routes import email_verification_routes
 from routes.bulk_import_routes import bulk_import_bp
@@ -352,15 +355,8 @@ def handle_bad_request(e):
         }), 400
     return jsonify({'error': 'Bad request', 'status': 400}), 400
 
-# Add Socket.IO endpoint to prevent 404 errors
-@app.route('/socket.io/')
-def socket_io_fallback():
-    """Handle Socket.IO requests gracefully"""
-    return jsonify({
-        'error': 'Socket.IO not configured',
-        'message': 'Real-time features are not available in this version',
-        'status': 404
-    }), 404
+# Initialize WebSocket service
+init_websocket(app)
 
 
 if __name__ == '__main__':
@@ -369,15 +365,21 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', Config.PORT))
     is_production = os.getenv('FLASK_ENV') == 'production'
     
-    print("[START] Starting AksharJobs Backend Server...")
+    print("[START] Starting AksharJobs Backend Server with WebSocket support...")
     print(f"[URL] Server will be available at: http://{Config.HOST}:{port}")
     print("[API] API endpoints available at /api/*")
+    print("[WEBSOCKET] Real-time features enabled via Socket.IO")
     print(f"[MODE] Running in {'PRODUCTION' if is_production else 'DEVELOPMENT'} mode")
     if not is_production:
         print("[WARN] IMPORTANT: Use HTTP (not HTTPS) for local network access")
     print("[CTRL+C] Press Ctrl+C to stop the server")
     
-    app.run(
+    # Import socketio from the websocket service
+    from services.websocket_service import socketio
+    
+    # Run with SocketIO support
+    socketio.run(
+        app,
         host='0.0.0.0',  # Allow external connections (needed for deployment)
         port=port,
         debug=not is_production,  # Disable debug in production
