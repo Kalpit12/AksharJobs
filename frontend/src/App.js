@@ -424,7 +424,7 @@ function App() {
              } />
             <Route path="/complete-profile" element={
               <ProtectedRoute requiredRole="jobSeeker">
-                <JobSeekerRegistrationForm />
+                <CompleteProfile />
               </ProtectedRoute>
             } />
              <Route path="/recruiter-complete-profile" element={
