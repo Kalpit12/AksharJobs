@@ -1,699 +1,626 @@
-import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useAuth } from "../context/AuthContext";
-import { buildApiUrl } from "../config/api";
-import apiService from "../services/apiService";
-import ModernCompanyProfile from "../components/ModernCompanyProfile";
-import SplitText from "../components/SplitText";
-import AnimatedCounter from "../components/AnimatedCounter";
-import RecruiterStatsMagicBento from "../components/RecruiterStatsMagicBento";
-
-import PremiumPrompt from "../components/PremiumPrompt";
-import InterviewScorecard from "../components/InterviewScorecard";
-import TeamCollaboration from "../components/TeamCollaboration";
-import OfferLetterGenerator from "../components/OfferLetterGenerator";
-import CulturalProfileBuilder from "../components/CulturalProfileBuilder";
-import CompanyCultureAssessment from "../components/CompanyCultureAssessment";
-import CulturalFitScore from "../components/CulturalFitScore";
-import DiversityAnalytics from "../components/DiversityAnalytics";
-import GeminiChatbot from "../components/GeminiChatbot";
-
-import { analyticsApi } from "../api/analyticsApi";
-import "../styles/RecruiterDashboard.css";
-import Header from "../components/Header";
-
-// New components for modern dashboard
-import PostJobModal from "../components/PostJobModal";
-import CVBrowser from "../components/CVBrowser/index.jsx";
-import ApplicationTracker from "../components/ApplicationTracker";
-import AnalyticsDashboard from "../pages/AnalyticsDashboard";
-import AIJobDescriptionGenerator from "../components/AIJobDescriptionGenerator";
-import AIApplicationReview from "../components/AIApplicationReview";
-import AIOfferPredictor from "../components/AIOfferPredictor";
-
-// New Enhanced Components
-import QuickActionsWidget from "../components/QuickActionsWidget";
-import HiringFunnelVisualization from "../components/HiringFunnelVisualization";
-import NotificationCenter from "../components/NotificationCenter";
-import DarkModeToggle from "../components/DarkModeToggle";
-import ActivityFeed from "../components/ActivityFeed";
-import ConfettiAnimation from "../components/ConfettiAnimation";
-import FloatingActionMenu from "../components/FloatingActionMenu";
-import EnhancedSkeletonLoader from "../components/EnhancedSkeletonLoader";
-import ParticleEffects from "../components/ParticleEffects";
-import Card3D from "../components/Card3D";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import '../styles/RecruiterDashboard.css';
 
 const RecruiterDashboard = () => {
-  const { user, isAuthenticated, isRecruiter } = useAuth();
-  const navigate = useNavigate();
-  
-  // Helper function to get display name
-  const getDisplayName = () => {
-    // Try localStorage first (most reliable)
-    const storedFirstName = localStorage.getItem('userFirstName');
-    const storedLastName = localStorage.getItem('userLastName');
-    
-    if (storedFirstName && storedLastName && storedFirstName !== 'undefined' && storedLastName !== 'undefined') {
-      return `${storedFirstName} ${storedLastName}`;
-    }
-    
-    if (userDetails?.name) {
-      return userDetails.name;
-    }
-    if (userDetails?.firstName && userDetails?.lastName) {
-      return `${userDetails.firstName} ${userDetails.lastName}`;
-    }
-    if (user?.firstName && user?.lastName) {
-      return `${user.firstName} ${user.lastName}`;
-    }
-    return 'Sarah Johnson';
-  };
-  
-  // All hooks must be called before any conditional logic
-  const [jobPostings, setJobPostings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [sortType, setSortType] = useState("deadline");
-  const [interviews, setInterviews] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [userDetails, setUserDetails] = useState(null);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-  const [activeTab, setActiveTab] = useState("overview");
-  const [showPremiumPrompt, setShowPremiumPrompt] = useState(false);
-  
-  // Modern Dashboard State
-  const [currentView, setCurrentView] = useState("overview");
-  const [showPostJobModal, setShowPostJobModal] = useState(false);
-  const [showCVBrowser, setShowCVBrowser] = useState(false);
-  const [showApplicationTracker, setShowApplicationTracker] = useState(false);
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  
-  // Productivity Tools State
-  const [showInterviewScorecard, setShowInterviewScorecard] = useState(false);
-  const [showTeamCollaboration, setShowTeamCollaboration] = useState(false);
-  const [showOfferLetterGenerator, setShowOfferLetterGenerator] = useState(false);
-  const [showCulturalProfileBuilder, setShowCulturalProfileBuilder] = useState(false);
-  const [showCompanyCultureAssessment, setShowCompanyCultureAssessment] = useState(false);
-  const [showCulturalFitScore, setShowCulturalFitScore] = useState(false);
-  const [showDiversityAnalytics, setShowDiversityAnalytics] = useState(false);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [candidateCulturalProfile, setCandidateCulturalProfile] = useState(null);
-  const [companyCultureData, setCompanyCultureData] = useState(null);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const [confettiTrigger, setConfettiTrigger] = useState(0);
-  
-  const userId = localStorage.getItem("userId") || user?.userId;
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
+    const [loading, setLoading] = useState(true);
+    const [userProfile, setUserProfile] = useState(null);
+    const [jobs, setJobs] = useState([]);
+    const [applications, setApplications] = useState([]);
+    const [candidates, setCandidates] = useState([]);
+    const [stats, setStats] = useState({
+        activePostings: 0,
+        totalApplications: 0,
+        inInterviewStage: 0,
+        offersExtended: 0
+    });
 
-  // Trigger confetti on successful actions
-  const triggerSuccessAnimation = () => {
-    setConfettiTrigger(prev => prev + 1);
-  };
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
 
-  // ---- Cultural Fit helpers: load/store profiles and generate deterministic defaults ----
-  const loadStoredJSON = (key) => {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  };
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            const token = localStorage.getItem('token');
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            };
 
-  const getDeterministicSeed = (input) => {
-    let hash = 0;
-    const str = String(input || "");
-    for (let i = 0; i < str.length; i += 1) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0; // Convert to 32bit int
-    }
-    return Math.abs(hash);
-  };
+            // Fetch user profile
+            const profileRes = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3002'}/api/profile/profile`, { headers });
+            if (profileRes.ok) {
+                const profileData = await profileRes.json();
+                setUserProfile(profileData);
+            }
 
-  const selectFromList = (list, seed, offset) => list[(seed + offset) % list.length];
+            // Fetch recruiter's jobs
+            const jobsRes = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3002'}/api/jobs/get_jobs`, { headers });
+            if (jobsRes.ok) {
+                const jobsData = await jobsRes.json();
+                setJobs(jobsData.jobs || []);
+                setStats(prev => ({
+                    ...prev,
+                    activePostings: jobsData.jobs?.length || 0
+                }));
+            }
 
-  const generateProfileFromCandidate = (candidate) => {
-    const seed = getDeterministicSeed(candidate?.id ?? candidate?.name ?? Math.random());
-    return {
-      communication_style: selectFromList(["formal", "informal", "mixed"], seed, 1),
-      leadership_approach: selectFromList(["hierarchical", "collaborative", "mentoring"], seed, 2),
-      work_environment: selectFromList(["stable", "creative", "fast_paced"], seed, 3),
-      team_dynamics: selectFromList(["specialized", "cross_functional", "supportive"], seed, 4),
-      language_preference: selectFromList(["english", "bilingual", "multilingual"], seed, 5),
-    };
-  };
+            // Fetch applications for recruiter's jobs
+            const appsRes = await fetch(`${process.env.REACT_APP_BACKEND_URL || 'http://localhost:3002'}/api/applications/recruiter/all`, { headers });
+            if (appsRes.ok) {
+                const appsData = await appsRes.json();
+                setApplications(appsData.applications || []);
+                
+                // Calculate stats
+                const interviewCount = appsData.applications?.filter(app => 
+                    app.status === 'interview' || app.status === 'interview_scheduled'
+                ).length || 0;
+                
+                const offersCount = appsData.applications?.filter(app => 
+                    app.status === 'offered' || app.status === 'accepted'
+                ).length || 0;
+                
+                setStats(prev => ({
+                    ...prev,
+                    totalApplications: appsData.applications?.length || 0,
+                    inInterviewStage: interviewCount,
+                    offersExtended: offersCount
+                }));
+            }
 
-  const defaultCompanyCultureFromUser = (user) => ({
-    communication_style: "formal",
-    leadership_approach: "hierarchical",
-    work_environment: "stable",
-    team_dynamics: "specialized",
-    language_policy: "english",
-    ...(user && user.industry === "Technology" ? { work_environment: "fast_paced", team_dynamics: "cross_functional" } : {}),
-  });
-
-  // Fetch user details
-  useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        const response = await axios.get(buildApiUrl(`/api/auth/get_user?userId=${userId}`));
-        setUserDetails(response.data);
-      } catch (error) {
-        console.error("Error fetching user details:", error);
-        // If API fails, try to use user data from auth context
-        if (user) {
-          setUserDetails(user);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching dashboard data:', error);
+            setLoading(false);
         }
-      } finally {
-        setIsLoadingProfile(false);
-      }
     };
 
-    if (userId) {
-      fetchUserDetails();
-    } else {
-      if (user) {
-        setUserDetails(user);
-      }
-      setIsLoadingProfile(false);
-    }
-  }, [userId, user]);
-
-  // Fetch job postings
-  const fetchJobPostings = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(buildApiUrl(`/api/jobs/jobs_by_user/${userId}`));
-      setJobPostings(response.data || []);
-    } catch (err) {
-      setError("Failed to fetch job postings");
-      console.error("Error fetching job postings:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [userId]);
-
-  useEffect(() => {
-    fetchJobPostings();
-  }, [fetchJobPostings]);
-
-  // Close profile dropdown when clicking outside
-
-  // Fetch applications
-  useEffect(() => {
-    const fetchApplications = async () => {
-      try {
-        // Use the new endpoint that returns all applications with user and job details
-        const response = await axios.get(buildApiUrl('/api/applications/all'));
-        const applications = response.data.applications || [];
+    const showSection = (sectionId) => {
+        document.querySelectorAll('.page-section').forEach(section => {
+            section.classList.remove('active');
+        });
         
-        // The applications already have user and job details, so we can use them directly
-        const enrichedApplications = applications.map(application => ({
-          ...application,
-          // Map the fields to match what the component expects
-          fullName: application.applicant_name,
-          email: application.applicant_email,
-          phone: application.applicant_phone,
-          jobTitle: application.job_title,
-          companyName: application.company_name,
-          appliedDate: application.applied_at || application.created_at,
-          // Keep original fields for compatibility
-          userId: application.applicant_id,
-          jobId: application.job_id
-        }));
-
-        setApplications(enrichedApplications);
-      } catch (err) {
-        console.error("Error fetching applications:", err);
-      }
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        const section = document.getElementById(sectionId);
+        if (section) {
+            section.classList.add('active');
+        }
     };
 
-    if (userId) {
-      fetchApplications();
-    }
-  }, [userId]);
+    useEffect(() => {
+        // Populate jobs table
+        if (jobs.length > 0) {
+            const jobsTableBody = document.getElementById('jobsTableBody');
+            if (jobsTableBody) {
+                jobsTableBody.innerHTML = jobs.map(job => `
+                    <tr>
+                        <td><strong>${job.title || 'Job Title'}</strong></td>
+                        <td>${job.location || 'Location'}</td>
+                        <td>${job.jobType || 'Full-time'}</td>
+                        <td><strong>${job.applicationsCount || 0}</strong></td>
+                        <td>${new Date(job.postedDate).toLocaleDateString() || 'Recently'}</td>
+                        <td><span class="status-badge status-active">active</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='/job/${job._id}'">View</button>
+                            <button class="btn btn-secondary btn-sm">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
 
-  // Filter and sort jobs
-  const filteredJobs = jobPostings.filter(job => {
-    const matchesSearch = job.job_title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         job.skills?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterType === "all" || job.job_type === filterType;
-    
-    return matchesSearch && matchesFilter;
-  }).sort((a, b) => {
-    switch (sortType) {
-      case "deadline":
-        return new Date(a.deadline) - new Date(b.deadline);
-      case "applicants":
-        return (b.total_applications || 0) - (a.total_applications || 0);
-      case "views":
-        return (b.views || 0) - (a.views || 0);
-      case "created":
-        return new Date(b.created_at) - new Date(a.created_at);
-      default:
-        return 0;
-    }
-  });
+        // Populate internships table
+        const internships = jobs.filter(job => job.jobType?.toLowerCase().includes('intern'));
+        if (internships.length > 0) {
+            const internshipsTableBody = document.getElementById('internshipsTableBody');
+            if (internshipsTableBody) {
+                internshipsTableBody.innerHTML = internships.map(internship => `
+                    <tr>
+                        <td><strong>${internship.title || 'Internship Title'}</strong></td>
+                        <td>${internship.department || 'Department'}</td>
+                        <td>${internship.duration || '3 months'}</td>
+                        <td><strong>${internship.applicationsCount || 0}</strong></td>
+                        <td>${new Date(internship.postedDate).toLocaleDateString() || 'Recently'}</td>
+                        <td><span class="status-badge status-active">active</span></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="window.location.href='/job/${internship._id}'">View</button>
+                            <button class="btn btn-secondary btn-sm">Edit</button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        }
 
-  // Productivity Tools Handlers
-  const openInterviewScorecard = (candidate, job) => {
-    setSelectedCandidate(candidate);
-    setSelectedJob(job);
-    setShowInterviewScorecard(true);
-  };
+        // Populate candidates list
+        if (applications.length > 0) {
+            const candidatesList = document.getElementById('candidatesList');
+            if (candidatesList) {
+                candidatesList.innerHTML = applications.map(app => `
+                    <div class="candidate-card">
+                        <div class="candidate-header">
+                            <div class="candidate-info">
+                                <div class="candidate-avatar">${app.applicantName?.substring(0, 2).toUpperCase() || 'CA'}</div>
+                                <div class="candidate-details">
+                                    <h3>${app.applicantName || 'Candidate'}</h3>
+                                    <p style="color: #666;">${app.applicantTitle || 'Job Seeker'}</p>
+                                    <div class="candidate-meta">
+                                        <span><i class="fas fa-map-marker-alt"></i> ${app.applicantLocation || 'Location'}</span>
+                                        <span><i class="fas fa-briefcase"></i> ${app.applicantExperience || 'Experience'}</span>
+                                        <span><i class="fas fa-clock"></i> ${new Date(app.appliedDate).toLocaleDateString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="candidate-actions">
+                                <span class="status-badge status-${app.status}">${app.status}</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <strong>Applied for:</strong> ${app.jobTitle}
+                        </div>
+                        <div class="candidate-skills">
+                            ${app.applicantSkills?.map(skill => `<span class="skill-tag">${skill}</span>`).join('') || ''}
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+    }, [jobs, applications]);
 
-  const openTeamCollaboration = (candidate, job) => {
-    setSelectedCandidate(candidate);
-    setSelectedJob(job);
-    setShowTeamCollaboration(true);
-  };
-
-  const openOfferLetterGenerator = (candidate, job) => {
-    setSelectedCandidate(candidate);
-    setSelectedJob(job);
-    setShowOfferLetterGenerator(true);
-  };
-
-  const openCulturalFitAssessment = (candidate, job) => {
-    setSelectedCandidate(candidate);
-    setSelectedJob(job);
-    try {
-      if (candidate?.id) {
-        localStorage.setItem('currentCandidateId', String(candidate.id));
-      }
-    } catch {}
-
-    // Load stored profiles if available
-    const storedCandidateProfile = loadStoredJSON(`culturalProfile:${candidate?.id}`);
-    const storedCompanyCulture = loadStoredJSON('companyCulture');
-
-    if (storedCandidateProfile) {
-      setCandidateCulturalProfile(storedCandidateProfile);
-    } else {
-      const generatedProfile = generateProfileFromCandidate(candidate);
-      setCandidateCulturalProfile(generatedProfile);
-    }
-
-    if (storedCompanyCulture) {
-      setCompanyCultureData(storedCompanyCulture);
-    } else {
-      const defaultCulture = defaultCompanyCultureFromUser(userDetails);
-      setCompanyCultureData(defaultCulture);
-    }
-
-    setShowCulturalFitScore(true);
-  };
-
-  const closeProductivityTools = () => {
-    setShowInterviewScorecard(false);
-    setShowTeamCollaboration(false);
-    setShowOfferLetterGenerator(false);
-    setShowCulturalProfileBuilder(false);
-    setShowCompanyCultureAssessment(false);
-    setShowCulturalFitScore(false);
-    setShowDiversityAnalytics(false);
-    setSelectedCandidate(null);
-    setSelectedJob(null);
-  };
-
-  const handleScorecardSave = (scorecardData) => {
-    // Handle scorecard save logic here
-  };
-
-  const handleOfferLetterSend = (offerData) => {
-    // Handle offer letter send logic here
-  };
-
-  // Function to get interview details for a candidate
-  const getInterviewDetails = (candidateId) => {
-    return interviews.find(interview => interview.candidateId === candidateId);
-  };
-  
-  // Show loading skeleton while data is loading
-  if (loading && jobPostings.length === 0) {
-    return (
-      <React.Fragment>
-        <Header />
-        <div className="recruiter_dashboard_wrapper">
-          <div className="recruiter_dashboard_container">
-            <EnhancedSkeletonLoader type="dashboard" />
-          </div>
-        </div>
-      </React.Fragment>
-    );
-  }
-
-  return (
-    <React.Fragment>
-      <Header />
-      
-      {/* Particle Background Effect */}
-      <ParticleEffects density={30} color="#667eea" maxSpeed={0.3} interactive={true} />
-      
-      {/* Confetti Animation */}
-      <ConfettiAnimation trigger={confettiTrigger} duration={3000} particleCount={100} />
-      
-      <div className="recruiter_dashboard_wrapper">
-        <div className="recruiter_dashboard_container particle-container">
-        
-        {/* Premium Prompt - Modern Design */}
-                        {showPremiumPrompt && (
-                  <PremiumPrompt 
-                    userType="recruiter"
-                    onClose={() => setShowPremiumPrompt(false)}
-                  />
-                )}
-        
-        {/* Modern Dashboard Layout */}
-        <div className="modern-dashboard">
-          {/* Sidebar Navigation */}
-          <div className="dashboard-sidebar">
-            <div className="sidebar-header">
-              <ModernCompanyProfile userDetails={userDetails} />
-              
-              {/* Dark Mode Toggle & Notifications */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px', justifyContent: 'center' }}>
-                <DarkModeToggle />
-                <NotificationCenter />
-              </div>
+    if (loading) {
+        return (
+            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh'}}>
+                <div style={{textAlign: 'center'}}>
+                    <i className="fas fa-spinner fa-spin" style={{fontSize: '48px', color: '#667eea'}}></i>
+                    <p style={{marginTop: '20px', color: '#666'}}>Loading dashboard...</p>
+                </div>
             </div>
-          
-            <nav className="sidebar-nav">
-                      <button 
-                className={`nav-item ${currentView === 'overview' ? 'active' : ''}`}
-                onClick={() => setCurrentView('overview')}
-                      >
-                <span className="nav-icon">📊</span>
-                <span className="nav-text">Overview</span>
-                      </button>
-              
-                      <button 
-                className="nav-item"
-                onClick={() => navigate('/post-job')}
-                      >
-                <span className="nav-icon">➕</span>
-                <span className="nav-text">Post Job</span>
-                      </button>
-              
-                      <button 
-                className={`nav-item ${currentView === 'cv-browser' ? 'active' : ''}`}
-                onClick={() => setCurrentView('cv-browser')}
-              >
-                <span className="nav-icon">📄</span>
-                <span className="nav-text">CV Browser</span>
-              </button>
-              
-                      <button 
-                className={`nav-item ${currentView === 'application-tracker' ? 'active' : ''}`}
-                onClick={() => setCurrentView('application-tracker')}
-                      >
-                <span className="nav-icon">📝</span>
-                <span className="nav-text">Application Tracker</span>
-                      </button>
-              
-                      <button 
-                className={`nav-item ${currentView === 'analytics' ? 'active' : ''}`}
-                onClick={() => setCurrentView('analytics')}
-                      >
-                <span className="nav-icon">📈</span>
-                <span className="nav-text">Analytics</span>
-                      </button>
-            </nav>
-            
-            <div className="sidebar-footer">
+        );
+    }
+
+    return (
+        <div className="dashboard-wrapper">
+            {/* Sidebar */}
+            <div className="sidebar" id="sidebar">
+                <div className="sidebar-header">
+                    <h2><i className="fas fa-briefcase"></i> RecruiterHub</h2>
+                    <p>{userProfile?.companyName || 'Acme Corporation'}</p>
                 </div>
-              </div>
-
-          {/* Main Content Area */}
-          <div className="dashboard-main">
-            {/* Overview Tab */}
-            {currentView === 'overview' && (
-              <div className="overview-content">
-                <div className="content-header">
-                  <SplitText
-                    text={`Welcome back, ${getDisplayName() || 'Sarah Johnson'}! 👋`}
-                    tag="h1"
-                    className="welcome-title"
-                    delay={50}
-                    duration={0.8}
-                    ease="power3.out"
-                    splitType="words"
-                    from={{ opacity: 0, y: 60, rotationX: 90 }}
-                    to={{ opacity: 1, y: 0, rotationX: 0 }}
-                    threshold={0.1}
-                    rootMargin="-50px"
-                    textAlign="left"
-                    onLetterAnimationComplete={() => {
-                      // Animation completed
-                    }}
-                  />
-                  <SplitText
-                    text="Ready to find your next great hire? Let's get started!"
-                    tag="p"
-                    className="welcome-subtitle"
-                    delay={200}
-                    duration={0.6}
-                    ease="power2.out"
-                    splitType="words"
-                    from={{ opacity: 0, y: 30 }}
-                    to={{ opacity: 1, y: 0 }}
-                    threshold={0.1}
-                    rootMargin="-50px"
-                    textAlign="left"
-                  />
-              </div>
-
-                {/* Quick Actions Widget */}
-                <QuickActionsWidget
-                  onPostJob={() => navigate('/post-job')}
-                  onViewCandidates={() => setCurrentView('cv-browser')}
-                  onScheduleInterview={() => console.log('Schedule Interview')}
-                  onViewAnalytics={() => setCurrentView('analytics')}
-                />
-
-                {/* Dashboard Grid Layout */}
-                <div className="dashboard-grid-layout">
-                  {/* Left Column - Stats */}
-                  <div className="stats-column">
-                    <Card3D intensity={10}>
-                      <RecruiterStatsMagicBento 
-                        jobPostings={jobPostings}
-                        applications={applications}
-                        interviews={interviews}
-                        textAutoHide={true}
-                        enableStars={true}
-                        enableSpotlight={true}
-                        enableBorderGlow={true}
-                        enableTilt={true}
-                        enableMagnetism={true}
-                        clickEffect={true}
-                        spotlightRadius={200}
-                        particleCount={8}
-                        glowColor="132, 0, 255"
-                      />
-                    </Card3D>
-                  </div>
-                  
-                </div>
-
-                {/* Hiring Funnel Visualization */}
-                <HiringFunnelVisualization applications={applications} />
-
-                {/* Activity Feed */}
-                <ActivityFeed />
-
-                    
-                {/* AI Features Section */}
-                <div className="ai-features-section">
-                  <h2>🤖 AI-Powered Tools</h2>
-                  <div className="ai-tools-grid">
-                    <div className="ai-tool-card">
-                      <AIJobDescriptionGenerator 
-                        onGenerated={(data) => {
-                          console.log('JD generated:', data);
-                          // Can be used in post job form
-                        }}
-                      />
+                <div className="nav-menu">
+                    <div className="nav-item active" onClick={() => showSection('dashboard')}>
+                        <i className="fas fa-th-large"></i>
+                        <span>Dashboard</span>
                     </div>
-                  </div>
+                    <div className="nav-item" onClick={() => showSection('jobs')}>
+                        <i className="fas fa-briefcase"></i>
+                        <span>Job Postings</span>
+                        <span className="badge">{jobs.length}</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('internships')}>
+                        <i className="fas fa-user-graduate"></i>
+                        <span>Internships</span>
+                        <span className="badge">{jobs.filter(j => j.jobType?.toLowerCase().includes('intern')).length}</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('candidates')}>
+                        <i className="fas fa-users"></i>
+                        <span>All Candidates</span>
+                        <span className="badge">{applications.length}</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('pipeline')}>
+                        <i className="fas fa-stream"></i>
+                        <span>Recruitment Pipeline</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('messages')}>
+                        <i className="fas fa-envelope"></i>
+                        <span>Messages</span>
+                        <span className="badge">12</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('calendar')}>
+                        <i className="fas fa-calendar-alt"></i>
+                        <span>Interview Calendar</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('analytics')}>
+                        <i className="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </div>
+                    <div className="nav-item" onClick={() => showSection('settings')}>
+                        <i className="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="main-content">
+                {/* Top Bar */}
+                <div className="top-bar">
+                    <div className="search-bar">
+                        <i className="fas fa-search"></i>
+                        <input type="text" placeholder="Search candidates, jobs, or internships..." />
+                    </div>
+                    <div className="top-bar-actions">
+                        <button className="icon-btn">
+                            <i className="fas fa-bell"></i>
+                            <span className="notification-dot"></span>
+                        </button>
+                        <button className="icon-btn" onClick={() => navigate('/create-job')}>
+                            <i className="fas fa-plus"></i>
+                        </button>
+                        <div className="user-profile" onClick={() => navigate('/profile')}>
+                            <div className="user-avatar">
+                                {userProfile?.firstName?.charAt(0)}{userProfile?.lastName?.charAt(0)}
+                            </div>
+                            <div>
+                                <div style={{fontWeight: 600, fontSize: '14px'}}>
+                                    {userProfile?.firstName} {userProfile?.lastName}
+                                </div>
+                                <div style={{fontSize: '12px', color: '#666'}}>
+                                    {userProfile?.professionalTitle || 'HR Manager'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Recent Activity */}
-                <div className="activity-section">
-                  <h2>Recent Activity</h2>
-                  <div className="activity-list">
-                    {applications.slice(0, 5).map((app, index) => (
-                      <div key={index} className="activity-item">
-                        <div className="activity-icon">👤</div>
-                        <div className="activity-content">
-                          <p><strong>{app.name}</strong> applied for <strong>{app.jobTitle}</strong></p>
-                          <span className="activity-time">{new Date(app.appliedDate).toLocaleDateString()}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              </div>
+                {/* Content Area */}
+                <div className="content-area">
+                    {/* Dashboard Section */}
+                    <div className="page-section active" id="dashboard">
+                        <h1 style={{marginBottom: '25px'}}>Dashboard Overview</h1>
+                        
+                        <div className="stats-grid">
+                            <div className="stat-card">
+                                <div className="stat-header">
+                                    <div>
+                                        <div className="stat-number">{stats.activePostings}</div>
+                                        <div className="stat-label">Active Postings</div>
+                                    </div>
+                                    <div className="stat-icon blue">
+                                        <i className="fas fa-briefcase"></i>
+                                    </div>
+                                </div>
+                                <div className="stat-change positive">
+                                    <i className="fas fa-arrow-up"></i> 2 new this week
+                                </div>
+                            </div>
 
-                {/* Top Performing Jobs */}
-                <div className="jobs-section">
-                  <h2>Top Performing Jobs</h2>
-                  <div className="jobs-list">
-                    {jobPostings
-                      .filter(job => job.total_applications > 0)
-                      .sort((a, b) => b.total_applications - a.total_applications)
-                      .slice(0, 3)
-                      .map((job, index) => (
-                        <div key={index} className="job-item">
-                          <div className="job-title">{job.job_title}</div>
-                          <div className="job-applications">{job.total_applications} applications</div>
-                  </div>
-                ))}
-              </div>
+                            <div className="stat-card">
+                                <div className="stat-header">
+                                    <div>
+                                        <div className="stat-number">{stats.totalApplications}</div>
+                                        <div className="stat-label">Total Applications</div>
+                                    </div>
+                                    <div className="stat-icon green">
+                                        <i className="fas fa-users"></i>
+                                    </div>
+                                </div>
+                                <div className="stat-change positive">
+                                    <i className="fas fa-arrow-up"></i> +23% from last month
+                                </div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-header">
+                                    <div>
+                                        <div className="stat-number">{stats.inInterviewStage}</div>
+                                        <div className="stat-label">In Interview Stage</div>
+                                    </div>
+                                    <div className="stat-icon purple">
+                                        <i className="fas fa-user-clock"></i>
+                                    </div>
+                                </div>
+                                <div className="stat-change">
+                                    {stats.inInterviewStage} scheduled this week
+                                </div>
+                            </div>
+
+                            <div className="stat-card">
+                                <div className="stat-header">
+                                    <div>
+                                        <div className="stat-number">{stats.offersExtended}</div>
+                                        <div className="stat-label">Offers Extended</div>
+                                    </div>
+                                    <div className="stat-icon orange">
+                                        <i className="fas fa-handshake"></i>
+                                    </div>
+                                </div>
+                                <div className="stat-change positive">
+                                    <i className="fas fa-arrow-up"></i> {Math.floor(stats.offersExtended * 0.67)} accepted
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style={{display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px'}}>
+                            <div className="card">
+                                <div className="card-header">
+                                    <h3 className="card-title">Recent Applications</h3>
+                                    <button className="btn btn-secondary btn-sm" onClick={() => showSection('candidates')}>View All</button>
+                                </div>
+                                <div className="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Candidate</th>
+                                                <th>Position</th>
+                                                <th>Applied</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {applications.slice(0, 3).map((app, idx) => (
+                                                <tr key={idx}>
+                                                    <td>
+                                                        <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                                            <div style={{width: '35px', height: '35px', borderRadius: '50%', background: '#667eea', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 600}}>
+                                                                {app.applicantName?.substring(0, 2).toUpperCase() || 'CA'}
+                                                            </div>
+                                                            <div>
+                                                                <div style={{fontWeight: 500}}>{app.applicantName || 'Candidate'}</div>
+                                                                <div style={{fontSize: '12px', color: '#666'}}>{app.applicantTitle || 'Job Seeker'}</div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>{app.jobTitle || 'Position'}</td>
+                                                    <td>{new Date(app.appliedDate).toLocaleDateString()}</td>
+                                                    <td><span className={`status-badge status-${app.status}`}>{app.status || 'pending'}</span></td>
+                                                    <td>
+                                                        <button className="btn btn-secondary btn-sm">View</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div className="card">
+                                <div className="card-header">
+                                    <h3 className="card-title">Quick Actions</h3>
+                                </div>
+                                <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                                    <button className="btn btn-primary" onClick={() => navigate('/create-job')}>
+                                        <i className="fas fa-plus"></i> Post New Job
+                                    </button>
+                                    <button className="btn btn-primary" onClick={() => navigate('/create-job')}>
+                                        <i className="fas fa-plus"></i> Post Internship
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => showSection('candidates')}>
+                                        <i className="fas fa-search"></i> Search Candidates
+                                    </button>
+                                    <button className="btn btn-secondary" onClick={() => showSection('calendar')}>
+                                        <i className="fas fa-calendar"></i> Schedule Interview
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Job Postings Section */}
+                    <div className="page-section" id="jobs">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
+                            <h1>Job Postings</h1>
+                            <button className="btn btn-primary" onClick={() => navigate('/create-job')}>
+                                <i className="fas fa-plus"></i> Post New Job
+                            </button>
+                        </div>
+
+                        <div className="tabs">
+                            <div className="tab active">All Jobs ({jobs.length})</div>
+                            <div className="tab">Active ({jobs.filter(j => j.status === 'active').length})</div>
+                            <div className="tab">Drafts (0)</div>
+                            <div className="tab">Closed (0)</div>
+                        </div>
+
+                        <div className="tab-content active">
+                            <div className="card">
+                                <div className="table-container">
+                                    <table>
+                                        <thead>
+                                            <tr>
+                                                <th>Job Title</th>
+                                                <th>Location</th>
+                                                <th>Type</th>
+                                                <th>Applications</th>
+                                                <th>Posted</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="jobsTableBody">
+                                            {/* Jobs will be populated here */}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Internships Section */}
+                    <div className="page-section" id="internships">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
+                            <h1>Internship Postings</h1>
+                            <button className="btn btn-primary" onClick={() => navigate('/create-job')}>
+                                <i className="fas fa-plus"></i> Post New Internship
+                            </button>
+                        </div>
+
+                        <div className="card">
+                            <div className="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Internship Title</th>
+                                            <th>Department</th>
+                                            <th>Duration</th>
+                                            <th>Applications</th>
+                                            <th>Posted</th>
+                                            <th>Status</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="internshipsTableBody">
+                                        {/* Internships will be populated here */}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Candidates Section */}
+                    <div className="page-section" id="candidates">
+                        <h1 style={{marginBottom: '25px'}}>All Candidates</h1>
+
+                        <div className="filters">
+                            <select className="filter-select">
+                                <option value="">All Positions</option>
+                                <option value="developer">Developer</option>
+                                <option value="designer">Designer</option>
+                                <option value="marketing">Marketing</option>
+                            </select>
+                            <select className="filter-select">
+                                <option value="">All Statuses</option>
+                                <option value="new">New</option>
+                                <option value="screening">Screening</option>
+                                <option value="interview">Interview</option>
+                                <option value="offer">Offer</option>
+                            </select>
+                            <select className="filter-select">
+                                <option value="">Sort By</option>
+                                <option value="recent">Most Recent</option>
+                                <option value="rating">Highest Rating</option>
+                                <option value="name">Name A-Z</option>
+                            </select>
+                        </div>
+
+                        <div className="card">
+                            <div id="candidatesList">
+                                {/* Candidates will be populated here */}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Recruitment Pipeline Section */}
+                    <div className="page-section" id="pipeline">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px'}}>
+                            <h1>Recruitment Pipeline</h1>
+                            <select className="filter-select" style={{width: '250px'}}>
+                                <option>All Positions</option>
+                                {jobs.slice(0, 5).map((job, idx) => (
+                                    <option key={idx}>{job.title}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="pipeline-container" id="pipelineContainer">
+                            <div className="pipeline-stage">
+                                <div className="stage-header">
+                                    <div className="stage-title">Applied</div>
+                                    <div className="stage-count">{applications.filter(a => a.status === 'pending' || a.status === 'applied').length}</div>
+                                </div>
+                                <div className="stage-candidates">
+                                    {/* Candidates will be populated here */}
+                                </div>
+                            </div>
+                            <div className="pipeline-stage">
+                                <div className="stage-header">
+                                    <div className="stage-title">Screening</div>
+                                    <div className="stage-count">{applications.filter(a => a.status === 'reviewing').length}</div>
+                                </div>
+                                <div className="stage-candidates">
+                                    {/* Candidates will be populated here */}
+                                </div>
+                            </div>
+                            <div className="pipeline-stage">
+                                <div className="stage-header">
+                                    <div className="stage-title">Interview</div>
+                                    <div className="stage-count">{applications.filter(a => a.status === 'interview' || a.status === 'interview_scheduled').length}</div>
+                                </div>
+                                <div className="stage-candidates">
+                                    {/* Candidates will be populated here */}
+                                </div>
+                            </div>
+                            <div className="pipeline-stage">
+                                <div className="stage-header">
+                                    <div className="stage-title">Offer</div>
+                                    <div className="stage-count">{applications.filter(a => a.status === 'offered').length}</div>
+                                </div>
+                                <div className="stage-candidates">
+                                    {/* Candidates will be populated here */}
+                                </div>
+                            </div>
+                            <div className="pipeline-stage">
+                                <div className="stage-header">
+                                    <div className="stage-title">Hired</div>
+                                    <div className="stage-count">{applications.filter(a => a.status === 'accepted').length}</div>
+                                </div>
+                                <div className="stage-candidates">
+                                    {/* Candidates will be populated here */}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Messages Section */}
+                    <div className="page-section" id="messages">
+                        <h1 style={{marginBottom: '25px'}}>Messages</h1>
+                        <div className="card">
+                            <div className="empty-state">
+                                <i className="fas fa-envelope"></i>
+                                <h3>Message Center</h3>
+                                <p>Communicate with candidates directly through the platform</p>
+                                <button className="btn btn-primary">Compose Message</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Calendar Section */}
+                    <div className="page-section" id="calendar">
+                        <h1 style={{marginBottom: '25px'}}>Interview Calendar</h1>
+                        <div className="card">
+                            <div className="empty-state">
+                                <i className="fas fa-calendar-alt"></i>
+                                <h3>Interview Schedule</h3>
+                                <p>Manage and schedule interviews with candidates</p>
+                                <button className="btn btn-primary">Schedule Interview</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Analytics Section */}
+                    <div className="page-section" id="analytics">
+                        <h1 style={{marginBottom: '25px'}}>Recruitment Analytics</h1>
+                        <div className="card">
+                            <div className="empty-state">
+                                <i className="fas fa-chart-bar"></i>
+                                <h3>Analytics Dashboard</h3>
+                                <p>View detailed analytics and insights about your recruitment process</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Settings Section */}
+                    <div className="page-section" id="settings">
+                        <h1 style={{marginBottom: '25px'}}>Settings</h1>
+                        <div className="card">
+                            <div className="empty-state">
+                                <i className="fas fa-cog"></i>
+                                <h3>Account Settings</h3>
+                                <p>Manage your account preferences and company information</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-          </div>
-        )}
-
-            {/* CV Browser Tab */}
-            {currentView === 'cv-browser' && (
-              <div className="cv-browser-content">
-                <div className="content-header">
-                  <h1>📄 CV Browser</h1>
-                  <p>Browse and download candidate profiles and resumes</p>
-                </div>
-                <CVBrowser />
-              </div>
-            )}
-
-            {/* Application Tracker Tab */}
-            {currentView === 'application-tracker' && (
-              <div className="application-tracker-content">
-                <div className="content-header">
-                  <h1>📝 Application Tracker</h1>
-                  <p>Monitor and manage candidate applications in real-time</p>
-                    </div>
-                <ApplicationTracker />
-                    </div>
-                  )}
-
-            {/* Analytics Tab */}
-            {currentView === 'analytics' && (
-              <div className="analytics-content">
-                <AnalyticsDashboard />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-        {/* Post Job Modal */}
-        {showPostJobModal && (
-          <PostJobModal
-            isOpen={showPostJobModal}
-            onClose={() => setShowPostJobModal(false)}
-            onJobPosted={() => {
-              // Refresh job postings
-              fetchJobPostings();
-              // Trigger success animation
-              triggerSuccessAnimation();
-            }}
-          />
-        )}
-
-        {/* Floating Action Menu */}
-        <FloatingActionMenu
-          onPostJob={() => navigate('/post-job')}
-          onAIAssist={() => console.log('AI Assist')}
-          onBulkAction={() => console.log('Bulk Action')}
-          onExport={() => console.log('Export Data')}
-        />
-      
-             {/* Productivity Tools Modals */}
-       {showInterviewScorecard && (
-         <InterviewScorecard
-           candidateId={selectedCandidate?.id}
-           jobId={selectedJob?._id}
-           onSave={handleScorecardSave}
-           onClose={closeProductivityTools}
-         />
-       )}
-       
-       {showTeamCollaboration && (
-         <TeamCollaboration
-           candidateId={selectedCandidate?.id}
-           jobId={selectedJob?._id}
-           onClose={closeProductivityTools}
-         />
-       )}
-       
-       {showOfferLetterGenerator && (
-         <OfferLetterGenerator
-           candidateId={selectedCandidate?.id}
-           jobId={selectedJob?._id}
-           candidateData={selectedCandidate}
-           onClose={closeProductivityTools}
-           onSend={handleOfferLetterSend}
-         />
-       )}
-
-       {/* Cultural Fit Assessment Modals */}
-       {showCulturalProfileBuilder && (
-         <CulturalProfileBuilder
-           onComplete={(profile) => {
-             setCandidateCulturalProfile(profile);
-             setShowCulturalProfileBuilder(false);
-           }}
-           onClose={() => setShowCulturalProfileBuilder(false)}
-         />
-       )}
-
-       {showCompanyCultureAssessment && (
-         <CompanyCultureAssessment
-           companyData={userDetails}
-           onComplete={(culture) => {
-             setCompanyCultureData(culture);
-             setShowCompanyCultureAssessment(false);
-           }}
-           onClose={() => setShowCompanyCultureAssessment(false)}
-         />
-       )}
-
-       {showCulturalFitScore && (
-         <CulturalFitScore
-           candidateProfile={candidateCulturalProfile || {
-             communication_style: 'mixed',
-             leadership_approach: 'collaborative',
-             work_environment: 'creative',
-             team_dynamics: 'cross_functional',
-             language_preference: 'bilingual'
-           }}
-           companyCulture={companyCultureData || {
-             communication_style: 'formal',
-             leadership_approach: 'hierarchical',
-             work_environment: 'stable',
-             team_dynamics: 'specialized',
-             language_policy: 'english'
-           }}
-           onClose={() => setShowCulturalFitScore(false)}
-         />
-       )}
-
-       {showDiversityAnalytics && (
-         <DiversityAnalytics
-           onClose={() => setShowDiversityAnalytics(false)}
-         />
-       )}
-
-       {/* AI Chatbot */}
-       <GeminiChatbot userType="recruiter" />
-
-      </div>
-    </div>
-    </React.Fragment>
-  );
+            </div>
+        </div>
+    );
 };
 
 export default RecruiterDashboard;
+
