@@ -8,7 +8,7 @@ import {
   faPlus, faUpload, faAward, faArrowUp, faCheckCircle,
   faQuestionCircle, faCalendarCheck, faTrash, faEdit, faGraduationCap,
   faBars, faExclamationTriangle, faUserEdit, faCode, faBuilding,
-  faLanguage, faProjectDiagram, faTrophy, faChartLine
+  faLanguage, faProjectDiagram, faTrophy, faChartLine, faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
