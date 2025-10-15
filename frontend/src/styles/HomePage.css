@@ -412,11 +412,11 @@ nav a:hover {
 }
 
 /* CTA Section */
-.cta-section {
-    background: linear-gradient(135deg, #6A8EEB 0%, #8A6AEB 100%);
-    color: white;
-    padding: 4rem 2rem;
-    text-align: center;
+.homepage .cta-section {
+    background: linear-gradient(135deg, #6A8EEB 0%, #8A6AEB 100%) !important;
+    color: white !important;
+    padding: 4rem 2rem !important;
+    text-align: center !important;
 }
 
 .cta-content {
@@ -424,18 +424,18 @@ nav a:hover {
     margin: 0 auto;
 }
 
-.cta-section h2 {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    color: white;
-    font-weight: bold;
+.homepage .cta-section h2 {
+    font-size: 2.5rem !important;
+    margin-bottom: 1rem !important;
+    color: white !important;
+    font-weight: bold !important;
 }
 
-.cta-section p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    opacity: 0.95;
-    color: white;
+.homepage .cta-section p {
+    font-size: 1.2rem !important;
+    margin-bottom: 2rem !important;
+    opacity: 0.95 !important;
+    color: white !important;
 }
 
 .btn-large {
