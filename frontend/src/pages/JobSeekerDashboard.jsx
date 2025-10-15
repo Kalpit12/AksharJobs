@@ -24,6 +24,14 @@ const JobSeekerDashboard = () => {
   const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editingSections, setEditingSections] = useState({
+    basicInfo: false,
+    summary: false,
+    experience: false,
+    skills: false,
+    education: false,
+    certifications: false
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
@@ -52,6 +60,48 @@ const JobSeekerDashboard = () => {
     profileViews: 0,
     savedJobs: 0
   });
+
+  // Calculate profile completion percentage
+  const calculateProfileCompletion = () => {
+    let completedFields = 0;
+    let totalFields = 0;
+
+    // Basic info fields
+    const basicFields = ['fullName', 'email', 'phone', 'location', 'summary', 'jobTitle', 'experience', 'industry'];
+    basicFields.forEach(field => {
+      totalFields++;
+      if (profileData[field] && profileData[field].trim() !== '') {
+        completedFields++;
+      }
+    });
+
+    // Skills (if any)
+    totalFields++;
+    if (profileData.skills && profileData.skills.length > 0) {
+      completedFields++;
+    }
+
+    // Work experience (if any)
+    totalFields++;
+    if (profileData.workExperience && profileData.workExperience.length > 0) {
+      completedFields++;
+    }
+
+    // Education (if any)
+    totalFields++;
+    if (profileData.education && profileData.education.length > 0) {
+      completedFields++;
+    }
+
+    // Resume (if any)
+    totalFields++;
+    if (profileData.resume || profileData.resumeUrl) {
+      completedFields++;
+    }
+
+    const percentage = Math.round((completedFields / totalFields) * 100);
+    return Math.min(percentage, 100);
+  };
 
   // Fetch data on component mount
   useEffect(() => {
@@ -360,6 +410,40 @@ const JobSeekerDashboard = () => {
     setActiveSection(sectionId);
   };
 
+  // Individual section editing functions
+  const toggleSectionEdit = (section) => {
+    setEditingSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  const saveSection = async (section) => {
+    try {
+      // Here you would save the specific section data to the backend
+      console.log(`Saving ${section} section:`, profileData);
+      
+      // For now, just toggle the editing state
+      setEditingSections(prev => ({
+        ...prev,
+        [section]: false
+      }));
+      
+      alert(`${section} section updated successfully!`);
+    } catch (error) {
+      console.error(`Error saving ${section} section:`, error);
+      alert(`Failed to save ${section} section. Please try again.`);
+    }
+  };
+
+  const cancelSectionEdit = (section) => {
+    setEditingSections(prev => ({
+      ...prev,
+      [section]: false
+    }));
+    // You could reload the original data here if needed
+  };
+
   // Profile editing functions
   const handleProfileEdit = () => {
     setIsEditingProfile(true);
@@ -626,25 +710,29 @@ const JobSeekerDashboard = () => {
               <div className="profile-completion-card">
                 <div className="completion-header">
                   <h3>Complete Your Profile</h3>
-                  <span className="completion-percentage">75%</span>
+                  <span className="completion-percentage">
+                    {calculateProfileCompletion()}% Complete
+                  </span>
                 </div>
                 <div className="completion-bar">
-                  <div className="completion-fill" style={{ width: '75%' }}></div>
+                  <div className="completion-fill" style={{ width: `${calculateProfileCompletion()}%` }}></div>
                 </div>
-                <p className="completion-text">Almost there! Complete your profile to get better job matches</p>
+                <p className="completion-text">
+                  {calculateProfileCompletion() < 50 ? 'Keep going! Complete your profile to get better job matches' : 
+                   calculateProfileCompletion() < 80 ? 'Almost there! Complete your profile to get better job matches' : 
+                   'Great job! Your profile is looking good'}
+                </p>
                 <div className="completion-actions">
-                  <button className="btn btn-primary">
-                    <FontAwesomeIcon icon={faPlus} />
-                    ADD SKILLS
+                  <button className="btn btn-primary" onClick={() => navigate('/jobseeker-registration')}>
+                    <FontAwesomeIcon icon={faEdit} />
+                    COMPLETE PROFILE
                   </button>
-                  <button className="btn btn-secondary">
-                    <FontAwesomeIcon icon={faUpload} />
-                    UPLOAD RESUME
-                  </button>
-                  <button className="btn btn-secondary">
-                    <FontAwesomeIcon icon={faStar} />
-                    ADD CERTIFICATIONS
-                  </button>
+                  {calculateProfileCompletion() < 100 && (
+                    <button className="btn btn-secondary" onClick={() => showSection('my-profile')}>
+                      <FontAwesomeIcon icon={faUser} />
+                      EDIT PROFILE
+                    </button>
+                  )}
                 </div>
               </div>
               
@@ -791,90 +879,262 @@ const JobSeekerDashboard = () => {
             <div className="page-section active">
               <div className="section-header">
                 <h1>My Profile</h1>
-                {!isEditingProfile ? (
-                  <button className="btn btn-primary" onClick={handleProfileEdit}>
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit Profile
-                  </button>
-                ) : (
-                  <div className="edit-actions">
-                    <button className="btn btn-success" onClick={handleProfileSave}>
-                      <FontAwesomeIcon icon={faSave} />
-                      Save Changes
-                    </button>
-                    <button className="btn btn-secondary" onClick={handleProfileCancel}>
-                      <FontAwesomeIcon icon={faTimes} />
-                      Cancel
-                    </button>
-                </div>
-                )}
-                </div>
+                <button className="btn btn-primary" onClick={() => navigate('/jobseeker-registration')}>
+                  <FontAwesomeIcon icon={faEdit} />
+                  Complete Profile
+                </button>
+              </div>
 
+              {/* Basic Information Section */}
               <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3>Basic Information</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('basicInfo')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
                 <div className="profile-header">
                   <div className="profile-photo">
-                    <div className="photo-placeholder">JS</div>
-              </div>
+                    <div className="photo-placeholder">
+                      {profileData.fullName ? profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'JS'}
+                    </div>
+                  </div>
                   <div className="profile-info">
-                    {isEditingProfile ? (
-                      <input 
-                        type="text" 
-                        value={profileData.fullName}
-                        onChange={(e) => handleInputChange('fullName', e.target.value)}
-                        className="profile-input"
-                      />
+                    {editingSections.basicInfo ? (
+                      <>
+                        <input 
+                          type="text" 
+                          value={profileData.fullName}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
+                          className="profile-input"
+                          placeholder="Full Name"
+                        />
+                        <input 
+                          type="text" 
+                          value={profileData.jobTitle}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, jobTitle: e.target.value }))}
+                          className="profile-input"
+                          placeholder="Job Title"
+                        />
+                        <div className="edit-actions">
+                          <button className="btn btn-sm btn-success" onClick={() => saveSection('basicInfo')}>
+                            <FontAwesomeIcon icon={faSave} /> Save
+                          </button>
+                          <button className="btn btn-sm btn-secondary" onClick={() => cancelSectionEdit('basicInfo')}>
+                            <FontAwesomeIcon icon={faTimes} /> Cancel
+                          </button>
+                        </div>
+                      </>
                     ) : (
-                      <h2>{profileData.fullName}</h2>
+                      <>
+                        <h2>{profileData.fullName || 'Not provided'}</h2>
+                        <p className="job-title">{profileData.jobTitle || 'Job Seeker'}</p>
+                        <div className="profile-meta">
+                          <span><FontAwesomeIcon icon={faMail} /> {profileData.email || 'Not provided'}</span>
+                          <span><FontAwesomeIcon icon={faPhone} /> {profileData.phone || 'Not provided'}</span>
+                          <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.location || 'Not provided'}</span>
+                        </div>
+                      </>
                     )}
-                    {isEditingProfile ? (
-                      <input 
-                        type="text" 
-                        value={profileData.jobTitle}
-                        onChange={(e) => handleInputChange('jobTitle', e.target.value)}
-                        className="profile-input"
-                      />
-                    ) : (
-                      <p className="job-title">{profileData.jobTitle}</p>
-                    )}
-                    <div className="profile-meta">
-                      <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.location}</span>
-                      <span><FontAwesomeIcon icon={faMail} /> {profileData.email}</span>
-                      <span><FontAwesomeIcon icon={faPhone} /> {profileData.phone}</span>
-            </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="profile-section">
+              {/* Professional Summary Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
                   <h3>Professional Summary</h3>
-                  {isEditingProfile ? (
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('summary')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {editingSections.summary ? (
+                  <div className="edit-section">
                     <textarea 
                       value={profileData.summary}
-                      onChange={(e) => handleInputChange('summary', e.target.value)}
+                      onChange={(e) => setProfileData(prev => ({ ...prev, summary: e.target.value }))}
                       className="profile-textarea"
                       rows="4"
+                      placeholder="Tell us about yourself, your experience, and what you're looking for..."
                     />
-                  ) : (
-                    <p>{profileData.summary}</p>
-                  )}
-                </div>
+                    <div className="edit-actions">
+                      <button className="btn btn-sm btn-success" onClick={() => saveSection('summary')}>
+                        <FontAwesomeIcon icon={faSave} /> Save
+                      </button>
+                      <button className="btn btn-sm btn-secondary" onClick={() => cancelSectionEdit('summary')}>
+                        <FontAwesomeIcon icon={faTimes} /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="summary-text">
+                    {profileData.summary || 'Complete your profile to get better job matches. Add a professional summary to showcase your experience and goals.'}
+                  </p>
+                )}
+              </div>
 
-                <div className="profile-section">
+              {/* Experience & Skills Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
                   <h3>Experience & Skills</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('experience')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {editingSections.experience ? (
+                  <div className="edit-section">
+                    <div className="form-grid">
+                      <div className="form-group">
+                        <label>Years of Experience</label>
+                        <input 
+                          type="text" 
+                          value={profileData.experience}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, experience: e.target.value }))}
+                          className="form-input"
+                          placeholder="e.g., 3-5 years"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Industry</label>
+                        <input 
+                          type="text" 
+                          value={profileData.industry}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, industry: e.target.value }))}
+                          className="form-input"
+                          placeholder="e.g., Technology, Healthcare"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Availability</label>
+                        <select 
+                          value={profileData.availability}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, availability: e.target.value }))}
+                          className="form-input"
+                        >
+                          <option value="Available Immediately">Available Immediately</option>
+                          <option value="Available in 2 weeks">Available in 2 weeks</option>
+                          <option value="Available in 1 month">Available in 1 month</option>
+                          <option value="Open to opportunities">Open to opportunities</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="edit-actions">
+                      <button className="btn btn-sm btn-success" onClick={() => saveSection('experience')}>
+                        <FontAwesomeIcon icon={faSave} /> Save
+                      </button>
+                      <button className="btn btn-sm btn-secondary" onClick={() => cancelSectionEdit('experience')}>
+                        <FontAwesomeIcon icon={faTimes} /> Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                   <div className="skills-grid">
                     <div className="skill-item">
                       <span className="skill-label">Experience</span>
-                      <span className="skill-value">{profileData.experience}</span>
-                </div>
+                      <span className="skill-value">{profileData.experience || 'Not specified'}</span>
+                    </div>
                     <div className="skill-item">
                       <span className="skill-label">Industry</span>
-                      <span className="skill-value">{profileData.industry}</span>
+                      <span className="skill-value">{profileData.industry || 'Not specified'}</span>
                     </div>
                     <div className="skill-item">
                       <span className="skill-label">Availability</span>
-                      <span className="skill-value">{profileData.availability}</span>
+                      <span className="skill-value">{profileData.availability || 'Not specified'}</span>
                     </div>
                   </div>
+                )}
+              </div>
+
+              {/* Skills Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3>Skills</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('skills')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
                 </div>
+                
+                <div className="skills-list">
+                  {profileData.skills && profileData.skills.length > 0 ? (
+                    profileData.skills.map((skill, index) => (
+                      <span key={index} className="skill-tag">{skill}</span>
+                    ))
+                  ) : (
+                    <p className="empty-message">No skills added yet. Click Edit to add your skills.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Work Experience Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3>Work Experience</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('experience')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {profileData.workExperience && profileData.workExperience.length > 0 ? (
+                  profileData.workExperience.map((exp, index) => (
+                    <div key={index} className="experience-item">
+                      <h4>{exp.title}</h4>
+                      <p className="company">{exp.company}</p>
+                      <p className="duration">{exp.duration}</p>
+                      <p>{exp.description}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No work experience added yet. Click Edit to add your experience.</p>
+                )}
+              </div>
+
+              {/* Education Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3>Education</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('education')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {profileData.education && profileData.education.length > 0 ? (
+                  profileData.education.map((edu, index) => (
+                    <div key={index} className="education-item">
+                      <h4>{edu.degree}</h4>
+                      <p className="institution">{edu.institution}</p>
+                      <p className="duration">{edu.duration}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No education information added yet. Click Edit to add your education.</p>
+                )}
               </div>
             </div>
           )}
