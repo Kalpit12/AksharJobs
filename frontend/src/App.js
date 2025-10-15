@@ -16,7 +16,7 @@ import InternDashboard from "./pages/InternDashboardComplete";
 import ModernJobDetails from "./pages/ModernJobDetails";
 import JobListing from "./pages/JobListing";
 import JobSearch from "./pages/JobSearch";
-import Home from "./pages/Home";
+import HomePage from "./pages/HomePage";
 import PublicJobs from "./pages/PublicJobs";
 import AllJobs from "./pages/AllJobs";
 
@@ -137,7 +137,7 @@ function App() {
             <div className="app-container">
           <Routes>
             {/* Public routes without Header */}
-            <Route path="/" element={<Home/>}/>
+            <Route path="/" element={<HomePage/>}/>
             <Route path="/public-jobs" element={
               <>
                 <PublicJobs />
