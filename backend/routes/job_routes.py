@@ -6,6 +6,7 @@ from models.job_model import jobs_collection
 from datetime import datetime
 from utils.db import get_db
 import json
+import random
 
 job_routes = Blueprint("job_routes", __name__)
 
