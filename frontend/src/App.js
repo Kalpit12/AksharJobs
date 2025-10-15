@@ -340,10 +340,7 @@ function App() {
              {/* Job Seeker-only routes */}
              <Route path="/jobseeker-dashboard" element={
                <ProtectedRoute requiredRole="jobSeeker">
-                 <>
-                   <JobSeekerDashboard />
-                   <Footer />
-                 </>
+                 <JobSeekerDashboard />
                </ProtectedRoute>
              } />
              
