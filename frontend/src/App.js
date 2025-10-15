@@ -182,6 +182,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/jobseeker-registration" element={<JobSeekerRegistrationForm />} />
+            <Route path="/complete-profile" element={<JobSeekerRegistrationForm />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />

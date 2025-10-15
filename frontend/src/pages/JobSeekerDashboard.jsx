@@ -106,8 +106,8 @@ const JobSeekerDashboard = () => {
   // Fetch data on component mount
   useEffect(() => {
     const fetchDashboardData = async () => {
-      if (!user || !user._id) {
-        console.log('No user or user ID found:', { user, userId: user?._id });
+      if (!user || !user.userId) {
+        console.log('No user or user ID found:', { user, userId: user?.userId });
         setLoading(false);
         return;
       }
@@ -116,7 +116,7 @@ const JobSeekerDashboard = () => {
       setError(null);
       
       try {
-        console.log('Starting to fetch dashboard data for user:', user._id);
+        console.log('Starting to fetch dashboard data for user:', user.userId);
         
         // Fetch all dashboard data in parallel
         const [
@@ -547,6 +547,9 @@ const JobSeekerDashboard = () => {
     }
   };
 
+  // Calculate profile completion percentage once
+  const profileCompletionPercentage = calculateProfileCompletion();
+
   // Show loading state
   if (loading) {
     return (
@@ -723,12 +726,12 @@ const JobSeekerDashboard = () => {
                    'Great job! Your profile is looking good'}
                 </p>
                 <div className="completion-actions">
-                  <button className="btn btn-primary" onClick={() => navigate('/jobseeker-registration')}>
+                  <button className="btn btn-primary" onClick={() => navigate('/complete-profile')}>
                     <FontAwesomeIcon icon={faEdit} />
                     COMPLETE PROFILE
                   </button>
                   {calculateProfileCompletion() < 100 && (
-                    <button className="btn btn-secondary" onClick={() => showSection('my-profile')}>
+                    <button className="btn btn-secondary" onClick={() => showSection('profile')}>
                       <FontAwesomeIcon icon={faUser} />
                       EDIT PROFILE
                     </button>
@@ -879,7 +882,7 @@ const JobSeekerDashboard = () => {
             <div className="page-section active">
               <div className="section-header">
                 <h1>My Profile</h1>
-                <button className="btn btn-primary" onClick={() => navigate('/jobseeker-registration')}>
+                <button className="btn btn-primary" onClick={() => navigate('/complete-profile')}>
                   <FontAwesomeIcon icon={faEdit} />
                   Complete Profile
                 </button>
