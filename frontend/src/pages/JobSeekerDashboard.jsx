@@ -163,7 +163,7 @@ const JobSeekerDashboard = () => {
       // Process profile views
       if (profileViewsResult.status === 'fulfilled') {
         const views = profileViewsResult.value;
-        setDashboardStats(prev => ({ ...prev, profileViews: views.count || views || 0 }));
+        setDashboardStats(prev => ({ ...prev, profileViews: Array.isArray(views) ? views.length : 0 }));
       }
 
       setLoading(false);
