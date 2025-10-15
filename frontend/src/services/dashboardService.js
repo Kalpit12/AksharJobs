@@ -410,6 +410,25 @@ class DashboardService {
       throw error;
     }
   }
+
+  async updateProfile(profileData) {
+    try {
+      const response = await fetch(`${this.baseURL}/profile/update`, {
+        method: 'PUT',
+        headers: this.getHeaders(),
+        body: JSON.stringify(profileData)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  }
 }
 
 // Create and export a singleton instance
