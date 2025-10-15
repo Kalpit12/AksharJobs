@@ -193,15 +193,25 @@ nav a:hover {
     text-align: center;
 }
 
+.stat-item {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+}
+
 .stat-item h3 {
     font-size: 2.5rem;
-    color: #66BB6A;
+    color: #4CAF50;
     margin-bottom: 0.5rem;
+    font-weight: bold;
 }
 
 .stat-item p {
-    color: #666;
+    color: #333;
     font-size: 1.1rem;
+    font-weight: normal;
 }
 
 /* Categories */
