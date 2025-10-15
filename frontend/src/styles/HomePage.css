@@ -199,6 +199,16 @@ nav a:hover {
     box-shadow: none;
     padding: 0;
     margin: 0;
+    border-left: none;
+    position: relative;
+}
+
+.stat-item::before {
+    display: none;
+}
+
+.stat-item::after {
+    display: none;
 }
 
 .stat-item h3 {
