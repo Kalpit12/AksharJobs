@@ -8,9 +8,10 @@ class DashboardService {
   // Get authentication headers
   getHeaders() {
     const token = localStorage.getItem('token');
+    console.log('Getting headers with token:', token ? 'Token exists' : 'No token');
     return {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      ...(token && { 'Authorization': `Bearer ${token}` })
     };
   }
 
@@ -71,16 +72,23 @@ class DashboardService {
 
   async getJobSeekerProfile() {
     try {
+      console.log('Fetching profile from:', `${this.baseURL}/profile`);
       const response = await fetch(`${this.baseURL}/profile`, {
         method: 'GET',
         headers: this.getHeaders()
       });
       
+      console.log('Profile response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Profile fetch error:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      console.log('Profile data received:', data);
+      return data;
     } catch (error) {
       console.error('Error fetching profile:', error);
       throw error;
