@@ -11,12 +11,9 @@ import {
   faExternalLinkAlt, faArrowUp, faArrowDown, faFilter, faSort,
   faCopy, faShare, faMapMarkerAlt, faDollarSign, faLayerGroup,
   faClock, faGraduationCap, faCode, faBuilding, faLanguage,
-  faLink, faGlobe, faTwitter, faGithub, faLinkedin, faSpinner,
-  faPassport, faMapMarkedAlt, faLightbulb, faCertificate as faCert,
-  faTasks, faUserCheck, faSlidersH, faInfoCircle as faInfo,
-  faHeart, faQuestionCircle, faUsers
+  faLink, faGlobe, faQuestionCircle, faFileWord, faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
-import { faLinkedin as fabLinkedin, faGithub as fabGithub, faTwitter as fabTwitter } from '@fortawesome/free-brands-svg-icons';
+import { faLinkedin, faGithub, faTwitter } from '@fortawesome/free-brands-svg-icons';
 import dashboardService from '../services/dashboardService';
 import '../styles/JobSeekerDashboard.css';
 
@@ -25,16 +22,23 @@ const JobSeekerDashboard = () => {
   const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  
+  // Profile Data
   const [profileData, setProfileData] = useState({
-    fullName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'Loading...',
-    email: user?.email || 'Loading...',
+    fullName: '',
+    email: '',
     phone: '',
+    dob: '',
     location: '',
+    nationality: '',
+    summary: '',
     jobTitle: '',
     experience: '',
     industry: '',
-    summary: '',
+    salary: '',
+    jobType: '',
+    availability: '',
     skills: [],
     softSkills: [],
     workExperience: [],
@@ -43,18 +47,26 @@ const JobSeekerDashboard = () => {
     languages: [],
     socialLinks: []
   });
-  const [dashboardData, setDashboardData] = useState({
-    applications: 12,
-    interviews: 3,
-    profileViews: 142,
-    savedJobs: 8,
-    profileCompletion: 75
+
+  // Dashboard Stats
+  const [dashboardStats, setDashboardStats] = useState({
+    applications: 0,
+    interviews: 0,
+    profileViews: 0,
+    savedJobs: 0,
+    profileCompletion: 0
   });
+
+  // Data States
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
   const [interviews, setInterviews] = useState([]);
   const [messages, setMessages] = useState([]);
+  const [resumes, setResumes] = useState([]);
 
+  // Fetch all dashboard data
   useEffect(() => {
     if (user?.userId) {
       fetchDashboardData();
@@ -64,7 +76,7 @@ const JobSeekerDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      console.log('Starting to fetch dashboard data for user:', user.userId);
+      console.log('Fetching dashboard data for user:', user.userId);
 
       const [
         profileResult,
@@ -84,397 +96,213 @@ const JobSeekerDashboard = () => {
         dashboardService.getProfileViews()
       ]);
 
-      // Handle profile data
+      // Process profile data
       if (profileResult.status === 'fulfilled') {
         const profile = profileResult.value;
         setProfileData({
-          fullName: profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'User',
+          fullName: profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || user?.firstName + ' ' + user?.lastName || 'User',
           email: profile.email || user?.email || '',
           phone: profile.phone || '',
+          dob: profile.dateOfBirth || '',
           location: profile.location || profile.currentCity || '',
+          nationality: profile.nationality || '',
+          summary: profile.summary || profile.professionalSummary || '',
           jobTitle: profile.professionalTitle || profile.currentJobTitle || '',
           experience: profile.yearsExperience || profile.yearsOfExperience || '',
           industry: profile.industry || '',
-          summary: profile.summary || profile.professionalSummary || '',
+          salary: profile.expectedSalary || '',
+          jobType: profile.jobTypePreference || '',
+          availability: profile.availability || '',
           skills: profile.skills || [],
           softSkills: profile.softSkills || [],
-          workExperience: profile.workExperience || profile.experience || [],
+          workExperience: profile.workExperience || [],
           education: profile.education || [],
           certifications: profile.certifications || [],
           languages: profile.languages || [],
-          socialLinks: profile.socialLinks || profile.professionalLinks || []
+          socialLinks: profile.socialLinks || []
         });
-        console.log('Profile data loaded successfully');
-      } else {
-        console.log('Profile fetch failed:', profileResult.reason);
-        // Use basic user data from auth context
-        setProfileData(prev => ({
-          ...prev,
-          fullName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'User',
-          email: user?.email || ''
-        }));
+
+        // Calculate profile completion
+        const completionPercentage = calculateProfileCompletion(profile);
+        setDashboardStats(prev => ({ ...prev, profileCompletion: completionPercentage }));
       }
 
-      // Handle applications data
+      // Process applications
       if (applicationsResult.status === 'fulfilled') {
-        setApplications(applicationsResult.value);
-        setDashboardData(prev => ({ ...prev, applications: applicationsResult.value.length }));
-        console.log('Applications data loaded successfully');
-      } else {
-        console.log('Applications fetch failed:', applicationsResult.reason);
+        const apps = applicationsResult.value;
+        setApplications(Array.isArray(apps) ? apps : []);
+        setDashboardStats(prev => ({ ...prev, applications: Array.isArray(apps) ? apps.length : 0 }));
       }
 
-      // Handle jobs data
+      // Process jobs
       if (jobsResult.status === 'fulfilled') {
-        setJobs(jobsResult.value);
-        console.log('Jobs data loaded successfully');
-      } else {
-        console.log('Jobs fetch failed:', jobsResult.reason);
+        const jobsData = jobsResult.value;
+        setJobs(Array.isArray(jobsData) ? jobsData : []);
       }
 
-      // Handle saved jobs data
+      // Process saved jobs
       if (savedJobsResult.status === 'fulfilled') {
-        setDashboardData(prev => ({ ...prev, savedJobs: savedJobsResult.value.length }));
-        console.log('Saved jobs data loaded successfully');
-      } else {
-        console.log('Saved jobs fetch failed:', savedJobsResult.reason);
+        const saved = savedJobsResult.value;
+        setSavedJobs(Array.isArray(saved) ? saved : []);
+        setDashboardStats(prev => ({ ...prev, savedJobs: Array.isArray(saved) ? saved.length : 0 }));
       }
 
-      // Handle recommended jobs data
+      // Process recommended jobs
       if (recommendedJobsResult.status === 'fulfilled') {
-        console.log('Recommended jobs data loaded successfully');
-      } else {
-        console.log('Recommended jobs fetch failed:', recommendedJobsResult.reason);
+        const recommended = recommendedJobsResult.value;
+        setRecommendedJobs(Array.isArray(recommended) ? recommended : []);
       }
 
-      // Handle interviews data
+      // Process interviews
       if (interviewsResult.status === 'fulfilled') {
-        setInterviews(interviewsResult.value);
-        setDashboardData(prev => ({ ...prev, interviews: interviewsResult.value.length }));
-        console.log('Interviews data loaded successfully');
-      } else {
-        console.log('Interviews fetch failed:', interviewsResult.reason);
+        const interviewData = interviewsResult.value;
+        setInterviews(Array.isArray(interviewData) ? interviewData : []);
+        setDashboardStats(prev => ({ ...prev, interviews: Array.isArray(interviewData) ? interviewData.length : 0 }));
       }
 
-      // Handle profile views data
+      // Process profile views
       if (profileViewsResult.status === 'fulfilled') {
-        setDashboardData(prev => ({ ...prev, profileViews: profileViewsResult.value.views || 142 }));
-        console.log('Profile views data loaded successfully');
-      } else {
-        console.log('Profile views fetch failed:', profileViewsResult.reason);
+        const views = profileViewsResult.value;
+        setDashboardStats(prev => ({ ...prev, profileViews: views.count || views || 0 }));
       }
 
-      // Set timeout to show dashboard even if some APIs fail
-      setTimeout(() => {
-        setLoading(false);
-        console.log('Dashboard loading timeout reached - showing dashboard with fallback data');
-      }, 3000);
-
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
-      setError(error.message);
       setLoading(false);
     }
   };
 
-  const showSection = (sectionId) => {
-    setActiveSection(sectionId);
+  const calculateProfileCompletion = (profile) => {
+    const fields = [
+      profile.fullName || profile.firstName,
+      profile.email,
+      profile.phone,
+      profile.location,
+      profile.summary,
+      profile.professionalTitle || profile.currentJobTitle,
+      profile.yearsExperience,
+      profile.skills?.length > 0,
+      profile.education?.length > 0,
+      profile.workExperience?.length > 0
+    ];
+    const filledFields = fields.filter(field => field).length;
+    return Math.round((filledFields / fields.length) * 100);
   };
 
-  const handleCompleteProfile = () => {
-    navigate('/complete-profile');
+  const toggleProfileEdit = () => {
+    setIsEditingProfile(!isEditingProfile);
   };
 
-  const handleEditProfile = () => {
-    setActiveSection('profile');
+  const saveProfile = async () => {
+    try {
+      await dashboardService.updateProfile(profileData);
+      alert('Profile saved successfully!');
+      setIsEditingProfile(false);
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    }
   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
+  const cancelProfileEdit = () => {
+    setIsEditingProfile(false);
+    fetchDashboardData(); // Reload original data
   };
 
-  const sampleJobs = [
-    {
-      id: 1,
-      title: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      logo: 'TC',
-      location: 'Nairobi, Kenya',
-      type: 'Full-time',
-      experience: 'Senior Level',
-      salary: '$60,000 - $80,000',
-      posted: '2 days ago',
-      skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
-      featured: true
-    },
-    {
-      id: 2,
-      title: 'Product Manager',
-      company: 'Innovation Labs',
-      logo: 'IL',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: 'Mid Level',
-      salary: '$70,000 - $90,000',
-      posted: '1 week ago',
-      skills: ['Product Strategy', 'Agile', 'Leadership'],
-      featured: false
-    },
-    {
-      id: 3,
-      title: 'UX/UI Designer',
-      company: 'Design Studio',
-      logo: 'DS',
-      location: 'London, UK',
-      type: 'Contract',
-      experience: 'Mid Level',
-      salary: '$50,000 - $65,000',
-      posted: '3 days ago',
-      skills: ['Figma', 'User Research', 'Prototyping'],
-      featured: true
+  const toggleSwitch = (e) => {
+    e.target.classList.toggle('active');
+  };
+
+  const getUserInitials = () => {
+    if (profileData.fullName) {
+      return profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
     }
-  ];
+    return 'JS';
+  };
 
-  const sampleApplications = [
-    {
-      id: 1,
-      jobTitle: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      location: 'Nairobi, Kenya',
-      appliedDaysAgo: '5 days ago',
-      status: 'reviewing'
-    },
-    {
-      id: 2,
-      jobTitle: 'Product Manager',
-      company: 'Innovation Labs',
-      location: 'Remote',
-      appliedDaysAgo: '10 days ago',
-      status: 'interview'
-    },
-    {
-      id: 3,
-      jobTitle: 'UX/UI Designer',
-      company: 'Design Studio',
-      location: 'London, UK',
-      appliedDaysAgo: '2 days ago',
-      status: 'applied'
-    }
-  ];
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
-  const sampleInterviews = [
-    {
-      id: 1,
-      jobTitle: 'Product Manager',
-      company: 'Innovation Labs',
-      date: '2024-01-21',
-      time: '2:00 PM',
-      type: 'Video Interview',
-      interviewer: 'Sarah Johnson',
-      day: '21',
-      month: 'JAN'
-    },
-    {
-      id: 2,
-      jobTitle: 'Marketing Manager',
-      company: 'Growth Ventures',
-      date: '2024-01-23',
-      time: '10:00 AM',
-      type: 'In-person',
-      interviewer: 'Michael Chen',
-      day: '23',
-      month: 'JAN'
-    }
-  ];
-
-  const sampleMessages = [
-    {
-      id: 1,
-      sender: 'TechCorp Inc.',
-      avatar: 'TC',
-      time: '2 hours ago',
-      preview: 'Your application for Senior Full Stack Developer has been reviewed. We\'d like to schedule an interview...',
-      unread: true
-    },
-    {
-      id: 2,
-      sender: 'Innovation Labs',
-      avatar: 'IL',
-      time: '1 day ago',
-      preview: 'Thank you for your interest in the Product Manager position. We have a few questions...',
-      unread: true
-    },
-    {
-      id: 3,
-      sender: 'Design Studio',
-      avatar: 'DS',
-      time: '3 days ago',
-      preview: 'We received your application for UX/UI Designer. Our team is currently reviewing...',
-      unread: false
-    }
-  ];
-
-  const createJobCard = (job) => (
-    <div key={job.id} className="job-card">
-      <div className="job-header">
-        <div style={{ display: 'flex', flex: 1 }}>
-          <div className="company-logo">{job.logo}</div>
-          <div className="job-info">
-            <h3>{job.title}</h3>
-            <div className="job-company">{job.company}</div>
-            <div className="job-meta">
-              <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
-              <span><FontAwesomeIcon icon={faBriefcase} /> {job.type}</span>
-              <span><FontAwesomeIcon icon={faLayerGroup} /> {job.experience}</span>
-              <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
-            </div>
-          </div>
-        </div>
-        <div className="job-actions">
-          <button className="btn btn-secondary btn-sm">
-            <FontAwesomeIcon icon={faBookmark} />
-          </button>
-        </div>
-      </div>
-      <div className="job-tags">
-        {job.featured && <span className="tag featured"><FontAwesomeIcon icon={faStar} /> Featured</span>}
-        {job.skills.map((skill, index) => (
-          <span key={index} className="tag">{skill}</span>
-        ))}
-        <span className="tag" style={{ marginLeft: 'auto', color: '#999' }}>
-          <FontAwesomeIcon icon={faClock} /> {job.posted}
-        </span>
-      </div>
-      <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-        <button className="btn btn-primary btn-sm">
-          <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
-        </button>
-        <button className="btn btn-secondary btn-sm">
-          <FontAwesomeIcon icon={faEye} /> View Details
-        </button>
-      </div>
-    </div>
-  );
-
-  const createApplicationRow = (app) => (
-    <tr key={app.id}>
-      <td><strong>{app.jobTitle}</strong></td>
-      <td>{app.company}</td>
-      <td>{app.location}</td>
-      <td>{app.appliedDaysAgo}</td>
-      <td><span className={`status-badge status-${app.status}`}>{app.status}</span></td>
-      <td>
-        <button className="btn btn-secondary btn-sm">View</button>
-      </td>
-    </tr>
-  );
-
-  const createInterviewCard = (interview) => (
-    <div key={interview.id} className="interview-card">
-      <div className="interview-header">
-        <div style={{ flex: 1 }}>
-          <h4 style={{ marginBottom: '5px' }}>{interview.jobTitle}</h4>
-          <p style={{ color: '#666', fontSize: '13px', marginBottom: '8px' }}>{interview.company}</p>
-          <div style={{ fontSize: '13px', color: '#666' }}>
-            <div><FontAwesomeIcon icon={faClock} /> {interview.time}</div>
-            <div style={{ marginTop: '5px' }}><FontAwesomeIcon icon={faVideo} /> {interview.type}</div>
-          </div>
-        </div>
-        <div className="interview-date">
-          <div className="day">{interview.day}</div>
-          <div className="month">{interview.month}</div>
-        </div>
-      </div>
-      <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: '10px' }}>
-        <FontAwesomeIcon icon={faCalendar} /> View Details
-      </button>
-    </div>
-  );
-
-  const createMessageItem = (message) => (
-    <div key={message.id} className={`message-item ${message.unread ? 'unread' : ''}`}>
-      <div className="message-avatar">{message.avatar}</div>
-      <div className="message-content">
-        <div className="message-header">
-          <span className="message-sender">{message.sender}</span>
-          <span className="message-time">{message.time}</span>
-        </div>
-        <div className="message-preview">{message.preview}</div>
-      </div>
-    </div>
-  );
+  const getStatusClass = (status) => {
+    const statusMap = {
+      'applied': 'status-applied',
+      'reviewing': 'status-reviewing',
+      'interview': 'status-interview',
+      'offered': 'status-offered',
+      'rejected': 'status-rejected'
+    };
+    return statusMap[status?.toLowerCase()] || 'status-applied';
+  };
 
   if (loading) {
     return (
-      <div className="jobseeker-dashboard">
-        <div className="loading">
-          <FontAwesomeIcon icon={faSpinner} size="2x" />
-          <span style={{ marginLeft: '10px' }}>Loading Dashboard...</span>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <FontAwesomeIcon icon={faClock} spin size="3x" color="#667eea" />
       </div>
     );
   }
 
   return (
-    <div className="jobseeker-dashboard">
+    <>
       {/* Sidebar */}
-      <div className="sidebar">
+      <div className="sidebar" id="sidebar">
         <div className="sidebar-header">
-          <h2>
-            <FontAwesomeIcon icon={faBriefcase} />
-            JobPortal
-          </h2>
+          <h2><FontAwesomeIcon icon={faBriefcase} /> JobPortal</h2>
           <p>Your Career Journey</p>
         </div>
         <div className="nav-menu">
-          <div className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => showSection('dashboard')}>
+          <div className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => setActiveSection('dashboard')}>
             <FontAwesomeIcon icon={faThLarge} />
             <span>Dashboard</span>
           </div>
-          <div className={`nav-item ${activeSection === 'jobs' ? 'active' : ''}`} onClick={() => showSection('jobs')}>
+          <div className={`nav-item ${activeSection === 'jobs' ? 'active' : ''}`} onClick={() => setActiveSection('jobs')}>
             <FontAwesomeIcon icon={faSearch} />
             <span>Browse Jobs</span>
             <span className="badge success">NEW</span>
           </div>
-          <div className={`nav-item ${activeSection === 'applications' ? 'active' : ''}`} onClick={() => showSection('applications')}>
+          <div className={`nav-item ${activeSection === 'applications' ? 'active' : ''}`} onClick={() => setActiveSection('applications')}>
             <FontAwesomeIcon icon={faFileAlt} />
             <span>My Applications</span>
-            <span className="badge">{dashboardData.applications}</span>
+            {dashboardStats.applications > 0 && <span className="badge">{dashboardStats.applications}</span>}
           </div>
-          <div className={`nav-item ${activeSection === 'saved' ? 'active' : ''}`} onClick={() => showSection('saved')}>
+          <div className={`nav-item ${activeSection === 'saved' ? 'active' : ''}`} onClick={() => setActiveSection('saved')}>
             <FontAwesomeIcon icon={faBookmark} />
             <span>Saved Jobs</span>
-            <span className="badge">{dashboardData.savedJobs}</span>
+            {dashboardStats.savedJobs > 0 && <span className="badge">{dashboardStats.savedJobs}</span>}
           </div>
-          <div className={`nav-item ${activeSection === 'interviews' ? 'active' : ''}`} onClick={() => showSection('interviews')}>
+          <div className={`nav-item ${activeSection === 'interviews' ? 'active' : ''}`} onClick={() => setActiveSection('interviews')}>
             <FontAwesomeIcon icon={faCalendarCheck} />
             <span>Interviews</span>
-            <span className="badge">{dashboardData.interviews}</span>
+            {dashboardStats.interviews > 0 && <span className="badge">{dashboardStats.interviews}</span>}
           </div>
-          <div className={`nav-item ${activeSection === 'matches' ? 'active' : ''}`} onClick={() => showSection('matches')}>
+          <div className={`nav-item ${activeSection === 'matches' ? 'active' : ''}`} onClick={() => setActiveSection('matches')}>
             <FontAwesomeIcon icon={faStar} />
             <span>Recommended</span>
-            <span className="badge">15</span>
+            {recommendedJobs.length > 0 && <span className="badge">{recommendedJobs.length}</span>}
           </div>
-          <div className={`nav-item ${activeSection === 'messages' ? 'active' : ''}`} onClick={() => showSection('messages')}>
+          <div className={`nav-item ${activeSection === 'messages' ? 'active' : ''}`} onClick={() => setActiveSection('messages')}>
             <FontAwesomeIcon icon={faEnvelope} />
             <span>Messages</span>
-            <span className="badge">5</span>
+            {messages.length > 0 && <span className="badge">{messages.length}</span>}
           </div>
-          <div className={`nav-item ${activeSection === 'profile' ? 'active' : ''}`} onClick={() => showSection('profile')}>
+          <div className={`nav-item ${activeSection === 'profile' ? 'active' : ''}`} onClick={() => setActiveSection('profile')}>
             <FontAwesomeIcon icon={faUser} />
             <span>My Profile</span>
           </div>
-          <div className={`nav-item ${activeSection === 'resume' ? 'active' : ''}`} onClick={() => showSection('resume')}>
+          <div className={`nav-item ${activeSection === 'resume' ? 'active' : ''}`} onClick={() => setActiveSection('resume')}>
             <FontAwesomeIcon icon={faFilePdf} />
             <span>Resume/CV</span>
           </div>
-          <div className={`nav-item ${activeSection === 'resources' ? 'active' : ''}`} onClick={() => showSection('resources')}>
+          <div className={`nav-item ${activeSection === 'resources' ? 'active' : ''}`} onClick={() => setActiveSection('resources')}>
             <FontAwesomeIcon icon={faBook} />
             <span>Career Resources</span>
           </div>
-          <div className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`} onClick={() => showSection('settings')}>
+          <div className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`} onClick={() => setActiveSection('settings')}>
             <FontAwesomeIcon icon={faCog} />
             <span>Settings</span>
           </div>
@@ -497,11 +325,11 @@ const JobSeekerDashboard = () => {
             <button className="icon-btn">
               <FontAwesomeIcon icon={faQuestionCircle} />
             </button>
-            <div className="user-profile" onClick={() => showSection('profile')}>
-              <div className="user-avatar">JS</div>
+            <div className="user-profile" onClick={() => setActiveSection('profile')}>
+              <div className="user-avatar">{getUserInitials()}</div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>John Smith</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>Software Engineer</div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>{profileData.fullName || 'User'}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>{profileData.jobTitle || 'Job Seeker'}</div>
               </div>
             </div>
           </div>
@@ -510,654 +338,1055 @@ const JobSeekerDashboard = () => {
         {/* Content Area */}
         <div className="content-area">
           {/* Dashboard Section */}
-          {activeSection === 'dashboard' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Welcome back, John! 👋</h1>
+          <div className={`page-section ${activeSection === 'dashboard' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Welcome back, {profileData.fullName?.split(' ')[0] || 'there'}! 👋</h1>
 
-              {/* Profile Completion */}
-              <div className="profile-completion">
-                <div className="completion-header">
+            {/* Profile Completion */}
+            <div className="profile-completion">
+              <div className="completion-header">
+                <div>
+                  <h3 style={{ marginBottom: '5px' }}>Complete Your Profile</h3>
+                  <p style={{ opacity: 0.9, fontSize: '14px' }}>{dashboardStats.profileCompletion}% Complete - {dashboardStats.profileCompletion >= 75 ? 'Almost there!' : 'Keep going!'}</p>
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 700 }}>{dashboardStats.profileCompletion}%</div>
+              </div>
+              <div className="completion-bar">
+                <div className="completion-fill" style={{ width: `${dashboardStats.profileCompletion}%` }}></div>
+              </div>
+              <div className="completion-actions">
+                <button className="btn" onClick={() => setActiveSection('profile')}>
+                  <FontAwesomeIcon icon={faPlus} /> Add Skills
+                </button>
+                <button className="btn" onClick={() => setActiveSection('resume')}>
+                  <FontAwesomeIcon icon={faUpload} /> Upload Resume
+                </button>
+                <button className="btn" onClick={() => setActiveSection('profile')}>
+                  <FontAwesomeIcon icon={faCertificate} /> Add Certifications
+                </button>
+              </div>
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-header">
                   <div>
-                    <h3 style={{ marginBottom: '5px' }}>Complete Your Profile</h3>
-                    <p style={{ opacity: 0.9, fontSize: '14px' }}>{dashboardData.profileCompletion}% Complete - Almost there!</p>
+                    <div className="stat-number">{dashboardStats.applications}</div>
+                    <div className="stat-label">Applications Sent</div>
                   </div>
-                  <div style={{ fontSize: '32px', fontWeight: 700 }}>{dashboardData.profileCompletion}%</div>
-                </div>
-                <div className="completion-bar">
-                  <div className="completion-fill" style={{ width: `${dashboardData.profileCompletion}%` }}></div>
-                </div>
-                <div className="completion-actions">
-                  <button className="btn" onClick={handleEditProfile}>
-                    <FontAwesomeIcon icon={faPlus} /> Add Skills
-                  </button>
-                  <button className="btn" onClick={() => showSection('resume')}>
-                    <FontAwesomeIcon icon={faUpload} /> Upload Resume
-                  </button>
-                  <button className="btn" onClick={handleEditProfile}>
-                    <FontAwesomeIcon icon={faCertificate} /> Add Certifications
-                  </button>
-                  <button className="btn btn-primary" onClick={handleCompleteProfile}>
-                    <FontAwesomeIcon icon={faEdit} /> Complete Profile
-                  </button>
-                </div>
-              </div>
-              
-              {/* Stats Grid */}
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{dashboardData.applications}</div>
-                      <div className="stat-label">Applications Sent</div>
-                    </div>
-                    <div className="stat-icon blue">
-                      <FontAwesomeIcon icon={faPaperPlane} />
-                    </div>
-                  </div>
-                  <div className="stat-change positive">
-                    <FontAwesomeIcon icon={faArrowUp} /> 3 this week
+                  <div className="stat-icon blue">
+                    <FontAwesomeIcon icon={faPaperPlane} />
                   </div>
                 </div>
-
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{dashboardData.interviews}</div>
-                      <div className="stat-label">Interviews Scheduled</div>
-                    </div>
-                    <div className="stat-icon green">
-                      <FontAwesomeIcon icon={faCalendarCheck} />
-                    </div>
-                  </div>
-                  <div className="stat-change">
-                    Next: Tomorrow at 2:00 PM
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{dashboardData.profileViews}</div>
-                      <div className="stat-label">Profile Views</div>
-                    </div>
-                    <div className="stat-icon purple">
-                      <FontAwesomeIcon icon={faEye} />
-                    </div>
-                  </div>
-                  <div className="stat-change positive">
-                    <FontAwesomeIcon icon={faArrowUp} /> +18% from last week
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{dashboardData.savedJobs}</div>
-                      <div className="stat-label">Saved Jobs</div>
-                    </div>
-                    <div className="stat-icon orange">
-                      <FontAwesomeIcon icon={faBookmark} />
-                    </div>
-                  </div>
-                  <div className="stat-change">
-                    2 new matches today
-                  </div>
+                <div className="stat-change positive">
+                  <FontAwesomeIcon icon={faArrowUp} /> {Math.floor(dashboardStats.applications / 4) || 0} this week
                 </div>
               </div>
 
-              {/* Alerts */}
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardStats.interviews}</div>
+                    <div className="stat-label">Interviews Scheduled</div>
+                  </div>
+                  <div className="stat-icon green">
+                    <FontAwesomeIcon icon={faCalendarCheck} />
+                  </div>
+                </div>
+                <div className="stat-change">
+                  {dashboardStats.interviews > 0 ? 'Next: Check schedule' : 'No interviews yet'}
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardStats.profileViews}</div>
+                    <div className="stat-label">Profile Views</div>
+                  </div>
+                  <div className="stat-icon purple">
+                    <FontAwesomeIcon icon={faEye} />
+                  </div>
+                </div>
+                <div className="stat-change positive">
+                  <FontAwesomeIcon icon={faArrowUp} /> Growing visibility
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardStats.savedJobs}</div>
+                    <div className="stat-label">Saved Jobs</div>
+                  </div>
+                  <div className="stat-icon orange">
+                    <FontAwesomeIcon icon={faBookmark} />
+                  </div>
+                </div>
+                <div className="stat-change">
+                  {recommendedJobs.length} new matches today
+                </div>
+              </div>
+            </div>
+
+            {/* Success Alert */}
+            {applications.length > 0 && applications[0]?.status === 'reviewing' && (
               <div className="alert success">
                 <FontAwesomeIcon icon={faCheckCircle} style={{ fontSize: '24px' }} />
                 <div>
-                  <strong>Great news!</strong> Your application for Senior Developer at TechCorp was viewed by the recruiter.
+                  <strong>Great news!</strong> Your application was viewed by the recruiter.
                 </div>
               </div>
+            )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
-                {/* Recommended Jobs */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
+              {/* Recommended Jobs */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Recommended for You</h3>
+                  <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('matches')}>View All</button>
+                </div>
+                {recommendedJobs.slice(0, 3).map(job => (
+                  <JobCard key={job._id || job.id} job={job} />
+                ))}
+                {recommendedJobs.length === 0 && (
+                  <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>No recommended jobs yet</p>
+                )}
+              </div>
+
+              {/* Upcoming Interviews & Quick Actions */}
+              <div>
                 <div className="card">
                   <div className="card-header">
-                    <h3 className="card-title">Recommended for You</h3>
-                    <button className="btn btn-secondary btn-sm" onClick={() => showSection('matches')}>View All</button>
+                    <h3 className="card-title">Upcoming Interviews</h3>
                   </div>
-                  <div>
-                    {sampleJobs.slice(0, 3).map(job => createJobCard(job))}
-                  </div>
+                  {interviews.slice(0, 2).map(interview => (
+                    <InterviewCardSmall key={interview._id || interview.id} interview={interview} />
+                  ))}
+                  {interviews.length === 0 && (
+                    <p style={{ textAlign: 'center', color: '#999', padding: '20px' }}>No upcoming interviews</p>
+                  )}
                 </div>
 
-                {/* Upcoming Interviews */}
-                <div>
-                  <div className="card">
-                    <div className="card-header">
-                      <h3 className="card-title">Upcoming Interviews</h3>
-                    </div>
-                    <div>
-                      {sampleInterviews.slice(0, 2).map(interview => createInterviewCard(interview))}
-                    </div>
+                <div className="card" style={{ marginTop: '20px' }}>
+                  <div className="card-header">
+                    <h3 className="card-title">Quick Actions</h3>
                   </div>
-
-                  <div className="card" style={{ marginTop: '20px' }}>
-                    <div className="card-header">
-                      <h3 className="card-title">Quick Actions</h3>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <button className="btn btn-primary" onClick={() => showSection('jobs')}>
-                        <FontAwesomeIcon icon={faSearch} /> Browse Jobs
-                      </button>
-                      <button className="btn btn-secondary" onClick={() => showSection('resume')}>
-                        <FontAwesomeIcon icon={faUpload} /> Update Resume
-                      </button>
-                      <button className="btn btn-secondary" onClick={handleEditProfile}>
-                        <FontAwesomeIcon icon={faUserEdit} /> Edit Profile
-                      </button>
-                    </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
+                      <FontAwesomeIcon icon={faSearch} /> Browse Jobs
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setActiveSection('resume')}>
+                      <FontAwesomeIcon icon={faUpload} /> Update Resume
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setActiveSection('profile')}>
+                      <FontAwesomeIcon icon={faUserEdit} /> Edit Profile
+                    </button>
                   </div>
-                </div>
-              </div>
-
-              {/* Recent Applications */}
-              <div className="card" style={{ marginTop: '20px' }}>
-                <div className="card-header">
-                  <h3 className="card-title">Recent Applications</h3>
-                  <button className="btn btn-secondary btn-sm" onClick={() => showSection('applications')}>View All</button>
-                </div>
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Job Title</th>
-                        <th>Company</th>
-                        <th>Applied</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sampleApplications.slice(0, 5).map(app => createApplicationRow(app))}
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Recent Applications */}
+            <div className="card" style={{ marginTop: '20px' }}>
+              <div className="card-header">
+                <h3 className="card-title">Recent Applications</h3>
+                <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('applications')}>View All</button>
+              </div>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Job Title</th>
+                      <th>Company</th>
+                      <th>Applied</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.slice(0, 5).map(app => (
+                      <tr key={app._id || app.id}>
+                        <td><strong>{app.jobTitle || app.job?.title || 'N/A'}</strong></td>
+                        <td>{app.company || app.job?.company || 'N/A'}</td>
+                        <td>{formatDate(app.appliedDate || app.createdAt)}</td>
+                        <td><span className={`status-badge ${getStatusClass(app.status)}`}>{app.status || 'Applied'}</span></td>
+                        <td>
+                          <button className="btn btn-secondary btn-sm">View</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {applications.length === 0 && (
+                  <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>No applications yet. Start applying to jobs!</p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Browse Jobs Section */}
-          {activeSection === 'jobs' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Browse Jobs</h1>
+          <div className={`page-section ${activeSection === 'jobs' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Browse Jobs</h1>
 
-              <div className="filters">
-                <select className="filter-select">
-                  <option>All Job Types</option>
-                  <option>Full-time</option>
-                  <option>Part-time</option>
-                  <option>Contract</option>
-                  <option>Remote</option>
-                </select>
-                <select className="filter-select">
-                  <option>All Locations</option>
-                  <option>Nairobi, Kenya</option>
-                  <option>Remote</option>
-                  <option>United States</option>
-                  <option>United Kingdom</option>
-                </select>
-                <select className="filter-select">
-                  <option>All Experience Levels</option>
-                  <option>Entry Level</option>
-                  <option>Mid Level</option>
-                  <option>Senior Level</option>
-                  <option>Executive</option>
-                </select>
-                <select className="filter-select">
-                  <option>Sort By: Most Recent</option>
-                  <option>Relevance</option>
-                  <option>Salary: High to Low</option>
-                  <option>Company Name</option>
-                </select>
-              </div>
-
-              <div className="card">
-                <div>
-                  {sampleJobs.map(job => createJobCard(job))}
-                </div>
-              </div>
+            <div className="filters">
+              <select className="filter-select">
+                <option>All Job Types</option>
+                <option>Full-time</option>
+                <option>Part-time</option>
+                <option>Contract</option>
+                <option>Remote</option>
+              </select>
+              <select className="filter-select">
+                <option>All Locations</option>
+                <option>Nairobi, Kenya</option>
+                <option>Remote</option>
+                <option>United States</option>
+                <option>United Kingdom</option>
+              </select>
+              <select className="filter-select">
+                <option>All Experience Levels</option>
+                <option>Entry Level</option>
+                <option>Mid Level</option>
+                <option>Senior Level</option>
+                <option>Executive</option>
+              </select>
+              <select className="filter-select">
+                <option>Sort By: Most Recent</option>
+                <option>Relevance</option>
+                <option>Salary: High to Low</option>
+                <option>Company Name</option>
+              </select>
             </div>
-          )}
+
+            <div className="card">
+              {jobs.map(job => (
+                <JobCard key={job._id || job.id} job={job} showApplyButton />
+              ))}
+              {jobs.length === 0 && (
+                <div className="empty-state">
+                  <FontAwesomeIcon icon={faBriefcase} />
+                  <h3>No Jobs Available</h3>
+                  <p>Check back later for new opportunities</p>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* My Applications Section */}
-          {activeSection === 'applications' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>My Applications</h1>
+          <div className={`page-section ${activeSection === 'applications' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>My Applications</h1>
 
-              <div className="filters">
-                <select className="filter-select">
-                  <option>All Applications ({dashboardData.applications})</option>
-                  <option>Under Review (5)</option>
-                  <option>Interview (3)</option>
-                  <option>Offered (1)</option>
-                  <option>Rejected (3)</option>
-                </select>
-                <select className="filter-select">
-                  <option>Sort By: Most Recent</option>
-                  <option>Company Name</option>
-                  <option>Application Date</option>
-                </select>
-              </div>
+            <div className="filters">
+              <select className="filter-select">
+                <option>All Applications ({applications.length})</option>
+                <option>Under Review ({applications.filter(a => a.status === 'reviewing').length})</option>
+                <option>Interview ({applications.filter(a => a.status === 'interview').length})</option>
+                <option>Offered ({applications.filter(a => a.status === 'offered').length})</option>
+                <option>Rejected ({applications.filter(a => a.status === 'rejected').length})</option>
+              </select>
+              <select className="filter-select">
+                <option>Sort By: Most Recent</option>
+                <option>Company Name</option>
+                <option>Application Date</option>
+              </select>
+            </div>
 
-              <div className="card">
-                <div className="table-container">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Job Title</th>
-                        <th>Company</th>
-                        <th>Location</th>
-                        <th>Applied</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+            <div className="card">
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Job Title</th>
+                      <th>Company</th>
+                      <th>Location</th>
+                      <th>Applied</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {applications.map(app => (
+                      <tr key={app._id || app.id}>
+                        <td><strong>{app.jobTitle || app.job?.title || 'N/A'}</strong></td>
+                        <td>{app.company || app.job?.company || 'N/A'}</td>
+                        <td>{app.location || app.job?.location || 'N/A'}</td>
+                        <td>{formatDate(app.appliedDate || app.createdAt)}</td>
+                        <td><span className={`status-badge ${getStatusClass(app.status)}`}>{app.status || 'Applied'}</span></td>
+                        <td>
+                          <button className="btn btn-secondary btn-sm">View</button>
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody>
-                      {sampleApplications.map(app => createApplicationRow(app))}
-                    </tbody>
-                  </table>
-                </div>
+                    ))}
+                  </tbody>
+                </table>
+                {applications.length === 0 && (
+                  <div className="empty-state">
+                    <FontAwesomeIcon icon={faFileAlt} />
+                    <h3>No Applications Yet</h3>
+                    <p>Start your career journey by applying to jobs</p>
+                    <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
+                      Browse Jobs
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
           {/* Saved Jobs Section */}
-          {activeSection === 'saved' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Saved Jobs</h1>
-              <div className="card">
-                <div>
-                  {sampleJobs.slice(0, 4).map(job => createJobCard(job))}
+          <div className={`page-section ${activeSection === 'saved' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Saved Jobs</h1>
+            <div className="card">
+              {savedJobs.map(job => (
+                <JobCard key={job._id || job.id} job={job} showUnsaveButton />
+              ))}
+              {savedJobs.length === 0 && (
+                <div className="empty-state">
+                  <FontAwesomeIcon icon={faBookmark} />
+                  <h3>No Saved Jobs</h3>
+                  <p>Save jobs you're interested in to review later</p>
+                  <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
+                    Browse Jobs
+                  </button>
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Interviews Section */}
-          {activeSection === 'interviews' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Interview Schedule</h1>
-              
-              <div className="alert info">
-                <FontAwesomeIcon icon={faInfoCircle} style={{ fontSize: '24px' }} />
-                <div>
-                  <strong>Tip:</strong> Prepare for your interviews by researching the company and practicing common interview questions.
-                </div>
-              </div>
-
+          <div className={`page-section ${activeSection === 'interviews' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Interview Schedule</h1>
+            
+            <div className="alert info">
+              <FontAwesomeIcon icon={faInfoCircle} style={{ fontSize: '24px' }} />
               <div>
-                {sampleInterviews.map(interview => createInterviewCard(interview))}
+                <strong>Tip:</strong> Prepare for your interviews by researching the company and practicing common interview questions.
               </div>
             </div>
-          )}
+
+            {interviews.map(interview => (
+              <InterviewCard key={interview._id || interview.id} interview={interview} />
+            ))}
+            
+            {interviews.length === 0 && (
+              <div className="card">
+                <div className="empty-state">
+                  <FontAwesomeIcon icon={faCalendar} />
+                  <h3>No Interviews Scheduled</h3>
+                  <p>Your upcoming interviews will appear here</p>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Recommended Jobs Section */}
-          {activeSection === 'matches' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Recommended Jobs</h1>
-              <div className="alert success">
-                <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
-                <div>
-                  Based on your profile and preferences, we found <strong>15 jobs</strong> that match your skills!
-                </div>
-              </div>
-              <div className="card">
-                <div>
-                  {sampleJobs.map(job => createJobCard(job))}
-                </div>
+          <div className={`page-section ${activeSection === 'matches' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Recommended Jobs</h1>
+            <div className="alert success">
+              <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
+              <div>
+                Based on your profile and preferences, we found <strong>{recommendedJobs.length} jobs</strong> that match your skills!
               </div>
             </div>
-          )}
+            <div className="card">
+              {recommendedJobs.map(job => (
+                <JobCard key={job._id || job.id} job={job} showApplyButton />
+              ))}
+              {recommendedJobs.length === 0 && (
+                <div className="empty-state">
+                  <FontAwesomeIcon icon={faStar} />
+                  <h3>No Recommendations Yet</h3>
+                  <p>Complete your profile to get personalized job recommendations</p>
+                  <button className="btn btn-primary" onClick={() => setActiveSection('profile')}>
+                    Complete Profile
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Messages Section */}
-          {activeSection === 'messages' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Messages</h1>
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title">Inbox</h3>
-                  <button className="btn btn-primary btn-sm">
-                    <FontAwesomeIcon icon={faPlus} /> New Message
-                  </button>
-                </div>
-                <div className="message-list">
-                  {sampleMessages.map(message => createMessageItem(message))}
-                </div>
+          <div className={`page-section ${activeSection === 'messages' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Messages</h1>
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Inbox</h3>
+                <button className="btn btn-primary btn-sm">
+                  <FontAwesomeIcon icon={faPlus} /> New Message
+                </button>
+              </div>
+              <div className="message-list">
+                {messages.map(message => (
+                  <MessageItem key={message._id || message.id} message={message} />
+                ))}
+                {messages.length === 0 && (
+                  <div className="empty-state">
+                    <FontAwesomeIcon icon={faEnvelope} />
+                    <h3>No Messages</h3>
+                    <p>Your messages from recruiters will appear here</p>
+                  </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
 
           {/* Profile Section */}
-          {activeSection === 'profile' && (
-            <div className="page-section active">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-                <h1>My Profile</h1>
-                <div>
-                  <button className="btn btn-primary" onClick={handleEditProfile}>
+          <div className={`page-section ${activeSection === 'profile' ? 'active' : ''}`}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <h1>My Profile</h1>
+              <div>
+                {!isEditingProfile ? (
+                  <button className="btn btn-primary" onClick={toggleProfileEdit}>
                     <FontAwesomeIcon icon={faEdit} /> Edit Profile
                   </button>
-                  <button className="btn btn-primary" onClick={handleCompleteProfile} style={{ marginLeft: '10px' }}>
-                    <FontAwesomeIcon icon={faEdit} /> Complete Profile
-                  </button>
-                </div>
+                ) : (
+                  <>
+                    <button className="btn btn-success" onClick={saveProfile}>
+                      <FontAwesomeIcon icon={faSave} /> Save Changes
+                    </button>
+                    <button className="btn btn-secondary" onClick={cancelProfileEdit} style={{ marginLeft: '10px' }}>
+                      <FontAwesomeIcon icon={faTimes} /> Cancel
+                    </button>
+                  </>
+                )}
               </div>
+            </div>
 
-              {/* Profile Header */}
-              <div className="profile-header-card">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
-                  <div className="profile-avatar-large">JS</div>
-                  <div style={{ flex: 1 }}>
-                    <h2 style={{ marginBottom: '10px', fontSize: '28px' }}>{profileData.fullName}</h2>
-                    <p style={{ fontSize: '18px', marginBottom: '10px', opacity: 0.9 }}>{profileData.jobTitle}</p>
-                    <p style={{ opacity: 0.8 }}><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.location}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Personal Information */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Personal Information</h3>
-                </div>
-                <div className="profile-info-grid">
-                  <div className="form-group">
-                    <label className="form-label">Full Name</label>
-                    <input type="text" className="form-input" value={profileData.fullName} disabled />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Email Address</label>
-                    <input type="email" className="form-input" value={profileData.email} disabled />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Phone Number</label>
-                    <input type="tel" className="form-input" value={profileData.phone} disabled />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Location</label>
-                    <input type="text" className="form-input" value={profileData.location} disabled />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Years of Experience</label>
-                    <input type="number" className="form-input" value={profileData.experience} disabled />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Industry</label>
-                    <select className="form-select" disabled>
-                      <option>{profileData.industry}</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Professional Summary</label>
-                  <textarea className="form-textarea" value={profileData.summary} disabled />
-                </div>
-              </div>
-
-              {/* Skills */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faCode} /> Skills & Expertise</h3>
-                </div>
-                <div>
-                  <h4 style={{ marginBottom: '15px', color: '#666' }}>Technical Skills</h4>
-                  <div>
-                    {profileData.skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">{skill}</span>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ marginTop: '25px' }}>
-                  <h4 style={{ marginBottom: '15px', color: '#666' }}>Soft Skills</h4>
-                  <div>
-                    {profileData.softSkills.map((skill, index) => (
-                      <span key={index} className="skill-tag">{skill}</span>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Work Experience */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
-                </div>
-                {profileData.workExperience.map((exp, index) => (
-                  <div key={index} className="experience-item">
-                    <h4>{exp.title}</h4>
-                    <div className="company">{exp.company}</div>
-                    <div className="duration">{exp.duration}</div>
-                    <p style={{ color: '#666', marginTop: '10px' }}>{exp.description}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Education */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
-                </div>
-                {profileData.education.map((edu, index) => (
-                  <div key={index} className="education-item">
-                    <h4>{edu.degree}</h4>
-                    <div className="institution">{edu.institution}</div>
-                    <div className="duration">{edu.duration}</div>
-                    <p style={{ color: '#666', marginTop: '10px' }}>{edu.description}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Certifications */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Awards</h3>
-                </div>
-                <div style={{ display: 'grid', gap: '15px' }}>
-                  {profileData.certifications.map((cert, index) => (
-                    <div key={index} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <h4>{cert.name}</h4>
-                          <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{cert.issuer} - {cert.date}</p>
-                        </div>
-                        <span className="status-badge status-offered">{cert.verified ? 'Verified' : 'Pending'}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Languages */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
-                </div>
-                <div className="profile-info-grid">
-                  {profileData.languages.map((lang, index) => (
-                    <div key={index}>
-                      <h4 style={{ marginBottom: '10px' }}>{lang.language}</h4>
-                      <p style={{ color: '#666' }}>{lang.level}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Social Links */}
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Social Links</h3>
-                </div>
-                <div className="social-links">
-                  {profileData.socialLinks.map((link, index) => (
-                    <a key={index} href="#" className="social-link">
-                      <FontAwesomeIcon icon={link.icon} />
-                      <span>{link.url}</span>
-                    </a>
-                  ))}
+            {/* Profile Header */}
+            <div className="profile-header-card">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+                <div className="profile-avatar-large">{getUserInitials()}</div>
+                <div style={{ flex: 1 }}>
+                  <h2 style={{ marginBottom: '10px', fontSize: '28px' }}>{profileData.fullName}</h2>
+                  <p style={{ fontSize: '18px', marginBottom: '10px', opacity: 0.9 }}>{profileData.jobTitle || 'Job Seeker'}</p>
+                  <p style={{ opacity: 0.8 }}><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.location || 'Location not set'}</p>
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Personal Information */}
+            <div className={`card ${!isEditingProfile ? 'profile-view-mode' : ''}`}>
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Personal Information</h3>
+              </div>
+              <div className="profile-info-grid">
+                <div className="form-group">
+                  <label className="form-label">Full Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileData.fullName} 
+                    onChange={(e) => setProfileData({...profileData, fullName: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input 
+                    type="email" 
+                    className="form-input" 
+                    value={profileData.email}
+                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phone Number</label>
+                  <input 
+                    type="tel" 
+                    className="form-input" 
+                    value={profileData.phone}
+                    onChange={(e) => setProfileData({...profileData, phone: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Date of Birth</label>
+                  <input 
+                    type="date" 
+                    className="form-input" 
+                    value={profileData.dob}
+                    onChange={(e) => setProfileData({...profileData, dob: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Location</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileData.location}
+                    onChange={(e) => setProfileData({...profileData, location: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Nationality</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileData.nationality}
+                    onChange={(e) => setProfileData({...profileData, nationality: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Professional Summary</label>
+                <textarea 
+                  className="form-textarea" 
+                  value={profileData.summary}
+                  onChange={(e) => setProfileData({...profileData, summary: e.target.value})}
+                  disabled={!isEditingProfile}
+                  placeholder="Describe your professional background and career goals..."
+                />
+              </div>
+            </div>
+
+            {/* Professional Details */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faBriefcase} /> Professional Details</h3>
+              </div>
+              <div className="profile-info-grid">
+                <div className="form-group">
+                  <label className="form-label">Current Job Title</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileData.jobTitle}
+                    onChange={(e) => setProfileData({...profileData, jobTitle: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Years of Experience</label>
+                  <input 
+                    type="number" 
+                    className="form-input" 
+                    value={profileData.experience}
+                    onChange={(e) => setProfileData({...profileData, experience: e.target.value})}
+                    disabled={!isEditingProfile}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Industry</label>
+                  <select 
+                    className="form-select" 
+                    value={profileData.industry}
+                    onChange={(e) => setProfileData({...profileData, industry: e.target.value})}
+                    disabled={!isEditingProfile}
+                  >
+                    <option value="">Select Industry</option>
+                    <option value="Technology">Technology</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Healthcare">Healthcare</option>
+                    <option value="Education">Education</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Expected Salary (USD)</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={profileData.salary}
+                    onChange={(e) => setProfileData({...profileData, salary: e.target.value})}
+                    disabled={!isEditingProfile}
+                    placeholder="e.g., $80,000 - $100,000"
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Job Type Preference</label>
+                  <select 
+                    className="form-select" 
+                    value={profileData.jobType}
+                    onChange={(e) => setProfileData({...profileData, jobType: e.target.value})}
+                    disabled={!isEditingProfile}
+                  >
+                    <option value="">Select Type</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                    <option value="Contract">Contract</option>
+                    <option value="Remote">Remote</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Availability</label>
+                  <select 
+                    className="form-select" 
+                    value={profileData.availability}
+                    onChange={(e) => setProfileData({...profileData, availability: e.target.value})}
+                    disabled={!isEditingProfile}
+                  >
+                    <option value="">Select Availability</option>
+                    <option value="Immediately">Immediately</option>
+                    <option value="2 Weeks">2 Weeks</option>
+                    <option value="1 Month">1 Month</option>
+                    <option value="3 Months">3 Months</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Skills */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faCode} /> Skills & Expertise</h3>
+              </div>
+              <div>
+                <h4 style={{ marginBottom: '15px', color: '#666' }}>Technical Skills</h4>
+                <div>
+                  {profileData.skills.map((skill, index) => (
+                    <span key={index} className="skill-tag">{skill}</span>
+                  ))}
+                  {profileData.skills.length === 0 && (
+                    <p style={{ color: '#999' }}>No skills added yet</p>
+                  )}
+                </div>
+              </div>
+              <div style={{ marginTop: '25px' }}>
+                <h4 style={{ marginBottom: '15px', color: '#666' }}>Soft Skills</h4>
+                <div>
+                  {profileData.softSkills.map((skill, index) => (
+                    <span key={index} className="skill-tag">{skill}</span>
+                  ))}
+                  {profileData.softSkills.length === 0 && (
+                    <p style={{ color: '#999' }}>No soft skills added yet</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Work Experience */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
+              </div>
+              {profileData.workExperience.map((exp, index) => (
+                <div key={index} className="experience-item">
+                  <h4>{exp.title || exp.jobTitle}</h4>
+                  <div className="company">{exp.company}</div>
+                  <div className="duration">{exp.startDate} - {exp.endDate || 'Present'} ({exp.duration || ''})</div>
+                  <p style={{ color: '#666', marginTop: '10px' }}>{exp.description}</p>
+                </div>
+              ))}
+              {profileData.workExperience.length === 0 && (
+                <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>No work experience added yet</p>
+              )}
+            </div>
+
+            {/* Education */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
+              </div>
+              {profileData.education.map((edu, index) => (
+                <div key={index} className="education-item">
+                  <h4>{edu.degree}</h4>
+                  <div className="institution">{edu.institution || edu.school}</div>
+                  <div className="duration">{edu.startYear} - {edu.endYear || 'Present'}</div>
+                  <p style={{ color: '#666', marginTop: '10px' }}>{edu.description}</p>
+                </div>
+              ))}
+              {profileData.education.length === 0 && (
+                <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>No education added yet</p>
+              )}
+            </div>
+
+            {/* Certifications */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Awards</h3>
+              </div>
+              <div style={{ display: 'grid', gap: '15px' }}>
+                {profileData.certifications.map((cert, index) => (
+                  <div key={index} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <h4>{cert.name || cert.title}</h4>
+                        <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>
+                          {cert.issuer} - {cert.year}
+                        </p>
+                      </div>
+                      <span className="status-badge status-offered">Verified</span>
+                    </div>
+                  </div>
+                ))}
+                {profileData.certifications.length === 0 && (
+                  <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>No certifications added yet</p>
+                )}
+              </div>
+            </div>
+
+            {/* Languages */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
+              </div>
+              <div className="profile-info-grid">
+                {profileData.languages.map((lang, index) => (
+                  <div key={index}>
+                    <h4 style={{ marginBottom: '10px' }}>{lang.language || lang.name}</h4>
+                    <p style={{ color: '#666' }}>{lang.proficiency || lang.level}</p>
+                  </div>
+                ))}
+                {profileData.languages.length === 0 && (
+                  <p style={{ color: '#999' }}>No languages added yet</p>
+                )}
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Social Links</h3>
+              </div>
+              <div className="social-links">
+                {profileData.socialLinks.map((link, index) => (
+                  <a key={index} href={link.url} className="social-link" target="_blank" rel="noopener noreferrer">
+                    <FontAwesomeIcon icon={link.platform === 'linkedin' ? faLinkedin : link.platform === 'github' ? faGithub : link.platform === 'twitter' ? faTwitter : faGlobe} />
+                    <span>{link.url}</span>
+                  </a>
+                ))}
+                {profileData.socialLinks.length === 0 && (
+                  <p style={{ color: '#999' }}>No social links added yet</p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* Resume Section */}
-          {activeSection === 'resume' && (
-            <div className="page-section active">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-                <h1>Resume/CV Management</h1>
-                <button className="btn btn-primary">
-                  <FontAwesomeIcon icon={faUpload} /> Upload New Resume
-                </button>
-              </div>
+          <div className={`page-section ${activeSection === 'resume' ? 'active' : ''}`}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+              <h1>Resume/CV Management</h1>
+              <button className="btn btn-primary">
+                <FontAwesomeIcon icon={faUpload} /> Upload New Resume
+              </button>
+            </div>
 
-              <div className="card">
-                <div className="resume-list">
-                  <div className="resume-item">
-                    <div className="resume-icon">
-                      <FontAwesomeIcon icon={faFilePdf} />
-                    </div>
-                    <div className="resume-info">
-                      <h4>John_Smith_Resume_2024.pdf</h4>
-                      <div className="resume-meta">
-                        <span><FontAwesomeIcon icon={faCalendar} /> Uploaded: Jan 10, 2024</span>
-                        <span style={{ marginLeft: '15px' }}><FontAwesomeIcon icon={faFilePdf} /> 256 KB</span>
-                        <span style={{ marginLeft: '15px' }} className="status-badge status-offered">Primary</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                      <button className="btn btn-secondary btn-sm">
-                        <FontAwesomeIcon icon={faEye} /> View
-                      </button>
-                      <button className="btn btn-secondary btn-sm">
-                        <FontAwesomeIcon icon={faDownload} /> Download
-                      </button>
-                      <button className="btn btn-danger btn-sm">
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                    </div>
+            <div className="card">
+              <div className="resume-list">
+                {resumes.length === 0 && (
+                  <div className="empty-state">
+                    <FontAwesomeIcon icon={faFilePdf} />
+                    <h3>No Resumes Uploaded</h3>
+                    <p>Upload your resume to apply for jobs faster</p>
+                    <button className="btn btn-primary">
+                      <FontAwesomeIcon icon={faUpload} /> Upload Resume
+                    </button>
                   </div>
-                </div>
-              </div>
-
-              <div className="card" style={{ marginTop: '20px' }}>
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faEdit} /> Resume Builder</h3>
-                </div>
-                <p style={{ marginBottom: '20px', color: '#666' }}>Create a professional resume using our easy-to-use template builder.</p>
-                <button className="btn btn-primary">
-                  <FontAwesomeIcon icon={faPlus} /> Create New Resume
-                </button>
+                )}
               </div>
             </div>
-          )}
+
+            <div className="card" style={{ marginTop: '20px' }}>
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faEdit} /> Resume Builder</h3>
+              </div>
+              <p style={{ marginBottom: '20px', color: '#666' }}>Create a professional resume using our easy-to-use template builder.</p>
+              <button className="btn btn-primary">
+                <FontAwesomeIcon icon={faPlus} /> Create New Resume
+              </button>
+            </div>
+          </div>
 
           {/* Career Resources Section */}
-          {activeSection === 'resources' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Career Resources</h1>
-              <div className="stats-grid">
-                <div className="card">
-                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faBook} /> Interview Tips</h3>
-                  <p style={{ color: '#666', marginBottom: '15px' }}>Master your interview skills with expert advice and common questions.</p>
-                  <button className="btn btn-secondary btn-sm">Learn More</button>
-                </div>
-                <div className="card">
-                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faFilePdf} /> Resume Builder</h3>
-                  <p style={{ color: '#666', marginBottom: '15px' }}>Create a professional resume in minutes with our templates.</p>
-                  <button className="btn btn-secondary btn-sm" onClick={() => showSection('resume')}>Start Building</button>
-                </div>
-                <div className="card">
-                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faGraduationCap} /> Online Courses</h3>
-                  <p style={{ color: '#666', marginBottom: '15px' }}>Upskill with courses and certifications from top providers.</p>
-                  <button className="btn btn-secondary btn-sm">Browse Courses</button>
-                </div>
-                <div className="card">
-                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faUsers} /> Career Advice</h3>
-                  <p style={{ color: '#666', marginBottom: '15px' }}>Get personalized guidance from career experts and mentors.</p>
-                  <button className="btn btn-secondary btn-sm">Get Advice</button>
-                </div>
+          <div className={`page-section ${activeSection === 'resources' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Career Resources</h1>
+            <div className="stats-grid">
+              <div className="card">
+                <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faBook} /> Interview Tips</h3>
+                <p style={{ color: '#666', marginBottom: '15px' }}>Master your interview skills with expert advice and common questions.</p>
+                <button className="btn btn-secondary btn-sm">Learn More</button>
+              </div>
+              <div className="card">
+                <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faFileAlt} /> Resume Builder</h3>
+                <p style={{ color: '#666', marginBottom: '15px' }}>Create a professional resume in minutes with our templates.</p>
+                <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('resume')}>Start Building</button>
+              </div>
+              <div className="card">
+                <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faGraduationCap} /> Online Courses</h3>
+                <p style={{ color: '#666', marginBottom: '15px' }}>Upskill with courses and certifications from top providers.</p>
+                <button className="btn btn-secondary btn-sm">Browse Courses</button>
+              </div>
+              <div className="card">
+                <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faUser} /> Career Advice</h3>
+                <p style={{ color: '#666', marginBottom: '15px' }}>Get personalized guidance from career experts and mentors.</p>
+                <button className="btn btn-secondary btn-sm">Get Advice</button>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Settings Section */}
-          {activeSection === 'settings' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Settings</h1>
+          <div className={`page-section ${activeSection === 'settings' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Settings</h1>
 
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faBell} /> Notification Preferences</h3>
-                </div>
-                <div className="settings-section">
-                  <div className="settings-item">
-                    <div>
-                      <h4>Email Notifications</h4>
-                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Receive job alerts and updates via email</p>
-                    </div>
-                    <div className="toggle-switch active"></div>
-                  </div>
-                  <div className="settings-item">
-                    <div>
-                      <h4>Application Updates</h4>
-                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Get notified about application status changes</p>
-                    </div>
-                    <div className="toggle-switch active"></div>
-                  </div>
-                  <div className="settings-item">
-                    <div>
-                      <h4>Interview Reminders</h4>
-                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Receive reminders for scheduled interviews</p>
-                    </div>
-                    <div className="toggle-switch active"></div>
-                  </div>
-                </div>
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faBell} /> Notification Preferences</h3>
               </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faCog} /> Account Settings</h3>
-                </div>
-                <div style={{ display: 'grid', gap: '15px' }}>
-                  <div style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4>Change Password</h4>
-                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Last changed 3 months ago</p>
-                    </div>
-                    <button className="btn btn-secondary btn-sm">Change</button>
+              <div className="settings-section">
+                <div className="settings-item">
+                  <div>
+                    <h4>Email Notifications</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Receive job alerts and updates via email</p>
                   </div>
-                  <div style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4>Two-Factor Authentication</h4>
-                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Add an extra layer of security</p>
-                    </div>
-                    <button className="btn btn-primary btn-sm">Enable</button>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
+                </div>
+                <div className="settings-item">
+                  <div>
+                    <h4>Application Updates</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Get notified about application status changes</p>
                   </div>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
                 </div>
-              </div>
-
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title"><FontAwesomeIcon icon={faInfo} /> Danger Zone</h3>
+                <div className="settings-item">
+                  <div>
+                    <h4>Interview Reminders</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Receive reminders for scheduled interviews</p>
+                  </div>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
                 </div>
-                <div style={{ padding: '20px', background: '#fff5f5', border: '2px solid #fee', borderRadius: '8px' }}>
-                  <h4 style={{ color: '#d32f2f', marginBottom: '10px' }}>Delete Account</h4>
-                  <p style={{ color: '#666', marginBottom: '15px' }}>Once you delete your account, there is no going back. Please be certain.</p>
-                  <button className="btn btn-danger" onClick={handleLogout}>
-                    <FontAwesomeIcon icon={faTrash} /> Logout
-                  </button>
+                <div className="settings-item">
+                  <div>
+                    <h4>Job Recommendations</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Get personalized job recommendations</p>
+                  </div>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
                 </div>
               </div>
             </div>
+
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Privacy Settings</h3>
+              </div>
+              <div className="settings-section">
+                <div className="settings-item">
+                  <div>
+                    <h4>Profile Visibility</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Make your profile visible to employers</p>
+                  </div>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
+                </div>
+                <div className="settings-item">
+                  <div>
+                    <h4>Show Online Status</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Display when you're active on the platform</p>
+                  </div>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
+                </div>
+                <div className="settings-item">
+                  <div>
+                    <h4>Allow Contact from Recruiters</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Let recruiters send you messages</p>
+                  </div>
+                  <div className="toggle-switch active" onClick={toggleSwitch}></div>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Account Security</h3>
+              </div>
+              <div style={{ display: 'grid', gap: '15px' }}>
+                <div style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4>Change Password</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Last changed 3 months ago</p>
+                  </div>
+                  <button className="btn btn-secondary btn-sm">Change</button>
+                </div>
+                <div style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4>Two-Factor Authentication</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Add an extra layer of security</p>
+                  </div>
+                  <button className="btn btn-primary btn-sm">Enable</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title"><FontAwesomeIcon icon={faExclamationTriangle} /> Danger Zone</h3>
+              </div>
+              <div style={{ padding: '20px', background: '#fff5f5', border: '2px solid #fee', borderRadius: '8px' }}>
+                <h4 style={{ color: '#d32f2f', marginBottom: '10px' }}>Delete Account</h4>
+                <p style={{ color: '#666', marginBottom: '15px' }}>Once you delete your account, there is no going back. Please be certain.</p>
+                <button className="btn btn-danger">
+                  <FontAwesomeIcon icon={faTrash} /> Delete My Account
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Job Card Component
+const JobCard = ({ job, showApplyButton, showUnsaveButton }) => {
+  return (
+    <div className="job-card">
+      <div className="job-header">
+        <div style={{ display: 'flex', flex: 1 }}>
+          <div className="company-logo">
+            {job.company ? job.company.charAt(0).toUpperCase() : 'J'}
+          </div>
+          <div className="job-info">
+            <h3>{job.title || job.jobTitle}</h3>
+            <div className="job-company">{job.company || job.companyName}</div>
+            <div className="job-meta">
+              <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location || 'Not specified'}</span>
+              <span><FontAwesomeIcon icon={faBriefcase} /> {job.type || job.jobType || 'Full-time'}</span>
+              <span><FontAwesomeIcon icon={faLayerGroup} /> {job.experienceLevel || 'Mid Level'}</span>
+              {job.salary && <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>}
+            </div>
+          </div>
+        </div>
+        <div className="job-actions">
+          {showUnsaveButton ? (
+            <button className="btn btn-danger btn-sm">
+              <FontAwesomeIcon icon={faBookmark} />
+            </button>
+          ) : (
+            <button className="btn btn-secondary btn-sm">
+              <FontAwesomeIcon icon={faBookmark} />
+            </button>
           )}
         </div>
+      </div>
+      <div className="job-tags">
+        {job.featured && (
+          <span className="tag featured">
+            <FontAwesomeIcon icon={faStar} /> Featured
+          </span>
+        )}
+        {job.skills?.slice(0, 4).map((skill, index) => (
+          <span key={index} className="tag">{skill}</span>
+        ))}
+        <span className="tag" style={{ marginLeft: 'auto', color: '#999' }}>
+          <FontAwesomeIcon icon={faClock} /> {job.postedDate || 'Recently'}
+        </span>
+      </div>
+      {showApplyButton && (
+        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+          <button className="btn btn-primary btn-sm">
+            <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
+          </button>
+          <button className="btn btn-secondary btn-sm">
+            <FontAwesomeIcon icon={faEye} /> View Details
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Interview Card Small (for dashboard)
+const InterviewCardSmall = ({ interview }) => {
+  const interviewDate = new Date(interview.date || interview.interviewDate);
+  
+  return (
+    <div className="interview-card">
+      <div className="interview-header">
+        <div style={{ flex: 1 }}>
+          <h4 style={{ marginBottom: '5px' }}>{interview.jobTitle || interview.job?.title}</h4>
+          <p style={{ color: '#666', fontSize: '13px', marginBottom: '8px' }}>{interview.company || interview.job?.company}</p>
+          <div style={{ fontSize: '13px', color: '#666' }}>
+            <div><FontAwesomeIcon icon={faClock} /> {interview.time}</div>
+            <div style={{ marginTop: '5px' }}><FontAwesomeIcon icon={faVideo} /> {interview.type || 'Video Interview'}</div>
+          </div>
+        </div>
+        <div className="interview-date">
+          <div className="day">{interviewDate.getDate()}</div>
+          <div className="month">{interviewDate.toLocaleString('en-US', { month: 'short' }).toUpperCase()}</div>
+        </div>
+      </div>
+      <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: '10px' }}>
+        <FontAwesomeIcon icon={faCalendar} /> View Details
+      </button>
+    </div>
+  );
+};
+
+// Interview Card Full (for interviews section)
+const InterviewCard = ({ interview }) => {
+  const interviewDate = new Date(interview.date || interview.interviewDate);
+  
+  return (
+    <div className="interview-card">
+      <div className="interview-header">
+        <div style={{ flex: 1 }}>
+          <h3 style={{ marginBottom: '5px' }}>{interview.jobTitle || interview.job?.title}</h3>
+          <p style={{ color: '#666', fontSize: '14px', marginBottom: '12px' }}>{interview.company || interview.job?.company}</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', fontSize: '14px', color: '#666' }}>
+            <div><FontAwesomeIcon icon={faCalendar} /> {formatDate(interview.date)}</div>
+            <div><FontAwesomeIcon icon={faClock} /> {interview.time}</div>
+            <div><FontAwesomeIcon icon={faVideo} /> {interview.type || 'Video Interview'}</div>
+            <div><FontAwesomeIcon icon={faUser} /> {interview.interviewer || 'TBD'}</div>
+          </div>
+        </div>
+        <div className="interview-date">
+          <div className="day">{interviewDate.getDate()}</div>
+          <div className="month">{interviewDate.toLocaleString('en-US', { month: 'short' }).toUpperCase()}</div>
+        </div>
+      </div>
+      <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+        <button className="btn btn-primary btn-sm">
+          <FontAwesomeIcon icon={faVideo} /> Join Interview
+        </button>
+        <button className="btn btn-secondary btn-sm">
+          <FontAwesomeIcon icon={faCalendar} /> Reschedule
+        </button>
+        <button className="btn btn-secondary btn-sm">
+          <FontAwesomeIcon icon={faInfoCircle} /> Details
+        </button>
       </div>
     </div>
   );
 };
 
+// Message Item Component
+const MessageItem = ({ message }) => {
+  const getInitials = (name) => {
+    return name?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '??';
+  };
+
+  return (
+    <div className={`message-item ${message.unread ? 'unread' : ''}`}>
+      <div className="message-avatar">{getInitials(message.sender || message.from)}</div>
+      <div className="message-content">
+        <div className="message-header">
+          <span className="message-sender">{message.sender || message.from}</span>
+          <span className="message-time">{message.time || formatDate(message.createdAt)}</span>
+        </div>
+        <div className="message-preview">{message.preview || message.message}</div>
+      </div>
+    </div>
+  );
+};
+
+// Helper function for date formatting
+const formatDate = (dateString) => {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now - date);
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+  if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+  return date.toLocaleDateString();
+};
+
 export default JobSeekerDashboard;
+
