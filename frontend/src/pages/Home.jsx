@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import '../styles/Home.css';
-import '../styles/HomeOverrides.css';
 import akLogo from '../assets/FINAL AKLOGO.jpg';
 
 const Home = () => {
