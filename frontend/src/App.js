@@ -10,68 +10,36 @@ import CommunityVerificationPage from "./pages/CommunityVerificationPage";
 import ReferenceVerificationPage from "./pages/ReferenceVerificationPage";
 import Community from "./pages/Community";
 import JobSeekerDashboard from "./pages/JobSeekerDashboard";
-import JobSeekerNetworking from "./pages/JobSeekerNetworking";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
-import AnalyticsDashboard from "./pages/AnalyticsDashboard";
-import ResumeBuilder from "./pages/ResumeBuilder";
-import JobSeekerAnalytics from "./pages/JobSeekerAnalytics";
-import JobDescription from "./pages/JobDescription";
 import ModernJobDetails from "./pages/ModernJobDetails";
 import "./styles/Global.css";
 import "./styles/ViewportAdjustments.css";
-import ModernResumeUpload from "./pages/ModernResumeUpload";
 import JobListing from "./pages/JobListing";
 import JobSearch from "./pages/JobSearch";
-import MatchScore from "./pages/MatchScore";
-
-import RecruiterApplicants from "./pages/RecruiterApplicants";
-import ModernApplicationTracker from "./pages/ModernApplicationTracker";
-import ProfilePage from "./pages/Profile";
-import CompleteProfile from "./pages/CompleteProfile";
-import RecruiterCompleteProfile from "./pages/RecruiterCompleteProfile";
 import Home from "./pages/Home";
 import PublicJobs from "./pages/PublicJobs";
 import AllJobs from "./pages/AllJobs";
 
-import RecruiterTracker from "./pages/RecruiterTracker";
-import ViewTopCandidates from "./pages/ViewTopCandidates";
-import ViewAllCandidates from "./pages/ViewAllCandidates";
-import ResumeProfile from "./pages/ResumeProfile";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import TermsOfService from "./pages/termsofservice";
-import About from "./pages/About";
 import Blog from "./pages/Blog";
-import Contact from "./pages/Contact";
-import TestHeader from "./pages/TestHeader";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
-import JobSeekerSettings from "./pages/JobSeekerSettings";
-import RecruiterSettings from "./pages/RecruiterSettings";
 import PricingPlans from "./pages/PricingPlans";
 import PremiumSubscription from "./pages/PremiumSubscription";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCallback from "./pages/PaymentCallback";
 import PaymentCancelled from "./pages/PaymentCancelled";
-import GigDashboard from "./pages/GigDashboard";
 import AdminControlPanel from "./pages/AdminControlPanel";
 import AdminDashboard from "./pages/AdminDashboard";
 import CVBrowser from "./components/CVBrowser/index.jsx";
-import LocalLanguageAnalysisPage from "./pages/LocalLanguageAnalysisPage";
 import OAuthSuccess from "./pages/OAuthSuccess";
-import OAuthSignup from "./pages/OAuthSignup";
 import OAuthRoleSelection from "./pages/OAuthRoleSelection";
-import UserProfileSetup from "./pages/UserProfileSetup";
-import CompanyDetailsForm from "./pages/CompanyDetailsForm";
 import RecruiterRegistrationForm from "./pages/RecruiterRegistrationForm";
 import Company from "./pages/Company";
-import InternDetailsForm from "./pages/InternDetailsForm";
-import NewInternDetailsForm from "./pages/NewInternDetailsForm";
-import InternSuccess from "./pages/InternSuccess";
 import InternDashboard from "./pages/InternDashboard";
 import JobSeekerRegistrationForm from "./pages/JobSeekerRegistrationFormComprehensive";
-import JobSeekerRegistrationSuccess from "./pages/JobSeekerRegistrationSuccess";
 import PromoCodePage from "./pages/PromoCodePage";
-import ContactMe from "./pages/ContactMe";
 import PostJob from "./pages/PostJob";
 import SalaryGuide from "./pages/SalaryGuide";
 import CareerAdvice from "./pages/CareerAdvice";
@@ -89,11 +57,9 @@ import TrainingPrograms from "./pages/TrainingPrograms";
 import Careers from "./pages/Careers";
 import Press from "./pages/Press";
 import Partners from "./pages/Partners";
-import ResumeUpload from "./pages/ResumeUpload";
 import Sitemap from "./pages/Sitemap";
 import Accessibility from "./pages/Accessibility";
 import Security from "./pages/Security";
-import Status from "./pages/Status";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
@@ -156,11 +122,6 @@ function App() {
                 </>
               </ProtectedRoute>
             } />
-            <Route path="/networking" element={
-              <ProtectedRoute requiredRole="jobSeeker">
-                <JobSeekerNetworking />
-              </ProtectedRoute>
-            } />
             <Route path="/signup" element={<SignupPage />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/verify-user" element={<CommunityVerificationPage />} />
@@ -173,44 +134,21 @@ function App() {
                 </>
               </ProtectedRoute>
             } />
-            <Route path="/company-details" element={<CompanyDetailsForm />} />
             <Route path="/recruiter-registration" element={<RecruiterRegistrationForm />} />
-            <Route path="/intern-details" element={
-              <ErrorBoundary>
-                <InternDetailsForm />
-              </ErrorBoundary>
-            } />
-            <Route path="/new-intern-details" element={<NewInternDetailsForm />} />
-            <Route path="/intern-success" element={<InternSuccess />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <JobSeekerDashboard />
               </ProtectedRoute>
             } />
             <Route path="/jobseeker-registration" element={<JobSeekerRegistrationForm />} />
-            <Route path="/jobseeker-registration-success" element={<JobSeekerRegistrationSuccess />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/terms" element={<TermsOfService/>}/>
-            <Route path="/about" element={
-              <>
-                <Header />
-                <About/>
-                <Footer />
-              </>
-            }/>
             <Route path="/blog" element={
               <>
                 <Header />
                 <Blog/>
-                <Footer />
-              </>
-            }/>
-            <Route path="/contact" element={
-              <>
-                <Header />
-                <Contact/>
                 <Footer />
               </>
             }/>
@@ -274,13 +212,6 @@ function App() {
                 <Footer />
               </>
             } />
-            <Route path="/resume-upload" element={
-              <>
-                <Header />
-                <ResumeUpload />
-                <Footer />
-              </>
-            } />
             <Route path="/sitemap" element={
               <>
                 <Header />
@@ -302,19 +233,6 @@ function App() {
                 <Footer />
               </>
             } />
-            <Route path="/status" element={
-              <>
-                <Header />
-                <Status />
-                <Footer />
-              </>
-            } />
-            <Route path="/test-header" element={
-              <>
-                <Header />
-                <TestHeader/>
-              </>
-            }/>
             <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
             <Route path="/privacy" element={<PrivacyPolicy/>}/>
             <Route path="/pricing" element={<PricingPlans/>}/>
@@ -327,15 +245,6 @@ function App() {
             }/>
             
             {/* Protected routes with role-based access */}
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <ProfilePage />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
             
             <Route path="/promo-codes" element={
               <ProtectedRoute>
@@ -365,24 +274,7 @@ function App() {
                  </>
                </ProtectedRoute>
              } />
-             <Route path="/recruiter-tracker" element={
-               <ProtectedRoute requiredRole="recruiter">
-                 <>
-                   <Header />
-                   <RecruiterTracker />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
              
-             <Route path="/local-language-analysis" element={
-               <ProtectedRoute requiredRole="recruiter">
-                 <>
-                   <LocalLanguageAnalysisPage />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
              
             <Route path="/post-job" element={
               <ProtectedRoute requiredRole="recruiter">
@@ -422,44 +314,6 @@ function App() {
                  </>
                </ProtectedRoute>
              } />
-            <Route path="/complete-profile" element={
-              <ProtectedRoute requiredRole="jobSeeker">
-                <CompleteProfile />
-              </ProtectedRoute>
-            } />
-             <Route path="/recruiter-complete-profile" element={
-               <ProtectedRoute requiredRole="recruiter">
-                 <>
-                   <RecruiterCompleteProfile />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
-             <Route path="/application-tracker" element={
-               <ProtectedRoute>
-                 <>
-                   <Header />
-                   <ModernApplicationTracker />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
-             <Route path="/resume-builder" element={
-               <ProtectedRoute requiredRole="jobSeeker">
-                 <>
-                   <ResumeBuilder />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
-             <Route path="/jobseeker-analytics" element={
-               <ProtectedRoute requiredRole="jobSeeker">
-                 <>
-                   <JobSeekerAnalytics />
-                   <Footer />
-                 </>
-               </ProtectedRoute>
-             } />
             
             {/* Admin-only routes */}
             <Route path="/admin" element={
@@ -480,16 +334,6 @@ function App() {
               </ProtectedRoute>
             } />
             
-            {/* Analytics dashboard - accessible by both recruiters and job seekers */}
-            <Route path="/analytics-dashboard" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <AnalyticsDashboard />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
             
             {/* Other protected routes */}
             <Route path="/allJobs" element={
@@ -501,80 +345,7 @@ function App() {
                 </>
               </ProtectedRoute>
             }/>
-            <Route path="/job-description" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <JobDescription />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
-            <Route path="/recruiterapplicants" element={
-              <ProtectedRoute requiredRole="recruiter">
-                <>
-                  <Header />
-                  <RecruiterApplicants />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
 
-            <Route path="/viewtopcandidates/:jobId" element={
-              <ProtectedRoute requiredRole="recruiter">
-                <>
-                  <Header />
-                  <ViewTopCandidates/>
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-            <Route path="/viewallcandidates/:jobId" element={
-              <ProtectedRoute requiredRole="recruiter">
-                <>
-                  <Header />
-                  <ViewAllCandidates/>
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-            <Route path="/profile/:userId" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <ResumeProfile/>
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-            <Route path="/contact/:userId?" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <ContactMe />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-            {/* Resume upload routes - both redirect to modern service */}
-            <Route path="/upload-resume" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <ModernResumeUpload />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
-            <Route path="/modern-upload" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <ModernResumeUpload />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
             <Route path="/joblisting" element={
               <ProtectedRoute>
                 <>
@@ -602,15 +373,6 @@ function App() {
                 </>
               </ProtectedRoute>
             } />
-            <Route path="/match-score/:jobId" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <MatchScore />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
 
             <Route path="/payment-success" element={
               <ProtectedRoute>
@@ -628,16 +390,6 @@ function App() {
                 <SettingsRedirect />
               </ProtectedRoute>
             }/>
-            <Route path="/jobseeker-settings" element={
-              <ProtectedRoute requiredRole="jobSeeker">
-                <JobSeekerSettings />
-              </ProtectedRoute>
-            }/>
-            <Route path="/recruiter-settings" element={
-              <ProtectedRoute requiredRole="recruiter">
-                <RecruiterSettings />
-              </ProtectedRoute>
-            }/>
             <Route path="/community" element={
               <ProtectedRoute>
                 <>
@@ -647,15 +399,6 @@ function App() {
                 </>
               </ProtectedRoute>
             }/>
-            <Route path="/gigs" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <GigDashboard />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
             <Route path="/cv-browser" element={
               <ProtectedRoute requiredRole="recruiter">
                 <>
@@ -668,9 +411,7 @@ function App() {
             
             {/* OAuth Routes */}
             <Route path="/oauth-success" element={<OAuthSuccess />} />
-            <Route path="/oauth-signup" element={<OAuthSignup />} />
             <Route path="/oauth-role-selection" element={<OAuthRoleSelection />} />
-            <Route path="/user-profile-setup" element={<UserProfileSetup />} />
           </Routes>
         </div>
           </ProfilePhotoProvider>

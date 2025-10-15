@@ -32,6 +32,9 @@
 .sidebar-header h2 {
     font-size: 20px;
     margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .sidebar-header p {
@@ -107,6 +110,12 @@
     border: 2px solid #e0e0e0;
     border-radius: 8px;
     font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #667eea;
 }
 
 .search-bar i {
@@ -168,6 +177,23 @@
     justify-content: center;
     color: white;
     font-weight: 600;
+    font-size: 14px;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.user-role {
+    font-size: 12px;
+    color: #666;
 }
 
 .content-area {
@@ -393,17 +419,7 @@ tr:hover {
     color: #1565c0;
 }
 
-.status-reviewing {
-    background: #e3f2fd;
-    color: #1565c0;
-}
-
 .status-interview {
-    background: #f3e5f5;
-    color: #7b1fa2;
-}
-
-.status-interview_scheduled {
     background: #f3e5f5;
     color: #7b1fa2;
 }
@@ -413,29 +429,9 @@ tr:hover {
     color: #388e3c;
 }
 
-.status-offered {
-    background: #e8f5e9;
-    color: #388e3c;
-}
-
 .status-rejected {
     background: #ffebee;
     color: #d32f2f;
-}
-
-.status-accepted {
-    background: #e8f5e9;
-    color: #388e3c;
-}
-
-.status-new {
-    background: #e3f2fd;
-    color: #1565c0;
-}
-
-.status-applied {
-    background: #e3f2fd;
-    color: #1565c0;
 }
 
 /* Modal */
@@ -810,4 +806,3 @@ tr:hover {
         max-width: 100%;
     }
 }
-
