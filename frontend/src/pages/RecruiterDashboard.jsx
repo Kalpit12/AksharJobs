@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import '../styles/RecruiterDashboard.css';
 
 const RecruiterDashboard = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [activeSection, setActiveSection] = useState('dashboard');
     const [jobs, setJobs] = useState([]);
@@ -48,7 +48,7 @@ const RecruiterDashboard = () => {
                 const data = await response.json();
                 setInternships(data);
             }
-        } catch (error) {
+      } catch (error) {
             console.error('Error fetching internships:', error);
         }
     };
@@ -71,7 +71,7 @@ const RecruiterDashboard = () => {
     };
 
     const fetchApplications = async () => {
-        try {
+      try {
             const token = localStorage.getItem('token');
             const response = await fetch('/api/applications/recruiter', {
                 headers: {
@@ -160,12 +160,12 @@ const RecruiterDashboard = () => {
                 <div className="sidebar-header">
                     <h2><i className="fas fa-briefcase"></i> RecruiterHub</h2>
                     <p>Acme Corporation</p>
-                </div>
+          </div>
                 <div className="nav-menu">
                     <div className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => showSection('dashboard')}>
                         <i className="fas fa-th-large"></i>
                         <span>Dashboard</span>
-                    </div>
+        </div>
                     <div className={`nav-item ${activeSection === 'jobs' ? 'active' : ''}`} onClick={() => showSection('jobs')}>
                         <i className="fas fa-briefcase"></i>
                         <span>Job Postings</span>
@@ -370,9 +370,9 @@ const RecruiterDashboard = () => {
                                             </tr>
                                         </tbody>
                                     </table>
-                                </div>
-                            </div>
-
+              </div>
+            </div>
+          
                             <div className="card">
                                 <div className="card-header">
                                     <h3 className="card-title">Quick Actions</h3>
@@ -380,13 +380,13 @@ const RecruiterDashboard = () => {
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     <button className="btn btn-primary" onClick={() => openModal('jobModal')}>
                                         <i className="fas fa-plus"></i> Post New Job
-                                    </button>
+                      </button>
                                     <button className="btn btn-primary" onClick={() => openModal('internshipModal')}>
                                         <i className="fas fa-plus"></i> Post Internship
-                                    </button>
+                      </button>
                                     <button className="btn btn-secondary" onClick={() => showSection('candidates')}>
                                         <i className="fas fa-search"></i> Search Candidates
-                                    </button>
+              </button>
                                     <button className="btn btn-secondary" onClick={() => showSection('calendar')}>
                                         <i className="fas fa-calendar"></i> Schedule Interview
                                     </button>
@@ -401,7 +401,7 @@ const RecruiterDashboard = () => {
                             <h1>Job Postings</h1>
                             <button className="btn btn-primary" onClick={() => openModal('jobModal')}>
                                 <i className="fas fa-plus"></i> Post New Job
-                            </button>
+                      </button>
                         </div>
 
                         <div className="tabs">
@@ -500,7 +500,7 @@ const RecruiterDashboard = () => {
                             <h1>Internship Postings</h1>
                             <button className="btn btn-primary" onClick={() => openModal('internshipModal')}>
                                 <i className="fas fa-plus"></i> Post New Internship
-                            </button>
+                      </button>
                         </div>
 
                         <div className="card">
@@ -557,8 +557,8 @@ const RecruiterDashboard = () => {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                    </div>
+                </div>
+              </div>
 
                     {/* Candidates Section */}
                     <div className={`page-section ${activeSection === 'candidates' ? 'active' : ''}`} id="candidates">
@@ -584,7 +584,7 @@ const RecruiterDashboard = () => {
                                 <option value="rating">Highest Rating</option>
                                 <option value="name">Name A-Z</option>
                             </select>
-                        </div>
+              </div>
 
                         <div className="card">
                             <div style={{ display: 'grid', gap: '15px' }}>
@@ -645,8 +645,8 @@ const RecruiterDashboard = () => {
                                         <span className="skill-tag">Content Strategy</span>
                                         <span className="skill-tag">Analytics</span>
                                     </div>
-                                </div>
-
+                  </div>
+                  
                                 <div className="candidate-card">
                                     <div className="candidate-header">
                                         <div className="candidate-info">
@@ -677,7 +677,7 @@ const RecruiterDashboard = () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                </div>
 
                     {/* Recruitment Pipeline Section */}
                     <div className={`page-section ${activeSection === 'pipeline' ? 'active' : ''}`} id="pipeline">
@@ -763,15 +763,15 @@ const RecruiterDashboard = () => {
                                         <div style={{ fontSize: '12px', color: '#666' }}>
                                             <i className="fas fa-star" style={{ color: '#ffc107' }}></i> 4.6
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
+                    </div>
+                  </div>
+                </div>
 
                             <div className="pipeline-stage">
                                 <div className="stage-header">
                                     <div className="stage-title">Assessment</div>
                                     <div className="stage-count">1</div>
-                                </div>
+                    </div>
                                 <div className="stage-candidates">
                                     <div className="stage-candidate">
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -779,20 +779,20 @@ const RecruiterDashboard = () => {
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontWeight: '600', fontSize: '14px' }}>James Taylor</div>
                                                 <div style={{ fontSize: '12px', color: '#666' }}>Senior Developer</div>
-                                            </div>
+                  </div>
                                         </div>
                                         <div style={{ fontSize: '12px', color: '#666' }}>
                                             <i className="fas fa-star" style={{ color: '#ffc107' }}></i> 4.9
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+              </div>
+              </div>
 
                             <div className="pipeline-stage">
                                 <div className="stage-header">
                                     <div className="stage-title">Offer</div>
                                     <div className="stage-count">1</div>
-                                </div>
+                  </div>
                                 <div className="stage-candidates">
                                     <div className="stage-candidate">
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
@@ -800,11 +800,11 @@ const RecruiterDashboard = () => {
                                             <div style={{ flex: 1 }}>
                                                 <div style={{ fontWeight: '600', fontSize: '14px' }}>Lisa Chen</div>
                                                 <div style={{ fontSize: '12px', color: '#666' }}>Product Manager</div>
-                                            </div>
-                                        </div>
+              </div>
+                </div>
                                         <div style={{ fontSize: '12px', color: '#666' }}>
                                             <i className="fas fa-star" style={{ color: '#ffc107' }}></i> 5.0
-                                        </div>
+          </div>
                                     </div>
                                 </div>
                             </div>
@@ -813,11 +813,11 @@ const RecruiterDashboard = () => {
                                 <div className="stage-header">
                                     <div className="stage-title">Hired</div>
                                     <div className="stage-count">0</div>
-                                </div>
+                </div>
                                 <div className="stage-candidates">
                                     <div style={{ padding: '20px', textAlign: 'center', color: '#999' }}>
                                         No candidates hired yet
-                                    </div>
+              </div>
                                 </div>
                             </div>
                         </div>
@@ -832,8 +832,8 @@ const RecruiterDashboard = () => {
                                 <h3>Message Center</h3>
                                 <p>Communicate with candidates directly through the platform</p>
                                 <button className="btn btn-primary">Compose Message</button>
-                            </div>
-                        </div>
+                    </div>
+                    </div>
                     </div>
 
                     {/* Calendar Section */}
@@ -845,9 +845,9 @@ const RecruiterDashboard = () => {
                                 <h3>Interview Schedule</h3>
                                 <p>Manage and schedule interviews with candidates</p>
                                 <button className="btn btn-primary">Schedule Interview</button>
-                            </div>
-                        </div>
                     </div>
+                </div>
+              </div>
 
                     {/* Analytics Section */}
                     <div className={`page-section ${activeSection === 'analytics' ? 'active' : ''}`} id="analytics">
@@ -976,13 +976,13 @@ const RecruiterDashboard = () => {
                     <div className="modal-header">
                         <h2 className="modal-title">Post New Internship</h2>
                         <button className="close-modal" onClick={() => closeModal('internshipModal')}>×</button>
-                    </div>
+      </div>
                     <div className="modal-body">
                         <form id="internshipForm" onSubmit={submitInternship}>
                             <div className="form-group">
                                 <label>Internship Title *</label>
                                 <input type="text" name="title" required placeholder="e.g., Software Development Intern" />
-                            </div>
+    </div>
                             
                             <div className="form-row">
                                 <div className="form-group">
@@ -1064,7 +1064,7 @@ const RecruiterDashboard = () => {
                 </div>
             </div>
         </div>
-    );
+  );
 };
 
 export default RecruiterDashboard;

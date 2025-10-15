@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import '../styles/InternDashboard.css';
 
 const InternDashboard = () => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
     const { user, logout } = useAuth();
     const [activeSection, setActiveSection] = useState('dashboard');
     const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -30,78 +30,78 @@ const InternDashboard = () => {
         preferredDuration: '3 months'
     });
 
-    useEffect(() => {
+  useEffect(() => {
         // Fetch user data from backend
         fetchUserData();
         fetchInternships();
         fetchApplications();
         fetchInterviews();
-    }, []);
+  }, []);
 
     const fetchUserData = async () => {
-        try {
-            const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
             const response = await fetch('/api/profile', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setProfileData(data);
-            }
-        } catch (error) {
-            console.error('Error fetching user data:', error);
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-    };
+      });
+      if (response.ok) {
+        const data = await response.json();
+                setProfileData(data);
+      }
+    } catch (error) {
+            console.error('Error fetching user data:', error);
+    }
+  };
 
     const fetchInternships = async () => {
-        try {
-            const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
             const response = await fetch('/api/internships', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setInternships(data);
-            }
-        } catch (error) {
-            console.error('Error fetching internships:', error);
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-    };
+      });
+      if (response.ok) {
+        const data = await response.json();
+                setInternships(data);
+      }
+    } catch (error) {
+            console.error('Error fetching internships:', error);
+    }
+  };
 
     const fetchApplications = async () => {
-        try {
-            const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
             const response = await fetch('/api/my-applications', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setApplications(data);
-            }
-        } catch (error) {
-            console.error('Error fetching applications:', error);
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-    };
+      });
+      if (response.ok) {
+        const data = await response.json();
+                setApplications(data);
+      }
+    } catch (error) {
+            console.error('Error fetching applications:', error);
+    }
+  };
 
     const fetchInterviews = async () => {
-        try {
-            const token = localStorage.getItem('token');
+    try {
+      const token = localStorage.getItem('token');
             const response = await fetch('/api/interviews', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
                 const data = await response.json();
                 setInterviews(data);
-            }
-        } catch (error) {
+      }
+    } catch (error) {
             console.error('Error fetching interviews:', error);
         }
     };
@@ -206,13 +206,13 @@ const InternDashboard = () => {
                     <div className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`} onClick={() => showSection('settings')}>
                         <i className="fas fa-cog"></i>
                         <span>Settings</span>
-                    </div>
-                </div>
+              </div>
+          </div>
                 <div style={{ padding: '20px', textAlign: 'center', opacity: 0.7 }}>
                     <p style={{ fontSize: '12px', marginBottom: '5px' }}>Need Help?</p>
                     <p style={{ fontSize: '10px' }}>Version 1.0 • © 2024 InternHub</p>
-                </div>
-            </div>
+        </div>
+          </div>
 
             {/* Main Content */}
             <div className="main-content">
@@ -221,7 +221,7 @@ const InternDashboard = () => {
                     <div className="search-bar">
                         <i className="fas fa-search"></i>
                         <input type="text" placeholder="Search internships, companies, or skills..." />
-                    </div>
+          </div>
                     <div className="top-bar-actions">
                         <button className="icon-btn">
                             <i className="fas fa-bell"></i>
@@ -235,10 +235,10 @@ const InternDashboard = () => {
                             <div className="user-info">
                                 <div className="user-name">Emily Student</div>
                                 <div className="user-role">Computer Science</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            </div>
+            </div>
+          </div>
+        </div>
 
                 {/* Content Area */}
                 <div className="content-area">
@@ -262,13 +262,13 @@ const InternDashboard = () => {
                                 </button>
                                 <button className="btn btn-secondary">
                                     <i className="fas fa-graduation-cap"></i> Add Coursework
-                                </button>
-                            </div>
-                        </div>
+          </button>
+        </div>
+              </div>
 
-                        {/* Stats Cards */}
-                        <div className="stats-grid">
-                            <div className="stat-card">
+            {/* Stats Cards */}
+            <div className="stats-grid">
+                <div className="stat-card">
                                 <div className="stat-header">
                                     <div>
                                         <div className="stat-number">8</div>
@@ -277,13 +277,13 @@ const InternDashboard = () => {
                                     <div className="stat-icon blue">
                                         <i className="fas fa-paper-plane"></i>
                                     </div>
-                                </div>
+                  </div>
                                 <div className="stat-change positive">
                                     <i className="fas fa-arrow-up"></i> ↑ 2 this week
-                                </div>
-                            </div>
+                  </div>
+                </div>
 
-                            <div className="stat-card">
+                <div className="stat-card">
                                 <div className="stat-header">
                                     <div>
                                         <div className="stat-number">2</div>
@@ -292,13 +292,13 @@ const InternDashboard = () => {
                                     <div className="stat-icon green">
                                         <i className="fas fa-calendar-check"></i>
                                     </div>
-                                </div>
+                  </div>
                                 <div className="stat-change">
                                     Next: Tomorrow at 10:00 AM
-                                </div>
-                            </div>
+                  </div>
+                </div>
 
-                            <div className="stat-card">
+                <div className="stat-card">
                                 <div className="stat-header">
                                     <div>
                                         <div className="stat-number">89</div>
@@ -307,13 +307,13 @@ const InternDashboard = () => {
                                     <div className="stat-icon purple">
                                         <i className="fas fa-eye"></i>
                                     </div>
-                                </div>
+                  </div>
                                 <div className="stat-change positive">
                                     <i className="fas fa-arrow-up"></i> ↑ +25% this month
-                                </div>
-                            </div>
+                  </div>
+                </div>
 
-                            <div className="stat-card">
+                <div className="stat-card">
                                 <div className="stat-header">
                                     <div>
                                         <div className="stat-number">6</div>
@@ -325,9 +325,9 @@ const InternDashboard = () => {
                                 </div>
                                 <div className="stat-change">
                                     3 new matches today
-                                </div>
-                            </div>
-                        </div>
+                  </div>
+                  </div>
+                </div>
 
                         {/* Notification Banners */}
                         <div className="notification-banner success">
@@ -336,14 +336,14 @@ const InternDashboard = () => {
                             </div>
                             <div>
                                 <strong>Congratulations!</strong> You've been shortlisted for the Software Development Internship at TechStart Inc.
-                            </div>
-                        </div>
+            </div>
+          </div>
 
                         <div className="notification-banner warning">
                             <div className="notification-icon warning">
                                 <i className="fas fa-exclamation-triangle"></i>
                             </div>
-                            <div>
+                  <div>
                                 <strong>Application Deadline:</strong> Marketing Internship at Brand Agency closes in 2 days!
                             </div>
                         </div>
@@ -357,20 +357,20 @@ const InternDashboard = () => {
                                 </div>
                                 <div id="recommendedInternships">
                                     {/* Internships will be populated here */}
-                                </div>
-                            </div>
+                  </div>
+                </div>
 
                             {/* Upcoming Interviews */}
                             <div className="card">
                                 <div className="card-header">
                                     <h3 className="card-title">Upcoming Interviews</h3>
-                                </div>
+                  </div>
                                 <div id="upcomingInterviews">
                                     {/* Interviews will be populated here */}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                  </div>
+                  </div>
+                </div>
+              </div>
 
                     {/* Browse Internships Section */}
                     <div className={`page-section ${activeSection === 'browse' ? 'active' : ''}`} id="browse">
@@ -391,20 +391,20 @@ const InternDashboard = () => {
                                     <option>Hybrid</option>
                                 </select>
                             </div>
-                        </div>
+          </div>
 
                         <div className="card">
                             <div id="internshipsList">
                                 {/* Internships will be populated here */}
                             </div>
                         </div>
-                    </div>
+          </div>
 
                     {/* My Applications Section */}
                     <div className={`page-section ${activeSection === 'applications' ? 'active' : ''}`} id="applications">
                         <h1 style={{ marginBottom: '25px' }}>My Applications</h1>
-                        
-                        <div className="tabs">
+
+              <div className="tabs">
                             <div className="tab active">All Applications (8)</div>
                             <div className="tab">Pending (4)</div>
                             <div className="tab">Shortlisted (2)</div>
@@ -529,7 +529,7 @@ const InternDashboard = () => {
                                 </button>
                                 <button className="btn btn-secondary" id="cancelProfileBtn" onClick={cancelProfileEdit} style={{ display: isEditingProfile ? 'inline-flex' : 'none', marginLeft: '10px' }}>
                                     <i className="fas fa-times"></i> Cancel
-                                </button>
+                </button>
                             </div>
                         </div>
 
@@ -542,7 +542,7 @@ const InternDashboard = () => {
                                     <p style={{ fontSize: '18px', marginBottom: '10px', opacity: 0.9 }}>Computer Science Student • University of Nairobi</p>
                                     <button className="btn btn-secondary" style={{ marginTop: '10px' }}>
                                         <i className="fas fa-edit"></i> Edit Profile
-                                    </button>
+                </button>
                                 </div>
                             </div>
                         </div>
@@ -804,8 +804,8 @@ const InternDashboard = () => {
                             <h1>Portfolio</h1>
                             <button className="btn btn-primary">
                                 <i className="fas fa-plus"></i> Add Project
-                            </button>
-                        </div>
+                </button>
+              </div>
 
                         <div className="card">
                             <div className="resume-list">
@@ -855,9 +855,9 @@ const InternDashboard = () => {
                                         </button>
                                         <button className="btn btn-secondary btn-sm">
                                             <i className="fab fa-github"></i> Code
-                                        </button>
-                                    </div>
-                                </div>
+                </button>
+              </div>
+            </div>
 
                                 <div className="resume-item">
                                     <div className="resume-icon">
@@ -1054,11 +1054,11 @@ const InternDashboard = () => {
                                 </button>
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
-        </div>
-    );
+          </div>
+      </div>
+  );
 };
 
 export default InternDashboard;
