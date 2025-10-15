@@ -11,7 +11,9 @@ import {
   faDollarSign, faUsers, faBuilding, faStar, faDownload,
   faEye, faFilter, faSort, faArrowUp, faArrowDown,
   faExternalLinkAlt, faTrash, faCopy, faShare, faUpload,
-  faVideo, faSpinner
+  faVideo, faSpinner, faPassport, faMapMarkedAlt, faLightbulb,
+  faLanguage, faCertificate, faTasks, faUserCheck, faLink,
+  faSlidersH, faInfoCircle
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin as fabLinkedin, faGithub as fabGithub, faTwitter as fabTwitter } from '@fortawesome/free-brands-svg-icons';
 import { buildApiUrl } from '../config/api';
@@ -26,25 +28,112 @@ const JobSeekerDashboard = () => {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [editingSections, setEditingSections] = useState({
     basicInfo: false,
+    personalInfo: false,
+    nationality: false,
+    preferredLocations: false,
+    professionalProfile: false,
     summary: false,
-    experience: false,
-    skills: false,
+    workExperience: false,
     education: false,
-    certifications: false
+    skills: false,
+    languages: false,
+    certifications: false,
+    projects: false,
+    memberships: false,
+    references: false,
+    socialLinks: false,
+    jobPreferences: false,
+    additionalInfo: false
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
+    // Personal Information
     fullName: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
     email: '',
     phone: '',
-    location: '',
+    altPhone: '',
+    dateOfBirth: '',
+    gender: '',
+    community: '',
+    profilePhoto: null,
+    
+    // Nationality & Residency
+    nationality: '',
+    residentCountry: '',
+    currentCity: '',
+    postalCode: '',
+    address: '',
+    workPermit: '',
+    
+    // Preferred Working Locations
+    preferredLocation1: '',
+    preferredLocation2: '',
+    preferredLocation3: '',
+    willingToRelocate: '',
+    workLocation: '',
+    
+    // Professional Profile
+    professionalTitle: '',
+    yearsExperience: '',
+    careerLevel: '',
+    industry: '',
     summary: '',
+    
+    // Work Experience
+    workExperience: [],
+    
+    // Education
+    education: [],
+    
+    // Skills & Competencies
+    skills: [],
+    tools: [],
+    
+    // Languages
+    languages: [],
+    
+    // Certifications
+    certifications: [],
+    
+    // Projects & Portfolio
+    projects: [],
+    
+    // Professional Memberships
+    membershipOrg: '',
+    membershipType: '',
+    membershipDate: '',
+    
+    // References
+    references: [],
+    
+    // Professional Online Presence
+    linkedin: '',
+    github: '',
+    portfolio: '',
+    twitter: '',
+    otherLink: '',
+    
+    // Job Preferences
+    jobType: '',
+    noticePeriod: '',
+    currentSalary: '',
+    expectedSalary: '',
+    currencyPreference: '',
+    travelAvailability: '',
+    
+    // Additional Information
+    hobbies: '',
+    additionalComments: '',
+    
+    // Legacy fields for compatibility
     jobTitle: '',
     experience: '',
-    industry: '',
     availability: 'Available Immediately',
-    profilePhoto: null,
+    location: '',
     profileCompleted: false
   });
 
@@ -66,36 +155,72 @@ const JobSeekerDashboard = () => {
     let completedFields = 0;
     let totalFields = 0;
 
-    // Basic info fields
-    const basicFields = ['fullName', 'email', 'phone', 'location', 'summary', 'jobTitle', 'experience', 'industry'];
-    basicFields.forEach(field => {
+    // Personal Information (8 fields)
+    const personalFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender', 'nationality', 'residentCountry'];
+    personalFields.forEach(field => {
       totalFields++;
       if (profileData[field] && profileData[field].trim() !== '') {
         completedFields++;
       }
     });
 
-    // Skills (if any)
+    // Professional Profile (4 fields)
+    const professionalFields = ['professionalTitle', 'yearsExperience', 'careerLevel', 'industry'];
+    professionalFields.forEach(field => {
+      totalFields++;
+      if (profileData[field] && profileData[field].trim() !== '') {
+        completedFields++;
+      }
+    });
+
+    // Professional Summary (1 field)
+    totalFields++;
+    if (profileData.summary && profileData.summary.trim() !== '') {
+      completedFields++;
+    }
+
+    // Skills (1 field)
     totalFields++;
     if (profileData.skills && profileData.skills.length > 0) {
       completedFields++;
     }
 
-    // Work experience (if any)
+    // Languages (1 field)
+    totalFields++;
+    if (profileData.languages && profileData.languages.length > 0) {
+      completedFields++;
+    }
+
+    // Work Experience (1 field)
     totalFields++;
     if (profileData.workExperience && profileData.workExperience.length > 0) {
       completedFields++;
     }
 
-    // Education (if any)
+    // Education (1 field)
     totalFields++;
     if (profileData.education && profileData.education.length > 0) {
       completedFields++;
     }
 
-    // Resume (if any)
+    // Job Preferences (2 fields)
+    const jobPreferenceFields = ['jobType', 'noticePeriod'];
+    jobPreferenceFields.forEach(field => {
+      totalFields++;
+      if (profileData[field] && profileData[field].trim() !== '') {
+        completedFields++;
+      }
+    });
+
+    // Expected Salary (1 field)
     totalFields++;
-    if (profileData.resume || profileData.resumeUrl) {
+    if (profileData.expectedSalary && profileData.expectedSalary.trim() !== '') {
+      completedFields++;
+    }
+
+    // Work Location Preference (1 field)
+    totalFields++;
+    if (profileData.workLocation && profileData.workLocation.trim() !== '') {
       completedFields++;
     }
 
@@ -564,9 +689,9 @@ const JobSeekerDashboard = () => {
         }}>
           <FontAwesomeIcon icon={faSpinner} spin size="2x" style={{ color: '#667eea' }} />
           <p style={{ color: '#666', fontSize: '16px' }}>Loading your dashboard...</p>
-        </div>
+          </div>
       </div>
-    );
+  );
   }
 
   // Show error state
@@ -734,7 +859,7 @@ const JobSeekerDashboard = () => {
                     <button className="btn btn-secondary" onClick={() => showSection('profile')}>
                       <FontAwesomeIcon icon={faUser} />
                       EDIT PROFILE
-                    </button>
+                  </button>
                   )}
                 </div>
               </div>
@@ -834,8 +959,8 @@ const JobSeekerDashboard = () => {
                     <option>Date Posted</option>
                     <option>Salary</option>
                   </select>
-                    </div>
-                  </div>
+                </div>
+              </div>
 
               <div className="jobs-grid">
                 {jobs.map(job => (
@@ -849,10 +974,10 @@ const JobSeekerDashboard = () => {
                           <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
                           <span><FontAwesomeIcon icon={faBriefcase} /> {job.type}</span>
                           <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
-                    </div>
-                      </div>
+                  </div>
+                  </div>
                       {job.featured && <span className="featured-badge">Featured</span>}
-                    </div>
+                </div>
                     <div className="job-skills">
                       {job.skills.map((skill, index) => (
                         <span key={index} className="skill-tag">{skill}</span>
@@ -888,13 +1013,13 @@ const JobSeekerDashboard = () => {
                 </button>
               </div>
 
-              {/* Basic Information Section */}
+              {/* Personal Information Section */}
               <div className="profile-card">
                 <div className="profile-section-header">
-                  <h3>Basic Information</h3>
+                  <h3><FontAwesomeIcon icon={faUser} /> Personal Information</h3>
                   <button 
                     className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('basicInfo')}
+                    onClick={() => toggleSectionEdit('personalInfo')}
                   >
                     <FontAwesomeIcon icon={faEdit} />
                     Edit
@@ -908,42 +1033,117 @@ const JobSeekerDashboard = () => {
                     </div>
                   </div>
                   <div className="profile-info">
-                    {editingSections.basicInfo ? (
-                      <>
-                        <input 
-                          type="text" 
-                          value={profileData.fullName}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, fullName: e.target.value }))}
-                          className="profile-input"
-                          placeholder="Full Name"
-                        />
-                        <input 
-                          type="text" 
-                          value={profileData.jobTitle}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, jobTitle: e.target.value }))}
-                          className="profile-input"
-                          placeholder="Job Title"
-                        />
-                        <div className="edit-actions">
-                          <button className="btn btn-sm btn-success" onClick={() => saveSection('basicInfo')}>
-                            <FontAwesomeIcon icon={faSave} /> Save
-                          </button>
-                          <button className="btn btn-sm btn-secondary" onClick={() => cancelSectionEdit('basicInfo')}>
-                            <FontAwesomeIcon icon={faTimes} /> Cancel
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <h2>{profileData.fullName || 'Not provided'}</h2>
-                        <p className="job-title">{profileData.jobTitle || 'Job Seeker'}</p>
-                        <div className="profile-meta">
-                          <span><FontAwesomeIcon icon={faMail} /> {profileData.email || 'Not provided'}</span>
-                          <span><FontAwesomeIcon icon={faPhone} /> {profileData.phone || 'Not provided'}</span>
-                          <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.location || 'Not provided'}</span>
-                        </div>
-                      </>
-                    )}
+                    <h2>{profileData.fullName || profileData.firstName + ' ' + profileData.lastName || 'Not provided'}</h2>
+                    <p className="job-title">{profileData.professionalTitle || 'Job Seeker'}</p>
+                    <div className="profile-meta">
+                      <span><FontAwesomeIcon icon={faMail} /> {profileData.email || 'Not provided'}</span>
+                      <span><FontAwesomeIcon icon={faPhone} /> {profileData.phone || 'Not provided'}</span>
+                      <span><FontAwesomeIcon icon={faCalendar} /> {profileData.dateOfBirth || 'Not provided'}</span>
+                      <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.currentCity || profileData.residentCountry || 'Not provided'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nationality & Residency Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faPassport} /> Nationality & Residency</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('nationality')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Nationality</span>
+                    <span className="detail-value">{profileData.nationality || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Resident Country</span>
+                    <span className="detail-value">{profileData.residentCountry || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Current City</span>
+                    <span className="detail-value">{profileData.currentCity || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Work Permit</span>
+                    <span className="detail-value">{profileData.workPermit || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferred Working Locations Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faMapMarkedAlt} /> Preferred Working Locations</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('preferredLocations')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Preferred Location 1</span>
+                    <span className="detail-value">{profileData.preferredLocation1 || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Preferred Location 2</span>
+                    <span className="detail-value">{profileData.preferredLocation2 || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Preferred Location 3</span>
+                    <span className="detail-value">{profileData.preferredLocation3 || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Willing to Relocate</span>
+                    <span className="detail-value">{profileData.willingToRelocate || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Work Location Preference</span>
+                    <span className="detail-value">{profileData.workLocation || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Professional Profile Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faBriefcase} /> Professional Profile</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('professionalProfile')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Professional Title</span>
+                    <span className="detail-value">{profileData.professionalTitle || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Years of Experience</span>
+                    <span className="detail-value">{profileData.yearsExperience || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Career Level</span>
+                    <span className="detail-value">{profileData.careerLevel || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Industry</span>
+                    <span className="detail-value">{profileData.industry || 'Not specified'}</span>
                   </div>
                 </div>
               </div>
@@ -951,7 +1151,7 @@ const JobSeekerDashboard = () => {
               {/* Professional Summary Section */}
               <div className="profile-card">
                 <div className="profile-section-header">
-                  <h3>Professional Summary</h3>
+                  <h3><FontAwesomeIcon icon={faFileAlt} /> Professional Summary</h3>
                   <button 
                     className="btn btn-sm btn-secondary"
                     onClick={() => toggleSectionEdit('summary')}
@@ -961,112 +1161,15 @@ const JobSeekerDashboard = () => {
                   </button>
                 </div>
                 
-                {editingSections.summary ? (
-                  <div className="edit-section">
-                    <textarea 
-                      value={profileData.summary}
-                      onChange={(e) => setProfileData(prev => ({ ...prev, summary: e.target.value }))}
-                      className="profile-textarea"
-                      rows="4"
-                      placeholder="Tell us about yourself, your experience, and what you're looking for..."
-                    />
-                    <div className="edit-actions">
-                      <button className="btn btn-sm btn-success" onClick={() => saveSection('summary')}>
-                        <FontAwesomeIcon icon={faSave} /> Save
-                      </button>
-                      <button className="btn btn-sm btn-secondary" onClick={() => cancelSectionEdit('summary')}>
-                        <FontAwesomeIcon icon={faTimes} /> Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="summary-text">
-                    {profileData.summary || 'Complete your profile to get better job matches. Add a professional summary to showcase your experience and goals.'}
-                  </p>
-                )}
+                <p className="summary-text">
+                  {profileData.summary || 'Complete your profile to get better job matches. Add a professional summary to showcase your experience and goals.'}
+                </p>
               </div>
 
-              {/* Experience & Skills Section */}
+              {/* Skills & Competencies Section */}
               <div className="profile-card">
                 <div className="profile-section-header">
-                  <h3>Experience & Skills</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('experience')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                {editingSections.experience ? (
-                  <div className="edit-section">
-                    <div className="form-grid">
-                      <div className="form-group">
-                        <label>Years of Experience</label>
-                        <input 
-                          type="text" 
-                          value={profileData.experience}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, experience: e.target.value }))}
-                          className="form-input"
-                          placeholder="e.g., 3-5 years"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Industry</label>
-                        <input 
-                          type="text" 
-                          value={profileData.industry}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, industry: e.target.value }))}
-                          className="form-input"
-                          placeholder="e.g., Technology, Healthcare"
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label>Availability</label>
-                        <select 
-                          value={profileData.availability}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, availability: e.target.value }))}
-                          className="form-input"
-                        >
-                          <option value="Available Immediately">Available Immediately</option>
-                          <option value="Available in 2 weeks">Available in 2 weeks</option>
-                          <option value="Available in 1 month">Available in 1 month</option>
-                          <option value="Open to opportunities">Open to opportunities</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div className="edit-actions">
-                      <button className="btn btn-sm btn-success" onClick={() => saveSection('experience')}>
-                        <FontAwesomeIcon icon={faSave} /> Save
-                      </button>
-                      <button className="btn btn-sm btn-secondary" onClick={() => cancelSectionEdit('experience')}>
-                        <FontAwesomeIcon icon={faTimes} /> Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="skills-grid">
-                    <div className="skill-item">
-                      <span className="skill-label">Experience</span>
-                      <span className="skill-value">{profileData.experience || 'Not specified'}</span>
-                    </div>
-                    <div className="skill-item">
-                      <span className="skill-label">Industry</span>
-                      <span className="skill-value">{profileData.industry || 'Not specified'}</span>
-                    </div>
-                    <div className="skill-item">
-                      <span className="skill-label">Availability</span>
-                      <span className="skill-value">{profileData.availability || 'Not specified'}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Skills Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3>Skills</h3>
+                  <h3><FontAwesomeIcon icon={faLightbulb} /> Skills & Competencies</h3>
                   <button 
                     className="btn btn-sm btn-secondary"
                     onClick={() => toggleSectionEdit('skills')}
@@ -1076,13 +1179,53 @@ const JobSeekerDashboard = () => {
                   </button>
                 </div>
                 
+                <div className="skills-section">
+                  <h4>Core Skills</h4>
+                  <div className="skills-list">
+                    {profileData.skills && profileData.skills.length > 0 ? (
+                      profileData.skills.map((skill, index) => (
+                        <span key={index} className="skill-tag">{skill}</span>
+                      ))
+                    ) : (
+                      <p className="empty-message">No skills added yet. Click Edit to add your skills.</p>
+                    )}
+                  </div>
+                  
+                  <h4>Software & Tools</h4>
+                  <div className="skills-list">
+                    {profileData.tools && profileData.tools.length > 0 ? (
+                      profileData.tools.map((tool, index) => (
+                        <span key={index} className="skill-tag">{tool}</span>
+                      ))
+                    ) : (
+                      <p className="empty-message">No tools added yet. Click Edit to add your tools.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Languages Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('languages')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
                 <div className="skills-list">
-                  {profileData.skills && profileData.skills.length > 0 ? (
-                    profileData.skills.map((skill, index) => (
-                      <span key={index} className="skill-tag">{skill}</span>
+                  {profileData.languages && profileData.languages.length > 0 ? (
+                    profileData.languages.map((lang, index) => (
+                      <span key={index} className="skill-tag">
+                        {lang.language} - {lang.proficiency}
+                      </span>
                     ))
                   ) : (
-                    <p className="empty-message">No skills added yet. Click Edit to add your skills.</p>
+                    <p className="empty-message">No languages added yet. Click Edit to add your languages.</p>
                   )}
                 </div>
               </div>
@@ -1090,10 +1233,10 @@ const JobSeekerDashboard = () => {
               {/* Work Experience Section */}
               <div className="profile-card">
                 <div className="profile-section-header">
-                  <h3>Work Experience</h3>
+                  <h3><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
                   <button 
                     className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('experience')}
+                    onClick={() => toggleSectionEdit('workExperience')}
                   >
                     <FontAwesomeIcon icon={faEdit} />
                     Edit
@@ -1117,7 +1260,7 @@ const JobSeekerDashboard = () => {
               {/* Education Section */}
               <div className="profile-card">
                 <div className="profile-section-header">
-                  <h3>Education</h3>
+                  <h3><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
                   <button 
                     className="btn btn-sm btn-secondary"
                     onClick={() => toggleSectionEdit('education')}
@@ -1138,6 +1281,234 @@ const JobSeekerDashboard = () => {
                 ) : (
                   <p className="empty-message">No education information added yet. Click Edit to add your education.</p>
                 )}
+              </div>
+
+              {/* Certifications Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faCertificate} /> Certifications & Licenses</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('certifications')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {profileData.certifications && profileData.certifications.length > 0 ? (
+                  profileData.certifications.map((cert, index) => (
+                    <div key={index} className="certification-item">
+                      <h4>{cert.name}</h4>
+                      <p className="issuer">{cert.issuer}</p>
+                      <p className="date">{cert.issueDate} - {cert.expiryDate || 'No expiry'}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No certifications added yet. Click Edit to add your certifications.</p>
+                )}
+              </div>
+
+              {/* Projects & Portfolio Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faTasks} /> Projects & Portfolio</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('projects')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {profileData.projects && profileData.projects.length > 0 ? (
+                  profileData.projects.map((project, index) => (
+                    <div key={index} className="project-item">
+                      <h4>{project.name}</h4>
+                      <p className="role">{project.role}</p>
+                      <p className="description">{project.description}</p>
+                      {project.url && <a href={project.url} target="_blank" rel="noopener noreferrer">View Project</a>}
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No projects added yet. Click Edit to add your projects.</p>
+                )}
+              </div>
+
+              {/* Professional Memberships Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faUsers} /> Professional Memberships</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('memberships')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Organization</span>
+                    <span className="detail-value">{profileData.membershipOrg || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Membership Type</span>
+                    <span className="detail-value">{profileData.membershipType || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Member Since</span>
+                    <span className="detail-value">{profileData.membershipDate || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* References Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faUserCheck} /> Professional References</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('references')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                {profileData.references && profileData.references.length > 0 ? (
+                  profileData.references.map((ref, index) => (
+                    <div key={index} className="reference-item">
+                      <h4>{ref.name}</h4>
+                      <p className="title">{ref.title} at {ref.company}</p>
+                      <p className="relationship">{ref.relationship}</p>
+                      <p className="contact">{ref.email} | {ref.phone}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-message">No references added yet. Click Edit to add your references.</p>
+                )}
+              </div>
+
+              {/* Professional Online Presence Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faLink} /> Professional Online Presence</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('socialLinks')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">LinkedIn</span>
+                    <span className="detail-value">
+                      {profileData.linkedin ? (
+                        <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer">
+                          {profileData.linkedin}
+                        </a>
+                      ) : 'Not provided'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">GitHub</span>
+                    <span className="detail-value">
+                      {profileData.github ? (
+                        <a href={profileData.github} target="_blank" rel="noopener noreferrer">
+                          {profileData.github}
+                        </a>
+                      ) : 'Not provided'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Portfolio/Website</span>
+                    <span className="detail-value">
+                      {profileData.portfolio ? (
+                        <a href={profileData.portfolio} target="_blank" rel="noopener noreferrer">
+                          {profileData.portfolio}
+                        </a>
+                      ) : 'Not provided'}
+                    </span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Twitter/X</span>
+                    <span className="detail-value">
+                      {profileData.twitter ? (
+                        <a href={profileData.twitter} target="_blank" rel="noopener noreferrer">
+                          {profileData.twitter}
+                        </a>
+                      ) : 'Not provided'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Job Preferences Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faSlidersH} /> Job Preferences & Availability</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('jobPreferences')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Desired Job Type</span>
+                    <span className="detail-value">{profileData.jobType || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Notice Period</span>
+                    <span className="detail-value">{profileData.noticePeriod || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Expected Salary</span>
+                    <span className="detail-value">{profileData.expectedSalary || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Currency Preference</span>
+                    <span className="detail-value">{profileData.currencyPreference || 'Not specified'}</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Travel Availability</span>
+                    <span className="detail-value">{profileData.travelAvailability || 'Not specified'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Information Section */}
+              <div className="profile-card">
+                <div className="profile-section-header">
+                  <h3><FontAwesomeIcon icon={faInfoCircle} /> Additional Information</h3>
+                  <button 
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => toggleSectionEdit('additionalInfo')}
+                  >
+                    <FontAwesomeIcon icon={faEdit} />
+                    Edit
+                  </button>
+                </div>
+                
+                <div className="additional-info">
+                  <div className="info-section">
+                    <h4>Hobbies & Interests</h4>
+                    <p>{profileData.hobbies || 'Not specified'}</p>
+                  </div>
+                  <div className="info-section">
+                    <h4>Additional Comments</h4>
+                    <p>{profileData.additionalComments || 'Not specified'}</p>
+                  </div>
+                </div>
               </div>
             </div>
           )}
