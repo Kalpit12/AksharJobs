@@ -174,6 +174,13 @@ body {
   --transition-fast: 150ms ease-in-out;
   --transition-normal: 250ms ease-in-out;
   --transition-slow: 350ms ease-in-out;
+  
+  /* Animation Settings */
+  --animation-duration-fast: 0.15s;
+  --animation-duration-normal: 0.3s;
+  --animation-duration-slow: 0.6s;
+  --animation-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  --animation-easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
 /* ===== GLOBAL RESET & BASE STYLES ===== */
@@ -1264,6 +1271,62 @@ a:hover {
 .transition { transition: all var(--transition-normal); }
 .transition-fast { transition: all var(--transition-fast); }
 .transition-slow { transition: all var(--transition-slow); }
+
+/* ===== ACCESSIBILITY FEATURES ===== */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Disable specific animations */
+  .float,
+  .pulse-button,
+  .animate-pulse,
+  .animate-float,
+  .animate-glow,
+  .loading-spinner,
+  .loading-pulse,
+  .loading-dots,
+  .animate-slide-up,
+  .animate-slide-left,
+  .animate-slide-right {
+    animation: none !important;
+  }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+  }
+  
+  .loading-shimmer {
+    background: linear-gradient(
+      90deg,
+      #000000 25%,
+      #333333 50%,
+      #000000 75%
+    );
+  }
+  
+  /* Increase contrast for text and borders */
+  .text-secondary,
+  .text-tertiary,
+  .text-light {
+    color: var(--text-primary);
+  }
+  
+  .border-light {
+    border-color: var(--border-dark);
+  }
+}
 
 /* ===== PRINT STYLES ===== */
 @media print {

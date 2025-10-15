@@ -540,17 +540,4 @@ input:checked + .slider:before {
   outline-offset: 2px;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .two-factor-modal-overlay,
-  .two-factor-modal,
-  .close-btn,
-  .slider,
-  .slider:before,
-  .method-option,
-  .cancel-btn,
-  .save-btn {
-    animation: none;
-    transition: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */

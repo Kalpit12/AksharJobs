@@ -290,17 +290,5 @@
   }
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .modern-loading-spinner,
-  .modern-loading-dots .dot,
-  .modern-progress-fill,
-  .modern-skeleton {
-    animation-duration: 2s;
-  }
-  
-  .smoothPulse {
-    animation: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */
 

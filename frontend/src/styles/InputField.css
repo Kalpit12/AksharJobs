@@ -468,16 +468,5 @@
   }
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .input-element,
-  .input-icon,
-  .input-action-btn {
-    transition: none;
-  }
-  
-  .input-element:focus {
-    transform: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */
   

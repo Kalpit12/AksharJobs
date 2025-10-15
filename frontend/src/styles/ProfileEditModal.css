@@ -483,16 +483,4 @@
   outline: none;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .profile-edit-modal-overlay,
-  .profile-edit-modal,
-  .close-btn,
-  .upload-btn,
-  .cancel-btn,
-  .save-btn,
-  .avatar-option {
-    animation: none;
-    transition: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */

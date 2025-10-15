@@ -329,19 +329,7 @@
   }
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .premium-badge.animated,
-  .badge-icon,
-  .premium-badge[style*="--plan-color: #fbbf24"],
-  .premium-badge[style*="--plan-color: #8b5cf6"] {
-    animation: none;
-  }
-  
-  .premium-badge:hover {
-    transform: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */
 
 /* High contrast mode */
 @media (prefers-contrast: high) {

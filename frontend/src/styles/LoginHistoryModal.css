@@ -468,15 +468,4 @@
   outline-offset: 2px;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .login-history-modal-overlay,
-  .login-history-modal,
-  .close-btn,
-  .history-item,
-  .close-modal-btn,
-  .loading-spinner {
-    animation: none;
-    transition: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */

@@ -342,17 +342,5 @@
   }
 }
 
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-  .btn,
-  .btn-icon,
-  .btn-spinner {
-    transition: none;
-    animation: none;
-  }
-  
-  .btn:hover {
-    transform: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */
   

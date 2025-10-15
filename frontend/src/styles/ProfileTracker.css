@@ -24,7 +24,7 @@
 }
 
 /* Sidebar Layout */
-.profile-tracker.sidebar {
+.profile-tracker.tracker-sidebar {
   margin: 0;
   padding: 20px;
   position: sticky;
@@ -33,7 +33,7 @@
   overflow-y: auto;
 }
 
-.profile-tracker.sidebar:hover {
+.profile-tracker.tracker-sidebar:hover {
   transform: none;
 }
 

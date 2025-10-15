@@ -740,27 +740,7 @@
   }
 }
 
-/* Accessibility */
-@media (prefers-reduced-motion: reduce) {
-  .online-indicator,
-  .status-dot,
-  .spinner {
-    animation: none;
-  }
-}
-
-@media (prefers-contrast: high) {
-  .contact-profile-card,
-  .contact-form-card,
-  .own-profile-card {
-    border-width: 2px;
-  }
-
-  .form-group input:focus,
-  .form-group textarea:focus {
-    border-width: 3px;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */
 
 /* Additional Profile Details Styles */
 .personal-details-section,

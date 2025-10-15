@@ -513,17 +513,4 @@
   outline-offset: 2px;
 }
 
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-  .active-sessions-modal-overlay,
-  .active-sessions-modal,
-  .close-btn,
-  .session-item,
-  .terminate-all-btn,
-  .terminate-btn,
-  .close-modal-btn,
-  .loading-spinner {
-    animation: none;
-    transition: none;
-  }
-}
+/* Note: Accessibility features are now centralized in Global.css */
