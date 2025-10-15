@@ -1,5 +1,4 @@
 import React from 'react';
-import '../styles/Global.css';
 
 const JobCardSkeleton = ({ count = 6, className = '' }) => {
   const skeletons = Array.from({ length: count }, (_, index) => (

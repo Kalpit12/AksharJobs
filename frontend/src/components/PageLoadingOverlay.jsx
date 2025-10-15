@@ -1,6 +1,5 @@
 import React from 'react';
 import ModernLoadingSpinner from './ModernLoadingSpinner';
-import '../styles/Global.css';
 
 const PageLoadingOverlay = ({ 
   isVisible = false, 

@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
-import '../styles/Global.css';
 import '../styles/OAuth.css';
 
 const OAuthSuccess = () => {
