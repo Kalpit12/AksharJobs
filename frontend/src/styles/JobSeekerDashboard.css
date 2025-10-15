@@ -1287,7 +1287,6 @@
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 15px;
-  border-left: 4px solid #667eea;
 }
 
 .experience-item h4, .education-item h4 {
@@ -1413,7 +1412,6 @@
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 12px;
-  border-left: 4px solid #667eea;
 }
 
 .certification-item h4, .project-item h4, .reference-item h4 {
