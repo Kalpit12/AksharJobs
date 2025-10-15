@@ -59,6 +59,7 @@ from routes.intern_routes import intern_bp
 from routes.recruiter_routes import recruiter_bp
 from routes.jobseeker_registration_routes import jobseeker_registration_routes
 from routes.ai_features_routes import ai_features_bp
+from routes.interviews_routes import interviews_routes
 
 # Register blueprints
 app.register_blueprint(auth_routes, url_prefix='/api/auth')
@@ -73,7 +74,9 @@ app.register_blueprint(notification_bp, url_prefix='/api/notifications')
 app.register_blueprint(message_bp, url_prefix='/api/messages')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 app.register_blueprint(admin_routes, url_prefix='/api/admin')
+app.register_blueprint(interviews_routes, url_prefix='/api')
 print("✅ Admin routes registered at /api/admin")
+print("✅ Interviews routes registered at /api")
 
 # Debug: List all admin routes
 print("📋 Admin routes available:")

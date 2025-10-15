@@ -477,3 +477,93 @@ def get_recommended_jobs(user_id):
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Failed to generate recommendations: {str(e)}"}), 500
+
+@job_routes.route("/saved", methods=["GET"])
+@jwt_required()
+def get_saved_jobs():
+    """Get saved jobs for the current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        db = get_db()
+        users_collection = db.users
+        
+        # Convert string ID to ObjectId
+        try:
+            user_object_id = ObjectId(current_user_id)
+        except Exception as e:
+            print(f"Invalid user ID format: {current_user_id}, error: {e}")
+            return jsonify({"error": "Invalid user ID format"}), 400
+        
+        user = users_collection.find_one({'_id': user_object_id})
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        # Get saved job IDs from user profile
+        saved_job_ids = user.get('savedJobs', [])
+        
+        if not saved_job_ids:
+            return jsonify([]), 200
+        
+        # Convert saved job IDs to ObjectIds
+        try:
+            saved_job_object_ids = [ObjectId(job_id) for job_id in saved_job_ids]
+        except Exception as e:
+            print(f"Error converting job IDs to ObjectIds: {e}")
+            return jsonify({"error": "Invalid job ID format"}), 400
+        
+        # Fetch saved jobs from jobs collection
+        jobs_collection = db.jobs
+        saved_jobs = list(jobs_collection.find({'_id': {'$in': saved_job_object_ids}}))
+        
+        # Convert ObjectIds to strings for JSON serialization
+        serializable_jobs = convert_objectids_to_strings(saved_jobs)
+        
+        return jsonify(serializable_jobs), 200
+        
+    except Exception as e:
+        print(f"Error fetching saved jobs: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Failed to fetch saved jobs"}), 500
+
+@job_routes.route("/recommended", methods=["GET"])
+@jwt_required()
+def get_recommended_jobs_for_user():
+    """Get recommended jobs for the current user"""
+    try:
+        current_user_id = get_jwt_identity()
+        print(f"Getting recommended jobs for user: {current_user_id}")
+        
+        # Get all jobs
+        all_jobs = get_all_jobs()
+        if not all_jobs:
+            return jsonify([]), 200
+        
+        recommended_jobs = []
+        
+        # For now, return a subset of jobs as recommendations
+        # In the future, this should implement proper recommendation logic
+        for job in all_jobs[:10]:  # Limit to 10 recommendations
+            try:
+                # Convert all ObjectId and datetime fields to strings for JSON serialization
+                job_serializable = convert_objectids_to_strings(job)
+                
+                # Add a simple match score (random for now)
+                job_serializable["match_score"] = round(random.uniform(60, 95), 1)
+                
+                recommended_jobs.append(job_serializable)
+                
+            except Exception as e:
+                print(f"Error processing job {job.get('_id', 'unknown')}: {str(e)}")
+                continue
+        
+        # Sort jobs by match score in descending order (highest match first)
+        recommended_jobs.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+        
+        return jsonify(recommended_jobs), 200
+        
+    except Exception as e:
+        print(f"Error in get_recommended_jobs_for_user: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": "Failed to get recommended jobs"}), 500
