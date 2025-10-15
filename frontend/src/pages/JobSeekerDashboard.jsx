@@ -1,733 +1,429 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faThLarge, faBriefcase, faUserClock, faHeart, faEnvelope, 
-  faUser, faFileAlt, faGraduationCap, faCog, faBell, 
-  faSearch, faPlus, faEdit, faSave, faTimes, faCheck,
-  faMapMarkerAlt, faPhone, faEnvelope as faMail, faGlobe,
-  faLinkedin, faGithub, faTwitter, faCalendar, faClock,
-  faDollarSign, faUsers, faBuilding, faStar, faDownload,
-  faEye, faFilter, faSort, faArrowUp, faArrowDown,
-  faExternalLinkAlt, faTrash, faCopy, faShare, faUpload,
-  faVideo, faSpinner, faPassport, faMapMarkedAlt, faLightbulb,
-  faLanguage, faCertificate, faTasks, faUserCheck, faLink,
-  faSlidersH, faInfoCircle
+  faThLarge, faBriefcase, faFileAlt, faBookmark, faCalendarCheck, 
+  faStar, faEnvelope, faUser, faFilePdf, faBook, faCog, faBell, 
+  faSearch, faPlus, faEdit, faSave, faTimes, faCheck, faEye,
+  faPaperPlane, faUpload, faCertificate, faUserEdit, faVideo,
+  faCalendar, faInfoCircle, faCheckCircle, faTrash, faDownload,
+  faExternalLinkAlt, faArrowUp, faArrowDown, faFilter, faSort,
+  faCopy, faShare, faMapMarkerAlt, faDollarSign, faLayerGroup,
+  faClock, faGraduationCap, faCode, faBuilding, faLanguage,
+  faLink, faGlobe, faTwitter, faGithub, faLinkedin, faSpinner,
+  faPassport, faMapMarkedAlt, faLightbulb, faCertificate as faCert,
+  faTasks, faUserCheck, faSlidersH, faInfoCircle as faInfo,
+  faHeart, faQuestionCircle, faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin as fabLinkedin, faGithub as fabGithub, faTwitter as fabTwitter } from '@fortawesome/free-brands-svg-icons';
-import { buildApiUrl } from '../config/api';
 import dashboardService from '../services/dashboardService';
 import '../styles/JobSeekerDashboard.css';
 
 const JobSeekerDashboard = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
-  const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [editingSections, setEditingSections] = useState({
-    basicInfo: false,
-    personalInfo: false,
-    nationality: false,
-    preferredLocations: false,
-    professionalProfile: false,
-    summary: false,
-    workExperience: false,
-    education: false,
-    skills: false,
-    languages: false,
-    certifications: false,
-    projects: false,
-    memberships: false,
-    references: false,
-    socialLinks: false,
-    jobPreferences: false,
-    additionalInfo: false
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
-    // Personal Information
-    fullName: '',
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    altPhone: '',
-    dateOfBirth: '',
-    gender: '',
-    community: '',
-    profilePhoto: null,
-    
-    // Nationality & Residency
-    nationality: '',
-    residentCountry: '',
-    currentCity: '',
-    postalCode: '',
-    address: '',
-    workPermit: '',
-    
-    // Preferred Working Locations
-    preferredLocation1: '',
-    preferredLocation2: '',
-    preferredLocation3: '',
-    willingToRelocate: '',
-    workLocation: '',
-    
-    // Professional Profile
-    professionalTitle: '',
-    yearsExperience: '',
-    careerLevel: '',
-    industry: '',
-    summary: '',
-    
-    // Work Experience
-    workExperience: [],
-    
-    // Education
-    education: [],
-    
-    // Skills & Competencies
-    skills: [],
-    tools: [],
-    
-    // Languages
-    languages: [],
-    
-    // Certifications
-    certifications: [],
-    
-    // Projects & Portfolio
-    projects: [],
-    
-    // Professional Memberships
-    membershipOrg: '',
-    membershipType: '',
-    membershipDate: '',
-    
-    // References
-    references: [],
-    
-    // Professional Online Presence
-    linkedin: '',
-    github: '',
-    portfolio: '',
-    twitter: '',
-    otherLink: '',
-    
-    // Job Preferences
-    jobType: '',
-    noticePeriod: '',
-    currentSalary: '',
-    expectedSalary: '',
-    currencyPreference: '',
-    travelAvailability: '',
-    
-    // Additional Information
-    hobbies: '',
-    additionalComments: '',
-    
-    // Legacy fields for compatibility
-    jobTitle: '',
-    experience: '',
-    availability: 'Available Immediately',
-    location: '',
-    profileCompleted: false
+    fullName: 'John Smith',
+    email: 'john.smith@email.com',
+    phone: '+254 700 123 456',
+    location: 'Nairobi, Kenya',
+    jobTitle: 'Senior Software Engineer',
+    experience: '8',
+    industry: 'Technology',
+    summary: 'Experienced software engineer with 8+ years of expertise in full-stack development. Specialized in React, Node.js, and cloud technologies. Proven track record of delivering scalable applications and leading development teams. Passionate about clean code and innovative solutions.',
+    skills: ['JavaScript', 'React', 'Node.js', 'Python', 'MongoDB', 'PostgreSQL', 'AWS', 'Docker', 'Git', 'REST APIs'],
+    softSkills: ['Leadership', 'Team Collaboration', 'Problem Solving', 'Communication', 'Project Management', 'Agile Methodologies'],
+    workExperience: [
+      {
+        title: 'Senior Software Engineer',
+        company: 'TechCorp Inc.',
+        duration: 'January 2020 - Present (4 years)',
+        description: 'Leading a team of 5 developers in building scalable web applications. Implemented microservices architecture reducing system downtime by 40%. Mentored junior developers and conducted code reviews.'
+      },
+      {
+        title: 'Full Stack Developer',
+        company: 'Innovation Labs',
+        duration: 'March 2018 - December 2019 (2 years)',
+        description: 'Developed and maintained multiple web applications using React and Node.js. Collaborated with UX designers to improve user experience. Implemented automated testing reducing bugs by 30%.'
+      }
+    ],
+    education: [
+      {
+        degree: 'Bachelor of Science in Computer Science',
+        institution: 'University of Nairobi',
+        duration: '2012 - 2016',
+        description: 'Graduated with First Class Honors. Specialized in Software Engineering and Database Systems. President of the Computer Science Society.'
+      }
+    ],
+    certifications: [
+      { name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', date: '2021', verified: true },
+      { name: 'Certified Scrum Master (CSM)', issuer: 'Scrum Alliance', date: '2020', verified: true },
+      { name: 'Employee of the Year 2022', issuer: 'TechCorp Inc.', date: '2022', verified: true }
+    ],
+    languages: [
+      { language: 'English', level: 'Native/Fluent' },
+      { language: 'Swahili', level: 'Native/Fluent' },
+      { language: 'French', level: 'Intermediate' }
+    ],
+    socialLinks: [
+      { platform: 'LinkedIn', url: 'linkedin.com/in/johnsmith', icon: fabLinkedin },
+      { platform: 'GitHub', url: 'github.com/johnsmith', icon: fabGithub },
+      { platform: 'Website', url: 'johnsmith.dev', icon: faGlobe },
+      { platform: 'Twitter', url: '@johnsmith_dev', icon: fabTwitter }
+    ]
   });
-
-  // Real data from APIs
+  const [dashboardData, setDashboardData] = useState({
+    applications: 12,
+    interviews: 3,
+    profileViews: 142,
+    savedJobs: 8,
+    profileCompletion: 75
+  });
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [interviews, setInterviews] = useState([]);
-  const [savedJobs, setSavedJobs] = useState([]);
-  const [recommendedJobs, setRecommendedJobs] = useState([]);
-  const [stats, setStats] = useState({
-    applications: 0,
-    interviews: 0,
-    profileViews: 0,
-    savedJobs: 0
-  });
+  const [messages, setMessages] = useState([]);
 
-  // Calculate profile completion percentage
-  const calculateProfileCompletion = () => {
-    let completedFields = 0;
-    let totalFields = 0;
-
-    // Personal Information (8 fields)
-    const personalFields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender', 'nationality', 'residentCountry'];
-    personalFields.forEach(field => {
-      totalFields++;
-      if (profileData[field] && profileData[field].trim() !== '') {
-        completedFields++;
-      }
-    });
-
-    // Professional Profile (4 fields)
-    const professionalFields = ['professionalTitle', 'yearsExperience', 'careerLevel', 'industry'];
-    professionalFields.forEach(field => {
-      totalFields++;
-      if (profileData[field] && profileData[field].trim() !== '') {
-        completedFields++;
-      }
-    });
-
-    // Professional Summary (1 field)
-    totalFields++;
-    if (profileData.summary && profileData.summary.trim() !== '') {
-      completedFields++;
-    }
-
-    // Skills (1 field)
-    totalFields++;
-    if (profileData.skills && profileData.skills.length > 0) {
-      completedFields++;
-    }
-
-    // Languages (1 field)
-    totalFields++;
-    if (profileData.languages && profileData.languages.length > 0) {
-      completedFields++;
-    }
-
-    // Work Experience (1 field)
-    totalFields++;
-    if (profileData.workExperience && profileData.workExperience.length > 0) {
-      completedFields++;
-    }
-
-    // Education (1 field)
-    totalFields++;
-    if (profileData.education && profileData.education.length > 0) {
-      completedFields++;
-    }
-
-    // Job Preferences (2 fields)
-    const jobPreferenceFields = ['jobType', 'noticePeriod'];
-    jobPreferenceFields.forEach(field => {
-      totalFields++;
-      if (profileData[field] && profileData[field].trim() !== '') {
-        completedFields++;
-      }
-    });
-
-    // Expected Salary (1 field)
-    totalFields++;
-    if (profileData.expectedSalary && profileData.expectedSalary.trim() !== '') {
-      completedFields++;
-    }
-
-    // Work Location Preference (1 field)
-    totalFields++;
-    if (profileData.workLocation && profileData.workLocation.trim() !== '') {
-      completedFields++;
-    }
-
-    const percentage = Math.round((completedFields / totalFields) * 100);
-    return Math.min(percentage, 100);
-  };
-
-  // Fetch data on component mount
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (!user || !user.userId) {
-        console.log('No user or user ID found:', { user, userId: user?.userId });
-        setLoading(false);
-        return;
-      }
-      
-      setLoading(true);
-      setError(null);
-      
-      try {
-        console.log('Starting to fetch dashboard data for user:', user.userId);
-        
-        // Fetch all dashboard data in parallel
-        const [
-          profileResponse,
-          applicationsResponse,
-          jobsResponse,
-          savedJobsResponse,
-          recommendedJobsResponse,
-          interviewsResponse,
-          profileViewsResponse
-        ] = await Promise.allSettled([
-          dashboardService.getJobSeekerProfile().catch(err => {
-            console.log('Profile fetch failed:', err);
-            return { error: err.message };
-          }),
-          dashboardService.getJobSeekerApplications().catch(err => {
-            console.log('Applications fetch failed:', err);
-            return { error: err.message };
-          }),
-          dashboardService.getJobSeekerJobs().catch(err => {
-            console.log('Jobs fetch failed:', err);
-            return { error: err.message };
-          }),
-          dashboardService.getSavedJobs().catch(err => {
-            console.log('Saved jobs fetch failed:', err);
-            return { error: err.message };
-          }),
-          dashboardService.getRecommendedJobs().catch(err => {
-            console.log('Recommended jobs fetch failed:', err);
-            return { error: err.message };
-          }),
-          dashboardService.getInterviews().catch(err => {
-            console.log('Interviews fetch failed:', err);
-            return { error: err.message };
-          }),
-          dashboardService.getProfileViews().catch(err => {
-            console.log('Profile views fetch failed:', err);
-            return { error: err.message };
-          })
-        ]);
-
-        // Update profile data
-        if (profileResponse.status === 'fulfilled' && !profileResponse.value.error) {
-          const profile = profileResponse.value;
-          setProfileData({
-            fullName: profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || user.firstName || 'User',
-            email: profile.email || user.email || '',
-            phone: profile.phone || '',
-            location: profile.location || profile.currentCity || '',
-            summary: profile.summary || profile.professionalSummary || '',
-            jobTitle: profile.jobTitle || profile.professionalTitle || '',
-            experience: profile.experience || profile.yearsExperience || '',
-            industry: profile.industry || '',
-            availability: profile.availability || 'Available Immediately',
-            profilePhoto: profile.profilePhoto || null,
-            profileCompleted: profile.profileCompleted || false
-          });
-        } else {
-          // Use fallback profile data
-          setProfileData({
-            fullName: user.firstName || 'User',
-            email: user.email || '',
-            phone: '',
-            location: '',
-            summary: '',
-            jobTitle: 'Job Seeker',
-            experience: '',
-            industry: '',
-            availability: 'Available Immediately',
-            profilePhoto: null,
-            profileCompleted: false
-          });
-        }
-
-        // Update applications
-        if (applicationsResponse.status === 'fulfilled' && !applicationsResponse.value.error) {
-          const apps = applicationsResponse.value;
-          setApplications(Array.isArray(apps) ? apps : []);
-        } else {
-          // Add some sample applications for demo
-          setApplications([
-            {
-              id: 1,
-              job_title: 'Software Developer',
-              company_name: 'TechCorp',
-              status: 'Under Review',
-              applied_at: '2024-01-15',
-              location: 'Nairobi, Kenya'
-            }
-          ]);
-        }
-
-        // Update jobs
-        if (jobsResponse.status === 'fulfilled' && !jobsResponse.value.error) {
-          const jobsData = jobsResponse.value;
-          setJobs(Array.isArray(jobsData) ? jobsData : []);
-        } else {
-          // Add some sample jobs for demo
-          setJobs([
-            {
-              id: 1,
-              title: 'Senior Full Stack Developer',
-              company: 'TechCorp Inc.',
-              logo: 'TC',
-              location: 'Nairobi, Kenya',
-              type: 'Full-time',
-              experience: 'Senior Level',
-              salary: '$60,000 - $80,000',
-              posted: '2 days ago',
-              skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
-              featured: true,
-              matchScore: 95
-            },
-            {
-              id: 2,
-              title: 'Product Manager',
-              company: 'Innovation Labs',
-              logo: 'IL',
-              location: 'Remote',
-              type: 'Full-time',
-              experience: 'Mid Level',
-              salary: '$50,000 - $70,000',
-              posted: '1 week ago',
-              skills: ['Product Strategy', 'Agile', 'Analytics'],
-              featured: false,
-              matchScore: 87
-            }
-          ]);
-        }
-
-        // Update saved jobs
-        if (savedJobsResponse.status === 'fulfilled' && !savedJobsResponse.value.error) {
-          const saved = savedJobsResponse.value;
-          setSavedJobs(Array.isArray(saved) ? saved : []);
-        } else {
-          setSavedJobs([]);
-        }
-
-        // Update recommended jobs
-        if (recommendedJobsResponse.status === 'fulfilled' && !recommendedJobsResponse.value.error) {
-          const recommended = recommendedJobsResponse.value;
-          setRecommendedJobs(Array.isArray(recommended) ? recommended : []);
-        } else {
-          setRecommendedJobs([]);
-        }
-
-        // Update interviews
-        if (interviewsResponse.status === 'fulfilled' && !interviewsResponse.value.error) {
-          const interviewData = interviewsResponse.value;
-          setInterviews(Array.isArray(interviewData) ? interviewData : []);
-        } else {
-          setInterviews([]);
-        }
-
-        // Update profile views
-        if (profileViewsResponse.status === 'fulfilled' && !profileViewsResponse.value.error) {
-          const views = profileViewsResponse.value;
-          setStats(prev => ({
-            ...prev,
-            profileViews: views.totalViews || 0
-          }));
-        } else {
-          setStats(prev => ({
-            ...prev,
-            profileViews: 0
-          }));
-        }
-
-        // Calculate stats from fetched data
-        setStats(prev => ({
-          ...prev,
-          applications: applicationsResponse.status === 'fulfilled' && !applicationsResponse.value.error ? 
-            (Array.isArray(applicationsResponse.value) ? applicationsResponse.value.length : 0) : 0,
-          interviews: interviewsResponse.status === 'fulfilled' && !interviewsResponse.value.error ? 
-            (Array.isArray(interviewsResponse.value) ? interviewsResponse.value.length : 0) : 0,
-          savedJobs: savedJobsResponse.status === 'fulfilled' && !savedJobsResponse.value.error ? 
-            (Array.isArray(savedJobsResponse.value) ? savedJobsResponse.value.length : 0) : 0
-        }));
-
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Failed to load dashboard data. Please try again.');
-        
-        // Set fallback data even on error
-        setProfileData({
-          fullName: user.firstName || 'User',
-          email: user.email || '',
-          phone: '',
-          location: '',
-          summary: '',
-          jobTitle: 'Job Seeker',
-          experience: '',
-          industry: '',
-          availability: 'Available Immediately',
-          profilePhoto: null,
-          profileCompleted: false
-        });
-        setApplications([]);
-        setJobs([]);
-        setSavedJobs([]);
-        setRecommendedJobs([]);
-        setInterviews([]);
-        setStats({
-          applications: 0,
-          interviews: 0,
-          profileViews: 0,
-          savedJobs: 0
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // Add timeout to prevent infinite loading
-    const timeoutId = setTimeout(() => {
-      console.log('Dashboard loading timeout reached - showing dashboard with fallback data');
-      setLoading(false);
-      
-      // Set fallback data on timeout
-      setProfileData({
-        fullName: user.firstName || 'User',
-        email: user.email || '',
-        phone: '',
-        location: '',
-        summary: 'Complete your profile to get better job matches',
-        jobTitle: 'Job Seeker',
-        experience: '',
-        industry: '',
-        availability: 'Available Immediately',
-        profilePhoto: null,
-        profileCompleted: false
-      });
-      setApplications([
-        {
-          id: 1,
-          job_title: 'Software Developer',
-          company_name: 'TechCorp',
-          status: 'Under Review',
-          applied_at: '2024-01-15',
-          location: 'Nairobi, Kenya'
-        }
-      ]);
-      setJobs([
-        {
-          id: 1,
-          title: 'Senior Full Stack Developer',
-          company: 'TechCorp Inc.',
-          logo: 'TC',
-          location: 'Nairobi, Kenya',
-          type: 'Full-time',
-          experience: 'Senior Level',
-          salary: '$60,000 - $80,000',
-          posted: '2 days ago',
-          skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
-          featured: true,
-          matchScore: 95
-        },
-        {
-          id: 2,
-          title: 'Product Manager',
-          company: 'Innovation Labs',
-          logo: 'IL',
-          location: 'Remote',
-          type: 'Full-time',
-          experience: 'Mid Level',
-          salary: '$50,000 - $70,000',
-          posted: '1 week ago',
-          skills: ['Product Strategy', 'Agile', 'Analytics'],
-          featured: false,
-          matchScore: 87
-        }
-      ]);
-      setSavedJobs([]);
-      setRecommendedJobs([]);
-      setInterviews([]);
-      setStats({
-        applications: 1,
-        interviews: 0,
-        profileViews: 5,
-        savedJobs: 0
-      });
-    }, 5000); // 5 second timeout
-
-    fetchDashboardData();
-
-    return () => clearTimeout(timeoutId);
+    if (user?.userId) {
+      fetchDashboardData();
+    }
   }, [user]);
 
-  // Navigation function
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      console.log('Starting to fetch dashboard data for user:', user.userId);
+
+      const [
+        profileResult,
+        applicationsResult,
+        jobsResult,
+        savedJobsResult,
+        recommendedJobsResult,
+        interviewsResult,
+        profileViewsResult
+      ] = await Promise.allSettled([
+        dashboardService.getJobSeekerProfile(),
+        dashboardService.getJobSeekerApplications(),
+        dashboardService.getJobSeekerJobs(),
+        dashboardService.getSavedJobs(),
+        dashboardService.getRecommendedJobs(),
+        dashboardService.getInterviews(),
+        dashboardService.getProfileViews()
+      ]);
+
+      // Handle profile data
+      if (profileResult.status === 'fulfilled') {
+        setProfileData(prev => ({ ...prev, ...profileResult.value }));
+        console.log('Profile data loaded successfully');
+      } else {
+        console.log('Profile fetch failed:', profileResult.reason);
+      }
+
+      // Handle applications data
+      if (applicationsResult.status === 'fulfilled') {
+        setApplications(applicationsResult.value);
+        setDashboardData(prev => ({ ...prev, applications: applicationsResult.value.length }));
+        console.log('Applications data loaded successfully');
+      } else {
+        console.log('Applications fetch failed:', applicationsResult.reason);
+      }
+
+      // Handle jobs data
+      if (jobsResult.status === 'fulfilled') {
+        setJobs(jobsResult.value);
+        console.log('Jobs data loaded successfully');
+      } else {
+        console.log('Jobs fetch failed:', jobsResult.reason);
+      }
+
+      // Handle saved jobs data
+      if (savedJobsResult.status === 'fulfilled') {
+        setDashboardData(prev => ({ ...prev, savedJobs: savedJobsResult.value.length }));
+        console.log('Saved jobs data loaded successfully');
+      } else {
+        console.log('Saved jobs fetch failed:', savedJobsResult.reason);
+      }
+
+      // Handle recommended jobs data
+      if (recommendedJobsResult.status === 'fulfilled') {
+        console.log('Recommended jobs data loaded successfully');
+      } else {
+        console.log('Recommended jobs fetch failed:', recommendedJobsResult.reason);
+      }
+
+      // Handle interviews data
+      if (interviewsResult.status === 'fulfilled') {
+        setInterviews(interviewsResult.value);
+        setDashboardData(prev => ({ ...prev, interviews: interviewsResult.value.length }));
+        console.log('Interviews data loaded successfully');
+      } else {
+        console.log('Interviews fetch failed:', interviewsResult.reason);
+      }
+
+      // Handle profile views data
+      if (profileViewsResult.status === 'fulfilled') {
+        setDashboardData(prev => ({ ...prev, profileViews: profileViewsResult.value.views || 142 }));
+        console.log('Profile views data loaded successfully');
+      } else {
+        console.log('Profile views fetch failed:', profileViewsResult.reason);
+      }
+
+      // Set timeout to show dashboard even if some APIs fail
+      setTimeout(() => {
+        setLoading(false);
+        console.log('Dashboard loading timeout reached - showing dashboard with fallback data');
+      }, 3000);
+
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+      setError(error.message);
+      setLoading(false);
+    }
+  };
+
   const showSection = (sectionId) => {
     setActiveSection(sectionId);
   };
 
-  // Individual section editing functions
-  const toggleSectionEdit = (section) => {
-    setEditingSections(prev => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
+  const handleCompleteProfile = () => {
+    navigate('/complete-profile');
   };
 
-  const saveSection = async (section) => {
-    try {
-      // Here you would save the specific section data to the backend
-      console.log(`Saving ${section} section:`, profileData);
-      
-      // For now, just toggle the editing state
-      setEditingSections(prev => ({
-        ...prev,
-        [section]: false
-      }));
-      
-      alert(`${section} section updated successfully!`);
-    } catch (error) {
-      console.error(`Error saving ${section} section:`, error);
-      alert(`Failed to save ${section} section. Please try again.`);
+  const handleEditProfile = () => {
+    setActiveSection('profile');
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  const sampleJobs = [
+    {
+      id: 1,
+      title: 'Senior Full Stack Developer',
+      company: 'TechCorp Inc.',
+      logo: 'TC',
+      location: 'Nairobi, Kenya',
+      type: 'Full-time',
+      experience: 'Senior Level',
+      salary: '$60,000 - $80,000',
+      posted: '2 days ago',
+      skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
+      featured: true
+    },
+    {
+      id: 2,
+      title: 'Product Manager',
+      company: 'Innovation Labs',
+      logo: 'IL',
+      location: 'Remote',
+      type: 'Full-time',
+      experience: 'Mid Level',
+      salary: '$70,000 - $90,000',
+      posted: '1 week ago',
+      skills: ['Product Strategy', 'Agile', 'Leadership'],
+      featured: false
+    },
+    {
+      id: 3,
+      title: 'UX/UI Designer',
+      company: 'Design Studio',
+      logo: 'DS',
+      location: 'London, UK',
+      type: 'Contract',
+      experience: 'Mid Level',
+      salary: '$50,000 - $65,000',
+      posted: '3 days ago',
+      skills: ['Figma', 'User Research', 'Prototyping'],
+      featured: true
     }
-  };
+  ];
 
-  const cancelSectionEdit = (section) => {
-    setEditingSections(prev => ({
-      ...prev,
-      [section]: false
-    }));
-    // You could reload the original data here if needed
-  };
-
-  // Profile editing functions
-  const handleProfileEdit = () => {
-    setIsEditingProfile(true);
-  };
-
-  const handleProfileSave = () => {
-    setIsEditingProfile(false);
-    // Here you would typically save to backend
-    console.log('Profile saved:', profileData);
-  };
-
-  const handleProfileCancel = () => {
-    setIsEditingProfile(false);
-  };
-
-  const handleInputChange = (field, value) => {
-    setProfileData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  // Job application function
-  const applyToJob = async (jobId) => {
-    try {
-      const result = await dashboardService.applyForJob(jobId, {
-        coverLetter: '',
-        resume: profileData.resume || ''
-      });
-      
-      if (result.success) {
-        // Refresh applications data
-        const updatedApplications = await dashboardService.getJobSeekerApplications();
-        setApplications(Array.isArray(updatedApplications) ? updatedApplications : []);
-        
-        // Update stats
-        setStats(prev => ({
-          ...prev,
-          applications: prev.applications + 1
-        }));
-        
-        alert('Application submitted successfully!');
-    } else {
-        alert('Failed to apply for job. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error applying for job:', error);
-      alert('Failed to apply for job. Please try again.');
+  const sampleApplications = [
+    {
+      id: 1,
+      jobTitle: 'Senior Full Stack Developer',
+      company: 'TechCorp Inc.',
+      location: 'Nairobi, Kenya',
+      appliedDaysAgo: '5 days ago',
+      status: 'reviewing'
+    },
+    {
+      id: 2,
+      jobTitle: 'Product Manager',
+      company: 'Innovation Labs',
+      location: 'Remote',
+      appliedDaysAgo: '10 days ago',
+      status: 'interview'
+    },
+    {
+      id: 3,
+      jobTitle: 'UX/UI Designer',
+      company: 'Design Studio',
+      location: 'London, UK',
+      appliedDaysAgo: '2 days ago',
+      status: 'applied'
     }
-  };
+  ];
 
-  // Job saving function
-  const saveJob = async (jobId) => {
-    try {
-      const result = await dashboardService.saveJob(jobId);
-      
-      if (result.success) {
-        // Refresh saved jobs data
-        const updatedSavedJobs = await dashboardService.getSavedJobs();
-        setSavedJobs(Array.isArray(updatedSavedJobs) ? updatedSavedJobs : []);
-        
-        // Update stats
-        setStats(prev => ({
-          ...prev,
-          savedJobs: prev.savedJobs + 1
-        }));
-        
-        alert('Job saved successfully!');
-      } else {
-        alert('Failed to save job. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error saving job:', error);
-      alert('Failed to save job. Please try again.');
+  const sampleInterviews = [
+    {
+      id: 1,
+      jobTitle: 'Product Manager',
+      company: 'Innovation Labs',
+      date: '2024-01-21',
+      time: '2:00 PM',
+      type: 'Video Interview',
+      interviewer: 'Sarah Johnson',
+      day: '21',
+      month: 'JAN'
+    },
+    {
+      id: 2,
+      jobTitle: 'Marketing Manager',
+      company: 'Growth Ventures',
+      date: '2024-01-23',
+      time: '10:00 AM',
+      type: 'In-person',
+      interviewer: 'Michael Chen',
+      day: '23',
+      month: 'JAN'
     }
-  };
+  ];
 
-  // Job unsaving function
-  const unsaveJob = async (jobId) => {
-    try {
-      const result = await dashboardService.unsaveJob(jobId);
-      
-      if (result.success) {
-        // Refresh saved jobs data
-        const updatedSavedJobs = await dashboardService.getSavedJobs();
-        setSavedJobs(Array.isArray(updatedSavedJobs) ? updatedSavedJobs : []);
-        
-        // Update stats
-        setStats(prev => ({
-          ...prev,
-          savedJobs: Math.max(0, prev.savedJobs - 1)
-        }));
-        
-        alert('Job removed from saved jobs!');
-      } else {
-        alert('Failed to remove job. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error unsaving job:', error);
-      alert('Failed to remove job. Please try again.');
+  const sampleMessages = [
+    {
+      id: 1,
+      sender: 'TechCorp Inc.',
+      avatar: 'TC',
+      time: '2 hours ago',
+      preview: 'Your application for Senior Full Stack Developer has been reviewed. We\'d like to schedule an interview...',
+      unread: true
+    },
+    {
+      id: 2,
+      sender: 'Innovation Labs',
+      avatar: 'IL',
+      time: '1 day ago',
+      preview: 'Thank you for your interest in the Product Manager position. We have a few questions...',
+      unread: true
+    },
+    {
+      id: 3,
+      sender: 'Design Studio',
+      avatar: 'DS',
+      time: '3 days ago',
+      preview: 'We received your application for UX/UI Designer. Our team is currently reviewing...',
+      unread: false
     }
-  };
+  ];
 
-  // Calculate profile completion percentage once
-  const profileCompletionPercentage = calculateProfileCompletion();
+  const createJobCard = (job) => (
+    <div key={job.id} className="job-card">
+      <div className="job-header">
+        <div style={{ display: 'flex', flex: 1 }}>
+          <div className="company-logo">{job.logo}</div>
+          <div className="job-info">
+            <h3>{job.title}</h3>
+            <div className="job-company">{job.company}</div>
+            <div className="job-meta">
+              <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
+              <span><FontAwesomeIcon icon={faBriefcase} /> {job.type}</span>
+              <span><FontAwesomeIcon icon={faLayerGroup} /> {job.experience}</span>
+              <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
+            </div>
+          </div>
+        </div>
+        <div className="job-actions">
+          <button className="btn btn-secondary btn-sm">
+            <FontAwesomeIcon icon={faBookmark} />
+          </button>
+        </div>
+      </div>
+      <div className="job-tags">
+        {job.featured && <span className="tag featured"><FontAwesomeIcon icon={faStar} /> Featured</span>}
+        {job.skills.map((skill, index) => (
+          <span key={index} className="tag">{skill}</span>
+        ))}
+        <span className="tag" style={{ marginLeft: 'auto', color: '#999' }}>
+          <FontAwesomeIcon icon={faClock} /> {job.posted}
+        </span>
+      </div>
+      <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+        <button className="btn btn-primary btn-sm">
+          <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
+        </button>
+        <button className="btn btn-secondary btn-sm">
+          <FontAwesomeIcon icon={faEye} /> View Details
+        </button>
+      </div>
+    </div>
+  );
 
-  // Show loading state
+  const createApplicationRow = (app) => (
+    <tr key={app.id}>
+      <td><strong>{app.jobTitle}</strong></td>
+      <td>{app.company}</td>
+      <td>{app.location}</td>
+      <td>{app.appliedDaysAgo}</td>
+      <td><span className={`status-badge status-${app.status}`}>{app.status}</span></td>
+      <td>
+        <button className="btn btn-secondary btn-sm">View</button>
+      </td>
+    </tr>
+  );
+
+  const createInterviewCard = (interview) => (
+    <div key={interview.id} className="interview-card">
+      <div className="interview-header">
+        <div style={{ flex: 1 }}>
+          <h4 style={{ marginBottom: '5px' }}>{interview.jobTitle}</h4>
+          <p style={{ color: '#666', fontSize: '13px', marginBottom: '8px' }}>{interview.company}</p>
+          <div style={{ fontSize: '13px', color: '#666' }}>
+            <div><FontAwesomeIcon icon={faClock} /> {interview.time}</div>
+            <div style={{ marginTop: '5px' }}><FontAwesomeIcon icon={faVideo} /> {interview.type}</div>
+          </div>
+        </div>
+        <div className="interview-date">
+          <div className="day">{interview.day}</div>
+          <div className="month">{interview.month}</div>
+        </div>
+      </div>
+      <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: '10px' }}>
+        <FontAwesomeIcon icon={faCalendar} /> View Details
+      </button>
+    </div>
+  );
+
+  const createMessageItem = (message) => (
+    <div key={message.id} className={`message-item ${message.unread ? 'unread' : ''}`}>
+      <div className="message-avatar">{message.avatar}</div>
+      <div className="message-content">
+        <div className="message-header">
+          <span className="message-sender">{message.sender}</span>
+          <span className="message-time">{message.time}</span>
+        </div>
+        <div className="message-preview">{message.preview}</div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="jobseeker-dashboard">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
-          height: '100vh',
-          flexDirection: 'column',
-          gap: '20px'
-        }}>
-          <FontAwesomeIcon icon={faSpinner} spin size="2x" style={{ color: '#667eea' }} />
-          <p style={{ color: '#666', fontSize: '16px' }}>Loading your dashboard...</p>
-          </div>
-      </div>
-  );
-  }
-
-  // Show error state
-  if (error) {
-    return (
-      <div className="jobseeker-dashboard">
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-          flexDirection: 'column',
-          gap: '20px',
-          textAlign: 'center',
-          padding: '20px'
-        }}>
-          <div style={{ color: '#e74c3c', fontSize: '48px' }}>⚠️</div>
-          <h2 style={{ color: '#333', margin: '0 0 10px 0' }}>Oops! Something went wrong</h2>
-          <p style={{ color: '#666', margin: '0 0 20px 0' }}>{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            style={{
-              background: '#667eea',
-              color: 'white',
-              border: 'none',
-              padding: '12px 24px',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            Try Again
-          </button>
+        <div className="loading">
+          <FontAwesomeIcon icon={faSpinner} size="2x" />
+          <span style={{ marginLeft: '10px' }}>Loading Dashboard...</span>
         </div>
-    </div>
-  );
+      </div>
+    );
   }
 
   return (
@@ -735,8 +431,11 @@ const JobSeekerDashboard = () => {
       {/* Sidebar */}
       <div className="sidebar">
         <div className="sidebar-header">
-          <h2><FontAwesomeIcon icon={faBriefcase} /> CareerHub</h2>
-          <p>{profileData.fullName || user?.firstName || 'User'}</p>
+          <h2>
+            <FontAwesomeIcon icon={faBriefcase} />
+            JobPortal
+          </h2>
+          <p>Your Career Journey</p>
         </div>
         <div className="nav-menu">
           <div className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => showSection('dashboard')}>
@@ -744,29 +443,29 @@ const JobSeekerDashboard = () => {
             <span>Dashboard</span>
           </div>
           <div className={`nav-item ${activeSection === 'jobs' ? 'active' : ''}`} onClick={() => showSection('jobs')}>
-            <FontAwesomeIcon icon={faBriefcase} />
+            <FontAwesomeIcon icon={faSearch} />
             <span>Browse Jobs</span>
-            <span className="badge">NEW</span>
+            <span className="badge success">NEW</span>
           </div>
           <div className={`nav-item ${activeSection === 'applications' ? 'active' : ''}`} onClick={() => showSection('applications')}>
-            <FontAwesomeIcon icon={faUserClock} />
+            <FontAwesomeIcon icon={faFileAlt} />
             <span>My Applications</span>
-            <span className="badge">{applications.length}</span>
+            <span className="badge">{dashboardData.applications}</span>
           </div>
           <div className={`nav-item ${activeSection === 'saved' ? 'active' : ''}`} onClick={() => showSection('saved')}>
-            <FontAwesomeIcon icon={faHeart} />
+            <FontAwesomeIcon icon={faBookmark} />
             <span>Saved Jobs</span>
-            <span className="badge">{savedJobs.length}</span>
+            <span className="badge">{dashboardData.savedJobs}</span>
           </div>
           <div className={`nav-item ${activeSection === 'interviews' ? 'active' : ''}`} onClick={() => showSection('interviews')}>
-            <FontAwesomeIcon icon={faCalendar} />
+            <FontAwesomeIcon icon={faCalendarCheck} />
             <span>Interviews</span>
-            <span className="badge">{interviews.length}</span>
+            <span className="badge">{dashboardData.interviews}</span>
           </div>
-          <div className={`nav-item ${activeSection === 'recommended' ? 'active' : ''}`} onClick={() => showSection('recommended')}>
+          <div className={`nav-item ${activeSection === 'matches' ? 'active' : ''}`} onClick={() => showSection('matches')}>
             <FontAwesomeIcon icon={faStar} />
             <span>Recommended</span>
-            <span className="badge success">{recommendedJobs.length}</span>
+            <span className="badge">15</span>
           </div>
           <div className={`nav-item ${activeSection === 'messages' ? 'active' : ''}`} onClick={() => showSection('messages')}>
             <FontAwesomeIcon icon={faEnvelope} />
@@ -778,11 +477,11 @@ const JobSeekerDashboard = () => {
             <span>My Profile</span>
           </div>
           <div className={`nav-item ${activeSection === 'resume' ? 'active' : ''}`} onClick={() => showSection('resume')}>
-            <FontAwesomeIcon icon={faFileAlt} />
+            <FontAwesomeIcon icon={faFilePdf} />
             <span>Resume/CV</span>
           </div>
           <div className={`nav-item ${activeSection === 'resources' ? 'active' : ''}`} onClick={() => showSection('resources')}>
-            <FontAwesomeIcon icon={faGraduationCap} />
+            <FontAwesomeIcon icon={faBook} />
             <span>Career Resources</span>
           </div>
           <div className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`} onClick={() => showSection('settings')}>
@@ -806,19 +505,13 @@ const JobSeekerDashboard = () => {
               <span className="notification-dot"></span>
             </button>
             <button className="icon-btn">
-              <FontAwesomeIcon icon={faPlus} />
+              <FontAwesomeIcon icon={faQuestionCircle} />
             </button>
-            <div className="user-profile">
-              <div className="user-avatar">
-                {profileData.fullName ? profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
-              </div>
+            <div className="user-profile" onClick={() => showSection('profile')}>
+              <div className="user-avatar">JS</div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>
-                  {profileData.fullName || user?.firstName || 'User'}
-                </div>
-                <div style={{ fontSize: '12px', color: '#666' }}>
-                  {profileData.jobTitle || 'Job Seeker'}
-                </div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>John Smith</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>Software Engineer</div>
               </div>
             </div>
           </div>
@@ -829,722 +522,256 @@ const JobSeekerDashboard = () => {
           {/* Dashboard Section */}
           {activeSection === 'dashboard' && (
             <div className="page-section active">
-              <div className="dashboard-header">
-                <h1>Welcome back, {profileData.fullName?.split(' ')[0] || 'User'}! 👋</h1>
-                <p>Here's what's happening with your job search today</p>
-              </div>
+              <h1 style={{ marginBottom: '25px' }}>Welcome back, John! 👋</h1>
 
-              {/* Profile Completion Card */}
-              <div className="profile-completion-card">
+              {/* Profile Completion */}
+              <div className="profile-completion">
                 <div className="completion-header">
-                  <h3>Complete Your Profile</h3>
-                  <span className="completion-percentage">
-                    {calculateProfileCompletion()}% Complete
-                  </span>
+                  <div>
+                    <h3 style={{ marginBottom: '5px' }}>Complete Your Profile</h3>
+                    <p style={{ opacity: 0.9, fontSize: '14px' }}>{dashboardData.profileCompletion}% Complete - Almost there!</p>
+                  </div>
+                  <div style={{ fontSize: '32px', fontWeight: 700 }}>{dashboardData.profileCompletion}%</div>
                 </div>
                 <div className="completion-bar">
-                  <div className="completion-fill" style={{ width: `${calculateProfileCompletion()}%` }}></div>
+                  <div className="completion-fill" style={{ width: `${dashboardData.profileCompletion}%` }}></div>
                 </div>
-                <p className="completion-text">
-                  {calculateProfileCompletion() < 50 ? 'Keep going! Complete your profile to get better job matches' : 
-                   calculateProfileCompletion() < 80 ? 'Almost there! Complete your profile to get better job matches' : 
-                   'Great job! Your profile is looking good'}
-                </p>
                 <div className="completion-actions">
-                  <button className="btn btn-primary" onClick={() => navigate('/complete-profile')}>
-                    <FontAwesomeIcon icon={faEdit} />
-                    COMPLETE PROFILE
+                  <button className="btn" onClick={handleEditProfile}>
+                    <FontAwesomeIcon icon={faPlus} /> Add Skills
                   </button>
-                  {calculateProfileCompletion() < 100 && (
-                    <button className="btn btn-secondary" onClick={() => showSection('profile')}>
-                      <FontAwesomeIcon icon={faUser} />
-                      EDIT PROFILE
+                  <button className="btn" onClick={() => showSection('resume')}>
+                    <FontAwesomeIcon icon={faUpload} /> Upload Resume
                   </button>
-                  )}
+                  <button className="btn" onClick={handleEditProfile}>
+                    <FontAwesomeIcon icon={faCertificate} /> Add Certifications
+                  </button>
+                  <button className="btn btn-primary" onClick={handleCompleteProfile}>
+                    <FontAwesomeIcon icon={faEdit} /> Complete Profile
+                  </button>
                 </div>
               </div>
               
               {/* Stats Grid */}
               <div className="stats-grid">
                 <div className="stat-card">
+                  <div className="stat-header">
+                    <div>
+                      <div className="stat-number">{dashboardData.applications}</div>
+                      <div className="stat-label">Applications Sent</div>
+                    </div>
                     <div className="stat-icon blue">
-                    <FontAwesomeIcon icon={faUserClock} />
+                      <FontAwesomeIcon icon={faPaperPlane} />
                     </div>
-                <div className="stat-content">
-                  <div className="stat-number">{stats.applications}</div>
-                  <div className="stat-label">Applications Sent</div>
-                  <div className="stat-subtitle">total applications</div>
+                  </div>
+                  <div className="stat-change positive">
+                    <FontAwesomeIcon icon={faArrowUp} /> 3 this week
                   </div>
                 </div>
 
                 <div className="stat-card">
+                  <div className="stat-header">
+                    <div>
+                      <div className="stat-number">{dashboardData.interviews}</div>
+                      <div className="stat-label">Interviews Scheduled</div>
+                    </div>
                     <div className="stat-icon green">
-                    <FontAwesomeIcon icon={faCalendar} />
+                      <FontAwesomeIcon icon={faCalendarCheck} />
                     </div>
-                <div className="stat-content">
-                  <div className="stat-number">{stats.interviews}</div>
-                  <div className="stat-label">Interviews Scheduled</div>
-                  <div className="stat-subtitle">{stats.interviews > 0 ? 'Check your schedule' : 'No interviews yet'}</div>
+                  </div>
+                  <div className="stat-change">
+                    Next: Tomorrow at 2:00 PM
                   </div>
                 </div>
 
                 <div className="stat-card">
+                  <div className="stat-header">
+                    <div>
+                      <div className="stat-number">{dashboardData.profileViews}</div>
+                      <div className="stat-label">Profile Views</div>
+                    </div>
                     <div className="stat-icon purple">
-                    <FontAwesomeIcon icon={faEye} />
+                      <FontAwesomeIcon icon={faEye} />
                     </div>
-                <div className="stat-content">
-                  <div className="stat-number">{stats.profileViews}</div>
-                  <div className="stat-label">Profile Views</div>
-                  <div className="stat-subtitle">total profile views</div>
+                  </div>
+                  <div className="stat-change positive">
+                    <FontAwesomeIcon icon={faArrowUp} /> +18% from last week
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-icon orange">
-                    <FontAwesomeIcon icon={faHeart} />
-                  </div>
-                <div className="stat-content">
-                  <div className="stat-number">{stats.savedJobs}</div>
+                  <div className="stat-header">
+                    <div>
+                      <div className="stat-number">{dashboardData.savedJobs}</div>
                       <div className="stat-label">Saved Jobs</div>
-                  <div className="stat-subtitle">jobs saved for later</div>
                     </div>
+                    <div className="stat-icon orange">
+                      <FontAwesomeIcon icon={faBookmark} />
+                    </div>
+                  </div>
+                  <div className="stat-change">
+                    2 new matches today
+                  </div>
+                </div>
+              </div>
+
+              {/* Alerts */}
+              <div className="alert success">
+                <FontAwesomeIcon icon={faCheckCircle} style={{ fontSize: '24px' }} />
+                <div>
+                  <strong>Great news!</strong> Your application for Senior Developer at TechCorp was viewed by the recruiter.
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
+                {/* Recommended Jobs */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Recommended for You</h3>
+                    <button className="btn btn-secondary btn-sm" onClick={() => showSection('matches')}>View All</button>
+                  </div>
+                  <div>
+                    {sampleJobs.slice(0, 3).map(job => createJobCard(job))}
+                  </div>
+                </div>
+
+                {/* Upcoming Interviews */}
+                <div>
+                  <div className="card">
+                    <div className="card-header">
+                      <h3 className="card-title">Upcoming Interviews</h3>
+                    </div>
+                    <div>
+                      {sampleInterviews.slice(0, 2).map(interview => createInterviewCard(interview))}
                     </div>
                   </div>
 
-              {/* Recent Activity */}
-              <div className="recent-activity">
-                <h3>Recent Activity</h3>
-                <div className="activity-item">
-                  <div className="activity-icon success">
-                    <FontAwesomeIcon icon={faCheck} />
+                  <div className="card" style={{ marginTop: '20px' }}>
+                    <div className="card-header">
+                      <h3 className="card-title">Quick Actions</h3>
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                      <button className="btn btn-primary" onClick={() => showSection('jobs')}>
+                        <FontAwesomeIcon icon={faSearch} /> Browse Jobs
+                      </button>
+                      <button className="btn btn-secondary" onClick={() => showSection('resume')}>
+                        <FontAwesomeIcon icon={faUpload} /> Update Resume
+                      </button>
+                      <button className="btn btn-secondary" onClick={handleEditProfile}>
+                        <FontAwesomeIcon icon={faUserEdit} /> Edit Profile
+                      </button>
+                    </div>
                   </div>
-                  <div className="activity-content">
-                    <p>Great news! Your application for <strong>Senior Developer at TechCorp</strong> was viewed by the recruiter</p>
-                    <span className="activity-time">2 hours ago</span>
                 </div>
               </div>
-                <div className="activity-item">
-                  <div className="activity-icon info">
-                    <FontAwesomeIcon icon={faBell} />
+
+              {/* Recent Applications */}
+              <div className="card" style={{ marginTop: '20px' }}>
+                <div className="card-header">
+                  <h3 className="card-title">Recent Applications</h3>
+                  <button className="btn btn-secondary btn-sm" onClick={() => showSection('applications')}>View All</button>
                 </div>
-                  <div className="activity-content">
-                    <p>New job match: <strong>Frontend Developer at Digital Solutions</strong> (95% match)</p>
-                    <span className="activity-time">4 hours ago</span>
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Applied</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sampleApplications.slice(0, 5).map(app => createApplicationRow(app))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-                  </div>
-                  </div>
-                </div>
+            </div>
           )}
 
-          {/* Jobs Section */}
+          {/* Browse Jobs Section */}
           {activeSection === 'jobs' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Browse Jobs</h1>
-                <div className="filters">
-                  <select className="filter-select">
-                    <option>All Locations</option>
-                    <option>Nairobi</option>
-                    <option>Remote</option>
-                  </select>
-                  <select className="filter-select">
-                    <option>All Types</option>
-                    <option>Full-time</option>
-                    <option>Contract</option>
-                    <option>Part-time</option>
-                  </select>
-                  <select className="filter-select">
-                    <option>Sort by</option>
-                    <option>Relevance</option>
-                    <option>Date Posted</option>
-                    <option>Salary</option>
-                  </select>
-                </div>
+              <h1 style={{ marginBottom: '25px' }}>Browse Jobs</h1>
+
+              <div className="filters">
+                <select className="filter-select">
+                  <option>All Job Types</option>
+                  <option>Full-time</option>
+                  <option>Part-time</option>
+                  <option>Contract</option>
+                  <option>Remote</option>
+                </select>
+                <select className="filter-select">
+                  <option>All Locations</option>
+                  <option>Nairobi, Kenya</option>
+                  <option>Remote</option>
+                  <option>United States</option>
+                  <option>United Kingdom</option>
+                </select>
+                <select className="filter-select">
+                  <option>All Experience Levels</option>
+                  <option>Entry Level</option>
+                  <option>Mid Level</option>
+                  <option>Senior Level</option>
+                  <option>Executive</option>
+                </select>
+                <select className="filter-select">
+                  <option>Sort By: Most Recent</option>
+                  <option>Relevance</option>
+                  <option>Salary: High to Low</option>
+                  <option>Company Name</option>
+                </select>
               </div>
 
-              <div className="jobs-grid">
-                {jobs.map(job => (
-                  <div key={job.id} className="job-card">
-                    <div className="job-header">
-                      <div className="company-logo">{job.logo}</div>
-                      <div className="job-info">
-                        <h3>{job.title}</h3>
-                        <p className="company-name">{job.company}</p>
-                        <div className="job-meta">
-                          <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
-                          <span><FontAwesomeIcon icon={faBriefcase} /> {job.type}</span>
-                          <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
-                  </div>
-                  </div>
-                      {job.featured && <span className="featured-badge">Featured</span>}
-                </div>
-                    <div className="job-skills">
-                      {job.skills.map((skill, index) => (
-                        <span key={index} className="skill-tag">{skill}</span>
-                      ))}
-                    </div>
-                    <div className="job-footer">
-                      <div className="match-score">
-                        <span className="match-percentage">{job.matchScore}% match</span>
-                      </div>
-                      <div className="job-actions">
-                        <button className="btn btn-secondary btn-sm" onClick={() => saveJob(job.id)}>
-                          <FontAwesomeIcon icon={faHeart} />
-                      </button>
-                        <button className="btn btn-primary btn-sm" onClick={() => applyToJob(job.id)}>
-                          Apply Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Profile Section */}
-          {activeSection === 'profile' && (
-            <div className="page-section active">
-              <div className="section-header">
-                <h1>My Profile</h1>
-                <button className="btn btn-primary" onClick={() => navigate('/complete-profile')}>
-                  <FontAwesomeIcon icon={faEdit} />
-                  Complete Profile
-                </button>
-              </div>
-
-              {/* Personal Information Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faUser} /> Personal Information</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('personalInfo')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-header">
-                  <div className="profile-photo">
-                    <div className="photo-placeholder">
-                      {profileData.fullName ? profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'JS'}
-                    </div>
-                  </div>
-                  <div className="profile-info">
-                    <h2>{profileData.fullName || profileData.firstName + ' ' + profileData.lastName || 'Not provided'}</h2>
-                    <p className="job-title">{profileData.professionalTitle || 'Job Seeker'}</p>
-                    <div className="profile-meta">
-                      <span><FontAwesomeIcon icon={faMail} /> {profileData.email || 'Not provided'}</span>
-                      <span><FontAwesomeIcon icon={faPhone} /> {profileData.phone || 'Not provided'}</span>
-                      <span><FontAwesomeIcon icon={faCalendar} /> {profileData.dateOfBirth || 'Not provided'}</span>
-                      <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.currentCity || profileData.residentCountry || 'Not provided'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Nationality & Residency Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faPassport} /> Nationality & Residency</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('nationality')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Nationality</span>
-                    <span className="detail-value">{profileData.nationality || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Resident Country</span>
-                    <span className="detail-value">{profileData.residentCountry || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Current City</span>
-                    <span className="detail-value">{profileData.currentCity || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Work Permit</span>
-                    <span className="detail-value">{profileData.workPermit || 'Not specified'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Preferred Working Locations Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faMapMarkedAlt} /> Preferred Working Locations</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('preferredLocations')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Preferred Location 1</span>
-                    <span className="detail-value">{profileData.preferredLocation1 || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Preferred Location 2</span>
-                    <span className="detail-value">{profileData.preferredLocation2 || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Preferred Location 3</span>
-                    <span className="detail-value">{profileData.preferredLocation3 || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Willing to Relocate</span>
-                    <span className="detail-value">{profileData.willingToRelocate || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Work Location Preference</span>
-                    <span className="detail-value">{profileData.workLocation || 'Not specified'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Professional Profile Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faBriefcase} /> Professional Profile</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('professionalProfile')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Professional Title</span>
-                    <span className="detail-value">{profileData.professionalTitle || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Years of Experience</span>
-                    <span className="detail-value">{profileData.yearsExperience || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Career Level</span>
-                    <span className="detail-value">{profileData.careerLevel || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Industry</span>
-                    <span className="detail-value">{profileData.industry || 'Not specified'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Professional Summary Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faFileAlt} /> Professional Summary</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('summary')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <p className="summary-text">
-                  {profileData.summary || 'Complete your profile to get better job matches. Add a professional summary to showcase your experience and goals.'}
-                </p>
-              </div>
-
-              {/* Skills & Competencies Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faLightbulb} /> Skills & Competencies</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('skills')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="skills-section">
-                  <h4>Core Skills</h4>
-                  <div className="skills-list">
-                    {profileData.skills && profileData.skills.length > 0 ? (
-                      profileData.skills.map((skill, index) => (
-                        <span key={index} className="skill-tag">{skill}</span>
-                      ))
-                    ) : (
-                      <p className="empty-message">No skills added yet. Click Edit to add your skills.</p>
-                    )}
-                  </div>
-                  
-                  <h4>Software & Tools</h4>
-                  <div className="skills-list">
-                    {profileData.tools && profileData.tools.length > 0 ? (
-                      profileData.tools.map((tool, index) => (
-                        <span key={index} className="skill-tag">{tool}</span>
-                      ))
-                    ) : (
-                      <p className="empty-message">No tools added yet. Click Edit to add your tools.</p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Languages Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('languages')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="skills-list">
-                  {profileData.languages && profileData.languages.length > 0 ? (
-                    profileData.languages.map((lang, index) => (
-                      <span key={index} className="skill-tag">
-                        {lang.language} - {lang.proficiency}
-                      </span>
-                    ))
-                  ) : (
-                    <p className="empty-message">No languages added yet. Click Edit to add your languages.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Work Experience Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('workExperience')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                {profileData.workExperience && profileData.workExperience.length > 0 ? (
-                  profileData.workExperience.map((exp, index) => (
-                    <div key={index} className="experience-item">
-                      <h4>{exp.title}</h4>
-                      <p className="company">{exp.company}</p>
-                      <p className="duration">{exp.duration}</p>
-                      <p>{exp.description}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No work experience added yet. Click Edit to add your experience.</p>
-                )}
-              </div>
-
-              {/* Education Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('education')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                {profileData.education && profileData.education.length > 0 ? (
-                  profileData.education.map((edu, index) => (
-                    <div key={index} className="education-item">
-                      <h4>{edu.degree}</h4>
-                      <p className="institution">{edu.institution}</p>
-                      <p className="duration">{edu.duration}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No education information added yet. Click Edit to add your education.</p>
-                )}
-              </div>
-
-              {/* Certifications Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faCertificate} /> Certifications & Licenses</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('certifications')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                {profileData.certifications && profileData.certifications.length > 0 ? (
-                  profileData.certifications.map((cert, index) => (
-                    <div key={index} className="certification-item">
-                      <h4>{cert.name}</h4>
-                      <p className="issuer">{cert.issuer}</p>
-                      <p className="date">{cert.issueDate} - {cert.expiryDate || 'No expiry'}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No certifications added yet. Click Edit to add your certifications.</p>
-                )}
-              </div>
-
-              {/* Projects & Portfolio Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faTasks} /> Projects & Portfolio</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('projects')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                {profileData.projects && profileData.projects.length > 0 ? (
-                  profileData.projects.map((project, index) => (
-                    <div key={index} className="project-item">
-                      <h4>{project.name}</h4>
-                      <p className="role">{project.role}</p>
-                      <p className="description">{project.description}</p>
-                      {project.url && <a href={project.url} target="_blank" rel="noopener noreferrer">View Project</a>}
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No projects added yet. Click Edit to add your projects.</p>
-                )}
-              </div>
-
-              {/* Professional Memberships Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faUsers} /> Professional Memberships</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('memberships')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Organization</span>
-                    <span className="detail-value">{profileData.membershipOrg || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Membership Type</span>
-                    <span className="detail-value">{profileData.membershipType || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Member Since</span>
-                    <span className="detail-value">{profileData.membershipDate || 'Not specified'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* References Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faUserCheck} /> Professional References</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('references')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                {profileData.references && profileData.references.length > 0 ? (
-                  profileData.references.map((ref, index) => (
-                    <div key={index} className="reference-item">
-                      <h4>{ref.name}</h4>
-                      <p className="title">{ref.title} at {ref.company}</p>
-                      <p className="relationship">{ref.relationship}</p>
-                      <p className="contact">{ref.email} | {ref.phone}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="empty-message">No references added yet. Click Edit to add your references.</p>
-                )}
-              </div>
-
-              {/* Professional Online Presence Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faLink} /> Professional Online Presence</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('socialLinks')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">LinkedIn</span>
-                    <span className="detail-value">
-                      {profileData.linkedin ? (
-                        <a href={profileData.linkedin} target="_blank" rel="noopener noreferrer">
-                          {profileData.linkedin}
-                        </a>
-                      ) : 'Not provided'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">GitHub</span>
-                    <span className="detail-value">
-                      {profileData.github ? (
-                        <a href={profileData.github} target="_blank" rel="noopener noreferrer">
-                          {profileData.github}
-                        </a>
-                      ) : 'Not provided'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Portfolio/Website</span>
-                    <span className="detail-value">
-                      {profileData.portfolio ? (
-                        <a href={profileData.portfolio} target="_blank" rel="noopener noreferrer">
-                          {profileData.portfolio}
-                        </a>
-                      ) : 'Not provided'}
-                    </span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Twitter/X</span>
-                    <span className="detail-value">
-                      {profileData.twitter ? (
-                        <a href={profileData.twitter} target="_blank" rel="noopener noreferrer">
-                          {profileData.twitter}
-                        </a>
-                      ) : 'Not provided'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Job Preferences Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faSlidersH} /> Job Preferences & Availability</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('jobPreferences')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="profile-details-grid">
-                  <div className="detail-item">
-                    <span className="detail-label">Desired Job Type</span>
-                    <span className="detail-value">{profileData.jobType || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Notice Period</span>
-                    <span className="detail-value">{profileData.noticePeriod || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Expected Salary</span>
-                    <span className="detail-value">{profileData.expectedSalary || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Currency Preference</span>
-                    <span className="detail-value">{profileData.currencyPreference || 'Not specified'}</span>
-                  </div>
-                  <div className="detail-item">
-                    <span className="detail-label">Travel Availability</span>
-                    <span className="detail-value">{profileData.travelAvailability || 'Not specified'}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Additional Information Section */}
-              <div className="profile-card">
-                <div className="profile-section-header">
-                  <h3><FontAwesomeIcon icon={faInfoCircle} /> Additional Information</h3>
-                  <button 
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => toggleSectionEdit('additionalInfo')}
-                  >
-                    <FontAwesomeIcon icon={faEdit} />
-                    Edit
-                  </button>
-                </div>
-                
-                <div className="additional-info">
-                  <div className="info-section">
-                    <h4>Hobbies & Interests</h4>
-                    <p>{profileData.hobbies || 'Not specified'}</p>
-                  </div>
-                  <div className="info-section">
-                    <h4>Additional Comments</h4>
-                    <p>{profileData.additionalComments || 'Not specified'}</p>
-                  </div>
+              <div className="card">
+                <div>
+                  {sampleJobs.map(job => createJobCard(job))}
                 </div>
               </div>
             </div>
           )}
 
-          {/* Applications Section */}
+          {/* My Applications Section */}
           {activeSection === 'applications' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>My Applications</h1>
-                <span className="application-count">{applications.length} applications</span>
-                </div>
+              <h1 style={{ marginBottom: '25px' }}>My Applications</h1>
 
-              <div className="applications-list">
-                {applications.map(application => (
-                  <div key={application.id} className="application-card">
-                    <div className="application-info">
-                      <h3>{application.jobTitle}</h3>
-                      <p className="company-name">{application.company}</p>
-                      <div className="application-meta">
-                        <span>Applied: {application.appliedDate}</span>
-                        <span className={`status-badge ${application.status.toLowerCase().replace(' ', '-')}`}>
-                          {application.status}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="application-actions">
-                      <div className="match-score">
-                        <span className="match-percentage">{application.matchScore}% match</span>
-                      </div>
-                      <button className="btn btn-secondary btn-sm">
-                        <FontAwesomeIcon icon={faEye} />
-                        View Details
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="filters">
+                <select className="filter-select">
+                  <option>All Applications ({dashboardData.applications})</option>
+                  <option>Under Review (5)</option>
+                  <option>Interview (3)</option>
+                  <option>Offered (1)</option>
+                  <option>Rejected (3)</option>
+                </select>
+                <select className="filter-select">
+                  <option>Sort By: Most Recent</option>
+                  <option>Company Name</option>
+                  <option>Application Date</option>
+                </select>
+              </div>
+
+              <div className="card">
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Job Title</th>
+                        <th>Company</th>
+                        <th>Location</th>
+                        <th>Applied</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sampleApplications.map(app => createApplicationRow(app))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -1552,36 +779,11 @@ const JobSeekerDashboard = () => {
           {/* Saved Jobs Section */}
           {activeSection === 'saved' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Saved Jobs</h1>
-                <span className="saved-count">{savedJobs.length} saved jobs</span>
+              <h1 style={{ marginBottom: '25px' }}>Saved Jobs</h1>
+              <div className="card">
+                <div>
+                  {sampleJobs.slice(0, 4).map(job => createJobCard(job))}
                 </div>
-
-              <div className="saved-jobs-list">
-                {savedJobs.map(job => (
-                  <div key={job.id} className="saved-job-card">
-                    <div className="job-info">
-                      <div className="company-logo">{job.logo}</div>
-                      <div className="job-details">
-                        <h3>{job.title}</h3>
-                        <p className="company-name">{job.company}</p>
-                        <div className="job-meta">
-                          <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
-                          <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
-                          <span>Saved: {job.savedDate}</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="job-actions">
-                      <button className="btn btn-danger btn-sm" onClick={() => unsaveJob(job.id)}>
-                        <FontAwesomeIcon icon={faTrash} />
-                      </button>
-                      <button className="btn btn-primary btn-sm" onClick={() => applyToJob(job.id)}>
-                        Apply Now
-                      </button>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -1589,75 +791,35 @@ const JobSeekerDashboard = () => {
           {/* Interviews Section */}
           {activeSection === 'interviews' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Interviews</h1>
-                <span className="interview-count">{interviews.length} interviews</span>
+              <h1 style={{ marginBottom: '25px' }}>Interview Schedule</h1>
+              
+              <div className="alert info">
+                <FontAwesomeIcon icon={faInfoCircle} style={{ fontSize: '24px' }} />
+                <div>
+                  <strong>Tip:</strong> Prepare for your interviews by researching the company and practicing common interview questions.
                 </div>
-
-              <div className="interviews-list">
-                {interviews.map(interview => (
-                  <div key={interview.id} className="interview-card">
-                    <div className="interview-info">
-                      <h3>{interview.jobTitle}</h3>
-                      <p className="company-name">{interview.company}</p>
-                      <div className="interview-meta">
-                        <span><FontAwesomeIcon icon={faCalendar} /> {interview.date}</span>
-                        <span><FontAwesomeIcon icon={faClock} /> {interview.time}</span>
-                        <span><FontAwesomeIcon icon={faVideo} /> {interview.type}</span>
               </div>
-                    </div>
-                    <div className="interview-actions">
-                      <span className={`status-badge ${interview.status.toLowerCase()}`}>
-                        {interview.status}
-                      </span>
-                      <button className="btn btn-primary btn-sm">
-                        Join Interview
-                      </button>
-                  </div>
-                  </div>
-                ))}
+
+              <div>
+                {sampleInterviews.map(interview => createInterviewCard(interview))}
               </div>
             </div>
           )}
 
           {/* Recommended Jobs Section */}
-          {activeSection === 'recommended' && (
+          {activeSection === 'matches' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Recommended Jobs</h1>
-                <span className="recommended-count">{recommendedJobs.length} recommendations</span>
+              <h1 style={{ marginBottom: '25px' }}>Recommended Jobs</h1>
+              <div className="alert success">
+                <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
+                <div>
+                  Based on your profile and preferences, we found <strong>15 jobs</strong> that match your skills!
                 </div>
-
-              <div className="recommended-jobs-list">
-                {recommendedJobs.map(job => (
-                  <div key={job.id} className="recommended-job-card">
-                    <div className="job-header">
-                      <div className="company-logo">{job.logo}</div>
-                      <div className="job-info">
-                        <h3>{job.title}</h3>
-                        <p className="company-name">{job.company}</p>
-                        <div className="job-meta">
-                          <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
-                          <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
               </div>
-                        <p className="recommendation-reason">{job.reason}</p>
+              <div className="card">
+                <div>
+                  {sampleJobs.map(job => createJobCard(job))}
                 </div>
-                    </div>
-                    <div className="job-footer">
-                      <div className="match-score">
-                        <span className="match-percentage">{job.matchScore}% match</span>
-                      </div>
-                      <div className="job-actions">
-                        <button className="btn btn-secondary btn-sm">
-                          <FontAwesomeIcon icon={faHeart} />
-                        </button>
-                        <button className="btn btn-primary btn-sm">
-                          Apply Now
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -1665,13 +827,189 @@ const JobSeekerDashboard = () => {
           {/* Messages Section */}
           {activeSection === 'messages' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Messages</h1>
+              <h1 style={{ marginBottom: '25px' }}>Messages</h1>
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Inbox</h3>
+                  <button className="btn btn-primary btn-sm">
+                    <FontAwesomeIcon icon={faPlus} /> New Message
+                  </button>
+                </div>
+                <div className="message-list">
+                  {sampleMessages.map(message => createMessageItem(message))}
+                </div>
               </div>
-                <div className="empty-state">
-                <FontAwesomeIcon icon={faEnvelope} />
-                <h3>No Messages Yet</h3>
-                <p>You'll see messages from recruiters and employers here</p>
+            </div>
+          )}
+
+          {/* Profile Section */}
+          {activeSection === 'profile' && (
+            <div className="page-section active">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                <h1>My Profile</h1>
+                <div>
+                  <button className="btn btn-primary" onClick={handleEditProfile}>
+                    <FontAwesomeIcon icon={faEdit} /> Edit Profile
+                  </button>
+                  <button className="btn btn-primary" onClick={handleCompleteProfile} style={{ marginLeft: '10px' }}>
+                    <FontAwesomeIcon icon={faEdit} /> Complete Profile
+                  </button>
+                </div>
+              </div>
+
+              {/* Profile Header */}
+              <div className="profile-header-card">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '30px' }}>
+                  <div className="profile-avatar-large">JS</div>
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ marginBottom: '10px', fontSize: '28px' }}>{profileData.fullName}</h2>
+                    <p style={{ fontSize: '18px', marginBottom: '10px', opacity: 0.9 }}>{profileData.jobTitle}</p>
+                    <p style={{ opacity: 0.8 }}><FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData.location}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Personal Information */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Personal Information</h3>
+                </div>
+                <div className="profile-info-grid">
+                  <div className="form-group">
+                    <label className="form-label">Full Name</label>
+                    <input type="text" className="form-input" value={profileData.fullName} disabled />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Email Address</label>
+                    <input type="email" className="form-input" value={profileData.email} disabled />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone Number</label>
+                    <input type="tel" className="form-input" value={profileData.phone} disabled />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Location</label>
+                    <input type="text" className="form-input" value={profileData.location} disabled />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Years of Experience</label>
+                    <input type="number" className="form-input" value={profileData.experience} disabled />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Industry</label>
+                    <select className="form-select" disabled>
+                      <option>{profileData.industry}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Professional Summary</label>
+                  <textarea className="form-textarea" value={profileData.summary} disabled />
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faCode} /> Skills & Expertise</h3>
+                </div>
+                <div>
+                  <h4 style={{ marginBottom: '15px', color: '#666' }}>Technical Skills</h4>
+                  <div>
+                    {profileData.skills.map((skill, index) => (
+                      <span key={index} className="skill-tag">{skill}</span>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginTop: '25px' }}>
+                  <h4 style={{ marginBottom: '15px', color: '#666' }}>Soft Skills</h4>
+                  <div>
+                    {profileData.softSkills.map((skill, index) => (
+                      <span key={index} className="skill-tag">{skill}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Work Experience */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
+                </div>
+                {profileData.workExperience.map((exp, index) => (
+                  <div key={index} className="experience-item">
+                    <h4>{exp.title}</h4>
+                    <div className="company">{exp.company}</div>
+                    <div className="duration">{exp.duration}</div>
+                    <p style={{ color: '#666', marginTop: '10px' }}>{exp.description}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Education */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
+                </div>
+                {profileData.education.map((edu, index) => (
+                  <div key={index} className="education-item">
+                    <h4>{edu.degree}</h4>
+                    <div className="institution">{edu.institution}</div>
+                    <div className="duration">{edu.duration}</div>
+                    <p style={{ color: '#666', marginTop: '10px' }}>{edu.description}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Certifications */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Awards</h3>
+                </div>
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  {profileData.certifications.map((cert, index) => (
+                    <div key={index} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <h4>{cert.name}</h4>
+                          <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{cert.issuer} - {cert.date}</p>
+                        </div>
+                        <span className="status-badge status-offered">{cert.verified ? 'Verified' : 'Pending'}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Languages */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
+                </div>
+                <div className="profile-info-grid">
+                  {profileData.languages.map((lang, index) => (
+                    <div key={index}>
+                      <h4 style={{ marginBottom: '10px' }}>{lang.language}</h4>
+                      <p style={{ color: '#666' }}>{lang.level}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Social Links */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Social Links</h3>
+                </div>
+                <div className="social-links">
+                  {profileData.socialLinks.map((link, index) => (
+                    <a key={index} href="#" className="social-link">
+                      <FontAwesomeIcon icon={link.icon} />
+                      <span>{link.url}</span>
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -1679,23 +1017,50 @@ const JobSeekerDashboard = () => {
           {/* Resume Section */}
           {activeSection === 'resume' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Resume/CV</h1>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                <h1>Resume/CV Management</h1>
                 <button className="btn btn-primary">
-                  <FontAwesomeIcon icon={faUpload} />
-                  Upload Resume
+                  <FontAwesomeIcon icon={faUpload} /> Upload New Resume
                 </button>
               </div>
-              <div className="resume-card">
-                <div className="resume-upload">
-                  <FontAwesomeIcon icon={faFileAlt} />
-                  <h3>Upload Your Resume</h3>
-                  <p>Drag and drop your resume here or click to browse</p>
-                  <button className="btn btn-primary">
-                    <FontAwesomeIcon icon={faUpload} />
-                    Choose File
-                  </button>
+
+              <div className="card">
+                <div className="resume-list">
+                  <div className="resume-item">
+                    <div className="resume-icon">
+                      <FontAwesomeIcon icon={faFilePdf} />
+                    </div>
+                    <div className="resume-info">
+                      <h4>John_Smith_Resume_2024.pdf</h4>
+                      <div className="resume-meta">
+                        <span><FontAwesomeIcon icon={faCalendar} /> Uploaded: Jan 10, 2024</span>
+                        <span style={{ marginLeft: '15px' }}><FontAwesomeIcon icon={faFilePdf} /> 256 KB</span>
+                        <span style={{ marginLeft: '15px' }} className="status-badge status-offered">Primary</span>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      <button className="btn btn-secondary btn-sm">
+                        <FontAwesomeIcon icon={faEye} /> View
+                      </button>
+                      <button className="btn btn-secondary btn-sm">
+                        <FontAwesomeIcon icon={faDownload} /> Download
+                      </button>
+                      <button className="btn btn-danger btn-sm">
+                        <FontAwesomeIcon icon={faTrash} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <div className="card" style={{ marginTop: '20px' }}>
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faEdit} /> Resume Builder</h3>
+                </div>
+                <p style={{ marginBottom: '20px', color: '#666' }}>Create a professional resume using our easy-to-use template builder.</p>
+                <button className="btn btn-primary">
+                  <FontAwesomeIcon icon={faPlus} /> Create New Resume
+                </button>
               </div>
             </div>
           )}
@@ -1703,24 +1068,27 @@ const JobSeekerDashboard = () => {
           {/* Career Resources Section */}
           {activeSection === 'resources' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Career Resources</h1>
+              <h1 style={{ marginBottom: '25px' }}>Career Resources</h1>
+              <div className="stats-grid">
+                <div className="card">
+                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faBook} /> Interview Tips</h3>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>Master your interview skills with expert advice and common questions.</p>
+                  <button className="btn btn-secondary btn-sm">Learn More</button>
                 </div>
-              <div className="resources-grid">
-                <div className="resource-card">
-                  <FontAwesomeIcon icon={faGraduationCap} />
-                  <h3>Interview Tips</h3>
-                  <p>Prepare for your next interview with our expert tips</p>
+                <div className="card">
+                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faFilePdf} /> Resume Builder</h3>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>Create a professional resume in minutes with our templates.</p>
+                  <button className="btn btn-secondary btn-sm" onClick={() => showSection('resume')}>Start Building</button>
                 </div>
-                <div className="resource-card">
-                  <FontAwesomeIcon icon={faFileAlt} />
-                  <h3>Resume Builder</h3>
-                  <p>Create a professional resume that stands out</p>
+                <div className="card">
+                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faGraduationCap} /> Online Courses</h3>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>Upskill with courses and certifications from top providers.</p>
+                  <button className="btn btn-secondary btn-sm">Browse Courses</button>
                 </div>
-                <div className="resource-card">
-                  <FontAwesomeIcon icon={faUsers} />
-                  <h3>Networking</h3>
-                  <p>Connect with professionals in your industry</p>
+                <div className="card">
+                  <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faUsers} /> Career Advice</h3>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>Get personalized guidance from career experts and mentors.</p>
+                  <button className="btn btn-secondary btn-sm">Get Advice</button>
                 </div>
               </div>
             </div>
@@ -1729,27 +1097,70 @@ const JobSeekerDashboard = () => {
           {/* Settings Section */}
           {activeSection === 'settings' && (
             <div className="page-section active">
-              <div className="section-header">
-                <h1>Settings</h1>
-        </div>
-              <div className="settings-card">
-                <h3>Account Settings</h3>
-                <div className="setting-item">
-                  <label>Email Notifications</label>
-                  <input type="checkbox" defaultChecked />
+              <h1 style={{ marginBottom: '25px' }}>Settings</h1>
+
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faBell} /> Notification Preferences</h3>
                 </div>
-                <div className="setting-item">
-                  <label>Job Alerts</label>
-                  <input type="checkbox" defaultChecked />
+                <div className="settings-section">
+                  <div className="settings-item">
+                    <div>
+                      <h4>Email Notifications</h4>
+                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Receive job alerts and updates via email</p>
+                    </div>
+                    <div className="toggle-switch active"></div>
+                  </div>
+                  <div className="settings-item">
+                    <div>
+                      <h4>Application Updates</h4>
+                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Get notified about application status changes</p>
+                    </div>
+                    <div className="toggle-switch active"></div>
+                  </div>
+                  <div className="settings-item">
+                    <div>
+                      <h4>Interview Reminders</h4>
+                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Receive reminders for scheduled interviews</p>
+                    </div>
+                    <div className="toggle-switch active"></div>
+                  </div>
                 </div>
-                <div className="setting-item">
-                  <label>Privacy Mode</label>
-                  <input type="checkbox" />
+              </div>
+
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faCog} /> Account Settings</h3>
                 </div>
-                <button className="btn btn-danger" onClick={logout}>
-                  <FontAwesomeIcon icon={faTimes} />
-                  Logout
-                </button>
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  <div style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4>Change Password</h4>
+                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Last changed 3 months ago</p>
+                    </div>
+                    <button className="btn btn-secondary btn-sm">Change</button>
+                  </div>
+                  <div style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h4>Two-Factor Authentication</h4>
+                      <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>Add an extra layer of security</p>
+                    </div>
+                    <button className="btn btn-primary btn-sm">Enable</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title"><FontAwesomeIcon icon={faInfo} /> Danger Zone</h3>
+                </div>
+                <div style={{ padding: '20px', background: '#fff5f5', border: '2px solid #fee', borderRadius: '8px' }}>
+                  <h4 style={{ color: '#d32f2f', marginBottom: '10px' }}>Delete Account</h4>
+                  <p style={{ color: '#666', marginBottom: '15px' }}>Once you delete your account, there is no going back. Please be certain.</p>
+                  <button className="btn btn-danger" onClick={handleLogout}>
+                    <FontAwesomeIcon icon={faTrash} /> Logout
+                  </button>
+                </div>
               </div>
             </div>
           )}
