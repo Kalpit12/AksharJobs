@@ -35,6 +35,41 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     }
   }, [storageKey]);
 
+  // Save form data function
+  const saveFormData = useCallback(async () => {
+    if (!storageKey) return;
+    
+    setIsSaving(true);
+    setSaveStatus('saving');
+    
+    try {
+      // Save to localStorage
+      const dataToSave = {
+        ...formData,
+        _lastSaved: new Date().toISOString()
+      };
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      
+      // Optional: Save to backend
+      if (onSave && typeof onSave === 'function') {
+        await onSave(formData);
+      }
+      
+      const saveTime = new Date();
+      setLastSaveTime(saveTime);
+      setSaveStatus('saved');
+      console.log(`✅ Form auto-saved at ${saveTime.toLocaleTimeString()}`);
+      
+      setTimeout(() => setSaveStatus(null), 3000); // Clear status after 3 seconds
+    } catch (error) {
+      console.error('Error saving form data:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus(null), 4000); // Clear error status after 4 seconds
+    } finally {
+      setIsSaving(false);
+    }
+  }, [formData, storageKey, onSave]);
+
   // Auto-save effect (debounced)
   useEffect(() => {
     if (!storageKey || isInitialLoad.current) return;
@@ -75,40 +110,6 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     };
   }, [enablePeriodicSave, storageKey, saveFormData]);
 
-  // Save form data function
-  const saveFormData = useCallback(async () => {
-    if (!storageKey) return;
-
-    setIsSaving(true);
-    setSaveStatus('saving');
-
-    try {
-      // Save to localStorage
-      const dataToSave = {
-        ...formData,
-        _lastSaved: new Date().toISOString()
-      };
-      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-      
-      // Optional: Save to backend
-      if (onSave && typeof onSave === 'function') {
-        await onSave(formData);
-      }
-
-      const saveTime = new Date();
-      setLastSaveTime(saveTime);
-      setSaveStatus('saved');
-      console.log(`✅ Form auto-saved at ${saveTime.toLocaleTimeString()}`);
-      
-      setTimeout(() => setSaveStatus(null), 3000); // Clear status after 3 seconds
-    } catch (error) {
-      console.error('Error saving form data:', error);
-      setSaveStatus('error');
-      setTimeout(() => setSaveStatus(null), 4000); // Clear error status after 4 seconds
-    } finally {
-      setIsSaving(false);
-    }
-  }, [formData, storageKey, onSave]);
 
   // Manual save function
   const manualSave = useCallback(() => {
