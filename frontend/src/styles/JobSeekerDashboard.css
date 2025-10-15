@@ -200,84 +200,65 @@ body {
 /* Dashboard Stats */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
     margin-bottom: 30px;
 }
 
 .stat-card {
     background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 .stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-}
-
-.stat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
+    border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
 }
 
 .stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: #f3f4f6;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 24px;
+    flex-shrink: 0;
+    font-size: 20px;
+    color: #6b7280;
 }
 
-.stat-icon.blue {
-    background: #e3f2fd;
-    color: #2196f3;
-}
-
-.stat-icon.green {
-    background: #e8f5e9;
-    color: #4caf50;
-}
-
-.stat-icon.orange {
-    background: #fff3e0;
-    color: #ff9800;
-}
-
-.stat-icon.purple {
-    background: #f3e5f5;
-    color: #9c27b0;
+.stat-content {
+    flex: 1;
 }
 
 .stat-number {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 700;
-    margin-bottom: 5px;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 4px;
 }
 
 .stat-label {
-    color: #666;
     font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 2px;
 }
 
-.stat-change {
-    font-size: 13px;
-    margin-top: 10px;
+.stat-subtitle {
+    font-size: 12px;
+    color: #9ca3af;
+    font-weight: 400;
 }
 
-.stat-change.positive {
-    color: #4caf50;
-}
-
-.stat-change.negative {
-    color: #f44336;
-}
 
 /* Cards */
 .card {
@@ -666,6 +647,15 @@ tr:hover {
 
     .stats-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    
+    .stat-card {
+        padding: 20px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
     }
 
     .top-bar {

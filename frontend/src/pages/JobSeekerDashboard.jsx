@@ -432,62 +432,46 @@ const JobSeekerDashboard = () => {
               {/* Stats Grid */}
               <div className="stats-grid">
                 <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{userStats.applicationsSent}</div>
-                      <div className="stat-label">Applications Sent</div>
-                    </div>
-                    <div className="stat-icon blue">
-                      <i className="fas fa-paper-plane"></i>
-                    </div>
+                  <div className="stat-icon">
+                    <i className="fas fa-paper-plane"></i>
                   </div>
-                  <div className="stat-change positive">
-                    <i className="fas fa-arrow-up"></i> 3 this week
+                  <div className="stat-content">
+                    <div className="stat-number">{userStats.applicationsSent}</div>
+                    <div className="stat-label">Applications Sent</div>
+                    <div className="stat-subtitle">This month</div>
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{userStats.interviewsScheduled}</div>
-                      <div className="stat-label">Interviews Scheduled</div>
-                    </div>
-                    <div className="stat-icon green">
-                      <i className="fas fa-calendar-check"></i>
-                    </div>
+                  <div className="stat-icon">
+                    <i className="fas fa-calendar-check"></i>
                   </div>
-                  <div className="stat-change">
-                    Next: Tomorrow at 2:00 PM
+                  <div className="stat-content">
+                    <div className="stat-number">{userStats.interviewsScheduled}</div>
+                    <div className="stat-label">Interviews Scheduled</div>
+                    <div className="stat-subtitle">Upcoming</div>
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{userStats.profileViews}</div>
-                      <div className="stat-label">Profile Views</div>
-                    </div>
-                    <div className="stat-icon purple">
-                      <i className="fas fa-eye"></i>
-                    </div>
+                  <div className="stat-icon">
+                    <i className="fas fa-eye"></i>
                   </div>
-                  <div className="stat-change positive">
-                    <i className="fas fa-arrow-up"></i> +18% from last week
+                  <div className="stat-content">
+                    <div className="stat-number">{userStats.profileViews}</div>
+                    <div className="stat-label">Profile Views</div>
+                    <div className="stat-subtitle">This week</div>
                   </div>
                 </div>
 
                 <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{userStats.savedJobs}</div>
-                      <div className="stat-label">Saved Jobs</div>
-                    </div>
-                    <div className="stat-icon orange">
-                      <i className="fas fa-bookmark"></i>
-                    </div>
+                  <div className="stat-icon">
+                    <i className="fas fa-bookmark"></i>
                   </div>
-                  <div className="stat-change">
-                    2 new matches today
+                  <div className="stat-content">
+                    <div className="stat-number">{userStats.savedJobs}</div>
+                    <div className="stat-label">Saved Jobs</div>
+                    <div className="stat-subtitle">Total saved</div>
                   </div>
                 </div>
               </div>
