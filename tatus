@@ -1,0 +1,5 @@
+[33m387433a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m  Remove 18 unused CSS files - Major cleanup
+[33m125529e[m  Remove HomeOverrides.css dark mode theme
+[33m27c155c[m  Fix: Remove ViewportAdjustments.css import from App.js
+[33mc222949[m  CSS Cleanup: Eliminate all conflicts and duplicates (100% optimized)
+[33m095b2a4[m Fix CSS override issues in Global.css

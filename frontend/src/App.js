@@ -12,7 +12,6 @@ import Community from "./pages/Community";
 import JobSeekerDashboard from "./pages/JobSeekerDashboard";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import ModernJobDetails from "./pages/ModernJobDetails";
-import "./styles/Global.css";
 import JobListing from "./pages/JobListing";
 import JobSearch from "./pages/JobSearch";
 import Home from "./pages/Home";
