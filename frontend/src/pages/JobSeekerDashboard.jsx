@@ -11,10 +11,11 @@ import {
   faDollarSign, faUsers, faBuilding, faStar, faDownload,
   faEye, faFilter, faSort, faArrowUp, faArrowDown,
   faExternalLinkAlt, faTrash, faCopy, faShare, faUpload,
-  faVideo
+  faVideo, faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin as fabLinkedin, faGithub as fabGithub, faTwitter as fabTwitter } from '@fortawesome/free-brands-svg-icons';
 import { buildApiUrl } from '../config/api';
+import dashboardService from '../services/dashboardService';
 import '../styles/JobSeekerDashboard.css';
 
 const JobSeekerDashboard = () => {
@@ -23,120 +24,141 @@ const JobSeekerDashboard = () => {
   const { user, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
-    fullName: 'John Smith',
-    email: 'john.smith@email.com',
-    phone: '+254 700 123 456',
-    location: 'Nairobi, Kenya',
-    summary: 'Experienced software engineer with 8+ years of expertise in full-stack development, specializing in React, Node.js, and cloud technologies.',
-    jobTitle: 'Senior Software Engineer',
-    experience: '8 years',
-    industry: 'Technology',
+    fullName: '',
+    email: '',
+    phone: '',
+    location: '',
+    summary: '',
+    jobTitle: '',
+    experience: '',
+    industry: '',
     availability: 'Available Immediately',
-    profilePhoto: null
+    profilePhoto: null,
+    profileCompleted: false
   });
 
-  // Sample data - matching HTML exactly
-  const [jobs, setJobs] = useState([
-    {
-      id: 1,
-      title: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      logo: 'TC',
-      location: 'Nairobi, Kenya',
-      type: 'Full-time',
-      experience: 'Senior Level',
-      salary: '$60,000 - $80,000',
-      posted: '2 days ago',
-      skills: ['React', 'Node.js', 'MongoDB', 'AWS'],
-      featured: true,
-      matchScore: 95
-    },
-    {
-      id: 2,
-      title: 'Product Manager',
-      company: 'Innovation Labs',
-      logo: 'IL',
-      location: 'Remote',
-      type: 'Full-time',
-      experience: 'Mid Level',
-      salary: '$50,000 - $70,000',
-      posted: '1 week ago',
-      skills: ['Product Strategy', 'Agile', 'Analytics'],
-      featured: false,
-      matchScore: 87
-    },
-    {
-      id: 3,
-      title: 'Frontend Developer',
-      company: 'Digital Solutions',
-      logo: 'DS',
-      location: 'Mombasa, Kenya',
-      type: 'Contract',
-      experience: 'Mid Level',
-      salary: '$40,000 - $60,000',
-      posted: '3 days ago',
-      skills: ['React', 'Vue.js', 'TypeScript'],
-      featured: true,
-      matchScore: 92
-    }
-  ]);
+  // Real data from APIs
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [interviews, setInterviews] = useState([]);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [recommendedJobs, setRecommendedJobs] = useState([]);
+  const [stats, setStats] = useState({
+    applications: 0,
+    interviews: 0,
+    profileViews: 0,
+    savedJobs: 0
+  });
 
-  const [applications, setApplications] = useState([
-    {
-      id: 1,
-      jobTitle: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      appliedDate: '2024-01-15',
-      status: 'Under Review',
-      matchScore: 95
-    },
-    {
-      id: 2,
-      jobTitle: 'Product Manager',
-      company: 'Innovation Labs',
-      appliedDate: '2024-01-12',
-      status: 'Interview Scheduled',
-      matchScore: 87
-    }
-  ]);
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!user || !user._id) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Fetch all dashboard data in parallel
+        const [
+          profileResponse,
+          applicationsResponse,
+          jobsResponse,
+          savedJobsResponse,
+          recommendedJobsResponse,
+          interviewsResponse,
+          profileViewsResponse
+        ] = await Promise.allSettled([
+          dashboardService.getJobSeekerProfile(),
+          dashboardService.getJobSeekerApplications(),
+          dashboardService.getJobSeekerJobs(),
+          dashboardService.getSavedJobs(),
+          dashboardService.getRecommendedJobs(),
+          dashboardService.getInterviews(),
+          dashboardService.getProfileViews()
+        ]);
 
-  const [interviews, setInterviews] = useState([
-    {
-      id: 1,
-      jobTitle: 'Product Manager',
-      company: 'Innovation Labs',
-      date: '2024-01-20',
-      time: '2:00 PM',
-      type: 'Video Call',
-      status: 'Upcoming'
-    }
-  ]);
+        // Update profile data
+        if (profileResponse.status === 'fulfilled') {
+          const profile = profileResponse.value;
+          setProfileData({
+            fullName: profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'User',
+            email: profile.email || user.email || '',
+            phone: profile.phone || '',
+            location: profile.location || profile.currentCity || '',
+            summary: profile.summary || profile.professionalSummary || '',
+            jobTitle: profile.jobTitle || profile.professionalTitle || '',
+            experience: profile.experience || profile.yearsExperience || '',
+            industry: profile.industry || '',
+            availability: profile.availability || 'Available Immediately',
+            profilePhoto: profile.profilePhoto || null,
+            profileCompleted: profile.profileCompleted || false
+          });
+        }
 
-  const [savedJobs, setSavedJobs] = useState([
-    {
-      id: 1,
-      title: 'DevOps Engineer',
-      company: 'CloudTech',
-      logo: 'CT',
-      location: 'Remote',
-      salary: '$70,000 - $90,000',
-      savedDate: '2024-01-18'
-    }
-  ]);
+        // Update applications
+        if (applicationsResponse.status === 'fulfilled') {
+          const apps = applicationsResponse.value;
+          setApplications(Array.isArray(apps) ? apps : []);
+        }
 
-  const [recommendedJobs, setRecommendedJobs] = useState([
-    {
-      id: 1,
-      title: 'Senior React Developer',
-      company: 'StartupXYZ',
-      logo: 'SX',
-      location: 'Nairobi, Kenya',
-      salary: '$55,000 - $75,000',
-      matchScore: 98,
-      reason: 'Perfect match for your React skills'
-    }
-  ]);
+        // Update jobs
+        if (jobsResponse.status === 'fulfilled') {
+          const jobsData = jobsResponse.value;
+          setJobs(Array.isArray(jobsData) ? jobsData : []);
+        }
+
+        // Update saved jobs
+        if (savedJobsResponse.status === 'fulfilled') {
+          const saved = savedJobsResponse.value;
+          setSavedJobs(Array.isArray(saved) ? saved : []);
+        }
+
+        // Update recommended jobs
+        if (recommendedJobsResponse.status === 'fulfilled') {
+          const recommended = recommendedJobsResponse.value;
+          setRecommendedJobs(Array.isArray(recommended) ? recommended : []);
+        }
+
+        // Update interviews
+        if (interviewsResponse.status === 'fulfilled') {
+          const interviewData = interviewsResponse.value;
+          setInterviews(Array.isArray(interviewData) ? interviewData : []);
+        }
+
+        // Update profile views
+        if (profileViewsResponse.status === 'fulfilled') {
+          const views = profileViewsResponse.value;
+          setStats(prev => ({
+            ...prev,
+            profileViews: views.totalViews || 0
+          }));
+        }
+
+        // Calculate stats from fetched data
+        setStats(prev => ({
+          ...prev,
+          applications: applicationsResponse.status === 'fulfilled' ? 
+            (Array.isArray(applicationsResponse.value) ? applicationsResponse.value.length : 0) : prev.applications,
+          interviews: interviewsResponse.status === 'fulfilled' ? 
+            (Array.isArray(interviewsResponse.value) ? interviewsResponse.value.length : 0) : prev.interviews,
+          savedJobs: savedJobsResponse.status === 'fulfilled' ? 
+            (Array.isArray(savedJobsResponse.value) ? savedJobsResponse.value.length : 0) : prev.savedJobs
+        }));
+
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [user]);
 
   // Navigation function
   const showSection = (sectionId) => {
@@ -166,16 +188,140 @@ const JobSeekerDashboard = () => {
   };
 
   // Job application function
-  const applyToJob = (jobId) => {
-    console.log('Applying to job:', jobId);
-    // Here you would typically handle job application
+  const applyToJob = async (jobId) => {
+    try {
+      const result = await dashboardService.applyForJob(jobId, {
+        coverLetter: '',
+        resume: profileData.resume || ''
+      });
+      
+      if (result.success) {
+        // Refresh applications data
+        const updatedApplications = await dashboardService.getJobSeekerApplications();
+        setApplications(Array.isArray(updatedApplications) ? updatedApplications : []);
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          applications: prev.applications + 1
+        }));
+        
+        alert('Application submitted successfully!');
+      } else {
+        alert('Failed to apply for job. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error applying for job:', error);
+      alert('Failed to apply for job. Please try again.');
+    }
   };
 
   // Job saving function
-  const saveJob = (jobId) => {
-    console.log('Saving job:', jobId);
-    // Here you would typically handle job saving
+  const saveJob = async (jobId) => {
+    try {
+      const result = await dashboardService.saveJob(jobId);
+      
+      if (result.success) {
+        // Refresh saved jobs data
+        const updatedSavedJobs = await dashboardService.getSavedJobs();
+        setSavedJobs(Array.isArray(updatedSavedJobs) ? updatedSavedJobs : []);
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          savedJobs: prev.savedJobs + 1
+        }));
+        
+        alert('Job saved successfully!');
+      } else {
+        alert('Failed to save job. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error saving job:', error);
+      alert('Failed to save job. Please try again.');
+    }
   };
+
+  // Job unsaving function
+  const unsaveJob = async (jobId) => {
+    try {
+      const result = await dashboardService.unsaveJob(jobId);
+      
+      if (result.success) {
+        // Refresh saved jobs data
+        const updatedSavedJobs = await dashboardService.getSavedJobs();
+        setSavedJobs(Array.isArray(updatedSavedJobs) ? updatedSavedJobs : []);
+        
+        // Update stats
+        setStats(prev => ({
+          ...prev,
+          savedJobs: Math.max(0, prev.savedJobs - 1)
+        }));
+        
+        alert('Job removed from saved jobs!');
+      } else {
+        alert('Failed to remove job. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error unsaving job:', error);
+      alert('Failed to remove job. Please try again.');
+    }
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="jobseeker-dashboard">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          flexDirection: 'column',
+          gap: '20px'
+        }}>
+          <FontAwesomeIcon icon={faSpinner} spin size="2x" style={{ color: '#667eea' }} />
+          <p style={{ color: '#666', fontSize: '16px' }}>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="jobseeker-dashboard">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          flexDirection: 'column',
+          gap: '20px',
+          textAlign: 'center',
+          padding: '20px'
+        }}>
+          <div style={{ color: '#e74c3c', fontSize: '48px' }}>⚠️</div>
+          <h2 style={{ color: '#333', margin: '0 0 10px 0' }}>Oops! Something went wrong</h2>
+          <p style={{ color: '#666', margin: '0 0 20px 0' }}>{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            style={{
+              background: '#667eea',
+              color: 'white',
+              border: 'none',
+              padding: '12px 24px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="jobseeker-dashboard">
@@ -183,7 +329,7 @@ const JobSeekerDashboard = () => {
       <div className="sidebar">
         <div className="sidebar-header">
           <h2><FontAwesomeIcon icon={faBriefcase} /> CareerHub</h2>
-          <p>John Smith</p>
+          <p>{profileData.fullName || user?.firstName || 'User'}</p>
         </div>
         <div className="nav-menu">
           <div className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} onClick={() => showSection('dashboard')}>
@@ -256,10 +402,16 @@ const JobSeekerDashboard = () => {
               <FontAwesomeIcon icon={faPlus} />
             </button>
             <div className="user-profile">
-              <div className="user-avatar">JS</div>
+              <div className="user-avatar">
+                {profileData.fullName ? profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
+              </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>John Smith</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>Software Engineer</div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>
+                  {profileData.fullName || user?.firstName || 'User'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#666' }}>
+                  {profileData.jobTitle || 'Job Seeker'}
+                </div>
               </div>
             </div>
           </div>
@@ -271,7 +423,7 @@ const JobSeekerDashboard = () => {
           {activeSection === 'dashboard' && (
             <div className="page-section active">
               <div className="dashboard-header">
-                <h1>Welcome back, John! 👋</h1>
+                <h1>Welcome back, {profileData.fullName?.split(' ')[0] || 'User'}! 👋</h1>
                 <p>Here's what's happening with your job search today</p>
               </div>
 
@@ -307,44 +459,44 @@ const JobSeekerDashboard = () => {
                   <div className="stat-icon blue">
                     <FontAwesomeIcon icon={faUserClock} />
                   </div>
-                  <div className="stat-content">
-                    <div className="stat-number">3</div>
-                    <div className="stat-label">Applications Sent</div>
-                    <div className="stat-subtitle">this week</div>
-                  </div>
+                <div className="stat-content">
+                  <div className="stat-number">{stats.applications}</div>
+                  <div className="stat-label">Applications Sent</div>
+                  <div className="stat-subtitle">total applications</div>
+                </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-icon green">
                     <FontAwesomeIcon icon={faCalendar} />
                   </div>
-                  <div className="stat-content">
-                    <div className="stat-number">2</div>
-                    <div className="stat-label">Interviews Scheduled</div>
-                    <div className="stat-subtitle">Next: Tomorrow at 2:00 PM</div>
-                  </div>
+                <div className="stat-content">
+                  <div className="stat-number">{stats.interviews}</div>
+                  <div className="stat-label">Interviews Scheduled</div>
+                  <div className="stat-subtitle">{stats.interviews > 0 ? 'Check your schedule' : 'No interviews yet'}</div>
+                </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-icon purple">
                     <FontAwesomeIcon icon={faEye} />
                   </div>
-                  <div className="stat-content">
-                    <div className="stat-number">18</div>
-                    <div className="stat-label">Profile Views</div>
-                    <div className="stat-subtitle">+18% from last week</div>
-                  </div>
+                <div className="stat-content">
+                  <div className="stat-number">{stats.profileViews}</div>
+                  <div className="stat-label">Profile Views</div>
+                  <div className="stat-subtitle">total profile views</div>
+                </div>
                 </div>
 
                 <div className="stat-card">
                   <div className="stat-icon orange">
                     <FontAwesomeIcon icon={faHeart} />
                   </div>
-                  <div className="stat-content">
-                    <div className="stat-number">5</div>
-                    <div className="stat-label">Saved Jobs</div>
-                    <div className="stat-subtitle">2 new matches today</div>
-                  </div>
+                <div className="stat-content">
+                  <div className="stat-number">{stats.savedJobs}</div>
+                  <div className="stat-label">Saved Jobs</div>
+                  <div className="stat-subtitle">jobs saved for later</div>
+                </div>
                 </div>
               </div>
 
@@ -592,10 +744,10 @@ const JobSeekerDashboard = () => {
                       </div>
                     </div>
                     <div className="job-actions">
-                      <button className="btn btn-danger btn-sm">
+                      <button className="btn btn-danger btn-sm" onClick={() => unsaveJob(job.id)}>
                         <FontAwesomeIcon icon={faTrash} />
                       </button>
-                      <button className="btn btn-primary btn-sm">
+                      <button className="btn btn-primary btn-sm" onClick={() => applyToJob(job.id)}>
                         Apply Now
                       </button>
                     </div>
