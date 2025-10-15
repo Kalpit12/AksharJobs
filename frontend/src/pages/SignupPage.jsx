@@ -225,7 +225,7 @@ const SignupPage = () => {
             } 
           });
         } else if (formData.accountType === 'intern') {
-          // For interns, store the token and redirect to intern details form
+          // For interns, store the token and redirect directly to intern dashboard
           if (data.token) {
             // Store authentication data
             localStorage.setItem('token', data.token);
@@ -236,7 +236,7 @@ const SignupPage = () => {
             localStorage.setItem('userLastName', data.lastName);
           }
           
-          navigate('/intern-details', { 
+          navigate('/intern-dashboard', { 
             state: { 
               userData: {
                 email: formData.email,

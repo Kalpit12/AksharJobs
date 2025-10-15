@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
     const normalized = role.toLowerCase().replace(/[_-]/g, '');
     
     if (normalized.includes('recruiter')) return 'recruiter';
-    if (normalized.includes('jobseeker') || normalized.includes('jobseeker')) return 'jobSeeker';
+    if (normalized.includes('jobseeker') || normalized.includes('job_seeker')) return 'jobSeeker';
     if (normalized.includes('intern')) return 'intern';
     if (normalized.includes('admin') || normalized.includes('administrator')) return 'admin';
     
@@ -86,48 +86,9 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       console.log('🔐 AuthContext - User logged in:', { role: normalizedRole, userId });
       
-      // Check if intern needs to complete profile (on page load)
+      // Interns go directly to their dashboard (no separate registration form needed)
       if (normalizedRole === 'intern') {
-        // Check with backend if profile is completed
-        fetch(buildApiUrl('/api/interns/profile'), {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        .then(res => res.json())
-        .then(data => {
-          console.log('🔐 AuthContext - Intern profile check:', data);
-          // If no profile found or error, redirect to details form
-          if (!data || data.error || !data.profileCompleted) {
-            console.log('🔐 AuthContext - Intern profile incomplete, redirecting to details form');
-            navigate('/intern-details', {
-              state: {
-                userData: {
-                  email: validEmail,
-                  firstName: validFirstName,
-                  lastName: validLastName,
-                  userId: userId,
-                  bulkImported: true
-                }
-              }
-            });
-          }
-        })
-        .catch(err => {
-          console.log('🔐 AuthContext - Profile check error, assuming incomplete:', err);
-          // On error (like 404), assume profile is incomplete
-          navigate('/intern-details', {
-            state: {
-              userData: {
-                email: validEmail,
-                firstName: validFirstName,
-                lastName: validLastName,
-                userId: userId,
-                bulkImported: true
-              }
-            }
-          });
-        });
+        console.log('🔐 AuthContext - Intern user, will redirect to intern dashboard');
       }
     } else {
       console.log('🔐 AuthContext - No valid tokens found, user not authenticated');
@@ -191,23 +152,10 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       
-      // Check if intern needs to complete profile (bulk-imported interns)
-      // Use loose equality to catch false, undefined, null, 0, ""
-      if (normalizedRole === 'intern' && !otherData.profileCompleted) {
-        console.log('🔐 AuthContext - Intern profile incomplete, redirecting to details form');
-        console.log('   - profileCompleted value:', otherData.profileCompleted);
-        console.log('   - Navigating to /intern-details');
-        navigate('/intern-details', {
-          state: {
-            userData: {
-              email: validEmail,
-              firstName: validFirstName,
-              lastName: validLastName,
-              userId: userId,
-              bulkImported: otherData.bulkImported
-            }
-          }
-        });
+      // Interns go directly to their dashboard (no separate registration form needed)
+      if (normalizedRole === 'intern') {
+        console.log('🔐 AuthContext - Intern user, redirecting to intern dashboard');
+        navigate('/intern-dashboard');
         return;
       }
       
@@ -225,8 +173,6 @@ export const AuthProvider = ({ children }) => {
         } else {
           navigate('/recruiter-dashboard');
         }
-      } else if (normalizedRole === 'intern') {
-        navigate('/intern-dashboard');
       } else if (normalizedRole === 'jobSeeker') {
         // Check if job seeker has completed profile
         if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
@@ -303,19 +249,8 @@ export const AuthProvider = ({ children }) => {
   const hasRole = (requiredRole) => {
     if (!user || !user.role) return false;
     
-    const userRole = user.role.toLowerCase();
-    const required = requiredRole.toLowerCase();
-    
-    // Handle different role formats
-    if (required === 'recruiter') {
-      return userRole === 'recruiter';
-    } else if (required === 'jobseeker') {
-      return userRole === 'jobseeker' || userRole === 'job_seeker';
-    } else if (required === 'intern') {
-      return userRole === 'intern';
-    } else if (required === 'admin') {
-      return userRole === 'admin' || userRole === 'administrator';
-    }
+    const userRole = normalizeRole(user.role);
+    const required = normalizeRole(requiredRole);
     
     return userRole === required;
   };

@@ -33,9 +33,9 @@ const ProtectedRoute = ({ children, requiredRole = null, redirectTo = '/login' }
     // Redirect to appropriate dashboard if user doesn't have required role
     const userRole = user?.role?.toLowerCase();
     
-    if (userRole === 'recruiter' || userRole === 'recruiter') {
+    if (userRole === 'recruiter') {
       return <Navigate to="/recruiter-dashboard" replace />;
-    } else if (userRole === 'jobseeker' || userRole === 'job_seeker' || userRole === 'jobseeker') {
+    } else if (userRole === 'jobseeker' || userRole === 'job_seeker') {
       return <Navigate to="/jobseeker-dashboard" replace />;
     } else if (userRole === 'intern') {
       return <Navigate to="/intern-dashboard" replace />;
