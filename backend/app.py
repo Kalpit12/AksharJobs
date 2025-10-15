@@ -74,9 +74,9 @@ app.register_blueprint(notification_bp, url_prefix='/api/notifications')
 app.register_blueprint(message_bp, url_prefix='/api/messages')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 app.register_blueprint(admin_routes, url_prefix='/api/admin')
-app.register_blueprint(interviews_routes, url_prefix='/api')
+app.register_blueprint(interviews_routes, url_prefix='/api/interviews')
 print("✅ Admin routes registered at /api/admin")
-print("✅ Interviews routes registered at /api")
+print("✅ Interviews routes registered at /api/interviews")
 
 # Debug: List all admin routes
 print("📋 Admin routes available:")

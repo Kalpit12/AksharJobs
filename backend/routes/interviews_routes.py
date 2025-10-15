@@ -13,6 +13,7 @@ import logging
 interviews_routes = Blueprint('interviews_routes', __name__)
 logger = logging.getLogger(__name__)
 
+@interviews_routes.route('', methods=['GET'])
 @interviews_routes.route('/', methods=['GET'])
 @jwt_required()
 def get_interviews():

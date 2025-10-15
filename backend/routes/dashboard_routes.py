@@ -46,11 +46,7 @@ def get_profile_views():
             }
         ]
         
-        return jsonify({
-            "success": True,
-            "views": mock_views,
-            "totalViews": len(mock_views)
-        }), 200
+        return jsonify(mock_views), 200
         
     except Exception as e:
         print(f"Error fetching profile views: {e}")
