@@ -354,14 +354,8 @@ const JobSeekerDashboard = () => {
                 <div className="completion-fill" style={{ width: `${dashboardStats.profileCompletion}%` }}></div>
               </div>
               <div className="completion-actions">
-                <button className="btn" onClick={() => setActiveSection('profile')}>
-                  <FontAwesomeIcon icon={faPlus} /> Add Skills
-                </button>
                 <button className="btn" onClick={() => setActiveSection('resume')}>
                   <FontAwesomeIcon icon={faUpload} /> Upload Resume
-                </button>
-                <button className="btn" onClick={() => setActiveSection('profile')}>
-                  <FontAwesomeIcon icon={faCertificate} /> Add Certifications
                 </button>
               </div>
             </div>
