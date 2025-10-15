@@ -65,6 +65,47 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ProfilePhotoProvider } from "./context/ProfilePhotoContext";
 
+// Dashboard Redirect Component - Routes users to their role-specific dashboard
+const DashboardRedirect = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Check if user has completed profile
+    const hasCompletedProfile = user.profileCompleted || user.hasCompletedProfile;
+
+    // Route based on role
+    if (user.role === 'jobSeeker') {
+      if (!hasCompletedProfile) {
+        navigate('/jobseeker-registration');
+      } else {
+        navigate('/jobseeker-dashboard');
+      }
+    } else if (user.role === 'recruiter') {
+      if (!hasCompletedProfile) {
+        navigate('/recruiter-registration');
+      } else {
+        navigate('/recruiter-dashboard');
+      }
+    } else if (user.role === 'intern') {
+      navigate('/intern-dashboard');
+    } else if (user.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  return <div style={{ padding: '50px', textAlign: 'center' }}>
+    <h2>Redirecting to your dashboard...</h2>
+  </div>;
+};
+
 // Settings Redirect Component
 const SettingsRedirect = () => {
   const { user } = useAuth();
@@ -137,7 +178,7 @@ function App() {
             <Route path="/recruiter-registration" element={<RecruiterRegistrationForm />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
-                <JobSeekerDashboard />
+                <DashboardRedirect />
               </ProtectedRoute>
             } />
             <Route path="/jobseeker-registration" element={<JobSeekerRegistrationForm />} />

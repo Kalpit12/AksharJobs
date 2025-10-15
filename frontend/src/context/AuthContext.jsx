@@ -211,15 +211,32 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       
-      // Default dashboard redirect
+      // Default dashboard redirect - check profile completion first
       console.log('🔐 AuthContext - Navigating to dashboard for role:', normalizedRole);
+      console.log('🔐 AuthContext - Profile completed status:', otherData.profileCompleted);
+      
       if (normalizedRole === 'admin') {
         navigate('/admin');
       } else if (normalizedRole === 'recruiter') {
-        navigate('/recruiter-dashboard');
+        // Check if recruiter has completed profile
+        if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
+          console.log('🔐 AuthContext - Recruiter profile incomplete, redirecting to registration');
+          navigate('/recruiter-registration');
+        } else {
+          navigate('/recruiter-dashboard');
+        }
       } else if (normalizedRole === 'intern') {
         navigate('/intern-dashboard');
+      } else if (normalizedRole === 'jobSeeker') {
+        // Check if job seeker has completed profile
+        if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
+          console.log('🔐 AuthContext - Job seeker profile incomplete, redirecting to registration');
+          navigate('/jobseeker-registration');
+        } else {
+          navigate('/jobseeker-dashboard');
+        }
       } else {
+        // Default to job seeker dashboard
         navigate('/jobseeker-dashboard');
       }
     }

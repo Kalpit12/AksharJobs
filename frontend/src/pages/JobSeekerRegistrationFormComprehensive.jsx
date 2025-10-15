@@ -615,7 +615,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
       const data = await response.json();
 
       if (response.ok) {
-        navigate('/jobseeker-registration-success', { 
+        // Update user context to mark profile as completed
+        alert('Profile completed successfully! Redirecting to your dashboard...');
+        navigate('/jobseeker-dashboard', { 
           state: {
             jobSeekerName: `${formData.firstName} ${formData.lastName}`,
             email: formData.email,
