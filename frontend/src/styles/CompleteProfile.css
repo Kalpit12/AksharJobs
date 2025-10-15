@@ -341,7 +341,6 @@
   padding: 20px;
   border-radius: 8px;
   margin-bottom: 15px;
-  border-left: 4px solid #667eea;
   position: relative;
 }
 
@@ -417,7 +416,6 @@
   padding: 15px 20px;
   border-radius: 8px;
   margin-bottom: 10px;
-  border-left: 4px solid #667eea;
   display: flex;
   justify-content: space-between;
   align-items: center;
