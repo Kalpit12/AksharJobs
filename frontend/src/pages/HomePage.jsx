@@ -258,7 +258,10 @@ const HomePage = () => {
         <div className="nav-container">
           <div className="logo">
             <img src={logoImage} alt="AksharJobs Logo" className="logo-image" />
-            <span>AksharJobs</span>
+            <div className="logo-text">
+              <span className="logo-name">AksharJobs</span>
+              <span className="logo-tagline">CONNECT|DISCOVER|ELEVATE</span>
+            </div>
           </div>
           <nav>
             <ul>
