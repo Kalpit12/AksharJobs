@@ -29,9 +29,9 @@ const JobSeekerDashboard = () => {
       try {
         setLoading(true);
         
-        // Fetch user profile
+        // Fetch user profile - FIXED: Using correct endpoint
         let userData = null;
-        const userResponse = await fetch('/api/user/profile', {
+        const userResponse = await fetch('/api/profile/profile', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
@@ -52,85 +52,59 @@ const JobSeekerDashboard = () => {
           setUser(userData);
         }
 
-        // Fetch user stats
-        const statsResponse = await fetch('/api/jobseeker/stats', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        // Calculate user stats from applications data (stats endpoint doesn't exist for jobseekers)
+        // We'll fetch applications first and calculate stats from there
         
-        if (statsResponse.ok) {
-          const stats = await statsResponse.json();
-          setUserStats(stats);
-        }
-
-        // Fetch profile completion percentage
-        const completionResponse = await fetch('/api/jobseeker/profile-completion', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (completionResponse.ok) {
-          const completionData = await completionResponse.json();
-          setProfileCompletion(completionData.percentage);
-        } else {
-          // Calculate completion based on user data
-          let completion = 0;
-          if (userData?.firstName) completion += 10;
-          if (userData?.lastName) completion += 10;
-          if (userData?.email) completion += 15;
-          if (userData?.phone) completion += 10;
-          if (userData?.location) completion += 10;
-          if (userData?.title) completion += 10;
-          if (userData?.experience) completion += 10;
-          if (userData?.skills && userData.skills.length > 0) completion += 15;
-          if (userData?.summary) completion += 10;
-          setProfileCompletion(completion);
-        }
-
-        // Fetch jobs
-        const jobsResponse = await fetch('/api/jobs');
+        // Fetch jobs - FIXED: Using correct endpoint
+        const jobsResponse = await fetch('/api/jobs/get_jobs');
+        let jobsData = [];
         if (jobsResponse.ok) {
-          const jobsData = await jobsResponse.json();
+          jobsData = await jobsResponse.json();
           setJobs(jobsData);
         }
 
-        // Fetch applications
-        const applicationsResponse = await fetch('/api/jobseeker/applications', {
+        // Fetch applications - FIXED: Using correct endpoint
+        const applicationsResponse = await fetch('/api/applications/my-applications', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
           }
         });
         
+        let applicationsData = [];
         if (applicationsResponse.ok) {
-          const applicationsData = await applicationsResponse.json();
+          applicationsData = await applicationsResponse.json();
           setApplications(applicationsData);
+          
+          // Calculate stats from applications
+          const interviewsList = applicationsData.filter(app => 
+            app.status === 'interview_scheduled' || app.status === 'interview'
+          );
+          setInterviews(interviewsList);
+          
+          setUserStats({
+            applicationsSent: applicationsData.length,
+            interviewsScheduled: interviewsList.length,
+            profileViews: 0, // This would need a separate endpoint
+            savedJobs: 0 // This would need a separate endpoint
+          });
         }
 
-        // Fetch interviews
-        const interviewsResponse = await fetch('/api/jobseeker/interviews', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (interviewsResponse.ok) {
-          const interviewsData = await interviewsResponse.json();
-          setInterviews(interviewsData);
-        }
+        // Calculate profile completion based on user data
+        let completion = 0;
+        if (userData?.firstName) completion += 10;
+        if (userData?.lastName) completion += 10;
+        if (userData?.email) completion += 15;
+        if (userData?.phone) completion += 10;
+        if (userData?.location) completion += 10;
+        if (userData?.title) completion += 10;
+        if (userData?.experience) completion += 10;
+        if (userData?.skills && userData.skills.length > 0) completion += 15;
+        if (userData?.summary) completion += 10;
+        setProfileCompletion(completion);
 
-        // Fetch saved jobs
-        const savedJobsResponse = await fetch('/api/jobseeker/saved-jobs', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (savedJobsResponse.ok) {
-          const savedJobsData = await savedJobsResponse.json();
-          setSavedJobs(savedJobsData);
-        }
+        // Saved jobs - For now, use empty array since endpoint doesn't exist
+        // This would need to be implemented on the backend
+        setSavedJobs([]);
 
       } catch (error) {
         console.error('Error fetching user data:', error);
