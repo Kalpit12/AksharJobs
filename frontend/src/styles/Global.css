@@ -1,28 +1,40 @@
 /* ===== MODERN DESIGN SYSTEM ===== */
 
 /* Global Zoom Adjustment for Better Visual Scale */
+/* DISABLED - Conflicts with dashboard layouts
 html {
-  zoom: 0.85; /* Zoom out to 85% for better visual proportion */
+  zoom: 0.85;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
 }
 
-/* Alternative approach using transform for better browser compatibility */
 body {
   transform: scale(0.85);
   transform-origin: top left;
-  width: 117.65%; /* Compensate for the scale reduction (100/0.85) */
-  min-height: 117.65vh; /* Compensate for the scale reduction */
+  width: 117.65%;
+  min-height: 117.65vh;
+}
+*/
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
 }
 
 /* Ensure proper scaling on different screen sizes */
+/* DISABLED - Conflicts with dashboard responsive design
 @media (max-width: 1200px) {
   html {
     zoom: 0.9;
   }
   body {
     transform: scale(0.9);
-    width: 111.11%; /* 100/0.9 */
+    width: 111.11%;
     min-height: 111.11vh;
   }
 }
@@ -33,14 +45,14 @@ body {
   }
   body {
     transform: scale(0.95);
-    width: 105.26%; /* 100/0.95 */
+    width: 105.26%;
     min-height: 105.26vh;
   }
 }
 
 @media (max-width: 480px) {
   html {
-    zoom: 1.0; /* Normal zoom on very small screens */
+    zoom: 1.0;
   }
   body {
     transform: scale(1.0);
@@ -48,6 +60,7 @@ body {
     min-height: 100vh;
   }
 }
+*/
 
 /* CSS Variables for consistent theming */
 :root {
@@ -178,11 +191,13 @@ html, body {
 }
 
 /* Dashboard specific border removal - only remove unwanted borders */
+/* DISABLED - Conflicts with individual dashboard styles
 .dashboard-wrapper, .main-content, .content-area, .page-section {
   border: none !important;
   outline: none !important;
   background: #f5f7fa !important;
 }
+*/
 
 /* Re-enable borders for specific elements that need them */
 input, textarea, select, button, .card, .job-card, .stat-card, .nav-item, .sidebar-header, .card-header, .status-badge, .tag, .btn, .filter-select, .interview-card, .alert, table, th, td, .search-bar input, .icon-btn, .user-avatar, .company-logo, .stat-icon, .completion-bar, .job-tags, .interview-date {
