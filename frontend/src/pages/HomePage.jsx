@@ -508,15 +508,43 @@ const HomePage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="cta-section">
+      <section 
+        className="cta-section" 
+        style={{
+          background: 'linear-gradient(135deg, #6A8EEB 0%, #8A6AEB 100%) !important',
+          color: 'white !important',
+          padding: '4rem 2rem !important',
+          textAlign: 'center !important'
+        }}
+      >
         <div className="cta-content">
-          <h2>Ready to Take the Next Step?</h2>
-          <p>Join thousands of professionals who found their perfect job through AksharJobs. Create your profile today and get discovered by top employers.</p>
+          <h2 style={{ color: 'white !important', fontSize: '2.5rem !important', fontWeight: 'bold !important' }}>
+            Ready to Take the Next Step?
+          </h2>
+          <p style={{ color: 'white !important', fontSize: '1.2rem !important' }}>
+            Join thousands of professionals who found their perfect job through AksharJobs. Create your profile today and get discovered by top employers.
+          </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <button className="btn btn-primary btn-large" onClick={() => openModal('signupModal')}>
+            <button 
+              className="btn btn-primary btn-large" 
+              onClick={() => openModal('signupModal')}
+              style={{
+                background: '#4285F4 !important',
+                color: 'white !important',
+                border: 'none !important'
+              }}
+            >
               Create Your Profile
             </button>
-            <button className="btn btn-secondary btn-large" onClick={() => openModal('postJobModal')}>
+            <button 
+              className="btn btn-secondary btn-large" 
+              onClick={() => openModal('postJobModal')}
+              style={{
+                background: 'transparent !important',
+                color: '#C3B1E1 !important',
+                border: '2px solid white !important'
+              }}
+            >
               Post a Job Opening
             </button>
           </div>
