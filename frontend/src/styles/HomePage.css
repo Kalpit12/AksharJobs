@@ -100,14 +100,20 @@ nav a:hover {
 }
 
 .btn-primary {
-    background: white;
-    color: #66BB6A;
+    background: #4285F4;
+    color: white;
+    border: none;
 }
 
 .btn-secondary {
     background: transparent;
-    color: white;
+    color: #C3B1E1;
     border: 2px solid white;
+}
+
+.btn-secondary:hover {
+    background: white;
+    color: #8A6AEB;
 }
 
 .btn:hover {
@@ -132,12 +138,15 @@ nav a:hover {
     font-size: 3rem;
     margin-bottom: 1rem;
     line-height: 1.2;
+    color: white;
+    font-weight: bold;
 }
 
 .hero p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
     opacity: 0.95;
+    color: white;
 }
 
 /* Search Box */
@@ -404,7 +413,7 @@ nav a:hover {
 
 /* CTA Section */
 .cta-section {
-    background: linear-gradient(135deg, #4FC3F7 0%, #66BB6A 50%, #FFB74D 100%);
+    background: linear-gradient(135deg, #6A8EEB 0%, #8A6AEB 100%);
     color: white;
     padding: 4rem 2rem;
     text-align: center;
@@ -418,12 +427,15 @@ nav a:hover {
 .cta-section h2 {
     font-size: 2.5rem;
     margin-bottom: 1rem;
+    color: white;
+    font-weight: bold;
 }
 
 .cta-section p {
     font-size: 1.2rem;
     margin-bottom: 2rem;
     opacity: 0.95;
+    color: white;
 }
 
 .btn-large {
