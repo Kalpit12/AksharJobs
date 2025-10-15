@@ -1,177 +1,41 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faSearch, faBell, faUser, faBriefcase, faCalendar, faBookmark, 
-  faStar, faEnvelope, faCog, faPlus, faEye, faPaperPlane, faDownload,
-  faEdit, faTrash, faCheckCircle, faClock, faMapMarkerAlt, faDollarSign,
-  faBuilding, faLayerGroup, faArrowUp, faArrowDown, faSpinner, faFilter,
-  faSort, faTimes, faSave, faUpload, faFilePdf, faGraduationCap, faUsers,
-  faChartLine, faLightbulb, faHandshake, faRocket, faShieldAlt, faHeart,
-  faExternalLinkAlt, faCopy, faShare, faVideo, faPhone, faGlobe, faLinkedin,
-  faGithub, faTwitter, faFacebook, faInstagram, faYoutube, faTiktok, faSnapchat,
-  faReply
+  faSearch, faBell, faUser, faBriefcase, faCalendar, faBookmark,
+  faStar, faEnvelope, faCog, faThLarge, faFileAlt, faFilePdf, faBook,
+  faPaperPlane, faEye, faMapMarkerAlt, faDollarSign, faLayerGroup,
+  faClock, faPlus, faUpload, faCertificate, faArrowUp, faCheckCircle,
+  faQuestionCircle, faCalendarCheck, faTrash, faEdit
 } from '@fortawesome/free-solid-svg-icons';
-import { faLinkedin as faLinkedinBrand, faGithub as faGithubBrand, faTwitter as faTwitterBrand, faFacebook as faFacebookBrand, faInstagram as faInstagramBrand, faYoutube as faYoutubeBrand, faTiktok as faTiktokBrand, faSnapchat as faSnapchatBrand } from '@fortawesome/free-brands-svg-icons';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
+import { buildApiUrl } from '../config/api';
 import '../styles/JobSeekerDashboard.css';
 
 const JobSeekerDashboard = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+  const navigate = useNavigate();
+  
+  // State
+  const [activeSection, setActiveSection] = useState('dashboard');
   const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState(null);
-  const [stats, setStats] = useState({
-    applications: 0,
-    interviews: 0,
-    profileViews: 0,
-    savedJobs: 0,
-    matches: 0
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      applications: 0,
+      interviews: 0,
+      profileViews: 0,
+      savedJobs: 0
+    },
+    profileCompletion: 75,
+    applications: [],
+    interviews: [],
+    jobs: [],
+    savedJobs: [],
+    messages: []
   });
-  const [jobs, setJobs] = useState([]);
-  const [applications, setApplications] = useState([]);
-  const [interviews, setInterviews] = useState([]);
-  const [savedJobs, setSavedJobs] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterType, setFilterType] = useState('all');
 
-  // Sample data for demonstration
-  const sampleJobs = [
-    {
-      id: 1,
-      title: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      location: 'San Francisco, CA',
-      type: 'Full-time',
-      salary: '$120k - $150k',
-      posted: '2 days ago',
-      description: 'We are looking for a passionate full-stack developer to join our growing team...',
-      requirements: ['React', 'Node.js', 'MongoDB', 'AWS', '5+ years experience'],
-      benefits: ['Health Insurance', '401k', 'Remote Work', 'Flexible Hours'],
-      logo: 'TC',
-      featured: true,
-      urgent: false
-    },
-    {
-      id: 2,
-      title: 'Product Manager',
-      company: 'Innovation Labs',
-      location: 'New York, NY',
-      type: 'Full-time',
-      salary: '$100k - $130k',
-      posted: '1 week ago',
-      description: 'Lead product strategy and work with cross-functional teams...',
-      requirements: ['Product Management', 'Agile', 'Leadership', '3+ years experience'],
-      benefits: ['Health Insurance', 'Stock Options', 'Learning Budget'],
-      logo: 'IL',
-      featured: false,
-      urgent: true
-    },
-    {
-      id: 3,
-      title: 'UX/UI Designer',
-      company: 'Design Studio',
-      location: 'Remote',
-      type: 'Contract',
-      salary: '$80k - $100k',
-      posted: '3 days ago',
-      description: 'Create beautiful and intuitive user experiences...',
-      requirements: ['Figma', 'User Research', 'Prototyping', '2+ years experience'],
-      benefits: ['Flexible Schedule', 'Project-based'],
-      logo: 'DS',
-      featured: true,
-      urgent: false
-    }
-  ];
-
-  const sampleApplications = [
-    {
-      id: 1,
-      jobTitle: 'Senior Full Stack Developer',
-      company: 'TechCorp Inc.',
-      location: 'San Francisco, CA',
-      appliedDate: '2024-01-15',
-      status: 'under_review',
-      salary: '$120k - $150k',
-      type: 'Full-time'
-    },
-    {
-      id: 2,
-      jobTitle: 'Product Manager',
-      company: 'Innovation Labs',
-      location: 'New York, NY',
-      appliedDate: '2024-01-10',
-      status: 'interview_scheduled',
-      salary: '$100k - $130k',
-      type: 'Full-time'
-    },
-    {
-      id: 3,
-      jobTitle: 'UX/UI Designer',
-      company: 'Design Studio',
-      location: 'Remote',
-      appliedDate: '2024-01-18',
-      status: 'rejected',
-      salary: '$80k - $100k',
-      type: 'Contract'
-    }
-  ];
-
-  const sampleInterviews = [
-    {
-      id: 1,
-      jobTitle: 'Product Manager',
-      company: 'Innovation Labs',
-      date: '2024-01-25',
-      time: '2:00 PM',
-      type: 'Video Interview',
-      interviewer: 'Sarah Johnson',
-      status: 'scheduled',
-      location: 'Zoom Meeting'
-    },
-    {
-      id: 2,
-      jobTitle: 'Senior Developer',
-      company: 'TechCorp Inc.',
-      date: '2024-01-28',
-      time: '10:00 AM',
-      type: 'In-person',
-      interviewer: 'David Wilson',
-      status: 'scheduled',
-      location: 'San Francisco Office'
-    }
-  ];
-
-  const sampleMessages = [
-    {
-      id: 1,
-      sender: 'TechCorp Inc.',
-      subject: 'Interview Invitation - Senior Full Stack Developer',
-      preview: 'Thank you for your application. We would like to invite you for an interview...',
-      time: '2 hours ago',
-      unread: true,
-      priority: 'high'
-    },
-    {
-      id: 2,
-      sender: 'Innovation Labs',
-      subject: 'Application Status Update',
-      preview: 'Your application for Product Manager has been reviewed...',
-      time: '1 day ago',
-      unread: true,
-      priority: 'medium'
-    },
-    {
-      id: 3,
-      sender: 'Design Studio',
-      subject: 'Thank you for your interest',
-      preview: 'We appreciate your interest in the UX/UI Designer position...',
-      time: '3 days ago',
-      unread: false,
-      priority: 'low'
-    }
-  ];
-
+  // Fetch dashboard data
   useEffect(() => {
     fetchDashboardData();
   }, []);
@@ -179,567 +43,606 @@ const JobSeekerDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
-      // Simulate API calls with sample data
-      setTimeout(() => {
-        setProfileData({
-          firstName: user?.firstName || 'John',
-          lastName: user?.lastName || 'Doe',
-          email: user?.email || 'john.doe@email.com',
-          jobTitle: 'Software Engineer',
-          location: 'San Francisco, CA',
-          experience: '5 years',
-          skills: ['React', 'Node.js', 'Python', 'AWS', 'MongoDB'],
-          profileCompleteness: 85
-        });
-        
-        setStats({
-          applications: 12,
-          interviews: 3,
-          profileViews: 142,
-          savedJobs: 8,
-          matches: 15
-        });
-        
-        setJobs(sampleJobs);
-        setApplications(sampleApplications);
-        setInterviews(sampleInterviews);
-        setSavedJobs(sampleJobs.slice(0, 2));
-        setMessages(sampleMessages);
-        setLoading(false);
-      }, 1000);
-      
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch all data in parallel
+      const [
+        analyticsRes,
+        applicationsRes,
+        jobsRes,
+        profileViewsRes
+      ] = await Promise.all([
+        axios.get(buildApiUrl('/api/analytics/jobseeker'), { headers }).catch(() => null),
+        axios.get(buildApiUrl('/api/application-tracker/jobseeker'), { headers }).catch(() => null),
+        axios.get(buildApiUrl('/api/jobs/fetch_all_jobs')).catch(() => null),
+        axios.get(buildApiUrl('/api/dashboard/profile/views'), { headers }).catch(() => null)
+      ]);
+
+      // Process data
+      setDashboardData({
+        stats: {
+          applications: analyticsRes?.data?.applications?.total || 0,
+          interviews: analyticsRes?.data?.responses?.interviews || 0,
+          profileViews: profileViewsRes?.data?.length || 0,
+          savedJobs: 0 // Will be calculated from saved jobs
+        },
+        profileCompletion: 75,
+        applications: applicationsRes?.data?.applications || [],
+        interviews: [], // Extract from applications
+        jobs: jobsRes?.data?.jobs || [],
+        savedJobs: [],
+        messages: []
+      });
+
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setLoading(false);
     }
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      'under_review': '#f59e0b',
-      'interview_scheduled': '#3b82f6',
-      'offered': '#10b981',
-      'rejected': '#ef4444',
-      'withdrawn': '#6b7280'
-    };
-    return colors[status] || '#6b7280';
+  // Get user initials
+  const getUserInitials = () => {
+    if (!user) return 'JS';
+    const firstName = user.firstName || user.first_name || '';
+    const lastName = user.lastName || user.last_name || '';
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase() || 'JS';
   };
 
-  const getStatusText = (status) => {
-    const texts = {
-      'under_review': 'Under Review',
-      'interview_scheduled': 'Interview Scheduled',
-      'offered': 'Offered',
-      'rejected': 'Rejected',
-      'withdrawn': 'Withdrawn'
-    };
-    return texts[status] || 'Unknown';
+  // Get user full name
+  const getUserName = () => {
+    if (!user) return 'Job Seeker';
+    const firstName = user.firstName || user.first_name || '';
+    const lastName = user.lastName || user.last_name || '';
+    return `${firstName} ${lastName}`.trim() || 'Job Seeker';
   };
 
-  const getPriorityColor = (priority) => {
-    const colors = {
-      'high': '#ef4444',
-      'medium': '#f59e0b',
-      'low': '#10b981'
-    };
-    return colors[priority] || '#6b7280';
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   if (loading) {
     return (
       <div className="dashboard-loading">
         <div className="loading-spinner">
-          <FontAwesomeIcon icon={faSpinner} spin size="2x" />
-          <p>Loading your dashboard...</p>
+          <FontAwesomeIcon icon={faBriefcase} spin size="3x" />
+          <p style={{ marginTop: '20px', fontSize: '18px' }}>Loading your dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="job-seeker-dashboard">
-      {/* Header */}
-      <header className="dashboard-header">
-        <div className="header-content">
-          <div className="header-left">
-            <h1>Welcome back, {profileData?.firstName}!</h1>
-            <p>Here's what's happening with your job search</p>
+    <>
+      {/* Sidebar */}
+      <div className="sidebar" id="sidebar">
+        <div className="sidebar-header">
+          <h2>
+            <FontAwesomeIcon icon={faBriefcase} /> AksharJobs
+          </h2>
+          <p>Your Career Journey</p>
+        </div>
+        <div className="nav-menu">
+          <div 
+            className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
+            onClick={() => setActiveSection('dashboard')}
+          >
+            <FontAwesomeIcon icon={faThLarge} />
+            <span>Dashboard</span>
           </div>
-          <div className="header-right">
-            <div className="search-container">
-              <FontAwesomeIcon icon={faSearch} className="search-icon" />
-              <input
-                type="text"
-                placeholder="Search jobs, companies, or skills..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="search-input"
-              />
-            </div>
-            <button className="notification-btn">
+          <div 
+            className={`nav-item ${activeSection === 'jobs' ? 'active' : ''}`}
+            onClick={() => setActiveSection('jobs')}
+          >
+            <FontAwesomeIcon icon={faSearch} />
+            <span>Browse Jobs</span>
+            <span className="badge success">NEW</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'applications' ? 'active' : ''}`}
+            onClick={() => setActiveSection('applications')}
+          >
+            <FontAwesomeIcon icon={faFileAlt} />
+            <span>My Applications</span>
+            <span className="badge">{dashboardData.stats.applications}</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'saved' ? 'active' : ''}`}
+            onClick={() => setActiveSection('saved')}
+          >
+            <FontAwesomeIcon icon={faBookmark} />
+            <span>Saved Jobs</span>
+            <span className="badge">{dashboardData.stats.savedJobs}</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'interviews' ? 'active' : ''}`}
+            onClick={() => setActiveSection('interviews')}
+          >
+            <FontAwesomeIcon icon={faCalendarCheck} />
+            <span>Interviews</span>
+            <span className="badge">{dashboardData.stats.interviews}</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'matches' ? 'active' : ''}`}
+            onClick={() => setActiveSection('matches')}
+          >
+            <FontAwesomeIcon icon={faStar} />
+            <span>Recommended</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'messages' ? 'active' : ''}`}
+            onClick={() => setActiveSection('messages')}
+          >
+            <FontAwesomeIcon icon={faEnvelope} />
+            <span>Messages</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'profile' ? 'active' : ''}`}
+            onClick={() => setActiveSection('profile')}
+          >
+            <FontAwesomeIcon icon={faUser} />
+            <span>My Profile</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'resume' ? 'active' : ''}`}
+            onClick={() => setActiveSection('resume')}
+          >
+            <FontAwesomeIcon icon={faFilePdf} />
+            <span>Resume/CV</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'resources' ? 'active' : ''}`}
+            onClick={() => setActiveSection('resources')}
+          >
+            <FontAwesomeIcon icon={faBook} />
+            <span>Career Resources</span>
+          </div>
+          <div 
+            className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`}
+            onClick={() => setActiveSection('settings')}
+          >
+            <FontAwesomeIcon icon={faCog} />
+            <span>Settings</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="main-content">
+        {/* Top Bar */}
+        <div className="top-bar">
+          <div className="search-bar">
+            <FontAwesomeIcon icon={faSearch} />
+            <input type="text" placeholder="Search jobs, companies, or skills..." />
+          </div>
+          <div className="top-bar-actions">
+            <button className="icon-btn">
               <FontAwesomeIcon icon={faBell} />
-              <span className="notification-badge">3</span>
+              <span className="notification-dot"></span>
             </button>
-            <div className="user-menu">
-              <div className="user-avatar">
-                {profileData?.firstName?.charAt(0)}
-              </div>
-              <div className="user-info">
-                <span className="user-name">{profileData?.firstName} {profileData?.lastName}</span>
-                <span className="user-role">{profileData?.jobTitle}</span>
+            <button className="icon-btn">
+              <FontAwesomeIcon icon={faQuestionCircle} />
+            </button>
+            <div className="user-profile" onClick={() => setActiveSection('profile')}>
+              <div className="user-avatar">{getUserInitials()}</div>
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>{getUserName()}</div>
+                <div style={{ fontSize: '12px', color: '#666' }}>
+                  {user?.currentJobTitle || 'Job Seeker'}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </header>
 
-      {/* Navigation Tabs */}
-      <nav className="dashboard-nav">
-        <button
-          className={`nav-tab ${activeTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          <FontAwesomeIcon icon={faChartLine} />
-          Overview
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'jobs' ? 'active' : ''}`}
-          onClick={() => setActiveTab('jobs')}
-        >
-          <FontAwesomeIcon icon={faBriefcase} />
-          Jobs
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'applications' ? 'active' : ''}`}
-          onClick={() => setActiveTab('applications')}
-        >
-          <FontAwesomeIcon icon={faPaperPlane} />
-          Applications
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'interviews' ? 'active' : ''}`}
-          onClick={() => setActiveTab('interviews')}
-        >
-          <FontAwesomeIcon icon={faCalendar} />
-          Interviews
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'messages' ? 'active' : ''}`}
-          onClick={() => setActiveTab('messages')}
-        >
-          <FontAwesomeIcon icon={faEnvelope} />
-          Messages
-        </button>
-        <button
-          className={`nav-tab ${activeTab === 'profile' ? 'active' : ''}`}
-          onClick={() => setActiveTab('profile')}
-        >
-          <FontAwesomeIcon icon={faUser} />
-          Profile
-        </button>
-      </nav>
-
-      {/* Main Content */}
-      <main className="dashboard-main">
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className="overview-content">
-            {/* Stats Cards */}
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon applications">
-                  <FontAwesomeIcon icon={faPaperPlane} />
-                </div>
-                <div className="stat-content">
-                  <h3>{stats.applications}</h3>
-                  <p>Applications Sent</p>
-                  <span className="stat-change positive">
-                    <FontAwesomeIcon icon={faArrowUp} /> +3 this week
-                  </span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon interviews">
-                  <FontAwesomeIcon icon={faCalendar} />
-                </div>
-                <div className="stat-content">
-                  <h3>{stats.interviews}</h3>
-                  <p>Interviews Scheduled</p>
-                  <span className="stat-change">
-                    Next: Tomorrow at 2:00 PM
-                  </span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon views">
-                  <FontAwesomeIcon icon={faEye} />
-                </div>
-                <div className="stat-content">
-                  <h3>{stats.profileViews}</h3>
-                  <p>Profile Views</p>
-                  <span className="stat-change positive">
-                    <FontAwesomeIcon icon={faArrowUp} /> +18% from last week
-                  </span>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon saved">
-                  <FontAwesomeIcon icon={faBookmark} />
-                </div>
-                <div className="stat-content">
-                  <h3>{stats.savedJobs}</h3>
-                  <p>Saved Jobs</p>
-                  <span className="stat-change">
-                    2 new matches today
-                  </span>
-                </div>
-              </div>
-            </div>
+        {/* Content Area */}
+        <div className="content-area">
+          {/* Dashboard Section */}
+          <div className={`page-section ${activeSection === 'dashboard' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.firstName || 'there'}! 👋</h1>
 
             {/* Profile Completion */}
-            <div className="profile-completion-card">
+            <div className="profile-completion">
               <div className="completion-header">
-                <h3>Complete Your Profile</h3>
-                <span className="completion-percentage">{profileData?.profileCompleteness}%</span>
+                <div>
+                  <h3 style={{ marginBottom: '5px' }}>Complete Your Profile</h3>
+                  <p style={{ opacity: 0.9, fontSize: '14px' }}>
+                    {dashboardData.profileCompletion}% Complete - Almost there!
+                  </p>
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 700 }}>
+                  {dashboardData.profileCompletion}%
+                </div>
               </div>
               <div className="completion-bar">
                 <div 
                   className="completion-fill" 
-                  style={{ width: `${profileData?.profileCompleteness}%` }}
+                  style={{ width: `${dashboardData.profileCompletion}%` }}
                 ></div>
               </div>
-              <p>Add more details to increase your visibility to employers</p>
-              <button className="btn-primary">
-                <FontAwesomeIcon icon={faEdit} />
-                Complete Profile
-              </button>
-            </div>
-
-            {/* Recent Jobs */}
-            <div className="recent-jobs-section">
-              <div className="section-header">
-                <h3>Recommended Jobs</h3>
-                <button className="btn-secondary">View All</button>
-              </div>
-              <div className="jobs-grid">
-                {jobs.slice(0, 3).map(job => (
-                  <div key={job.id} className="job-card">
-                    <div className="job-header">
-                      <div className="company-logo">{job.logo}</div>
-                      <div className="job-info">
-                        <h4>{job.title}</h4>
-                        <p className="company-name">{job.company}</p>
-                        <div className="job-meta">
-                          <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
-                          <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
-                        </div>
-                      </div>
-                      {job.featured && <span className="featured-badge">Featured</span>}
-                    </div>
-                    <p className="job-description">{job.description}</p>
-                    <div className="job-requirements">
-                      {job.requirements.slice(0, 3).map((req, index) => (
-                        <span key={index} className="requirement-tag">{req}</span>
-                      ))}
-                    </div>
-                    <div className="job-actions">
-                      <button className="btn-primary">
-                        <FontAwesomeIcon icon={faPaperPlane} />
-                        Apply Now
-                      </button>
-                      <button className="btn-secondary">
-                        <FontAwesomeIcon icon={faBookmark} />
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Jobs Tab */}
-        {activeTab === 'jobs' && (
-          <div className="jobs-content">
-            <div className="jobs-header">
-              <h2>Find Your Next Job</h2>
-              <div className="jobs-filters">
-                <select 
-                  value={filterType} 
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="filter-select"
-                >
-                  <option value="all">All Jobs</option>
-                  <option value="full-time">Full-time</option>
-                  <option value="part-time">Part-time</option>
-                  <option value="contract">Contract</option>
-                  <option value="remote">Remote</option>
-                </select>
-                <button className="btn-secondary">
-                  <FontAwesomeIcon icon={faFilter} />
-                  More Filters
+              <div className="completion-actions">
+                <button className="btn" onClick={() => setActiveSection('profile')}>
+                  <FontAwesomeIcon icon={faPlus} /> Add Skills
+                </button>
+                <button className="btn" onClick={() => setActiveSection('resume')}>
+                  <FontAwesomeIcon icon={faUpload} /> Upload Resume
+                </button>
+                <button className="btn" onClick={() => setActiveSection('profile')}>
+                  <FontAwesomeIcon icon={faCertificate} /> Add Certifications
                 </button>
               </div>
             </div>
-            <div className="jobs-list">
-              {jobs.map(job => (
-                <div key={job.id} className="job-card-large">
-                  <div className="job-header">
-                    <div className="company-logo">{job.logo}</div>
-                    <div className="job-info">
-                      <h3>{job.title}</h3>
-                      <p className="company-name">{job.company}</p>
-                      <div className="job-meta">
-                        <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location}</span>
-                        <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary}</span>
-                        <span><FontAwesomeIcon icon={faClock} /> {job.posted}</span>
-                      </div>
-                    </div>
-                    <div className="job-badges">
-                      {job.featured && <span className="featured-badge">Featured</span>}
-                      {job.urgent && <span className="urgent-badge">Urgent</span>}
-                    </div>
+
+            {/* Stats Grid */}
+            <div className="stats-grid">
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardData.stats.applications}</div>
+                    <div className="stat-label">Applications Sent</div>
                   </div>
-                  <p className="job-description">{job.description}</p>
-                  <div className="job-requirements">
-                    {job.requirements.map((req, index) => (
-                      <span key={index} className="requirement-tag">{req}</span>
-                    ))}
-                  </div>
-                  <div className="job-benefits">
-                    <strong>Benefits:</strong> {job.benefits.join(', ')}
-                  </div>
-                  <div className="job-actions">
-                    <button className="btn-primary">
-                      <FontAwesomeIcon icon={faPaperPlane} />
-                      Apply Now
-                    </button>
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faEye} />
-                      View Details
-                    </button>
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faBookmark} />
-                      Save
-                    </button>
+                  <div className="stat-icon blue">
+                    <FontAwesomeIcon icon={faPaperPlane} />
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Applications Tab */}
-        {activeTab === 'applications' && (
-          <div className="applications-content">
-            <div className="applications-header">
-              <h2>My Applications</h2>
-              <div className="applications-stats">
-                <span className="stat-item">
-                  <strong>{applications.length}</strong> Total Applications
-                </span>
-                <span className="stat-item">
-                  <strong>{applications.filter(app => app.status === 'under_review').length}</strong> Under Review
-                </span>
-                <span className="stat-item">
-                  <strong>{applications.filter(app => app.status === 'interview_scheduled').length}</strong> Interviews
-                </span>
-              </div>
-            </div>
-            <div className="applications-list">
-              {applications.map(application => (
-                <div key={application.id} className="application-card">
-                  <div className="application-header">
-                    <div className="job-info">
-                      <h3>{application.jobTitle}</h3>
-                      <p className="company-name">{application.company}</p>
-                      <div className="job-meta">
-                        <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {application.location}</span>
-                        <span><FontAwesomeIcon icon={faDollarSign} /> {application.salary}</span>
-                        <span><FontAwesomeIcon icon={faClock} /> Applied {application.appliedDate}</span>
-                      </div>
-                    </div>
-                    <div className="application-status">
-                      <span 
-                        className="status-badge"
-                        style={{ backgroundColor: getStatusColor(application.status) }}
-                      >
-                        {getStatusText(application.status)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="application-actions">
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faEye} />
-                      View Details
-                    </button>
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faExternalLinkAlt} />
-                      View Job
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Interviews Tab */}
-        {activeTab === 'interviews' && (
-          <div className="interviews-content">
-            <div className="interviews-header">
-              <h2>Upcoming Interviews</h2>
-              <button className="btn-primary">
-                <FontAwesomeIcon icon={faPlus} />
-                Schedule Interview
-              </button>
-            </div>
-            <div className="interviews-list">
-              {interviews.map(interview => (
-                <div key={interview.id} className="interview-card">
-                  <div className="interview-header">
-                    <div className="interview-info">
-                      <h3>{interview.jobTitle}</h3>
-                      <p className="company-name">{interview.company}</p>
-                      <div className="interview-meta">
-                        <span><FontAwesomeIcon icon={faCalendar} /> {interview.date}</span>
-                        <span><FontAwesomeIcon icon={faClock} /> {interview.time}</span>
-                        <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {interview.location}</span>
-                      </div>
-                    </div>
-                    <div className="interview-type">
-                      <span className="type-badge">{interview.type}</span>
-                    </div>
-                  </div>
-                  <div className="interview-details">
-                    <p><strong>Interviewer:</strong> {interview.interviewer}</p>
-                    <p><strong>Status:</strong> {interview.status}</p>
-                  </div>
-                  <div className="interview-actions">
-                    <button className="btn-primary">
-                      <FontAwesomeIcon icon={faVideo} />
-                      Join Interview
-                    </button>
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faCalendar} />
-                      Reschedule
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Messages Tab */}
-        {activeTab === 'messages' && (
-          <div className="messages-content">
-            <div className="messages-header">
-              <h2>Messages</h2>
-              <button className="btn-primary">
-                <FontAwesomeIcon icon={faPlus} />
-                New Message
-              </button>
-            </div>
-            <div className="messages-list">
-              {messages.map(message => (
-                <div key={message.id} className={`message-card ${message.unread ? 'unread' : ''}`}>
-                  <div className="message-header">
-                    <div className="message-sender">
-                      <div className="sender-avatar">
-                        {message.sender.charAt(0)}
-                      </div>
-                      <div className="sender-info">
-                        <h4>{message.sender}</h4>
-                        <p>{message.subject}</p>
-                      </div>
-                    </div>
-                    <div className="message-meta">
-                      <span className="message-time">{message.time}</span>
-                      <span 
-                        className="priority-badge"
-                        style={{ backgroundColor: getPriorityColor(message.priority) }}
-                      >
-                        {message.priority}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="message-preview">{message.preview}</p>
-                  <div className="message-actions">
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faEye} />
-                      Read
-                    </button>
-                    <button className="btn-secondary">
-                      <FontAwesomeIcon icon={faReply} />
-                      Reply
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Profile Tab */}
-        {activeTab === 'profile' && (
-          <div className="profile-content">
-            <div className="profile-header">
-              <div className="profile-avatar-large">
-                {profileData?.firstName?.charAt(0)}
-              </div>
-              <div className="profile-info">
-                <h2>{profileData?.firstName} {profileData?.lastName}</h2>
-                <p className="profile-title">{profileData?.jobTitle}</p>
-                <p className="profile-location">
-                  <FontAwesomeIcon icon={faMapMarkerAlt} /> {profileData?.location}
-                </p>
-                <div className="profile-stats">
-                  <span><strong>{profileData?.experience}</strong> Experience</span>
-                  <span><strong>{profileData?.profileCompleteness}%</strong> Profile Complete</span>
+                <div className="stat-change positive">
+                  <FontAwesomeIcon icon={faArrowUp} /> 3 this week
                 </div>
               </div>
-              <button className="btn-primary">
-                <FontAwesomeIcon icon={faEdit} />
-                Edit Profile
-              </button>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardData.stats.interviews}</div>
+                    <div className="stat-label">Interviews Scheduled</div>
+                  </div>
+                  <div className="stat-icon green">
+                    <FontAwesomeIcon icon={faCalendarCheck} />
+                  </div>
+                </div>
+                <div className="stat-change">
+                  Next: Tomorrow at 2:00 PM
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardData.stats.profileViews}</div>
+                    <div className="stat-label">Profile Views</div>
+                  </div>
+                  <div className="stat-icon purple">
+                    <FontAwesomeIcon icon={faEye} />
+                  </div>
+                </div>
+                <div className="stat-change positive">
+                  <FontAwesomeIcon icon={faArrowUp} /> +18% from last week
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-header">
+                  <div>
+                    <div className="stat-number">{dashboardData.stats.savedJobs}</div>
+                    <div className="stat-label">Saved Jobs</div>
+                  </div>
+                  <div className="stat-icon orange">
+                    <FontAwesomeIcon icon={faBookmark} />
+                  </div>
+                </div>
+                <div className="stat-change">
+                  2 new matches today
+                </div>
+              </div>
             </div>
-            
-            <div className="profile-sections">
-              <div className="profile-section">
-                <h3>Skills</h3>
-                <div className="skills-list">
-                  {profileData?.skills?.map((skill, index) => (
-                    <span key={index} className="skill-tag">{skill}</span>
+
+            {/* Alerts */}
+            <div className="alert success">
+              <FontAwesomeIcon icon={faCheckCircle} style={{ fontSize: '24px' }} />
+              <div>
+                <strong>Great news!</strong> Your application for Senior Developer at TechCorp was viewed by the recruiter.
+              </div>
+            </div>
+
+            {/* Recommended Jobs & Upcoming Interviews */}
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
+              {/* Recommended Jobs */}
+              <div className="card">
+                <div className="card-header">
+                  <h3 className="card-title">Recommended for You</h3>
+                  <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('matches')}>
+                    View All
+                  </button>
+                </div>
+                <div>
+                  {dashboardData.jobs.slice(0, 3).map((job, index) => (
+                    <JobCard key={index} job={job} />
                   ))}
                 </div>
               </div>
-              
-              <div className="profile-section">
-                <h3>Experience</h3>
-                <div className="experience-item">
-                  <h4>Senior Software Engineer</h4>
-                  <p className="company-name">TechCorp Inc.</p>
-                  <p className="duration">2020 - Present</p>
-                  <p>Led development of scalable web applications using React and Node.js. Managed a team of 5 developers and implemented agile methodologies.</p>
+
+              {/* Upcoming Interviews */}
+              <div>
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">Upcoming Interviews</h3>
+                  </div>
+                  <div>
+                    {dashboardData.interviews.length > 0 ? (
+                      dashboardData.interviews.slice(0, 3).map((interview, index) => (
+                        <InterviewCard key={index} interview={interview} />
+                      ))
+                    ) : (
+                      <p style={{ color: '#999', textAlign: 'center', padding: '20px' }}>
+                        No upcoming interviews
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="profile-section">
-                <h3>Education</h3>
-                <div className="education-item">
-                  <h4>Bachelor of Science in Computer Science</h4>
-                  <p className="institution">University of California, Berkeley</p>
-                  <p className="duration">2016 - 2020</p>
+
+                <div className="card" style={{ marginTop: '20px' }}>
+                  <div className="card-header">
+                    <h3 className="card-title">Quick Actions</h3>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
+                      <FontAwesomeIcon icon={faSearch} /> Browse Jobs
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setActiveSection('resume')}>
+                      <FontAwesomeIcon icon={faUpload} /> Update Resume
+                    </button>
+                    <button className="btn btn-secondary" onClick={() => setActiveSection('profile')}>
+                      <FontAwesomeIcon icon={faEdit} /> Edit Profile
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Recent Applications */}
+            <div className="card" style={{ marginTop: '20px' }}>
+              <div className="card-header">
+                <h3 className="card-title">Recent Applications</h3>
+                <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('applications')}>
+                  View All
+                </button>
+              </div>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Job Title</th>
+                      <th>Company</th>
+                      <th>Applied</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboardData.applications.slice(0, 5).map((app, index) => (
+                      <ApplicationRow key={index} application={app} />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        )}
-      </main>
+
+          {/* Browse Jobs Section */}
+          <div className={`page-section ${activeSection === 'jobs' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>Browse Jobs</h1>
+
+            <div className="filters">
+              <select className="filter-select">
+                <option>All Job Types</option>
+                <option>Full-time</option>
+                <option>Part-time</option>
+                <option>Contract</option>
+                <option>Remote</option>
+              </select>
+              <select className="filter-select">
+                <option>All Locations</option>
+                <option>Nairobi, Kenya</option>
+                <option>Remote</option>
+                <option>United States</option>
+                <option>United Kingdom</option>
+              </select>
+              <select className="filter-select">
+                <option>All Experience Levels</option>
+                <option>Entry Level</option>
+                <option>Mid Level</option>
+                <option>Senior Level</option>
+                <option>Executive</option>
+              </select>
+              <select className="filter-select">
+                <option>Sort By: Most Recent</option>
+                <option>Relevance</option>
+                <option>Salary: High to Low</option>
+                <option>Company Name</option>
+              </select>
+            </div>
+
+            <div className="card">
+              {dashboardData.jobs.map((job, index) => (
+                <JobCard key={index} job={job} showApplyButton />
+              ))}
+            </div>
+          </div>
+
+          {/* Applications Section */}
+          <div className={`page-section ${activeSection === 'applications' ? 'active' : ''}`}>
+            <h1 style={{ marginBottom: '25px' }}>My Applications</h1>
+            
+            <div className="card">
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Job Title</th>
+                      <th>Company</th>
+                      <th>Location</th>
+                      <th>Applied</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dashboardData.applications.map((app, index) => (
+                      <ApplicationRow key={index} application={app} detailed />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Other Sections - Placeholder */}
+          {['saved', 'interviews', 'matches', 'messages', 'profile', 'resume', 'resources', 'settings'].map(section => (
+            <div key={section} className={`page-section ${activeSection === section ? 'active' : ''}`}>
+              <h1 style={{ marginBottom: '25px', textTransform: 'capitalize' }}>{section}</h1>
+              <div className="card">
+                <p style={{ textAlign: 'center', color: '#999', padding: '40px' }}>
+                  {section.charAt(0).toUpperCase() + section.slice(1)} section coming soon...
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+};
+
+// Job Card Component
+const JobCard = ({ job, showApplyButton = false }) => {
+  const getCompanyInitials = (company) => {
+    if (!company) return 'CO';
+    return company.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
+  };
+
+  return (
+    <div className="job-card">
+      <div className="job-header">
+        <div style={{ display: 'flex', flex: 1 }}>
+          <div className="company-logo">
+            {getCompanyInitials(job.companyName || job.company)}
+          </div>
+          <div className="job-info">
+            <h3>{job.jobTitle || job.title}</h3>
+            <div className="job-company">{job.companyName || job.company}</div>
+            <div className="job-meta">
+              <span>
+                <FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location || 'Not specified'}
+              </span>
+              <span>
+                <FontAwesomeIcon icon={faBriefcase} /> {job.jobType || 'Full-time'}
+              </span>
+              <span>
+                <FontAwesomeIcon icon={faLayerGroup} /> {job.experienceLevel || 'Mid-level'}
+              </span>
+              {job.salary && (
+                <span>
+                  <FontAwesomeIcon icon={faDollarSign} /> {job.salary}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+        <div className="job-actions">
+          <button className="btn btn-secondary btn-sm">
+            <FontAwesomeIcon icon={faBookmark} />
+          </button>
+        </div>
+      </div>
+      {job.skills && job.skills.length > 0 && (
+        <div className="job-tags">
+          {job.skills.map((skill, index) => (
+            <span key={index} className="tag">{skill}</span>
+          ))}
+        </div>
+      )}
+      {showApplyButton && (
+        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
+          <button className="btn btn-primary btn-sm">
+            <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
+          </button>
+          <button className="btn btn-secondary btn-sm">
+            <FontAwesomeIcon icon={faEye} /> View Details
+          </button>
+        </div>
+      )}
     </div>
+  );
+};
+
+// Interview Card Component
+const InterviewCard = ({ interview }) => {
+  return (
+    <div className="interview-card">
+      <div className="interview-date">
+        <div className="day">{interview.day || '00'}</div>
+        <div className="month">{interview.month || 'JAN'}</div>
+      </div>
+      <div style={{ flex: 1 }}>
+        <h4 style={{ marginBottom: '5px' }}>{interview.jobTitle}</h4>
+        <p style={{ color: '#666', fontSize: '14px', marginBottom: '5px' }}>{interview.company}</p>
+        <p style={{ color: '#999', fontSize: '13px' }}>
+          <FontAwesomeIcon icon={faClock} /> {interview.time} • {interview.type}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// Application Row Component
+const ApplicationRow = ({ application, detailed = false }) => {
+  const getStatusClass = (status) => {
+    const statusMap = {
+      'applied': 'status-applied',
+      'under-review': 'status-under-review',
+      'interview': 'status-interview',
+      'offered': 'status-offered',
+      'rejected': 'status-rejected'
+    };
+    return statusMap[status] || 'status-applied';
+  };
+
+  const getStatusText = (status) => {
+    const textMap = {
+      'applied': 'Applied',
+      'under-review': 'Under Review',
+      'interview': 'Interview',
+      'offered': 'Offered',
+      'rejected': 'Rejected'
+    };
+    return textMap[status] || 'Applied';
+  };
+
+  return (
+    <tr>
+      <td><strong>{application.jobTitle || application.job?.jobTitle}</strong></td>
+      <td>{application.company || application.job?.companyName}</td>
+      {detailed && <td>{application.location || application.job?.location}</td>}
+      <td>{application.appliedDate || 'Recently'}</td>
+      <td>
+        <span className={`status-badge ${getStatusClass(application.status)}`}>
+          {getStatusText(application.status)}
+        </span>
+      </td>
+      <td>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="btn btn-secondary btn-sm">
+            <FontAwesomeIcon icon={faEye} />
+          </button>
+          <button className="btn btn-danger btn-sm">
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+        </div>
+      </td>
+    </tr>
   );
 };
 
