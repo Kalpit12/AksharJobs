@@ -19,6 +19,7 @@ import {
   faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import { buildApiUrl } from '../config/api';
+import { useAutoSave } from '../hooks/useAutoSave';
 import '../styles/RecruiterRegistrationForm.css';
 
 const RecruiterRegistrationForm = () => {
@@ -31,6 +32,9 @@ const RecruiterRegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Auto-save configuration
+  const AUTOSAVE_KEY = `recruiter_registration_${user?.userId || 'temp'}`;
 
   // Smart navigation function to go to appropriate dashboard
   const navigateToDashboard = () => {
@@ -49,101 +53,75 @@ const RecruiterRegistrationForm = () => {
     }
   };
 
-  const [formData, setFormData] = useState({
-    // Account Information
-    fullName: userData.firstName ? `${userData.firstName} ${userData.lastName}` : '',
-    email: userData.email || '',
-    phone: '',
-    password: '',
-    country: '',
+  // Initialize form data with auto-save (2-minute periodic save)
+  const {
+    formData,
+    setFormData,
+    isSaving,
+    saveStatus,
+    lastSaveTime,
+    clearSavedData
+  } = useAutoSave(
+    {
+      // Account Information
+      fullName: userData.firstName ? `${userData.firstName} ${userData.lastName}` : '',
+      email: userData.email || '',
+      phone: '',
+      password: '',
+      country: '',
 
-    // Company Information
-    companyName: userData.companyName || '',
-    companyWebsite: '',
-    companySize: '',
-    industry: '',
-    yourRole: '',
-    hiringFor: '',
-    
-    // Recruiting Needs
-    numberOfRoles: '',
-    roleTypes: [],
-    employmentTypes: [],
-    hiringTimeline: '',
-    monthlyHiringVolume: '',
-    
-    // Job Locations
-    jobLocations: [],
-    internationalRoles: '',
-    specificCountries: '',
-    
-    // Candidate Preferences
-    experienceLevels: [],
-    sponsorshipOffered: '',
-    
-    // Communication Preferences
-    preferredContact: [],
-    allowDirectApplications: '',
-    
-    // Recruiting Goals
-    recruitingGoals: [],
-    valueProposition: '',
-    
-    // Additional (optional)
-    companyDescription: '',
-    linkedinProfile: '',
-    companyBenefits: '',
-    additionalNotes: ''
-  });
+      // Company Information
+      companyName: userData.companyName || '',
+      companyWebsite: '',
+      companySize: '',
+      industry: '',
+      yourRole: '',
+      hiringFor: '',
+      
+      // Recruiting Needs
+      numberOfRoles: '',
+      roleTypes: [],
+      employmentTypes: [],
+      hiringTimeline: '',
+      monthlyHiringVolume: '',
+      
+      // Job Locations
+      jobLocations: [],
+      internationalRoles: '',
+      specificCountries: '',
+      
+      // Candidate Preferences
+      experienceLevels: [],
+      sponsorshipOffered: '',
+      
+      // Communication Preferences
+      preferredContact: [],
+      allowDirectApplications: '',
+      
+      // Recruiting Goals
+      recruitingGoals: [],
+      valueProposition: '',
+      
+      // Additional (optional)
+      companyDescription: '',
+      linkedinProfile: '',
+      companyBenefits: '',
+      additionalNotes: ''
+    },
+    AUTOSAVE_KEY,
+    1000, // Debounce delay (1 second)
+    null, // No backend save callback
+    true // Enable periodic 2-minute auto-save
+  );
 
   const [errors, setErrors] = useState({});
 
-  // Form state persistence
-  const saveFormState = useCallback(() => {
-    localStorage.setItem('recruiterFormState', JSON.stringify({
-      formData,
-      currentSection,
-      timestamp: Date.now()
-    }));
-  }, [formData, currentSection]);
-
-  const loadFormState = () => {
-    try {
-      const saved = localStorage.getItem('recruiterFormState');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const age = Date.now() - parsed.timestamp;
-        if (age > 7 * 24 * 60 * 60 * 1000) {
-          localStorage.removeItem('recruiterFormState');
-          return null;
-        }
-        return parsed;
-      }
-    } catch (error) {
-      console.error('Error loading form state:', error);
-    }
-    return null;
-  };
-
-  // Initialize and load saved state
+  // Initialize state
   useEffect(() => {
-    const savedState = loadFormState();
-    if (savedState) {
-      setFormData(savedState.formData);
-      setCurrentSection(savedState.currentSection);
-    }
-    
     setTimeout(() => {
       setIsInitialized(true);
     }, 100);
   }, []);
-
-  // Save state on changes
-  useEffect(() => {
-    if (isInitialized) {
-      saveFormState();
-    }
-  }, [formData, currentSection, isInitialized, saveFormState]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -270,6 +248,8 @@ const RecruiterRegistrationForm = () => {
       });
 
       if (response.ok) {
+        // Clear saved form data on successful submission
+        clearSavedData();
         localStorage.removeItem('recruiterFormState');
         navigate('/recruiter-dashboard', {
           state: { message: 'Registration completed successfully!' }
@@ -353,6 +333,21 @@ const RecruiterRegistrationForm = () => {
               <h3 className="logo-title">AksharJobs</h3>
               <p className="logo-subtitle">Find Top Talent</p>
             </div>
+          </div>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '10px',
+            fontSize: '14px'
+          }}>
+            {isSaving && <span style={{ color: '#f39c12' }}>💾 Saving...</span>}
+            {saveStatus === 'saved' && (
+              <span style={{ color: '#27ae60' }}>
+                <FontAwesomeIcon icon={faCheck} /> Saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}
+              </span>
+            )}
+            {saveStatus === 'error' && <span style={{ color: '#e74c3c' }}>⚠️ Save failed</span>}
+            {!isSaving && !saveStatus && <span style={{ color: '#666' }}>Auto-saving every 2 minutes</span>}
           </div>
         </div>
       </header>

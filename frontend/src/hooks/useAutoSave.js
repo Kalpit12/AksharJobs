@@ -6,13 +6,16 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param {string} storageKey - Local storage key for saving data
  * @param {number} delay - Delay in milliseconds before saving (default: 1000)
  * @param {Function} onSave - Optional callback when data is saved
+ * @param {boolean} enablePeriodicSave - Enable periodic auto-save every 2 minutes (default: false)
  * @returns {Object} - { formData, setFormData, isSaving, saveStatus, clearSavedData }
  */
-export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave = null) => {
+export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave = null, enablePeriodicSave = false) => {
   const [formData, setFormData] = useState(initialData);
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
+  const [lastSaveTime, setLastSaveTime] = useState(null);
   const timeoutRef = useRef(null);
+  const periodicIntervalRef = useRef(null);
   const isInitialLoad = useRef(true);
 
   // Load saved data on mount
@@ -32,7 +35,7 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     }
   }, [storageKey]);
 
-  // Auto-save effect
+  // Auto-save effect (debounced)
   useEffect(() => {
     if (!storageKey || isInitialLoad.current) return;
 
@@ -54,6 +57,24 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     };
   }, [formData, delay, storageKey]);
 
+  // Periodic auto-save effect (every 2 minutes)
+  useEffect(() => {
+    if (!enablePeriodicSave || !storageKey || isInitialLoad.current) return;
+
+    // Set up periodic save interval (2 minutes = 120000ms)
+    periodicIntervalRef.current = setInterval(() => {
+      console.log('🔄 Auto-saving form data (2-minute interval)...');
+      saveFormData();
+    }, 120000); // 2 minutes
+
+    // Cleanup interval on unmount
+    return () => {
+      if (periodicIntervalRef.current) {
+        clearInterval(periodicIntervalRef.current);
+      }
+    };
+  }, [enablePeriodicSave, storageKey, saveFormData]);
+
   // Save form data function
   const saveFormData = useCallback(async () => {
     if (!storageKey) return;
@@ -63,19 +84,27 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
 
     try {
       // Save to localStorage
-      localStorage.setItem(storageKey, JSON.stringify(formData));
+      const dataToSave = {
+        ...formData,
+        _lastSaved: new Date().toISOString()
+      };
+      localStorage.setItem(storageKey, JSON.stringify(dataToSave));
       
       // Optional: Save to backend
       if (onSave && typeof onSave === 'function') {
         await onSave(formData);
       }
 
+      const saveTime = new Date();
+      setLastSaveTime(saveTime);
       setSaveStatus('saved');
-      setTimeout(() => setSaveStatus(null), 2000); // Clear status after 2 seconds
+      console.log(`✅ Form auto-saved at ${saveTime.toLocaleTimeString()}`);
+      
+      setTimeout(() => setSaveStatus(null), 3000); // Clear status after 3 seconds
     } catch (error) {
       console.error('Error saving form data:', error);
       setSaveStatus('error');
-      setTimeout(() => setSaveStatus(null), 3000); // Clear error status after 3 seconds
+      setTimeout(() => setSaveStatus(null), 4000); // Clear error status after 4 seconds
     } finally {
       setIsSaving(false);
     }
@@ -112,6 +141,7 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     setFormData: updateFormData,
     isSaving,
     saveStatus,
+    lastSaveTime,
     manualSave,
     clearSavedData
   };
@@ -151,17 +181,18 @@ export const useAutoFill = (userData = {}, fieldMapping = {}) => {
  * @param {Object} fieldMapping - Field mapping for auto-fill
  * @param {Function} onSave - Save callback
  * @param {number} delay - Auto-save delay
+ * @param {boolean} enablePeriodicSave - Enable periodic auto-save every 2 minutes
  * @returns {Object} - Combined form management object
  */
-export const useFormManagement = (initialData = {}, storageKey, userData = {}, fieldMapping = {}, onSave = null, delay = 1000) => {
+export const useFormManagement = (initialData = {}, storageKey, userData = {}, fieldMapping = {}, onSave = null, delay = 1000, enablePeriodicSave = false) => {
   // Get auto-filled data
   const autoFilledData = useAutoFill(userData, fieldMapping);
   
   // Combine initial data with auto-filled data
   const combinedInitialData = { ...initialData, ...autoFilledData };
   
-  // Use auto-save hook
-  const autoSaveHook = useAutoSave(combinedInitialData, storageKey, delay, onSave);
+  // Use auto-save hook with periodic save
+  const autoSaveHook = useAutoSave(combinedInitialData, storageKey, delay, onSave, enablePeriodicSave);
 
   return {
     ...autoSaveHook,

@@ -12,7 +12,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faGithub, faMedium, faTwitter } from '@fortawesome/free-brands-svg-icons';
 import { buildApiUrl } from '../config/api';
-import { useFormManagement } from '../hooks/useAutoSave';
+import { useAutoSave } from '../hooks/useAutoSave';
 import AutoSaveStatus from '../components/AutoSaveStatus';
 import '../styles/JobSeekerRegistrationFormComprehensive.css';
 
@@ -41,6 +41,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  
+  // Auto-save configuration
+  const AUTOSAVE_KEY = `jobseeker_registration_${user?.userId || 'temp'}`;
   
   // Countries list
   const countries = [
@@ -72,117 +75,131 @@ const JobSeekerRegistrationFormComprehensive = () => {
     "Zambia", "Zimbabwe"
   ];
 
-  const [formData, setFormData] = useState({
-    // Personal Information
-    firstName: existingData?.firstName || userData.firstName || '',
-    middleName: existingData?.middleName || '',
-    lastName: existingData?.lastName || userData.lastName || '',
-    email: existingData?.email || userData.email || '',
-    phone: existingData?.phone || '',
-    altPhone: existingData?.altPhone || '',
-    dateOfBirth: existingData?.dateOfBirth || '',
-    gender: existingData?.gender || '',
-    community: existingData?.community || '',
-    profilePhoto: existingData?.profilePhoto || null,
-    
-    // Nationality & Residency
-    nationality: existingData?.nationality || '',
-    residentCountry: existingData?.residentCountry || '',
-    currentCity: existingData?.currentCity || '',
-    postalCode: existingData?.postalCode || '',
-    address: existingData?.address || '',
-    latitude: existingData?.latitude || '',
-    longitude: existingData?.longitude || '',
-    workPermit: existingData?.workPermit || '',
-    
-    // Preferred Working Locations
-    preferredLocation1: existingData?.preferredLocation1 || '',
-    preferredLocation2: existingData?.preferredLocation2 || '',
-    preferredLocation3: existingData?.preferredLocation3 || '',
-    willingToRelocate: existingData?.willingToRelocate || '',
-    workLocation: existingData?.workLocation || '',
-    
-    // Professional Profile
-    professionalTitle: existingData?.professionalTitle || '',
-    yearsExperience: existingData?.yearsExperience || '',
-    careerLevel: existingData?.careerLevel || '',
-    industry: existingData?.industry || '',
-    summary: existingData?.summary || '',
-    
-    // Work Experience (Array)
-    experienceEntries: existingData?.experienceEntries || [{
-      jobTitle: '',
-      company: '',
-      companyLocation: '',
-      employmentType: 'full-time',
-      jobIndustry: '',
-      startDate: '',
-      endDate: '',
-      currentJob: false,
-      jobDescription: ''
-    }],
-    
-    // Education (Array)
-    educationEntries: existingData?.educationEntries || [{
-      degreeType: '',
-      fieldOfStudy: '',
-      institution: '',
-      institutionLocation: '',
-      grade: '',
-      eduStartYear: '',
-      eduEndYear: '',
-      eduActivities: ''
-    }],
-    
-    // Skills
-    coreSkills: existingData?.coreSkills || [],
-    tools: existingData?.tools || [],
-    
-    // Languages
-    languages: existingData?.languages || [],
-    
-    // Certifications (Array)
-    certificationEntries: existingData?.certificationEntries || [{
-      certificationName: '',
-      certIssuer: '',
-      certIssueDate: '',
-      certExpiryDate: '',
-      credentialId: ''
-    }],
-    
-    // Professional Memberships
-    membershipOrg: existingData?.membershipOrg || '',
-    membershipType: existingData?.membershipType || '',
-    membershipDate: existingData?.membershipDate || '',
-    
-    // References (Array)
-    referenceEntries: existingData?.referenceEntries || [{
-      referenceName: '',
-      referenceTitle: '',
-      referenceCompany: '',
-      referenceRelationship: '',
-      referenceEmail: '',
-      referencePhone: ''
-    }],
-    
-    // Professional Online Presence
-    professionalLinks: existingData?.professionalLinks || [],
-    
-    // Job Preferences
-    jobType: existingData?.jobType || '',
-    noticePeriod: existingData?.noticePeriod || '',
-    currentSalary: existingData?.currentSalary || '',
-    expectedSalary: existingData?.expectedSalary || '',
-    currencyPreference: existingData?.currencyPreference || 'USD',
-    travelAvailability: existingData?.travelAvailability || '',
-    
-    // Additional Information
-    askCommunity: existingData?.askCommunity || '',
-    hobbies: existingData?.hobbies || '',
-    additionalComments: existingData?.additionalComments || '',
-    agreeTerms: existingData?.agreeTerms || false,
-    allowContact: existingData?.allowContact || false
-  });
+  // Initialize form data with auto-save (2-minute periodic save)
+  const {
+    formData,
+    setFormData,
+    isSaving,
+    saveStatus,
+    lastSaveTime,
+    clearSavedData
+  } = useAutoSave(
+    {
+      // Personal Information
+      firstName: existingData?.firstName || userData.firstName || '',
+      middleName: existingData?.middleName || '',
+      lastName: existingData?.lastName || userData.lastName || '',
+      email: existingData?.email || userData.email || '',
+      phone: existingData?.phone || '',
+      altPhone: existingData?.altPhone || '',
+      dateOfBirth: existingData?.dateOfBirth || '',
+      gender: existingData?.gender || '',
+      community: existingData?.community || '',
+      profilePhoto: existingData?.profilePhoto || null,
+      
+      // Nationality & Residency
+      nationality: existingData?.nationality || '',
+      residentCountry: existingData?.residentCountry || '',
+      currentCity: existingData?.currentCity || '',
+      postalCode: existingData?.postalCode || '',
+      address: existingData?.address || '',
+      latitude: existingData?.latitude || '',
+      longitude: existingData?.longitude || '',
+      workPermit: existingData?.workPermit || '',
+      
+      // Preferred Working Locations
+      preferredLocation1: existingData?.preferredLocation1 || '',
+      preferredLocation2: existingData?.preferredLocation2 || '',
+      preferredLocation3: existingData?.preferredLocation3 || '',
+      willingToRelocate: existingData?.willingToRelocate || '',
+      workLocation: existingData?.workLocation || '',
+      
+      // Professional Profile
+      professionalTitle: existingData?.professionalTitle || '',
+      yearsExperience: existingData?.yearsExperience || '',
+      careerLevel: existingData?.careerLevel || '',
+      industry: existingData?.industry || '',
+      summary: existingData?.summary || '',
+      
+      // Work Experience (Array)
+      experienceEntries: existingData?.experienceEntries || [{
+        jobTitle: '',
+        company: '',
+        companyLocation: '',
+        employmentType: 'full-time',
+        jobIndustry: '',
+        startDate: '',
+        endDate: '',
+        currentJob: false,
+        jobDescription: ''
+      }],
+      
+      // Education (Array)
+      educationEntries: existingData?.educationEntries || [{
+        degreeType: '',
+        fieldOfStudy: '',
+        institution: '',
+        institutionLocation: '',
+        grade: '',
+        eduStartYear: '',
+        eduEndYear: '',
+        eduActivities: ''
+      }],
+      
+      // Skills
+      coreSkills: existingData?.coreSkills || [],
+      tools: existingData?.tools || [],
+      
+      // Languages
+      languages: existingData?.languages || [],
+      
+      // Certifications (Array)
+      certificationEntries: existingData?.certificationEntries || [{
+        certificationName: '',
+        certIssuer: '',
+        certIssueDate: '',
+        certExpiryDate: '',
+        credentialId: ''
+      }],
+      
+      // Professional Memberships
+      membershipOrg: existingData?.membershipOrg || '',
+      membershipType: existingData?.membershipType || '',
+      membershipDate: existingData?.membershipDate || '',
+      
+      // References (Array)
+      referenceEntries: existingData?.referenceEntries || [{
+        referenceName: '',
+        referenceTitle: '',
+        referenceCompany: '',
+        referenceRelationship: '',
+        referenceEmail: '',
+        referencePhone: ''
+      }],
+      
+      // Professional Online Presence
+      professionalLinks: existingData?.professionalLinks || [],
+      
+      // Job Preferences
+      jobType: existingData?.jobType || '',
+      noticePeriod: existingData?.noticePeriod || '',
+      currentSalary: existingData?.currentSalary || '',
+      expectedSalary: existingData?.expectedSalary || '',
+      currencyPreference: existingData?.currencyPreference || 'USD',
+      travelAvailability: existingData?.travelAvailability || '',
+      
+      // Additional Information
+      askCommunity: existingData?.askCommunity || '',
+      hobbies: existingData?.hobbies || '',
+      additionalComments: existingData?.additionalComments || '',
+      agreeTerms: existingData?.agreeTerms || false,
+      allowContact: existingData?.allowContact || false
+    },
+    AUTOSAVE_KEY,
+    1000, // Debounce delay (1 second)
+    null, // No backend save callback
+    true // Enable periodic 2-minute auto-save
+  );
 
   const [skillInput, setSkillInput] = useState('');
   const [toolInput, setToolInput] = useState('');
@@ -615,6 +632,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Clear saved form data on successful submission
+        clearSavedData();
+        
         // Update user context to mark profile as completed
         alert('Profile completed successfully! Redirecting to your dashboard...');
         navigate('/jobseeker-dashboard', { 
@@ -657,14 +677,26 @@ const JobSeekerRegistrationFormComprehensive = () => {
             color: '#4facfe'
           }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <FontAwesomeIcon icon={faCheck} />
-              Auto-saving your progress
+              {isSaving && <span style={{ color: '#f39c12' }}>💾 Saving...</span>}
+              {saveStatus === 'saved' && (
+                <>
+                  <FontAwesomeIcon icon={faCheck} style={{ color: '#27ae60' }} />
+                  <span style={{ color: '#27ae60' }}>Saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}</span>
+                </>
+              )}
+              {saveStatus === 'error' && <span style={{ color: '#e74c3c' }}>⚠️ Save failed</span>}
+              {!isSaving && !saveStatus && (
+                <>
+                  <FontAwesomeIcon icon={faCheck} />
+                  <span>Auto-saving every 2 minutes</span>
+                </>
+              )}
             </span>
             <button
               type="button"
               onClick={() => {
                 if (window.confirm('Are you sure you want to clear all saved form data? This cannot be undone.')) {
-                  localStorage.removeItem('jobseekerFormData');
+                  clearSavedData();
                   window.location.reload();
                 }
               }}
