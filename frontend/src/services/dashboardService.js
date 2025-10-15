@@ -72,8 +72,8 @@ class DashboardService {
 
   async getJobSeekerProfile() {
     try {
-      console.log('Fetching profile from:', `${this.baseURL}/profile`);
-      const response = await fetch(`${this.baseURL}/profile`, {
+      console.log('Fetching profile from:', `${this.baseURL}/profile/profile`);
+      const response = await fetch(`${this.baseURL}/profile/profile`, {
         method: 'GET',
         headers: this.getHeaders()
       });

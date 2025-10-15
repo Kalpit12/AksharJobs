@@ -27,54 +27,21 @@ const JobSeekerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [profileData, setProfileData] = useState({
-    fullName: 'John Smith',
-    email: 'john.smith@email.com',
-    phone: '+254 700 123 456',
-    location: 'Nairobi, Kenya',
-    jobTitle: 'Senior Software Engineer',
-    experience: '8',
-    industry: 'Technology',
-    summary: 'Experienced software engineer with 8+ years of expertise in full-stack development. Specialized in React, Node.js, and cloud technologies. Proven track record of delivering scalable applications and leading development teams. Passionate about clean code and innovative solutions.',
-    skills: ['JavaScript', 'React', 'Node.js', 'Python', 'MongoDB', 'PostgreSQL', 'AWS', 'Docker', 'Git', 'REST APIs'],
-    softSkills: ['Leadership', 'Team Collaboration', 'Problem Solving', 'Communication', 'Project Management', 'Agile Methodologies'],
-    workExperience: [
-      {
-        title: 'Senior Software Engineer',
-        company: 'TechCorp Inc.',
-        duration: 'January 2020 - Present (4 years)',
-        description: 'Leading a team of 5 developers in building scalable web applications. Implemented microservices architecture reducing system downtime by 40%. Mentored junior developers and conducted code reviews.'
-      },
-      {
-        title: 'Full Stack Developer',
-        company: 'Innovation Labs',
-        duration: 'March 2018 - December 2019 (2 years)',
-        description: 'Developed and maintained multiple web applications using React and Node.js. Collaborated with UX designers to improve user experience. Implemented automated testing reducing bugs by 30%.'
-      }
-    ],
-    education: [
-      {
-        degree: 'Bachelor of Science in Computer Science',
-        institution: 'University of Nairobi',
-        duration: '2012 - 2016',
-        description: 'Graduated with First Class Honors. Specialized in Software Engineering and Database Systems. President of the Computer Science Society.'
-      }
-    ],
-    certifications: [
-      { name: 'AWS Certified Solutions Architect', issuer: 'Amazon Web Services', date: '2021', verified: true },
-      { name: 'Certified Scrum Master (CSM)', issuer: 'Scrum Alliance', date: '2020', verified: true },
-      { name: 'Employee of the Year 2022', issuer: 'TechCorp Inc.', date: '2022', verified: true }
-    ],
-    languages: [
-      { language: 'English', level: 'Native/Fluent' },
-      { language: 'Swahili', level: 'Native/Fluent' },
-      { language: 'French', level: 'Intermediate' }
-    ],
-    socialLinks: [
-      { platform: 'LinkedIn', url: 'linkedin.com/in/johnsmith', icon: fabLinkedin },
-      { platform: 'GitHub', url: 'github.com/johnsmith', icon: fabGithub },
-      { platform: 'Website', url: 'johnsmith.dev', icon: faGlobe },
-      { platform: 'Twitter', url: '@johnsmith_dev', icon: fabTwitter }
-    ]
+    fullName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'Loading...',
+    email: user?.email || 'Loading...',
+    phone: '',
+    location: '',
+    jobTitle: '',
+    experience: '',
+    industry: '',
+    summary: '',
+    skills: [],
+    softSkills: [],
+    workExperience: [],
+    education: [],
+    certifications: [],
+    languages: [],
+    socialLinks: []
   });
   const [dashboardData, setDashboardData] = useState({
     applications: 12,
@@ -119,10 +86,33 @@ const JobSeekerDashboard = () => {
 
       // Handle profile data
       if (profileResult.status === 'fulfilled') {
-        setProfileData(prev => ({ ...prev, ...profileResult.value }));
+        const profile = profileResult.value;
+        setProfileData({
+          fullName: profile.fullName || `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'User',
+          email: profile.email || user?.email || '',
+          phone: profile.phone || '',
+          location: profile.location || profile.currentCity || '',
+          jobTitle: profile.professionalTitle || profile.currentJobTitle || '',
+          experience: profile.yearsExperience || profile.yearsOfExperience || '',
+          industry: profile.industry || '',
+          summary: profile.summary || profile.professionalSummary || '',
+          skills: profile.skills || [],
+          softSkills: profile.softSkills || [],
+          workExperience: profile.workExperience || profile.experience || [],
+          education: profile.education || [],
+          certifications: profile.certifications || [],
+          languages: profile.languages || [],
+          socialLinks: profile.socialLinks || profile.professionalLinks || []
+        });
         console.log('Profile data loaded successfully');
       } else {
         console.log('Profile fetch failed:', profileResult.reason);
+        // Use basic user data from auth context
+        setProfileData(prev => ({
+          ...prev,
+          fullName: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : 'User',
+          email: user?.email || ''
+        }));
       }
 
       // Handle applications data
