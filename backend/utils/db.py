@@ -2,8 +2,10 @@ import os
 from pymongo import MongoClient
 from dotenv import load_dotenv
 
-# Load environment variables from .edn.local file
-load_dotenv('.edn.local')
+# Load environment variables from .env files
+load_dotenv('.env.production')
+load_dotenv('.env.local')
+load_dotenv('.env')
 
 # Get MongoDB URI and Database Name from .env
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")

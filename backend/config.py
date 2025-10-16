@@ -3,8 +3,10 @@ import socket
 from dotenv import load_dotenv
 import cloudinary
 
-# Load environment variables from .edn.local
-load_dotenv(os.path.join(os.path.dirname(__file__), '..', '.edn.local'))
+# Load environment variables from .env files
+load_dotenv('.env.production')
+load_dotenv('.env.local')
+load_dotenv('.env')
 
 # Dynamic network detection
 def get_local_ip():
