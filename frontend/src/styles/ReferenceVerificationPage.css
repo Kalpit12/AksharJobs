@@ -95,7 +95,7 @@
 .candidate-avatar {
   width: 60px;
   height: 60px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -180,7 +180,7 @@
 }
 
 .detail-item svg {
-  color: #7c3aed;
+  color: #2563eb;
   width: 16px;
 }
 
@@ -223,8 +223,8 @@
 
 .form-group textarea:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 /* Verification Actions */
@@ -380,7 +380,7 @@
 
 .loading-spinner {
   font-size: 2rem;
-  color: #7c3aed;
+  color: #2563eb;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }

@@ -1,4 +1,4 @@
-/* Comprehensive Job Seeker Form Styles - Matching Intern Form Structure */
+/* Comprehensive Job Seeker Form Styles - Orange Teal Theme with Minimal Padding */
 
 * {
   margin: 0;
@@ -8,78 +8,55 @@
 
 .jobseeker-details-comprehensive {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
   min-height: 100vh;
-  padding: 20px;
+  padding: 5px;
 }
 
-.header-comprehensive {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 40px 30px;
-  text-align: center;
-}
-
-.header-comprehensive h1 {
-  font-size: 32px;
-  margin-bottom: 10px;
-  font-weight: 600;
-}
-
-.header-comprehensive p {
-  font-size: 16px;
-  opacity: 0.9;
-}
-
-.header-comprehensive .global-icon {
-  font-size: 50px;
-  margin-bottom: 15px;
-}
-
-.progress-bar-comprehensive {
-  background: rgba(255, 255, 255, 0.2);
-  height: 6px;
-  margin-top: 20px;
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill-comprehensive {
-  background: white;
-  height: 100%;
-  width: 0%;
-  transition: width 0.3s ease;
-}
-
-/* New Header Styles - Matching Intern Form */
+/* Compact Header - Reduced Height */
 .jobseeker-header {
   background: #f8f9fa;
-  padding: 1rem 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 4px 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   position: sticky;
   top: 0;
   z-index: 100;
   flex-shrink: 0;
   border-bottom: 1px solid #e9ecef;
-  margin-bottom: 20px;
+  margin-bottom: 3px;
+  min-height: 35px;
 }
 
 .header-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 0.5rem;
+  padding: 0 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 8px;
   transition: all 0.3s ease;
-  border-radius: 8px;
-  padding: 0.5rem;
+  border-radius: 4px;
+  padding: 2px;
 }
 
 .logo-section:hover {
@@ -88,22 +65,27 @@
 }
 
 .logo-icon img {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
   object-fit: cover;
 }
 
 .logo-text {
   display: flex;
   flex-direction: column;
+  text-align: left;
+  justify-content: flex-start;
 }
 
 .logo-title {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: #1a202c;
   margin: 0;
+  line-height: 1.1;
+  text-align: left;
+  align-self: flex-start;
 }
 
 .logo-subtitle {
@@ -111,39 +93,43 @@
   color: #6c757d;
   font-weight: 500;
   margin: 0;
+  line-height: 1;
+  text-align: left;
+  align-self: flex-start;
 }
 
 .jobseeker-main {
   background: #f8f9fa;
-  min-height: calc(100vh - 140px);
-  padding: 5px 0;
+  min-height: calc(100vh - 40px);
+  padding: 1px 0;
   margin-top: 0;
 }
 
 .jobseeker-container {
-  max-width: 1400px;
+  max-width: 1600px;
   margin: 0 auto;
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border-radius: 6px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
 .jobseeker-form-card {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
 .jobseeker-form-container {
-  padding: 15px 5px;
+  padding: 8px 3px;
 }
 
+/* Ultra Compact Progress Section - Orange Teal Theme */
 .progress-section-comprehensive {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
   color: white;
-  padding: 30px;
+  padding: 8px 15px;
   text-align: center;
 }
 
@@ -151,27 +137,27 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
+  margin-bottom: 4px;
 }
 
 .progress-header-comprehensive h2 {
-  font-size: 24px;
+  font-size: 16px;
   margin: 0;
   font-weight: 600;
 }
 
 .progress-percentage-comprehensive {
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.2);
-  padding: 8px 16px;
-  border-radius: 20px;
+  padding: 2px 8px;
+  border-radius: 12px;
 }
 
 .progress-bar-comprehensive {
   background: rgba(255, 255, 255, 0.2);
-  height: 6px;
-  border-radius: 3px;
+  height: 3px;
+  border-radius: 2px;
   overflow: hidden;
 }
 
@@ -179,52 +165,54 @@
   background: white;
   height: 100%;
   transition: width 0.3s ease;
-  border-radius: 3px;
+  border-radius: 2px;
 }
 
+/* Ultra Compact Sections */
 .section-comprehensive {
-  margin-bottom: 35px;
+  margin-bottom: 15px;
 }
 
 .section-title-comprehensive {
-  font-size: 20px;
+  font-size: 16px;
   color: #333;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #667eea;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid #ff8c42;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 .section-title-comprehensive svg {
-  color: #667eea;
+  color: #ff8c42;
 }
 
+/* Ultra Compact Form Layout */
 .form-row-comprehensive {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .form-row-3-comprehensive {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
-  margin-bottom: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
 }
 
 .form-group-comprehensive {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .form-group-comprehensive label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 3px;
   color: #555;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .form-group-comprehensive label .required-comprehensive {
@@ -236,10 +224,10 @@
 .form-group-comprehensive select,
 .form-group-comprehensive textarea {
   width: 100%;
-  padding: 12px 15px;
+  padding: 6px 10px;
   border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 14px;
+  border-radius: 4px;
+  font-size: 13px;
   transition: all 0.3s ease;
   font-family: inherit;
 }
@@ -248,8 +236,8 @@
 .form-group-comprehensive select:focus,
 .form-group-comprehensive textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #ff8c42;
+  box-shadow: 0 0 0 2px rgba(255, 140, 66, 0.1);
 }
 
 .form-group-comprehensive input:disabled {
@@ -259,29 +247,30 @@
 
 .form-group-comprehensive textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 70px;
 }
 
+/* Ultra Compact File Upload - Orange Teal Theme */
 .file-upload-comprehensive {
-  border: 2px dashed #4facfe;
-  border-radius: 8px;
-  padding: 30px;
+  border: 2px dashed #ff8c42;
+  border-radius: 4px;
+  padding: 15px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: #f8faff;
+  background: #fff8f3;
   display: block;
 }
 
 .file-upload-comprehensive:hover {
-  border-color: #3b82f6;
-  background: #eff6ff;
+  border-color: #20b2aa;
+  background: #f0ffff;
 }
 
 .file-upload-comprehensive svg {
-  font-size: 40px;
-  color: #4facfe;
-  margin-bottom: 10px;
+  font-size: 28px;
+  color: #ff8c42;
+  margin-bottom: 6px;
 }
 
 .file-upload-comprehensive input[type="file"] {
@@ -294,14 +283,14 @@
 
 .file-upload-text strong {
   display: block;
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   color: #111827;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .file-upload-text p {
-  font-size: 0.875rem;
+  font-size: 0.75rem;
   color: #6b7280;
   margin: 0;
   font-weight: 400;
@@ -309,19 +298,19 @@
 
 .file-upload-text small {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
   color: #9ca3af;
-  margin-top: 8px;
+  margin-top: 4px;
   font-weight: 500;
 }
 
 .profile-photo-preview-comprehensive {
-  width: 150px;
-  height: 150px;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  margin: 0 auto 20px;
+  margin: 0 auto 12px;
   overflow: hidden;
-  border: 4px solid #667eea;
+  border: 2px solid #ff8c42;
   display: none;
 }
 
@@ -331,53 +320,55 @@
   object-fit: cover;
 }
 
+/* Orange Teal Theme Elements */
 .info-badge-comprehensive {
-  background: #e8f4f8;
-  color: #0066cc;
-  padding: 10px 15px;
-  border-radius: 6px;
-  font-size: 13px;
-  margin-top: 10px;
+  background: #fff8f3;
+  color: #cc5500;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-top: 8px;
   display: inline-block;
 }
 
 .tags-container-comprehensive {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .tag-comprehensive {
-  background: #e8eeff;
-  color: #667eea;
-  padding: 8px 15px;
-  border-radius: 20px;
-  font-size: 14px;
+  background: #fff8f3;
+  color: #ff8c42;
+  padding: 6px 12px;
+  border-radius: 15px;
+  font-size: 13px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .tag-comprehensive .remove-comprehensive {
   cursor: pointer;
   font-weight: bold;
-  color: #667eea;
-  font-size: 18px;
+  color: #ff8c42;
+  font-size: 16px;
 }
 
 .tag-comprehensive .remove-comprehensive:hover {
   color: #e74c3c;
 }
 
+/* Ultra Compact Item Styles */
 .experience-item-comprehensive,
 .education-item-comprehensive,
 .reference-item-comprehensive,
 .link-item-comprehensive {
   background: #f9f9f9;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
   position: relative;
 }
 
@@ -385,7 +376,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
+  padding: 10px 12px;
 }
 
 .link-item-content-comprehensive {
@@ -394,18 +385,18 @@
 
 .link-item-type-comprehensive {
   font-weight: 600;
-  color: #667eea;
-  margin-bottom: 5px;
+  color: #ff8c42;
+  margin-bottom: 4px;
 }
 
 .link-item-url-comprehensive {
   color: #666;
   word-break: break-all;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .link-item-url-comprehensive a {
-  color: #667eea;
+  color: #ff8c42;
   text-decoration: none;
 }
 
@@ -415,16 +406,16 @@
 
 .remove-item-btn-comprehensive {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: 10px;
+  right: 10px;
   background: #e74c3c;
   color: white;
   border: none;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,49 +427,50 @@
   transform: rotate(90deg);
 }
 
+/* Ultra Compact Orange Teal Theme Buttons */
 .add-more-btn-comprehensive {
   background: transparent;
-  color: #667eea;
-  border: 2px solid #667eea;
-  padding: 10px 20px;
-  border-radius: 8px;
+  color: #ff8c42;
+  border: 2px solid #ff8c42;
+  padding: 6px 12px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.3s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .add-more-btn-comprehensive:hover {
-  background: #667eea;
+  background: #ff8c42;
   color: white;
 }
 
 .add-btn-comprehensive {
-  background: #667eea;
+  background: #ff8c42;
   color: white;
   border: none;
-  padding: 12px 20px;
-  border-radius: 8px;
+  padding: 8px 14px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 12px;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
 }
 
 .add-btn-comprehensive:hover {
-  background: #5568d3;
+  background: #e67e22;
 }
 
 .skills-input-container-comprehensive {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .skills-input-container-comprehensive input {
@@ -488,8 +480,8 @@
 .checkbox-group-comprehensive {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 10px;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .checkbox-group-comprehensive input[type="checkbox"] {
@@ -504,14 +496,14 @@
 
 .radio-group-comprehensive {
   display: flex;
-  gap: 20px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .radio-option-comprehensive {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .radio-option-comprehensive input[type="radio"] {
@@ -527,37 +519,38 @@
 .language-proficiency-comprehensive {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
+/* Ultra Compact Submit Section */
 .submit-section-comprehensive {
   background: #f9f9f9;
-  padding: 30px;
+  padding: 15px;
   text-align: center;
   border-top: 1px solid #e0e0e0;
-  margin-top: 30px;
+  margin-top: 15px;
 }
 
 .submit-btn-comprehensive {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
   color: white;
   border: none;
-  padding: 15px 50px;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 10px 35px;
+  border-radius: 4px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 2px 10px rgba(255, 140, 66, 0.3);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .submit-btn-comprehensive:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 16px rgba(255, 140, 66, 0.4);
 }
 
 .submit-btn-comprehensive:disabled {
@@ -569,29 +562,80 @@
   background-color: #fee;
   border: 1px solid #fcc;
   color: #c33;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 12px;
   text-align: center;
 }
 
-/* Responsive Design */
+/* Responsive Design - Ultra Compact */
 @media (max-width: 768px) {
-  .header-comprehensive {
-    padding: 30px 20px;
+  .jobseeker-details-comprehensive {
+    padding: 3px;
   }
 
-  .header-comprehensive h1 {
-    font-size: 24px;
+  .jobseeker-header {
+    min-height: 45px !important;
+    display: block !important;
+    visibility: visible !important;
   }
 
-  .form-content-comprehensive {
-    padding: 15px 5px;
+  .header-container {
+    padding: 0 6px;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+  .header-right {
+    width: 100%;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .logo-icon img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .logo-title {
+    font-size: 1.1rem;
+  }
+
+  .logo-subtitle {
+    font-size: 0.7rem;
+  }
+
+  .auto-save-status {
+    font-size: 12px;
+  }
+
+  .clear-form-btn {
+    font-size: 12px;
+    padding: 5px 10px;
+  }
+
+  .progress-section-comprehensive {
+    padding: 6px 12px;
+  }
+
+  .progress-header-comprehensive h2 {
+    font-size: 14px;
+  }
+
+  .jobseeker-form-container {
+    padding: 6px 2px;
   }
 
   .form-row-comprehensive,
   .form-row-3-comprehensive {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .language-proficiency-comprehensive {
@@ -615,12 +659,30 @@
 
   .remove-item-btn-comprehensive {
     position: static;
-    margin-top: 10px;
+    margin-top: 6px;
     width: 100%;
   }
 
   #map {
-    height: 300px;
+    height: 200px;
+  }
+
+  .file-upload-comprehensive {
+    padding: 12px;
+  }
+
+  .file-upload-comprehensive svg {
+    font-size: 24px;
+  }
+
+  .profile-photo-preview-comprehensive {
+    width: 80px;
+    height: 80px;
+  }
+
+  .jobseeker-container {
+    max-width: 100%;
+    margin: 0 2px;
   }
 }
 
@@ -633,3 +695,116 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+/* Auto-save status styling */
+.auto-save-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #20b2aa;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.clear-form-btn {
+  background: transparent;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.clear-form-btn:hover {
+  background: #e74c3c;
+  color: white;
+}
+
+/* Header control styles */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Override any conflicting styles - Ultra Compact */
+.jobseeker-details-comprehensive * {
+  box-sizing: border-box;
+}
+
+.jobseeker-details-comprehensive .form-group-comprehensive {
+  margin-bottom: 12px !important;
+}
+
+.jobseeker-details-comprehensive .section-comprehensive {
+  margin-bottom: 15px !important;
+}
+
+.jobseeker-details-comprehensive .progress-section-comprehensive {
+  padding: 8px 15px !important;
+}
+
+.jobseeker-details-comprehensive .jobseeker-header {
+  padding: 4px 0 !important;
+  min-height: 35px !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.jobseeker-details-comprehensive .logo-icon img {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.jobseeker-details-comprehensive .logo-title {
+  font-size: 1.2rem !important;
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+.jobseeker-details-comprehensive .logo-subtitle {
+  font-size: 0.75rem !important;
+  text-align: left !important;
+  align-self: flex-start !important;
+}
+
+.jobseeker-details-comprehensive .header-container {
+  justify-content: space-between !important;
+  padding: 0 8px !important;
+  height: 100% !important;
+}
+
+.jobseeker-details-comprehensive .header-left {
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+}
+
+.jobseeker-details-comprehensive .header-right {
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+.jobseeker-details-comprehensive .header-controls {
+  gap: 12px !important;
+}
+
+.jobseeker-details-comprehensive .auto-save-status {
+  font-size: 13px !important;
+  gap: 6px !important;
+}
+
+.jobseeker-details-comprehensive .clear-form-btn {
+  font-size: 13px !important;
+  padding: 6px 12px !important;
+}
+
+.jobseeker-details-comprehensive .jobseeker-container {
+  max-width: 1600px !important;
+}
+
+.jobseeker-details-comprehensive .jobseeker-form-container {
+  padding: 8px 3px !important;
+}

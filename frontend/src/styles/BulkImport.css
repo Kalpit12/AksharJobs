@@ -71,11 +71,11 @@
 }
 
 .btn-template.btn-intern {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
 }
 
 .btn-template.btn-intern:hover {
-  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
 }
 
 .btn-template svg {

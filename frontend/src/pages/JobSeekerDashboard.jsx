@@ -11,7 +11,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
-import '../styles/JobSeekerDashboard.css';
 
 const JobSeekerDashboard = () => {
   const { user, logout } = useAuth();

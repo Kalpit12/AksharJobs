@@ -728,7 +728,7 @@
 
 /* Enhanced Upload Resume Mobile Link */
 .upload-resume-mobile {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%) !important;
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%) !important;
   border-radius: 0.75rem !important;
   margin: 0.5rem 0 !important;
   position: relative !important;
@@ -753,9 +753,9 @@
 }
 
 .upload-resume-mobile:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%) !important;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   transform: translateX(8px) scale(1.02) !important;
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
   animation: none !important;
 }
 
@@ -773,10 +773,10 @@
 
 @keyframes mobile-glow {
   0%, 100% {
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3) !important;
   }
   50% {
-    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.5) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5) !important;
   }
 }
 

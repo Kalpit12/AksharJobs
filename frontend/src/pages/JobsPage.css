@@ -6,7 +6,7 @@
 
 /* Jobs Page Header */
 .jobs-page-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   color: white;
   padding: 4rem 2rem;
   text-align: center;
@@ -59,7 +59,7 @@
 }
 
 .create-job-btn {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #1976d2 0%, #1565c0 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;

@@ -14,7 +14,6 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { buildApiUrl } from '../config/api';
 import axios from 'axios';
-import '../styles/PublicJobs.css';
 
 const PublicJobs = () => {
   const navigate = useNavigate();

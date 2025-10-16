@@ -15,31 +15,44 @@ const fixUrl = (url) => {
     const getBaseUrl = () => {
       if (typeof window !== 'undefined') {
         const currentHost = window.location.hostname;
-        const currentPort = window.location.port;
+        
+        // For development, use the backend port 3002
+        if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+          return 'http://localhost:3002';
+        }
         
         // Use relative path for production (Nginx proxy)
         return '';
       }
-      // Fallback for SSR - use relative path
-      return '';
+      // Fallback for SSR - use localhost for development
+      return 'http://localhost:3002';
     };
     
     const baseUrl = getBaseUrl();
     
-    // Replace all variations of hardcoded localhost URLs with dynamic base URL
-    const patterns = [
-      /http:\/\/(127\.0\.0\.1|localhost):5000/g,
-      /http:\/\/(127\.0\.0\.1|localhost):3001/g,
-      /http:\/\/(127\.0\.0\.1|localhost):3002/g,  // Add this pattern
-      /http:\/\/(127\.0\.0\.1|localhost):3004/g,
-      /http:\/\/(127\.0\.0\.1|localhost):3005/g,
-      /http:\/\/(127\.0\.0\.1|localhost):8000/g,
-      /http:\/\/(127\.0\.0\.1|localhost):8080/g
-    ];
-    
-    patterns.forEach(pattern => {
-      fixedUrl = fixedUrl.replace(pattern, baseUrl);
-    });
+    // Only fix URLs that need fixing - don't break working URLs
+    if (fixedUrl.includes('undefined') || fixedUrl.includes('/undefined/')) {
+      // Fix undefined URLs by replacing with proper base URL
+      fixedUrl = fixedUrl.replace(/\/undefined\//g, '/api/');
+      if (!fixedUrl.startsWith('http')) {
+        fixedUrl = baseUrl + fixedUrl;
+      }
+    } else {
+      // Replace all variations of hardcoded localhost URLs with dynamic base URL
+      const patterns = [
+        /http:\/\/(127\.0\.0\.1|localhost):5000/g,
+        /http:\/\/(127\.0\.0\.1|localhost):3001/g,
+        /http:\/\/(127\.0\.0\.1|localhost):3002/g,
+        /http:\/\/(127\.0\.0\.1|localhost):3004/g,
+        /http:\/\/(127\.0\.0\.1|localhost):3005/g,
+        /http:\/\/(127\.0\.0\.1|localhost):8000/g,
+        /http:\/\/(127\.0\.0\.1|localhost):8080/g
+      ];
+      
+      patterns.forEach(pattern => {
+        fixedUrl = fixedUrl.replace(pattern, baseUrl);
+      });
+    }
     
     // Also fix any URLs without protocol
     if (fixedUrl.startsWith('//127.0.0.1:5000') || fixedUrl.startsWith('//localhost:5000')) {

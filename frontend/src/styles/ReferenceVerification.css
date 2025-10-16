@@ -41,7 +41,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -150,8 +150,8 @@
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #7c3aed;
-  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
 .form-group input.error,
@@ -193,7 +193,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -266,7 +266,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: white;
   border: none;
   border-radius: 8px;
@@ -379,7 +379,7 @@
 }
 
 .detail-item svg {
-  color: #7c3aed;
+  color: #2563eb;
   width: 16px;
 }
 
@@ -489,7 +489,7 @@
 
 .loading-spinner {
   font-size: 2rem;
-  color: #7c3aed;
+  color: #2563eb;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }

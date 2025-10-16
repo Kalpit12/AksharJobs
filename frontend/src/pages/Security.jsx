@@ -1,7 +1,6 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShieldAlt, faLock, faUserShield, faDatabase } from '@fortawesome/free-solid-svg-icons';
-import '../styles/StaticPages.css';
 
 const Security = () => {
   return (

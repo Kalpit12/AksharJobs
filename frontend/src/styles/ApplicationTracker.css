@@ -69,7 +69,7 @@
 .header-icon {
   width: 60px;
   height: 60px;
-  background: #8b5cf6;
+  background: #3b82f6;
   color: white;
   border-radius: 12px;
   display: flex;
@@ -84,7 +84,7 @@
   margin: 0;
   font-size: 2.5rem;
   font-weight: 700;
-  color: #8b5cf6;
+  color: #3b82f6;
   letter-spacing: -0.025em;
 }
 
@@ -165,7 +165,7 @@
 .stat-icon {
   font-size: 20px;
   margin-bottom: 8px;
-  color: #8b5cf6;
+  color: #3b82f6;
 }
 
 .stat-number {

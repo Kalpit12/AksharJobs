@@ -41,9 +41,36 @@ const JobSeekerRegistrationFormComprehensive = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  const [userProfileData, setUserProfileData] = useState(null);
   
   // Auto-save configuration
   const AUTOSAVE_KEY = `jobseeker_registration_${user?.userId || 'temp'}`;
+  
+  // Fetch user profile data on mount
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        
+        const response = await fetch(buildApiUrl('/api/jobseeker/profile'), {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Fetched user profile:', data);
+          setUserProfileData(data);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+    
+    fetchUserProfile();
+  }, []);
   
   // Countries list
   const countries = [
@@ -86,12 +113,12 @@ const JobSeekerRegistrationFormComprehensive = () => {
   } = useAutoSave(
     {
       // Personal Information
-      firstName: existingData?.firstName || userData.firstName || '',
-      middleName: existingData?.middleName || '',
-      lastName: existingData?.lastName || userData.lastName || '',
-      email: existingData?.email || userData.email || '',
-      phone: existingData?.phone || '',
-      altPhone: existingData?.altPhone || '',
+      firstName: existingData?.firstName || userData.firstName || userProfileData?.firstName || user?.firstName || '',
+      middleName: existingData?.middleName || userProfileData?.middleName || '',
+      lastName: existingData?.lastName || userData.lastName || userProfileData?.lastName || user?.lastName || '',
+      email: existingData?.email || userData.email || userProfileData?.email || user?.email || '',
+      phone: existingData?.phone || userProfileData?.phone || user?.phone || '',
+      altPhone: existingData?.altPhone || userProfileData?.altPhone || '',
       dateOfBirth: existingData?.dateOfBirth || '',
       gender: existingData?.gender || '',
       community: existingData?.community || '',
@@ -206,6 +233,60 @@ const JobSeekerRegistrationFormComprehensive = () => {
   const [languageInput, setLanguageInput] = useState({ language: '', proficiency: '' });
   const [linkInput, setLinkInput] = useState({ type: '', url: '' });
   const [progressPercentage, setProgressPercentage] = useState(0);
+  
+  // Update form data when user profile data is fetched
+  useEffect(() => {
+    if (userProfileData && Object.keys(userProfileData).length > 0) {
+      console.log('Updating form with user profile data:', userProfileData);
+      setFormData(prev => ({
+        ...prev,
+        // Personal Information - only update if not already filled
+        firstName: prev.firstName || userProfileData.firstName || user?.firstName || '',
+        lastName: prev.lastName || userProfileData.lastName || user?.lastName || '',
+        email: prev.email || userProfileData.email || user?.email || '',
+        phone: prev.phone || userProfileData.phone || user?.phone || '',
+        middleName: prev.middleName || userProfileData.middleName || '',
+        
+        // Populate other fields if they exist in userProfileData
+        dateOfBirth: prev.dateOfBirth || userProfileData.dateOfBirth || '',
+        gender: prev.gender || userProfileData.gender || '',
+        community: prev.community || userProfileData.community || '',
+        nationality: prev.nationality || userProfileData.nationality || '',
+        residentCountry: prev.residentCountry || userProfileData.residentCountry || '',
+        currentCity: prev.currentCity || userProfileData.currentCity || userProfileData.location?.city || '',
+        postalCode: prev.postalCode || userProfileData.postalCode || '',
+        address: prev.address || userProfileData.address || '',
+        latitude: prev.latitude || userProfileData.latitude || userProfileData.location?.coordinates?.[1] || '',
+        longitude: prev.longitude || userProfileData.longitude || userProfileData.location?.coordinates?.[0] || '',
+        
+        // Professional Profile
+        professionalTitle: prev.professionalTitle || userProfileData.professionalTitle || userProfileData.experience?.[0]?.jobTitle || '',
+        yearsExperience: prev.yearsExperience || userProfileData.yearsExperience || '',
+        careerLevel: prev.careerLevel || userProfileData.careerLevel || '',
+        industry: prev.industry || userProfileData.industry || '',
+        summary: prev.summary || userProfileData.summary || userProfileData.bio || '',
+        
+        // Skills
+        coreSkills: (prev.coreSkills?.length > 0 ? prev.coreSkills : userProfileData.technicalSkills) || [],
+        tools: (prev.tools?.length > 0 ? prev.tools : userProfileData.tools) || [],
+        languages: (prev.languages?.length > 0 ? prev.languages : userProfileData.languages) || [],
+        
+        // Experience and Education
+        experienceEntries: (prev.experienceEntries?.[0]?.jobTitle ? prev.experienceEntries : userProfileData.experience) || prev.experienceEntries,
+        educationEntries: (prev.educationEntries?.[0]?.degreeType ? prev.educationEntries : userProfileData.education) || prev.educationEntries,
+        certificationEntries: (prev.certificationEntries?.[0]?.certificationName ? prev.certificationEntries : userProfileData.certifications) || prev.certificationEntries,
+        
+        // Job Preferences
+        jobType: prev.jobType || userProfileData.jobType || '',
+        noticePeriod: prev.noticePeriod || userProfileData.noticePeriod || '',
+        currentSalary: prev.currentSalary || userProfileData.currentSalary || '',
+        expectedSalary: prev.expectedSalary || userProfileData.expectedSalary || '',
+        
+        // Professional Links
+        professionalLinks: (prev.professionalLinks?.length > 0 ? prev.professionalLinks : userProfileData.professionalLinks) || prev.professionalLinks
+      }));
+    }
+  }, [userProfileData, user]);
 
   // Initialize map
   useEffect(() => {
@@ -660,67 +741,66 @@ const JobSeekerRegistrationFormComprehensive = () => {
       {/* Header */}
       <header className="jobseeker-header">
         <div className="header-container">
-          <div className="logo-section" onClick={() => navigate('/jobseeker-dashboard')} style={{ cursor: 'pointer' }}>
-            <div className="logo-icon">
-              <img src="/AK_logo.jpg" alt="AksharJobs Logo" />
-            </div>
-            <div className="logo-text">
-              <h3 className="logo-title">AksharJobs</h3>
-              <p className="logo-subtitle">Complete Your Job Seeker Profile</p>
+          <div className="header-left">
+            <div className="logo-section" onClick={() => navigate('/jobseeker-dashboard')} style={{ cursor: 'pointer' }}>
+              <div className="logo-icon">
+                <img src="/AK_logo.png" alt="AksharJobs Logo" />
+              </div>
+              <div className="logo-text">
+                <h3 className="logo-title">AksharJobs</h3>
+                <p className="logo-subtitle">Job Seeker Profile</p>
+              </div>
             </div>
           </div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '15px',
-            fontSize: '14px',
-            color: '#4facfe'
-          }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              {isSaving && <span style={{ color: '#f39c12' }}>💾 Saving...</span>}
-              {saveStatus === 'saved' && (
-                <>
-                  <FontAwesomeIcon icon={faCheck} style={{ color: '#27ae60' }} />
-                  <span style={{ color: '#27ae60' }}>Saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}</span>
-                </>
-              )}
-              {saveStatus === 'error' && <span style={{ color: '#e74c3c' }}>⚠️ Save failed</span>}
-              {!isSaving && !saveStatus && (
-                <>
-                  <FontAwesomeIcon icon={faCheck} />
-                  <span>Auto-saving every 2 minutes</span>
-                </>
-              )}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                if (window.confirm('Are you sure you want to clear all saved form data? This cannot be undone.')) {
-                  clearSavedData();
-                  window.location.reload();
-                }
-              }}
-              style={{
-                background: 'transparent',
-                border: '1px solid #e74c3c',
-                color: '#e74c3c',
-                padding: '8px 15px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontSize: '13px',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.target.style.background = '#e74c3c';
-                e.target.style.color = 'white';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.background = 'transparent';
-                e.target.style.color = '#e74c3c';
-              }}
-            >
-              Clear Form Data
-            </button>
+          <div className="header-right">
+            <div className="header-controls">
+              <span className="auto-save-status" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                {isSaving && <span style={{ color: '#f39c12' }}>💾 Saving...</span>}
+                {saveStatus === 'saved' && (
+                  <>
+                    <FontAwesomeIcon icon={faCheck} style={{ color: '#27ae60' }} />
+                    <span style={{ color: '#27ae60' }}>Saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}</span>
+                  </>
+                )}
+                {saveStatus === 'error' && <span style={{ color: '#e74c3c' }}>⚠️ Save failed</span>}
+                {!isSaving && !saveStatus && (
+                  <>
+                    <FontAwesomeIcon icon={faCheck} />
+                    <span>Auto-saving every 2 minutes</span>
+                  </>
+                )}
+              </span>
+              <button
+                className="clear-form-btn"
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to clear all saved form data? This cannot be undone.')) {
+                    clearSavedData();
+                    window.location.reload();
+                  }
+                }}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #e74c3c',
+                  color: '#e74c3c',
+                  padding: '8px 15px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '13px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.background = '#e74c3c';
+                  e.target.style.color = 'white';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.background = 'transparent';
+                  e.target.style.color = '#e74c3c';
+                }}
+              >
+                Clear Form Data
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -744,10 +824,10 @@ const JobSeekerRegistrationFormComprehensive = () => {
             </div>
           )}
 
-          {/* Progress Section */}
+          {/* Compact Progress Section */}
           <div className="progress-section-comprehensive">
             <div className="progress-header-comprehensive">
-              <h2>Profile Completion Progress</h2>
+              <h2>Profile Progress</h2>
               <span className="progress-percentage-comprehensive">{progressPercentage}%</span>
             </div>
             <div className="progress-bar-comprehensive">
@@ -772,9 +852,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
             <label className="file-upload-comprehensive" htmlFor="profilePhoto">
               <FontAwesomeIcon icon={faCamera} />
               <div className="file-upload-text">
-                <strong>Upload Profile Photo</strong>
+                <strong>Upload Photo</strong>
                 <p>Click to browse or drag and drop</p>
-                <small>Maximum file size: 50KB</small>
+                <small>Max: 50KB</small>
               </div>
               <input 
                 type="file" 

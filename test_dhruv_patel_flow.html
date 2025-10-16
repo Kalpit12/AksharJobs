@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dhruv Patel - Complete Flow Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #ff8c42;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .user-info h2 {
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .credentials {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-step {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .test-step h3 {
+            color: #ff8c42;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .data-display {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .field-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .field-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .field-value {
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .present-field {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .missing-field {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+            display: inline-block;
+            min-width: 150px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 140, 66, 0.4);
+        }
+
+        .quick-actions-container {
+            display: block !important;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .quick-action-btn {
+            background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%) !important;
+            color: white !important;
+            border: 2px solid #ff8c42 !important;
+            padding: 15px 25px !important;
+            border-radius: 8px !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.3s ease !important;
+            text-align: center !important;
+            display: block !important;
+            width: 100% !important;
+            margin: 10px 0 !important;
+            box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3) !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .quick-action-btn.primary {
+            padding: 20px 30px !important;
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            min-height: 60px !important;
+        }
+
+        .quick-action-btn.secondary {
+            padding: 12px 20px !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            min-height: 45px !important;
+        }
+
+        .quick-action-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(255, 140, 66, 0.5) !important;
+            background: linear-gradient(135deg, #ff9f5a 0%, #26c5ba 100%) !important;
+        }
+
+        .action-buttons-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .instructions {
+            background: #fff8f0;
+            border: 1px solid #ff8c42;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #ff8c42;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .api-test {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .api-test h4 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .api-response {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Dhruv Patel - Complete Flow Test</h1>
+        
+        <div class="user-info">
+            <h2>👤 Test User: Dhruv Patel</h2>
+            <div class="credentials">
+                <strong>Email:</strong> dhruvpatel771@gmail.com<br>
+                <strong>Password:</strong> Dhruv@123<br>
+                <strong>Role:</strong> Job Seeker
+            </div>
+        </div>
+
+        <!-- Test Instructions -->
+        <div class="instructions">
+            <h3>📋 Test Flow Instructions</h3>
+            <ol>
+                <li><strong>Login:</strong> Use the credentials above to login as Dhruv Patel</li>
+                <li><strong>Registration Form:</strong> Navigate to Job Seeker Registration Form</li>
+                <li><strong>Fill Form:</strong> Complete ALL fields with test data</li>
+                <li><strong>Submit:</strong> Submit the form and check for success</li>
+                <li><strong>Dashboard:</strong> Go to Job Seeker Dashboard → My Profile</li>
+                <li><strong>Verify:</strong> Check if all data is displayed correctly</li>
+                <li><strong>Report:</strong> Use this page to verify data storage and flow</li>
+            </ol>
+        </div>
+
+        <!-- Step 1: Login Test -->
+        <div class="section">
+            <h2>🔐 Step 1: Login Verification</h2>
+            <div class="test-step">
+                <h3>Current Login Status</h3>
+                <div id="loginStatus"></div>
+                <div class="data-display" id="loginData">
+                    Checking login status...
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: User Data Check -->
+        <div class="section">
+            <h2>👤 Step 2: User Data Verification</h2>
+            <div class="test-step">
+                <h3>User Information in localStorage</h3>
+                <div id="userDataStatus"></div>
+                <div class="data-display" id="userDataDisplay">
+                    Checking user data...
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Form Data Check -->
+        <div class="section">
+            <h2>📝 Step 3: Form Data Storage</h2>
+            <div class="test-step">
+                <h3>Registration Form Data</h3>
+                <div id="formDataStatus"></div>
+                <div class="data-display" id="formDataDisplay">
+                    Checking form data...
+                </div>
+            </div>
+            
+            <div class="test-step">
+                <h3>Auto-save Data</h3>
+                <div id="autosaveStatus"></div>
+                <div class="data-display" id="autosaveDisplay">
+                    Checking auto-save data...
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: API Test -->
+        <div class="section">
+            <h2>🌐 Step 4: Backend API Test</h2>
+            <div class="api-test">
+                <h4>Test Job Seeker Profile API</h4>
+                <button onclick="testProfileAPI()">Test Profile API</button>
+                <div class="api-response" id="apiResponse">
+                    Click "Test Profile API" to check backend data
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Dashboard Fields Check -->
+        <div class="section">
+            <h2>📊 Step 5: Dashboard Fields Analysis</h2>
+            <div class="test-step">
+                <h3>Expected Dashboard Fields</h3>
+                <div class="field-grid" id="dashboardFieldsGrid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 6: Missing Fields -->
+        <div class="section">
+            <h2>❌ Step 6: Missing Fields Analysis</h2>
+            <div class="test-step">
+                <h3>Fields Missing in Dashboard</h3>
+                <div id="missingFieldsStatus"></div>
+                <div class="field-grid" id="missingFieldsGrid">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 7: Recommendations -->
+        <div class="section">
+            <h2>💡 Step 7: Action Items</h2>
+            <div class="test-step">
+                <h3>Required Actions for Dhruv Patel</h3>
+                <div id="actionItems">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="section" style="background: white; border: 2px solid #ff8c42; margin: 20px 0;">
+            <h2 style="color: #ff8c42; text-align: center; margin-bottom: 20px;">⚡ Quick Actions</h2>
+            <hr style="border: 1px solid #ff8c42; margin-bottom: 20px;">
+            <div class="quick-actions-container" style="display: block !important; width: 100%;">
+                <button class="quick-action-btn primary" 
+                        style="display: block !important; width: 100% !important; margin: 15px 0 !important; visibility: visible !important; opacity: 1 !important; background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%) !important; color: white !important; border: 2px solid #ff8c42 !important; padding: 20px !important; font-size: 18px !important; font-weight: bold !important; border-radius: 8px !important; cursor: pointer !important;"
+                        onclick="window.location.href='/jobseeker-dashboard'">
+                    🔍 BROWSE JOBS
+                </button>
+                <button class="quick-action-btn secondary" 
+                        style="display: block !important; width: 100% !important; margin: 15px 0 !important; visibility: visible !important; opacity: 1 !important; background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%) !important; color: white !important; border: 2px solid #ff8c42 !important; padding: 15px !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; cursor: pointer !important;"
+                        onclick="window.location.href='/jobseeker-registration'">
+                    📄 UPDATE RESUME
+                </button>
+                <button class="quick-action-btn secondary" 
+                        style="display: block !important; width: 100% !important; margin: 15px 0 !important; visibility: visible !important; opacity: 1 !important; background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%) !important; color: white !important; border: 2px solid #ff8c42 !important; padding: 15px !important; font-size: 16px !important; font-weight: bold !important; border-radius: 8px !important; cursor: pointer !important;"
+                        onclick="window.location.href='/jobseeker-profile'">
+                    ✏️ EDIT PROFILE
+                </button>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="section">
+            <h2>🔧 Test Actions</h2>
+            <div class="action-buttons-grid">
+                <button onclick="refreshAllData()">🔄 Refresh All Data</button>
+                <button onclick="testLogin()">🔐 Test Login</button>
+                <button onclick="testFormData()">📝 Test Form Data</button>
+                <button onclick="testDashboard()">📊 Test Dashboard</button>
+                <button onclick="generateReport()">📋 Generate Report</button>
+            </div>
+        </div>
+
+        <!-- Debug Console -->
+        <div class="section">
+            <h2>🔍 Debug Console</h2>
+            <div class="data-display" id="debugConsole">
+                Waiting for data...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const testUser = {
+            email: 'dhruvpatel771@gmail.com',
+            firstName: 'Dhruv',
+            lastName: 'Patel',
+            fullName: 'Dhruv Patel'
+        };
+
+        const expectedFormFields = [
+            'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender',
+            'nationality', 'residentCountry', 'currentCity', 'workPermit',
+            'preferredLocation1', 'preferredLocation2', 'willingToRelocate', 'workLocation',
+            'professionalTitle', 'yearsOfExperience', 'currentEmployer',
+            'currentJobTitle', 'expectedSalary', 'salaryCurrency', 'jobTypePreference',
+            'availability', 'professionalSummary', 'coreSkills', 'tools',
+            'languages', 'experienceEntries', 'educationEntries',
+            'certificationEntries', 'referenceEntries', 'professionalLinks'
+        ];
+
+        const dashboardFields = [
+            { name: 'firstName', label: 'First Name', required: true },
+            { name: 'lastName', label: 'Last Name', required: true },
+            { name: 'email', label: 'Email', required: true },
+            { name: 'phone', label: 'Phone Number', required: true },
+            { name: 'dateOfBirth', label: 'Date of Birth', required: true },
+            { name: 'gender', label: 'Gender', required: true },
+            { name: 'nationality', label: 'Nationality', required: true },
+            { name: 'residentCountry', label: 'Resident Country', required: true },
+            { name: 'currentCity', label: 'Current City', required: true },
+            { name: 'workPermit', label: 'Work Permit', required: true },
+            { name: 'preferredLocation1', label: 'Preferred Location 1', required: true },
+            { name: 'preferredLocation2', label: 'Preferred Location 2', required: false },
+            { name: 'willingToRelocate', label: 'Willing to Relocate', required: true },
+            { name: 'workLocation', label: 'Work Location Preference', required: true },
+            { name: 'currentJobTitle', label: 'Current Job Title', required: false },
+            { name: 'professionalTitle', label: 'Professional Title', required: true },
+            { name: 'yearsOfExperience', label: 'Years of Experience', required: false },
+            { name: 'currentEmployer', label: 'Current Employer', required: false },
+            { name: 'expectedSalary', label: 'Expected Salary', required: false },
+            { name: 'salaryCurrency', label: 'Salary Currency', required: false },
+            { name: 'jobTypePreference', label: 'Job Type Preference', required: false },
+            { name: 'availability', label: 'Availability', required: false },
+            { name: 'professionalSummary', label: 'Professional Summary', required: false },
+            { name: 'coreSkills', label: 'Core Skills', required: false },
+            { name: 'tools', label: 'Tools & Technologies', required: false },
+            { name: 'languages', label: 'Languages', required: false },
+            { name: 'experienceEntries', label: 'Work Experience', required: false },
+            { name: 'educationEntries', label: 'Education', required: false },
+            { name: 'certificationEntries', label: 'Certifications', required: false },
+            { name: 'referenceEntries', label: 'References', required: false },
+            { name: 'professionalLinks', label: 'Professional Links', required: false }
+        ];
+
+        function checkLoginStatus() {
+            const status = document.getElementById('loginStatus');
+            const data = document.getElementById('loginData');
+            
+            const token = localStorage.getItem('token');
+            const userEmail = localStorage.getItem('email') || localStorage.getItem('userEmail');
+            const userFirstName = localStorage.getItem('firstName') || localStorage.getItem('userFirstName');
+            const userLastName = localStorage.getItem('lastName') || localStorage.getItem('userLastName');
+            
+            const isLoggedIn = !!token;
+            const isDhruvPatel = userEmail === testUser.email || 
+                                (userFirstName === testUser.firstName && userLastName === testUser.lastName);
+            
+            if (isLoggedIn && isDhruvPatel) {
+                status.innerHTML = '<div class="status success">✅ Logged in as Dhruv Patel</div>';
+            } else if (isLoggedIn) {
+                status.innerHTML = '<div class="status warning">⚠️ Logged in as different user</div>';
+            } else {
+                status.innerHTML = '<div class="status error">❌ Not logged in</div>';
+            }
+            
+            const loginData = {
+                token: token ? 'Present' : 'Missing',
+                email: userEmail || 'Not found',
+                firstName: userFirstName || 'Not found',
+                lastName: userLastName || 'Not found',
+                isDhruvPatel: isDhruvPatel
+            };
+            
+            data.textContent = JSON.stringify(loginData, null, 2);
+        }
+
+        function checkUserData() {
+            const status = document.getElementById('userDataStatus');
+            const data = document.getElementById('userDataDisplay');
+            
+            const userData = {
+                token: localStorage.getItem('token'),
+                email: localStorage.getItem('email') || localStorage.getItem('userEmail'),
+                firstName: localStorage.getItem('firstName') || localStorage.getItem('userFirstName'),
+                lastName: localStorage.getItem('lastName') || localStorage.getItem('userLastName'),
+                phone: localStorage.getItem('phone') || localStorage.getItem('userPhone'),
+                role: localStorage.getItem('role'),
+                userId: localStorage.getItem('userId')
+            };
+            
+            const hasCompleteData = userData.email && userData.firstName && userData.lastName;
+            
+            if (hasCompleteData) {
+                status.innerHTML = '<div class="status success">✅ Complete user data found</div>';
+            } else {
+                status.innerHTML = '<div class="status warning">⚠️ Incomplete user data</div>';
+            }
+            
+            data.textContent = JSON.stringify(userData, null, 2);
+        }
+
+        function checkFormData() {
+            const status = document.getElementById('formDataStatus');
+            const data = document.getElementById('formDataDisplay');
+            
+            // Check for auto-save data
+            const autoSaveKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('jobseeker_registration_')) {
+                    autoSaveKeys.push(key);
+                }
+            }
+            
+            let formData = {};
+            if (autoSaveKeys.length > 0) {
+                try {
+                    formData = JSON.parse(localStorage.getItem(autoSaveKeys[0]));
+                    status.innerHTML = '<div class="status success">✅ Form data found in auto-save</div>';
+                } catch (e) {
+                    status.innerHTML = '<div class="status warning">⚠️ Form data found but could not parse</div>';
+                }
+            } else {
+                status.innerHTML = '<div class="status warning">⚠️ No form data found in auto-save</div>';
+            }
+            
+            data.textContent = JSON.stringify(formData, null, 2);
+        }
+
+        function checkAutoSaveData() {
+            const status = document.getElementById('autosaveStatus');
+            const data = document.getElementById('autosaveDisplay');
+            
+            const autoSaveKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('jobseeker_registration_')) {
+                    autoSaveKeys.push(key);
+                }
+            }
+            
+            if (autoSaveKeys.length > 0) {
+                status.innerHTML = `<div class="status success">✅ ${autoSaveKeys.length} auto-save entries found</div>`;
+                const autoSaveData = {};
+                autoSaveKeys.forEach(key => {
+                    try {
+                        autoSaveData[key] = JSON.parse(localStorage.getItem(key));
+                    } catch (e) {
+                        autoSaveData[key] = localStorage.getItem(key);
+                    }
+                });
+                data.textContent = JSON.stringify(autoSaveData, null, 2);
+            } else {
+                status.innerHTML = '<div class="status warning">⚠️ No auto-save data found</div>';
+                data.textContent = 'No auto-save data available. Fill out the registration form to see auto-save data.';
+            }
+        }
+
+        async function testProfileAPI() {
+            const response = document.getElementById('apiResponse');
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                response.textContent = 'No token found. Please login first.';
+                return;
+            }
+            
+            try {
+                const apiResponse = await fetch('/api/jobseeker/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (apiResponse.ok) {
+                    const data = await apiResponse.json();
+                    response.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    response.textContent = `API Error: ${apiResponse.status} - ${apiResponse.statusText}`;
+                }
+            } catch (error) {
+                response.textContent = `Network Error: ${error.message}`;
+            }
+        }
+
+        function displayDashboardFields() {
+            const container = document.getElementById('dashboardFieldsGrid');
+            container.innerHTML = dashboardFields.map(field => `
+                <div class="field-item">
+                    <div class="field-name">${field.label} ${field.required ? '*' : ''}</div>
+                    <div class="field-value">${field.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function analyzeMissingFields() {
+            const status = document.getElementById('missingFieldsStatus');
+            const container = document.getElementById('missingFieldsGrid');
+            
+            // Check which form fields are missing from dashboard
+            const dashboardFieldNames = dashboardFields.map(f => f.name);
+            const missingFields = expectedFormFields.filter(fieldName => 
+                !dashboardFieldNames.includes(fieldName)
+            );
+            
+            if (missingFields.length > 0) {
+                status.innerHTML = `<div class="status warning">⚠️ ${missingFields.length} fields missing in dashboard</div>`;
+                container.innerHTML = missingFields.map(fieldName => `
+                    <div class="field-item missing-field">
+                        <div class="field-name">${fieldName}</div>
+                        <div class="field-value">Not displayed in dashboard</div>
+                    </div>
+                `).join('');
+            } else {
+                status.innerHTML = '<div class="status success">✅ All form fields are represented in dashboard</div>';
+                container.innerHTML = '<div class="status info">No missing fields found</div>';
+            }
+        }
+
+        function generateActionItems() {
+            const container = document.getElementById('actionItems');
+            
+            const actions = [
+                '1. Add missing form fields to dashboard My Profile page',
+                '2. Implement proper data fetching from backend API',
+                '3. Replace hardcoded values with actual form data',
+                '4. Add edit functionality for all profile fields',
+                '5. Ensure data persistence after form submission',
+                '6. Add validation for required fields display',
+                '7. Implement proper error handling for missing data'
+            ];
+            
+            container.innerHTML = actions.map(action => 
+                `<div class="status info">${action}</div>`
+            ).join('');
+        }
+
+        function refreshAllData() {
+            checkLoginStatus();
+            checkUserData();
+            checkFormData();
+            checkAutoSaveData();
+            displayDashboardFields();
+            analyzeMissingFields();
+            generateActionItems();
+            updateDebugConsole();
+        }
+
+        function testLogin() {
+            alert('Please login with:\nEmail: dhruvpatel771@gmail.com\nPassword: Dhruv@123\n\nThen refresh this page.');
+        }
+
+        function testFormData() {
+            alert('Please navigate to the Job Seeker Registration Form, fill it out completely, and submit it. Then refresh this page.');
+        }
+
+        function testDashboard() {
+            alert('Please navigate to Job Seeker Dashboard → My Profile and check if all form data is displayed correctly.');
+        }
+
+        function generateReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                testUser: testUser,
+                loginStatus: {
+                    token: !!localStorage.getItem('token'),
+                    email: localStorage.getItem('email'),
+                    firstName: localStorage.getItem('firstName'),
+                    lastName: localStorage.getItem('lastName')
+                },
+                formFields: {
+                    expected: expectedFormFields.length,
+                    dashboard: dashboardFields.length,
+                    missing: expectedFormFields.filter(f => !dashboardFields.map(d => d.name).includes(f)).length
+                },
+                localStorage: {
+                    totalKeys: Object.keys(localStorage).length,
+                    autoSaveKeys: Object.keys(localStorage).filter(k => k.includes('jobseeker_registration_')).length
+                }
+            };
+            
+            console.log('Dhruv Patel Test Report:', report);
+            alert('Test report generated! Check the browser console for details.');
+        }
+
+        function updateDebugConsole() {
+            const console = document.getElementById('debugConsole');
+            const debugInfo = {
+                timestamp: new Date().toLocaleString(),
+                testUser: testUser,
+                localStorage: {
+                    token: localStorage.getItem('token') ? 'Present' : 'Missing',
+                    email: localStorage.getItem('email'),
+                    firstName: localStorage.getItem('firstName'),
+                    lastName: localStorage.getItem('lastName'),
+                    phone: localStorage.getItem('phone'),
+                    totalKeys: Object.keys(localStorage).length
+                },
+                autoSaveData: Object.keys(localStorage).filter(k => k.includes('jobseeker_registration_')),
+                userAgent: navigator.userAgent
+            };
+            
+            console.textContent = JSON.stringify(debugInfo, null, 2);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshAllData();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(() => {
+                checkLoginStatus();
+                checkUserData();
+                checkFormData();
+                checkAutoSaveData();
+                updateDebugConsole();
+            }, 10000);
+        });
+    </script>
+</body>
+</html>

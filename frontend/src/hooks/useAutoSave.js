@@ -129,12 +129,18 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     }
   }, [storageKey, initialData]);
 
-  // Update form data function
-  const updateFormData = useCallback((updates) => {
-    setFormData(prevData => ({
-      ...prevData,
-      ...updates
-    }));
+  // Update form data function that supports both patterns
+  const updateFormData = useCallback((updatesOrFunction) => {
+    if (typeof updatesOrFunction === 'function') {
+      // Support updater function pattern: setFormData(prev => ({...prev, ...updates}))
+      setFormData(updatesOrFunction);
+    } else {
+      // Support object pattern: setFormData({field: value})
+      setFormData(prevData => ({
+        ...prevData,
+        ...updatesOrFunction
+      }));
+    }
   }, []);
 
   return {

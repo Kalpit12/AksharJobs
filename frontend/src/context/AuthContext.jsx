@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }) => {
     const email = localStorage.getItem('userEmail') || localStorage.getItem('email');
     const firstName = localStorage.getItem('userFirstName') || localStorage.getItem('firstName');
     const lastName = localStorage.getItem('userLastName') || localStorage.getItem('lastName');
+    const phone = localStorage.getItem('userPhone') || localStorage.getItem('phone');
     const userType = localStorage.getItem('userType');
 
     console.log('🔐 AuthContext - localStorage values:', {
@@ -63,6 +64,7 @@ export const AuthProvider = ({ children }) => {
       email: email || 'NULL',
       firstName: firstName || 'NULL',
       lastName: lastName || 'NULL',
+      phone: phone || 'NULL',
       userType: userType || 'NULL'
     });
 
@@ -73,6 +75,7 @@ export const AuthProvider = ({ children }) => {
       const validEmail = email && email !== 'undefined' ? email : '';
       const validFirstName = firstName && firstName !== 'undefined' ? firstName : '';
       const validLastName = lastName && lastName !== 'undefined' ? lastName : '';
+      const validPhone = phone && phone !== 'undefined' ? phone : '';
       
       setUser({
         token,
@@ -81,6 +84,7 @@ export const AuthProvider = ({ children }) => {
         email: validEmail,
         firstName: validFirstName,
         lastName: validLastName,
+        phone: validPhone,
         userType: userType || normalizedRole
       });
       setIsAuthenticated(true);
@@ -99,7 +103,122 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, [navigate]);
 
-  const login = (userData, shouldNavigate = true, intendedDestination = null) => {
+  const login = async (email, password, shouldNavigate = true, intendedDestination = null) => {
+    console.log('🔐 AuthContext login() called with:', { email, password, shouldNavigate, intendedDestination });
+    
+    try {
+      const response = await fetch(`${buildApiUrl('/api/auth/login')}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Login failed');
+      }
+
+      const userData = await response.json();
+      console.log('🔐 AuthContext - Login successful:', userData);
+      
+      // Continue with existing login logic
+      const { token, role, userId, firstName, lastName, phone, ...otherData } = userData;
+      const normalizedRole = normalizeRole(role);
+      
+      // Validate and clean user data before storing
+      const validEmail = email && email !== 'undefined' ? email : '';
+      const validFirstName = firstName && firstName !== 'undefined' ? firstName : '';
+      const validLastName = lastName && lastName !== 'undefined' ? lastName : '';
+      const validPhone = phone && phone !== 'undefined' ? phone : '';
+      
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', normalizedRole);
+      localStorage.setItem('userId', userId);
+      localStorage.setItem('userEmail', validEmail);
+      localStorage.setItem('userFirstName', validFirstName);
+      localStorage.setItem('userLastName', validLastName);
+      localStorage.setItem('userPhone', validPhone);
+      localStorage.setItem('email', validEmail);
+      localStorage.setItem('firstName', validFirstName);
+      localStorage.setItem('lastName', validLastName);
+      localStorage.setItem('phone', validPhone);
+      
+      // Store userType if available
+      if (otherData.userType) {
+        localStorage.setItem('userType', otherData.userType);
+      }
+      
+      setUser({ token, role: normalizedRole, userId, email: validEmail, firstName: validFirstName, lastName: validLastName, phone: validPhone, ...otherData });
+      setIsAuthenticated(true);
+      
+      console.log('🔐 AuthContext - User logged in via login() function:', { 
+        role: normalizedRole, 
+        userId, 
+        shouldNavigate, 
+        intendedDestination, 
+        profileCompleted: otherData.profileCompleted,
+        bulkImported: otherData.bulkImported,
+        allData: otherData
+      });
+      
+      // Only redirect if shouldNavigate is true (default behavior)
+      if (shouldNavigate) {
+        // Check for intended destination first (from ProtectedRoute)
+        const storedIntendedDestination = sessionStorage.getItem('intendedDestination');
+        const targetDestination = intendedDestination || storedIntendedDestination;
+        
+        if (targetDestination && targetDestination !== '/login') {
+          console.log('🔐 AuthContext - Redirecting to intended destination:', targetDestination);
+          sessionStorage.removeItem('intendedDestination'); // Clean up
+          navigate(targetDestination);
+          return;
+        }
+        
+        // Interns go directly to their dashboard (no separate registration form needed)
+        if (normalizedRole === 'intern') {
+          console.log('🔐 AuthContext - Intern user, redirecting to intern dashboard');
+          navigate('/intern-dashboard');
+          return;
+        }
+        
+        // Default dashboard redirect - check profile completion first
+        console.log('🔐 AuthContext - Navigating to dashboard for role:', normalizedRole);
+        console.log('🔐 AuthContext - Profile completed status:', otherData.profileCompleted);
+        
+        if (normalizedRole === 'admin') {
+          navigate('/admin');
+        } else if (normalizedRole === 'recruiter') {
+          // Check if recruiter has completed profile
+          if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
+            console.log('🔐 AuthContext - Recruiter profile incomplete, redirecting to registration');
+            navigate('/recruiter-registration');
+          } else {
+            navigate('/recruiter-dashboard');
+          }
+        } else if (normalizedRole === 'jobSeeker') {
+          // Check if job seeker has completed profile
+          if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
+            console.log('🔐 AuthContext - Job seeker profile incomplete, redirecting to registration');
+            navigate('/jobseeker-registration');
+          } else {
+            navigate('/jobseeker-dashboard');
+          }
+        } else {
+          // Default to job seeker dashboard
+          navigate('/jobseeker-dashboard');
+        }
+      }
+      
+      return userData;
+    } catch (error) {
+      console.error('🔐 AuthContext - Login error:', error);
+      throw error;
+    }
+  };
+
+  const loginWithUserData = (userData, shouldNavigate = true, intendedDestination = null) => {
     console.log('🔐 AuthContext login() called with:', { userData, shouldNavigate, intendedDestination });
     console.trace('🔐 Login function call stack:');
     
@@ -193,7 +312,8 @@ export const AuthProvider = ({ children }) => {
     
     // Clear all authentication-related localStorage items
     const authKeys = [
-      'token', 'role', 'userId', 'userEmail', 'userFirstName', 'userLastName',
+      'token', 'role', 'userId', 'userEmail', 'userFirstName', 'userLastName', 'userPhone',
+      'email', 'firstName', 'lastName', 'phone',
       'user', 'authToken', 'userRole', 'currentUser', 'userData'
     ];
     
@@ -242,6 +362,41 @@ export const AuthProvider = ({ children }) => {
     navigate('/');
   };
 
+  const signup = async (userData) => {
+    console.log('🔐 AuthContext signup() called with:', userData);
+    
+    try {
+      const response = await fetch(`${buildApiUrl('/api/auth/signup')}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Signup failed');
+      }
+
+      const data = await response.json();
+      console.log('🔐 AuthContext - Signup successful:', data);
+      
+      // Auto-login after successful signup
+      if (data.token) {
+        loginWithUserData(data, true);
+      } else {
+        // If no token returned, redirect to login
+        navigate('/login');
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('🔐 AuthContext - Signup error:', error);
+      throw error;
+    }
+  };
+
   const updateUser = (userData) => {
     setUser(prev => ({ ...prev, ...userData }));
   };
@@ -265,6 +420,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated,
     login,
+    signup,
     logout,
     forceLogout,
     updateUser,

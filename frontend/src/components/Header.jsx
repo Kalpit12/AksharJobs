@@ -29,7 +29,7 @@ import { useNotifications } from '../context/NotificationContext';
 import NetworkStatus from './NetworkStatus';
 import ModernProfileDropdown from './ModernProfileDropdown';
 import '../styles/Header.css';
-import akLogo from '../assets/FINAL AKLOGO.jpg';
+import akLogo from '../assets/FINAL LOGO AK.png';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -337,10 +337,10 @@ const Header = () => {
             /* Unauthenticated User Actions */
             <div className="auth-actions">
               <Link to="/login" className="auth-button login-btn">
-                Login
+                SIGN IN
               </Link>
               <Link to="/signup" className="auth-button signup-btn">
-                Sign Up
+                GET STARTED
               </Link>
             </div>
           )}
@@ -426,11 +426,11 @@ const Header = () => {
               <div className="mobile-menu-links">
                 <Link to="/login" className="mobile-menu-link" onClick={closeMobileMenu}>
                   <FontAwesomeIcon icon={faUser} />
-                  Login
+                  SIGN IN
                 </Link>
                 <Link to="/signup" className="mobile-menu-link" onClick={closeMobileMenu}>
                   <FontAwesomeIcon icon={faUser} />
-                  Sign Up
+                  GET STARTED
                 </Link>
               </div>
             </div>

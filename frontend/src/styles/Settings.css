@@ -2,8 +2,8 @@
 
 /* CSS Variables for consistent theming - Updated to match image */
 :root {
-  --primary-gradient: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-  --secondary-gradient: linear-gradient(135deg, #c084fc 0%, #d946ef 100%);
+  --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  --secondary-gradient: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
   --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   --verified-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
   --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
@@ -16,8 +16,8 @@
   --text-muted: #6b7280;
   --background-primary: #ffffff;
   --background-secondary: #f9fafb;
-  --accent-purple: #8b5cf6;
-  --accent-purple-light: #a855f7;
+  --accent-purple: #3b82f6;
+  --accent-purple-light: #60a5fa;
 }
 
 /* Enhanced font visibility and contrast */
@@ -54,7 +54,7 @@
   width: 320px;
   background: var(--background-primary);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(139, 92, 246, 0.1);
+  border-right: 1px solid rgba(59, 130, 246, 0.1);
   box-shadow: var(--card-shadow);
   position: sticky;
   top: 0;
@@ -176,20 +176,20 @@
 }
 
 .nav-item:hover {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(168, 85, 247, 0.1));
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(96, 165, 250, 0.1));
   color: var(--text-primary);
   transform: translateX(5px);
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
   color: white;
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
   transform: translateX(5px);
 }
 
 .nav-item.active:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   color: white;
 }
 
@@ -234,7 +234,7 @@
   padding: 35px;
   margin-bottom: 30px;
   box-shadow: var(--card-shadow);
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.1);
   transition: var(--transition-smooth);
   position: relative;
   overflow: hidden;
@@ -293,7 +293,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 0;
-  border-bottom: 1px solid rgba(139, 92, 246, 0.1);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.1);
   transition: var(--transition-smooth);
   cursor: pointer;
   position: relative;
@@ -311,7 +311,7 @@
   right: -35px;
   top: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(168, 85, 247, 0.05));
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(96, 165, 250, 0.05));
   border-radius: 12px;
   opacity: 0;
   transition: var(--transition-smooth);
@@ -372,13 +372,13 @@
   font-size: 0.95rem;
   font-weight: 600;
   padding: 8px 12px;
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(59, 130, 246, 0.1);
   border-radius: 8px;
   transition: var(--transition-smooth);
 }
 
 .setting-item:hover .setting-value {
-  background: rgba(139, 92, 246, 0.2);
+  background: rgba(59, 130, 246, 0.2);
   color: var(--accent-purple);
 }
 
@@ -407,7 +407,7 @@
 
 .setting-arrow:hover {
   color: var(--accent-purple);
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(59, 130, 246, 0.1);
   transform: translateX(3px) scale(1.1);
 }
 
@@ -424,9 +424,9 @@
 }
 
 .verify-btn:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
 
 .verify-btn:active {
@@ -562,7 +562,7 @@
 }
 
 .settings-sidebar::-webkit-scrollbar-track {
-  background: rgba(139, 92, 246, 0.1);
+  background: rgba(59, 130, 246, 0.1);
   border-radius: 4px;
 }
 
@@ -572,7 +572,7 @@
 }
 
 .settings-sidebar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 /* Responsive Design */

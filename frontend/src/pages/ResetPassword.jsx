@@ -220,7 +220,7 @@ const ResetPassword = () => {
         <div className="header-container">
           <div className="logo-section">
             <div className="logo-icon">
-              <img src="/AK_logo.jpg" alt="AksharJobs Logo" />
+              <img src="/AK_logo.png" alt="AksharJobs Logo" />
             </div>
             <div className="logo-text">
               <div className="logo-title">AksharJobs</div>

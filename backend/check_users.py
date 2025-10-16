@@ -1,51 +1,47 @@
 #!/usr/bin/env python3
-"""
-Check users in database
-"""
-
-from utils.db import get_db
+import pymongo
+from config import MONGO_URI, DB_NAME
 
 def check_users():
-    """Check users in database"""
     try:
-        print("🔍 Checking users in database...")
+        # Connect to MongoDB
+        client = pymongo.MongoClient(MONGO_URI)
+        db = client[DB_NAME]
+        users_collection = db.users
         
-        # Get database connection
-        db = get_db()
-        if db is None:
-            print("❌ Failed to connect to database")
-            return
-            
-        users = db["users"]
+        # Get all users
+        users = list(users_collection.find({}, {
+            '_id': 1, 
+            'email': 1, 
+            'firstName': 1, 
+            'lastName': 1, 
+            'role': 1, 
+            'userType': 1, 
+            'profileCompleted': 1,
+            'createdAt': 1
+        }))
         
-        # Find users with email containing "kalpit"
-        users_with_kalpit = list(users.find({"email": {"$regex": "kalpit", "$options": "i"}}))
+        print(f'📊 Total users in database: {len(users)}')
+        print('=' * 60)
         
-        print(f"📊 Found {len(users_with_kalpit)} users with 'kalpit' in email:")
+        if len(users) == 0:
+            print('❌ No users found in the database.')
+            print('💡 You can create new users by signing up at http://localhost:3003/signup')
+        else:
+            for i, user in enumerate(users, 1):
+                print(f'{i}. Email: {user.get("email", "N/A")}')
+                print(f'   Name: {user.get("firstName", "")} {user.get("lastName", "")}')
+                print(f'   Role: {user.get("role", user.get("userType", "N/A"))}')
+                print(f'   Profile Completed: {user.get("profileCompleted", False)}')
+                print(f'   User ID: {user.get("_id")}')
+                print(f'   Created: {user.get("createdAt", "N/A")}')
+                print('-' * 40)
         
-        for user in users_with_kalpit:
-            print(f"  📧 Email: {user['email']}")
-            print(f"  🆔 ID: {str(user['_id'])}")
-            print(f"  👤 Name: {user.get('firstName', '')} {user.get('lastName', '')}")
-            print(f"  🏷️ Type: {user.get('userType', 'Unknown')}")
-            print(f"  📅 Created: {user.get('createdAt', 'Unknown')}")
-            print("  ---")
-            
-        # Also check total user count
-        total_users = users.count_documents({})
-        print(f"\n📊 Total users in database: {total_users}")
+        client.close()
         
-        # Show recent users
-        recent_users = list(users.find({}).sort("createdAt", -1).limit(5))
-        print(f"\n📅 Recent 5 users:")
-        
-        for user in recent_users:
-            print(f"  📧 {user['email']} - {user.get('firstName', '')} {user.get('lastName', '')}")
-            
     except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(f'❌ Error connecting to MongoDB: {e}')
+        print('🔧 Make sure MongoDB is running and the connection string is correct.')
 
 if __name__ == "__main__":
     check_users()

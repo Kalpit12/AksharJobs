@@ -10,7 +10,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faTwitter, faFacebook, faInstagram } from '@fortawesome/free-brands-svg-icons';
 import '../styles/Footer.css';
-import akLogo from '../assets/FINAL AKLOGO.jpg';
+import akLogo from '../assets/FINAL LOGO AK.png';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();

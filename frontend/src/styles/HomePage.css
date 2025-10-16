@@ -106,14 +106,14 @@ nav a:hover {
 }
 
 .btn-secondary {
-    background: transparent;
-    color: #C3B1E1;
-    border: 2px solid white;
+    background: transparent !important;
+    color: white !important;
+    border: 2px solid white !important;
 }
 
 .btn-secondary:hover {
     background: white;
-    color: #8A6AEB;
+    color: #4FC3F7;
 }
 
 .btn:hover {
@@ -238,21 +238,48 @@ nav a:hover {
     padding: 4rem 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    text-align: center;
 }
 
-.section-title {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-    color: #333;
+/* Homepage-specific section titles - unique selectors to avoid conflicts */
+.categories h2.section-title {
+    text-align: center !important;
+    font-size: 2.5rem !important;
+    margin-bottom: 1rem !important;
+    color: #333 !important;
+    width: 100% !important;
+    display: block !important;
+    font-weight: bold !important;
 }
 
-.section-subtitle {
-    text-align: center;
-    color: #666;
-    margin-bottom: 3rem;
-    font-size: 1.1rem;
+.featured-jobs h2.section-title {
+    text-align: center !important;
+    font-size: 2.5rem !important;
+    margin-bottom: 1rem !important;
+    color: #333 !important;
+    width: 100% !important;
+    display: block !important;
+    font-weight: bold !important;
 }
+
+.categories p.section-subtitle {
+    text-align: center !important;
+    color: #666 !important;
+    margin-bottom: 3rem !important;
+    font-size: 1.1rem !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+.featured-jobs p.section-subtitle {
+    text-align: center !important;
+    color: #666 !important;
+    margin-bottom: 3rem !important;
+    font-size: 1.1rem !important;
+    width: 100% !important;
+    display: block !important;
+}
+
 
 .category-grid {
     display: grid;
@@ -324,15 +351,18 @@ nav a:hover {
 .featured-jobs {
     background: #f8f9fa;
     padding: 4rem 2rem;
+    text-align: center;
 }
 
 .jobs-container {
     max-width: 1200px;
     margin: 0 auto;
+    text-align: center;
 }
 
+
 .job-card {
-    background: white;
+    background: white !important;
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -413,7 +443,7 @@ nav a:hover {
 
 /* CTA Section */
 .homepage .cta-section {
-    background: linear-gradient(135deg, #6A8EEB 0%, #8A6AEB 100%) !important;
+    background: linear-gradient(135deg, #4FC3F7 0%, #66BB6A 50%, #FFB74D 100%) !important;
     color: white !important;
     padding: 4rem 2rem !important;
     text-align: center !important;
@@ -436,6 +466,12 @@ nav a:hover {
     margin-bottom: 2rem !important;
     opacity: 0.95 !important;
     color: white !important;
+}
+
+.homepage .cta-section .btn-secondary {
+    background: transparent !important;
+    color: white !important;
+    border: 2px solid white !important;
 }
 
 .btn-large {

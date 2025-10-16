@@ -2114,7 +2114,7 @@ section {
   top: -15px;
   left: 50%;
   transform: translateX(-50%);
-  background: linear-gradient(135deg, var(--primary-500), var(--accent-purple));
+  background: linear-gradient(135deg, var(--primary-500), #3b82f6);
   color: white;
   width: 30px;
   height: 30px;
@@ -2323,7 +2323,7 @@ section {
 .testimonial_avatar {
   width: 88px;
   height: 88px;
-  background: linear-gradient(135deg, var(--primary-500), var(--accent-purple));
+  background: linear-gradient(135deg, var(--primary-500), #3b82f6);
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
@@ -3063,7 +3063,7 @@ section {
   bottom: 0;
   background: 
     radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 80% 80%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -3083,7 +3083,7 @@ section {
 .programs_title {
   font-size: 3rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -3126,7 +3126,7 @@ section {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+  background: linear-gradient(90deg, #3b82f6, #60a5fa, #3b82f6);
   opacity: 0;
   transition: opacity 0.3s ease;
 }

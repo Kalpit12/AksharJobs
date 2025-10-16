@@ -5,51 +5,27 @@ const QuickActionsWidget = ({ onPostJob, onViewCandidates, onScheduleInterview, 
   const actions = [
     {
       id: 1,
-      icon: '➕',
-      title: 'Post New Job',
-      description: 'Create a new job posting',
-      color: '#667eea',
+      icon: '🔍',
+      title: 'BROWSE JOBS',
+      description: 'Search and apply for jobs',
+      color: '#ff8c42',
       onClick: onPostJob
     },
     {
       id: 2,
-      icon: '👥',
-      title: 'Browse Candidates',
-      description: 'View candidate profiles',
-      color: '#f093fb',
+      icon: '📄',
+      title: 'UPDATE RESUME',
+      description: 'Edit your resume',
+      color: '#20b2aa',
       onClick: onViewCandidates
     },
     {
       id: 3,
-      icon: '📅',
-      title: 'Schedule Interview',
-      description: 'Set up interviews',
-      color: '#4facfe',
+      icon: '✏️',
+      title: 'EDIT PROFILE',
+      description: 'Update your profile',
+      color: '#ff8c42',
       onClick: onScheduleInterview
-    },
-    {
-      id: 4,
-      icon: '📊',
-      title: 'View Analytics',
-      description: 'Check your metrics',
-      color: '#43e97b',
-      onClick: onViewAnalytics
-    },
-    {
-      id: 5,
-      icon: '💬',
-      title: 'AI Assistant',
-      description: 'Get AI help',
-      color: '#fa709a',
-      onClick: () => console.log('AI Assistant')
-    },
-    {
-      id: 6,
-      icon: '⚡',
-      title: 'Bulk Actions',
-      description: 'Process multiple items',
-      color: '#feca57',
-      onClick: () => console.log('Bulk Actions')
     }
   ];
 

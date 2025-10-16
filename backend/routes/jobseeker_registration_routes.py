@@ -361,11 +361,90 @@ def get_comprehensive_profile():
         if not profile:
             return jsonify({"error": "Profile not found"}), 404
         
-        # Convert ObjectId to string for JSON serialization
-        profile['_id'] = str(profile['_id'])
-        profile['userId'] = str(profile['userId'])
+        # Flatten the nested structure for frontend compatibility
+        flattened_profile = {
+            # Personal Information
+            'firstName': profile.get('personalInfo', {}).get('firstName'),
+            'middleName': profile.get('personalInfo', {}).get('middleName'),
+            'lastName': profile.get('personalInfo', {}).get('lastName'),
+            'email': profile.get('personalInfo', {}).get('email'),
+            'phone': profile.get('personalInfo', {}).get('phone'),
+            'altPhone': profile.get('personalInfo', {}).get('altPhone'),
+            'dateOfBirth': profile.get('personalInfo', {}).get('dateOfBirth'),
+            'gender': profile.get('personalInfo', {}).get('gender'),
+            'community': profile.get('personalInfo', {}).get('community'),
+            
+            # Nationality & Residency
+            'nationality': profile.get('nationalityResidency', {}).get('nationality'),
+            'residentCountry': profile.get('nationalityResidency', {}).get('residentCountry'),
+            'currentCity': profile.get('nationalityResidency', {}).get('currentCity'),
+            'postalCode': profile.get('nationalityResidency', {}).get('postalCode'),
+            'address': profile.get('nationalityResidency', {}).get('address'),
+            'latitude': profile.get('nationalityResidency', {}).get('latitude'),
+            'longitude': profile.get('nationalityResidency', {}).get('longitude'),
+            'workPermit': profile.get('nationalityResidency', {}).get('workPermit'),
+            
+            # Preferred Locations
+            'preferredLocation1': profile.get('preferredLocations', {}).get('preferredLocation1'),
+            'preferredLocation2': profile.get('preferredLocations', {}).get('preferredLocation2'),
+            'preferredLocation3': profile.get('preferredLocations', {}).get('preferredLocation3'),
+            'willingToRelocate': profile.get('preferredLocations', {}).get('willingToRelocate'),
+            'workLocation': profile.get('preferredLocations', {}).get('workLocation'),
+            
+            # Professional Profile
+            'professionalTitle': profile.get('professionalProfile', {}).get('professionalTitle'),
+            'yearsOfExperience': profile.get('professionalProfile', {}).get('yearsExperience'),
+            'careerLevel': profile.get('professionalProfile', {}).get('careerLevel'),
+            'industry': profile.get('professionalProfile', {}).get('industry'),
+            'professionalSummary': profile.get('professionalProfile', {}).get('summary'),
+            
+            # Skills
+            'coreSkills': profile.get('skillsInfo', {}).get('coreSkills', []),
+            'tools': profile.get('skillsInfo', {}).get('tools', []),
+            
+            # Arrays
+            'languages': profile.get('languages', []),
+            'experienceEntries': profile.get('experienceEntries', []),
+            'educationEntries': profile.get('educationEntries', []),
+            'certificationEntries': profile.get('certificationEntries', []),
+            'referenceEntries': profile.get('referenceEntries', []),
+            'professionalLinks': profile.get('professionalLinks', []),
+            
+            # Job Preferences
+            'jobType': profile.get('jobPreferences', {}).get('jobType'),
+            'jobTypePreference': profile.get('jobPreferences', {}).get('jobType'),
+            'noticePeriod': profile.get('jobPreferences', {}).get('noticePeriod'),
+            'availability': profile.get('jobPreferences', {}).get('noticePeriod'),
+            'currentSalary': profile.get('jobPreferences', {}).get('currentSalary'),
+            'expectedSalary': profile.get('jobPreferences', {}).get('expectedSalary'),
+            'salaryCurrency': profile.get('jobPreferences', {}).get('currencyPreference'),
+            'currencyPreference': profile.get('jobPreferences', {}).get('currencyPreference'),
+            'travelAvailability': profile.get('jobPreferences', {}).get('travelAvailability'),
+            
+            # Memberships
+            'membershipOrg': profile.get('memberships', {}).get('membershipOrg'),
+            'membershipType': profile.get('memberships', {}).get('membershipType'),
+            'membershipDate': profile.get('memberships', {}).get('membershipDate'),
+            
+            # Additional Info
+            'askCommunity': profile.get('additionalInfo', {}).get('askCommunity'),
+            'hobbies': profile.get('additionalInfo', {}).get('hobbies'),
+            'additionalComments': profile.get('additionalInfo', {}).get('additionalComments'),
+            'agreeTerms': profile.get('additionalInfo', {}).get('agreeTerms'),
+            'allowContact': profile.get('additionalInfo', {}).get('allowContact'),
+            
+            # File paths
+            'profilePhotoPath': profile.get('profilePhotoPath'),
+            'resumePath': profile.get('resumePath'),
+            
+            # Metadata
+            '_id': str(profile.get('_id')),
+            'userId': str(profile.get('userId')),
+            'createdAt': profile.get('createdAt'),
+            'updatedAt': profile.get('updatedAt')
+        }
         
-        return jsonify(profile), 200
+        return jsonify(flattened_profile), 200
         
     except Exception as e:
         print(f"Error getting comprehensive profile: {e}")

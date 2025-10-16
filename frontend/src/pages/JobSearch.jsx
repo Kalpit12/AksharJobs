@@ -33,7 +33,6 @@ import {
   faUsers
 } from '@fortawesome/free-solid-svg-icons';
 import axios from "axios";
-import "../styles/JobSearch.css";
 import { useAuth } from '../context/AuthContext';
 import { buildApiUrl } from '../config/api';
 import { formatSalary, getUserCountry } from '../utils/currencyUtils';

@@ -327,7 +327,7 @@ const RecruiterRegistrationForm = () => {
         <div className="header-container">
           <div className="logo-section" onClick={navigateToDashboard} style={{ cursor: 'pointer' }}>
             <div className="logo-icon">
-              <img src="/logo.png" alt="AksharJobs" />
+              <img src="/AK_logo.png" alt="AksharJobs" />
             </div>
             <div className="logo-text">
               <h3 className="logo-title">AksharJobs</h3>

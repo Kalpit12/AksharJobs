@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Phone Number Verification - Dhruv Patel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .phone-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .phone-number {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin: 10px 0;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Phone Number Verification</h1>
+        <p class="subtitle">Verify phone number display for user: Dhruv Patel</p>
+
+        <!-- Current User Display -->
+        <div class="section">
+            <h2><span class="icon">👤</span> Current User Information</h2>
+            <div id="currentUserInfo">
+                <div class="info-row">
+                    <span class="label">Status:</span>
+                    <span class="value" id="loginStatus">Checking...</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">First Name:</span>
+                    <span class="value" id="firstName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Last Name:</span>
+                    <span class="value" id="lastName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Email:</span>
+                    <span class="value" id="email">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Number Display -->
+        <div class="phone-display" id="phoneDisplay">
+            <p style="margin-bottom: 5px; opacity: 0.9; font-size: 14px;">Phone Number</p>
+            <div class="phone-number" id="phoneNumber">Loading...</div>
+            <p style="margin-top: 10px; opacity: 0.8; font-size: 13px;" id="phoneSource">Source: localStorage</p>
+        </div>
+
+        <!-- localStorage Data -->
+        <div class="section">
+            <h2><span class="icon">💾</span> localStorage Data</h2>
+            <div class="info-row">
+                <span class="label">phone:</span>
+                <span class="value" id="localStoragePhone">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">userPhone:</span>
+                <span class="value" id="localStorageUserPhone">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">firstName:</span>
+                <span class="value" id="localStorageFirstName">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">lastName:</span>
+                <span class="value" id="localStorageLastName">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">email:</span>
+                <span class="value" id="localStorageEmail">-</span>
+            </div>
+        </div>
+
+        <!-- Verification Status -->
+        <div class="section">
+            <h2><span class="icon">✅</span> Verification Status</h2>
+            <div id="verificationResults"></div>
+        </div>
+
+        <!-- Actions -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="refreshData()">🔄 Refresh Data</button>
+            <button onclick="testPhoneDisplay()">🧪 Test Display</button>
+            <button onclick="copyToClipboard()">📋 Copy Phone</button>
+        </div>
+
+        <!-- Debug Console -->
+        <div class="section">
+            <h2><span class="icon">🔍</span> Debug Console</h2>
+            <div class="code-block" id="debugConsole">
+                Waiting for data...
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="alert info">
+            <strong>ℹ️ Instructions:</strong><br>
+            1. Make sure user "Dhruv Patel" is logged in<br>
+            2. This page will display all phone number data sources<br>
+            3. Click "Refresh Data" to reload information<br>
+            4. Check if phone number matches the one entered during signup
+        </div>
+    </div>
+
+    <script>
+        // Function to get data from localStorage
+        function getLocalStorageData() {
+            return {
+                token: localStorage.getItem('token'),
+                phone: localStorage.getItem('phone'),
+                userPhone: localStorage.getItem('userPhone'),
+                firstName: localStorage.getItem('firstName') || localStorage.getItem('userFirstName'),
+                lastName: localStorage.getItem('lastName') || localStorage.getItem('userLastName'),
+                email: localStorage.getItem('email') || localStorage.getItem('userEmail'),
+                userId: localStorage.getItem('userId'),
+                role: localStorage.getItem('role')
+            };
+        }
+
+        // Function to display user data
+        function displayUserData() {
+            const data = getLocalStorageData();
+            
+            // Check if user is logged in
+            const isLoggedIn = data.token && data.firstName;
+            const isDhruvPatel = data.firstName?.toLowerCase() === 'dhruv' && 
+                                 data.lastName?.toLowerCase() === 'patel';
+            
+            // Update login status
+            const loginStatus = document.getElementById('loginStatus');
+            if (isLoggedIn) {
+                if (isDhruvPatel) {
+                    loginStatus.innerHTML = '<span class="status success">✓ Logged in as Dhruv Patel</span>';
+                } else {
+                    loginStatus.innerHTML = '<span class="status warning">⚠ Logged in as different user</span>';
+                }
+            } else {
+                loginStatus.innerHTML = '<span class="status error">✗ Not logged in</span>';
+            }
+            
+            // Update user info
+            document.getElementById('firstName').textContent = data.firstName || 'Not found';
+            document.getElementById('lastName').textContent = data.lastName || 'Not found';
+            document.getElementById('email').textContent = data.email || 'Not found';
+            
+            // Update localStorage data
+            document.getElementById('localStoragePhone').textContent = data.phone || 'Not stored';
+            document.getElementById('localStorageUserPhone').textContent = data.userPhone || 'Not stored';
+            document.getElementById('localStorageFirstName').textContent = data.firstName || 'Not stored';
+            document.getElementById('localStorageLastName').textContent = data.lastName || 'Not stored';
+            document.getElementById('localStorageEmail').textContent = data.email || 'Not stored';
+            
+            // Display phone number
+            const phoneNumber = data.phone || data.userPhone;
+            const phoneDisplay = document.getElementById('phoneNumber');
+            const phoneSource = document.getElementById('phoneSource');
+            
+            if (phoneNumber) {
+                phoneDisplay.textContent = phoneNumber;
+                phoneDisplay.style.color = '#ffffff';
+                phoneSource.textContent = data.phone ? 'Source: localStorage (phone)' : 'Source: localStorage (userPhone)';
+            } else {
+                phoneDisplay.textContent = 'No phone number found';
+                phoneDisplay.style.color = '#ffcccc';
+                phoneSource.textContent = 'Phone number not stored';
+            }
+            
+            // Run verification
+            runVerification(data, isDhruvPatel);
+            
+            // Update debug console
+            updateDebugConsole(data, isDhruvPatel);
+        }
+
+        // Function to run verification checks
+        function runVerification(data, isDhruvPatel) {
+            const results = document.getElementById('verificationResults');
+            let html = '';
+            
+            // Check 1: User logged in
+            const check1 = data.token ? '✅' : '❌';
+            html += `<div class="info-row"><span class="label">${check1} User logged in</span><span class="value">${data.token ? 'Yes' : 'No'}</span></div>`;
+            
+            // Check 2: Is Dhruv Patel
+            const check2 = isDhruvPatel ? '✅' : '⚠️';
+            html += `<div class="info-row"><span class="label">${check2} User is Dhruv Patel</span><span class="value">${isDhruvPatel ? 'Yes' : 'No (different user)'}</span></div>`;
+            
+            // Check 3: Phone in localStorage (phone)
+            const check3 = data.phone ? '✅' : '❌';
+            html += `<div class="info-row"><span class="label">${check3} Phone in localStorage (phone)</span><span class="value">${data.phone || 'Not found'}</span></div>`;
+            
+            // Check 4: Phone in localStorage (userPhone)
+            const check4 = data.userPhone ? '✅' : '❌';
+            html += `<div class="info-row"><span class="label">${check4} Phone in localStorage (userPhone)</span><span class="value">${data.userPhone || 'Not found'}</span></div>`;
+            
+            // Check 5: Any phone data
+            const hasPhone = data.phone || data.userPhone;
+            const check5 = hasPhone ? '✅' : '❌';
+            html += `<div class="info-row"><span class="label">${check5} Phone number available</span><span class="value">${hasPhone ? 'Yes' : 'No'}</span></div>`;
+            
+            results.innerHTML = html;
+            
+            // Show success/error alert
+            const alertDiv = document.createElement('div');
+            if (isDhruvPatel && hasPhone) {
+                alertDiv.className = 'alert success';
+                alertDiv.innerHTML = `<strong>✅ Success!</strong><br>User "Dhruv Patel" is logged in and phone number is: <strong>${hasPhone}</strong>`;
+            } else if (!isDhruvPatel) {
+                alertDiv.className = 'alert info';
+                alertDiv.innerHTML = `<strong>⚠️ Different User</strong><br>Currently logged in as: <strong>${data.firstName} ${data.lastName}</strong><br>Please login as "Dhruv Patel" to see their phone number.`;
+            } else {
+                alertDiv.className = 'alert info';
+                alertDiv.innerHTML = `<strong>ℹ️ No Phone Data</strong><br>User "Dhruv Patel" is logged in but no phone number is stored.<br>The user may need to add their phone number during profile completion.`;
+            }
+            results.appendChild(alertDiv);
+        }
+
+        // Function to update debug console
+        function updateDebugConsole(data, isDhruvPatel) {
+            const debugConsole = document.getElementById('debugConsole');
+            const output = {
+                userCheck: {
+                    isLoggedIn: !!data.token,
+                    isDhruvPatel: isDhruvPatel,
+                    name: `${data.firstName || ''} ${data.lastName || ''}`.trim()
+                },
+                phoneData: {
+                    phone: data.phone || null,
+                    userPhone: data.userPhone || null,
+                    hasPhone: !!(data.phone || data.userPhone)
+                },
+                localStorage: data,
+                timestamp: new Date().toLocaleString()
+            };
+            
+            debugConsole.textContent = JSON.stringify(output, null, 2);
+        }
+
+        // Function to refresh data
+        function refreshData() {
+            displayUserData();
+            console.log('Data refreshed at:', new Date().toLocaleString());
+        }
+
+        // Function to test phone display
+        function testPhoneDisplay() {
+            const data = getLocalStorageData();
+            const phoneNumber = data.phone || data.userPhone;
+            
+            if (phoneNumber) {
+                alert(`✅ Phone Number Display Test\n\nUser: ${data.firstName} ${data.lastName}\nPhone: ${phoneNumber}\n\nDisplay is working correctly!`);
+            } else {
+                alert(`❌ No phone number found for user: ${data.firstName} ${data.lastName}\n\nPlease ensure the user has entered their phone number during signup or profile completion.`);
+            }
+        }
+
+        // Function to copy phone to clipboard
+        function copyToClipboard() {
+            const data = getLocalStorageData();
+            const phoneNumber = data.phone || data.userPhone;
+            
+            if (phoneNumber) {
+                navigator.clipboard.writeText(phoneNumber).then(() => {
+                    alert(`✅ Phone number copied to clipboard: ${phoneNumber}`);
+                });
+            } else {
+                alert('❌ No phone number to copy');
+            }
+        }
+
+        // Auto-refresh every 5 seconds
+        setInterval(refreshData, 5000);
+
+        // Initial load
+        window.addEventListener('DOMContentLoaded', () => {
+            displayUserData();
+            
+            // Log to console
+            console.log('%c📱 Phone Number Verification Tool', 'color: #667eea; font-size: 20px; font-weight: bold;');
+            console.log('Checking phone number for user: Dhruv Patel');
+            console.log('localStorage data:', getLocalStorageData());
+        });
+    </script>
+</body>
+</html>
+

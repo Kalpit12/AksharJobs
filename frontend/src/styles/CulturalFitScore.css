@@ -244,8 +244,8 @@
 }
 
 .tip-item.tip {
-  background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%);
-  border-color: #8b5cf6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #3b82f6;
 }
 
 .tip-icon {

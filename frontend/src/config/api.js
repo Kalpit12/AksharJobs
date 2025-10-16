@@ -6,11 +6,16 @@ const API_CONFIG = {
     if (typeof window !== 'undefined') {
       const currentHost = window.location.hostname;
       
+      // For development, use the backend port 3002
+      if (currentHost === 'localhost' || currentHost === '127.0.0.1') {
+        return 'http://localhost:3002';
+      }
+      
       // Use relative path for production (Nginx proxy)
       return '';
     }
-    // Fallback for SSR - use relative path
-    return '';
+    // Fallback for SSR - use localhost for development
+    return 'http://localhost:3002';
   },
   
   // Frontend URL - for internal redirects
@@ -64,7 +69,7 @@ const API_CONFIG = {
 };
 
 // Helper function to build full API URLs with network detection
-export const buildApiUrl = (endpoint) => {
+export const buildApiUrl = (endpoint = '') => {
   const baseUrl = API_CONFIG.BASE_URL;
   const fullUrl = `${baseUrl}${endpoint}`;
   

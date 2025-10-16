@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Data Flow Test - Job Seeker Registration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #ff8c42;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .test-step {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .test-step h3 {
+            color: #ff8c42;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .form-data {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 140, 66, 0.4);
+        }
+
+        .field-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .field-item {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 13px;
+        }
+
+        .field-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .field-value {
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .missing-field {
+            border-color: #ffc107;
+            background: #fff3cd;
+        }
+
+        .present-field {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Form Data Flow Test</h1>
+        <p class="subtitle">Testing Job Seeker Registration Form → Dashboard Data Flow</p>
+
+        <!-- Test Instructions -->
+        <div class="instructions">
+            <h3>📋 Test Instructions</h3>
+            <ol>
+                <li>Open the Job Seeker Registration Form in another tab</li>
+                <li>Fill out ALL form fields with test data</li>
+                <li>Submit the form</li>
+                <li>Navigate to Job Seeker Dashboard → My Profile</li>
+                <li>Check if all data is displayed correctly</li>
+                <li>Use this page to verify data storage and flow</li>
+            </ol>
+        </div>
+
+        <!-- Step 1: Check Form Fields -->
+        <div class="section">
+            <h2>📝 Step 1: Form Fields Analysis</h2>
+            <div class="test-step">
+                <h3>Registration Form Fields</h3>
+                <div class="field-list" id="formFieldsList">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Check Data Storage -->
+        <div class="section">
+            <h2>💾 Step 2: Data Storage Check</h2>
+            <div class="test-step">
+                <h3>localStorage Data</h3>
+                <div id="localStorageStatus"></div>
+                <div class="form-data" id="localStorageData">
+                    Checking localStorage...
+                </div>
+            </div>
+            
+            <div class="test-step">
+                <h3>Auto-save Data</h3>
+                <div id="autosaveStatus"></div>
+                <div class="form-data" id="autosaveData">
+                    Checking auto-save data...
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Check Dashboard Fields -->
+        <div class="section">
+            <h2>📊 Step 3: Dashboard Fields Check</h2>
+            <div class="test-step">
+                <h3>My Profile Page Fields</h3>
+                <div class="field-list" id="dashboardFieldsList">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Data Flow Analysis -->
+        <div class="section">
+            <h2>🔄 Step 4: Data Flow Analysis</h2>
+            <div class="test-step">
+                <h3>Missing Fields in Dashboard</h3>
+                <div id="missingFieldsStatus"></div>
+                <div class="field-list" id="missingFieldsList">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <div class="test-step">
+                <h3>Data Mapping Issues</h3>
+                <div id="mappingIssuesStatus"></div>
+                <div class="form-data" id="mappingIssues">
+                    Analyzing data mapping...
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Recommendations -->
+        <div class="section">
+            <h2>💡 Step 5: Recommendations</h2>
+            <div class="test-step">
+                <h3>Required Actions</h3>
+                <div id="recommendations">
+                    <div class="status info">Analyzing form and dashboard to provide recommendations...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="text-align: center; margin-top: 30px;">
+            <button onclick="refreshAllData()">🔄 Refresh All Data</button>
+            <button onclick="testFormSubmission()">📤 Test Form Submission</button>
+            <button onclick="checkDashboardData()">📊 Check Dashboard Data</button>
+            <button onclick="generateReport()">📋 Generate Test Report</button>
+        </div>
+
+        <!-- Debug Console -->
+        <div class="section">
+            <h2>🔍 Debug Console</h2>
+            <div class="form-data" id="debugConsole">
+                Waiting for data...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form fields from JobSeekerRegistrationFormComprehensive.jsx
+        const formFields = [
+            // Personal Information
+            { name: 'firstName', label: 'First Name', required: true, type: 'text' },
+            { name: 'middleName', label: 'Middle Name', required: false, type: 'text' },
+            { name: 'lastName', label: 'Last Name', required: true, type: 'text' },
+            { name: 'email', label: 'Email Address', required: true, type: 'email' },
+            { name: 'phone', label: 'Phone Number', required: true, type: 'tel' },
+            { name: 'dateOfBirth', label: 'Date of Birth', required: true, type: 'date' },
+            { name: 'gender', label: 'Gender', required: true, type: 'select' },
+            { name: 'nationality', label: 'Nationality', required: true, type: 'select' },
+            { name: 'residentCountry', label: 'Resident Country', required: true, type: 'select' },
+            { name: 'currentCity', label: 'Current City', required: true, type: 'text' },
+            { name: 'workPermit', label: 'Work Permit', required: true, type: 'select' },
+            { name: 'preferredLocation1', label: 'Preferred Location 1', required: true, type: 'text' },
+            { name: 'preferredLocation2', label: 'Preferred Location 2', required: false, type: 'text' },
+            { name: 'willingToRelocate', label: 'Willing to Relocate', required: true, type: 'radio' },
+            { name: 'workLocation', label: 'Work Location Preference', required: true, type: 'select' },
+            { name: 'profilePhoto', label: 'Profile Photo', required: false, type: 'file' },
+            
+            // Professional Information
+            { name: 'professionalTitle', label: 'Professional Title', required: true, type: 'text' },
+            { name: 'yearsOfExperience', label: 'Years of Experience', required: true, type: 'number' },
+            { name: 'currentEmployer', label: 'Current Employer', required: false, type: 'text' },
+            { name: 'currentJobTitle', label: 'Current Job Title', required: false, type: 'text' },
+            { name: 'expectedSalary', label: 'Expected Salary', required: false, type: 'text' },
+            { name: 'salaryCurrency', label: 'Salary Currency', required: false, type: 'select' },
+            { name: 'jobTypePreference', label: 'Job Type Preference', required: false, type: 'select' },
+            { name: 'availability', label: 'Availability', required: false, type: 'select' },
+            { name: 'professionalSummary', label: 'Professional Summary', required: false, type: 'textarea' },
+            
+            // Skills and Tools
+            { name: 'coreSkills', label: 'Core Skills', required: false, type: 'array' },
+            { name: 'tools', label: 'Tools & Technologies', required: false, type: 'array' },
+            { name: 'languages', label: 'Languages', required: false, type: 'array' },
+            
+            // Experience, Education, etc.
+            { name: 'experienceEntries', label: 'Work Experience', required: false, type: 'array' },
+            { name: 'educationEntries', label: 'Education', required: false, type: 'array' },
+            { name: 'certificationEntries', label: 'Certifications', required: false, type: 'array' },
+            { name: 'referenceEntries', label: 'References', required: false, type: 'array' },
+            { name: 'professionalLinks', label: 'Professional Links', required: false, type: 'array' },
+            
+            // Additional fields
+            { name: 'latitude', label: 'Latitude', required: false, type: 'text' },
+            { name: 'longitude', label: 'Longitude', required: false, type: 'text' },
+            { name: 'allowContact', label: 'Allow Contact', required: false, type: 'checkbox' }
+        ];
+
+        // Dashboard fields from JobSeekerDashboardNew.jsx
+        const dashboardFields = [
+            { name: 'name', label: 'Full Name', source: 'dashboardData.user?.name || firstName + lastName' },
+            { name: 'email', label: 'Email Address', source: 'dashboardData.user?.email || user?.email' },
+            { name: 'phone', label: 'Phone Number', source: 'dashboardData.user?.phone || user?.phone' },
+            { name: 'dateOfBirth', label: 'Date of Birth', source: 'dashboardData.user?.dateOfBirth' },
+            { name: 'location', label: 'Location', source: 'dashboardData.user?.location?.city + country' },
+            { name: 'nationality', label: 'Nationality', source: 'dashboardData.user?.nationality' },
+            { name: 'professionalSummary', label: 'Professional Summary', source: 'Hardcoded placeholder' },
+            { name: 'jobTitle', label: 'Current Job Title', source: 'dashboardData.user?.experience?.[0]?.jobTitle' },
+            { name: 'yearsOfExperience', label: 'Years of Experience', source: 'Hardcoded: 8' },
+            { name: 'industry', label: 'Industry', source: 'Hardcoded: Technology' },
+            { name: 'expectedSalary', label: 'Expected Salary', source: 'Hardcoded: $80,000 - $100,000' },
+            { name: 'jobTypePreference', label: 'Job Type Preference', source: 'Hardcoded: Full-time' },
+            { name: 'availability', label: 'Availability', source: 'Hardcoded: Immediately' }
+        ];
+
+        function displayFormFields() {
+            const container = document.getElementById('formFieldsList');
+            container.innerHTML = formFields.map(field => `
+                <div class="field-item ${field.required ? 'present-field' : ''}">
+                    <div class="field-name">${field.label} ${field.required ? '*' : ''}</div>
+                    <div class="field-value">${field.name} (${field.type})</div>
+                </div>
+            `).join('');
+        }
+
+        function displayDashboardFields() {
+            const container = document.getElementById('dashboardFieldsList');
+            container.innerHTML = dashboardFields.map(field => `
+                <div class="field-item">
+                    <div class="field-name">${field.label}</div>
+                    <div class="field-value">${field.name} → ${field.source}</div>
+                </div>
+            `).join('');
+        }
+
+        function checkLocalStorage() {
+            const status = document.getElementById('localStorageStatus');
+            const data = document.getElementById('localStorageData');
+            
+            const relevantKeys = [
+                'token', 'userEmail', 'userFirstName', 'userLastName', 'userPhone',
+                'email', 'firstName', 'lastName', 'phone', 'user',
+                'jobseeker_registration_temp', 'jobseeker_registration_'
+            ];
+            
+            let foundData = {};
+            let hasData = false;
+            
+            relevantKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    foundData[key] = value;
+                    hasData = true;
+                }
+            });
+            
+            // Check for auto-save data
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('jobseeker_registration_')) {
+                    foundData[key] = localStorage.getItem(key);
+                    hasData = true;
+                }
+            }
+            
+            if (hasData) {
+                status.innerHTML = '<div class="status success">✅ Data found in localStorage</div>';
+            } else {
+                status.innerHTML = '<div class="status warning">⚠️ No relevant data found in localStorage</div>';
+            }
+            
+            data.textContent = JSON.stringify(foundData, null, 2);
+        }
+
+        function checkAutoSave() {
+            const status = document.getElementById('autosaveStatus');
+            const data = document.getElementById('autosaveData');
+            
+            // Look for auto-save data
+            const autoSaveKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.includes('jobseeker_registration_')) {
+                    autoSaveKeys.push(key);
+                }
+            }
+            
+            if (autoSaveKeys.length > 0) {
+                status.innerHTML = '<div class="status success">✅ Auto-save data found</div>';
+                const autoSaveData = {};
+                autoSaveKeys.forEach(key => {
+                    try {
+                        autoSaveData[key] = JSON.parse(localStorage.getItem(key));
+                    } catch (e) {
+                        autoSaveData[key] = localStorage.getItem(key);
+                    }
+                });
+                data.textContent = JSON.stringify(autoSaveData, null, 2);
+            } else {
+                status.innerHTML = '<div class="status warning">⚠️ No auto-save data found</div>';
+                data.textContent = 'No auto-save data available. Fill out the form to see auto-save data.';
+            }
+        }
+
+        function analyzeMissingFields() {
+            const status = document.getElementById('missingFieldsStatus');
+            const container = document.getElementById('missingFieldsList');
+            
+            // Find fields that are in form but not in dashboard
+            const formFieldNames = formFields.map(f => f.name);
+            const dashboardFieldNames = dashboardFields.map(f => f.name);
+            
+            const missingFields = formFieldNames.filter(fieldName => {
+                // Check if field exists in dashboard (exact match or similar)
+                return !dashboardFieldNames.some(dashField => 
+                    dashField === fieldName || 
+                    dashField.includes(fieldName) || 
+                    fieldName.includes(dashField)
+                );
+            });
+            
+            if (missingFields.length > 0) {
+                status.innerHTML = `<div class="status warning">⚠️ ${missingFields.length} fields missing in dashboard</div>`;
+                container.innerHTML = missingFields.map(fieldName => {
+                    const field = formFields.find(f => f.name === fieldName);
+                    return `
+                        <div class="field-item missing-field">
+                            <div class="field-name">${field ? field.label : fieldName}</div>
+                            <div class="field-value">${fieldName} (${field ? field.type : 'unknown'})</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                status.innerHTML = '<div class="status success">✅ All form fields are represented in dashboard</div>';
+                container.innerHTML = '<div class="status info">No missing fields found</div>';
+            }
+        }
+
+        function analyzeMappingIssues() {
+            const status = document.getElementById('mappingIssuesStatus');
+            const data = document.getElementById('mappingIssues');
+            
+            const issues = [];
+            
+            // Check for hardcoded values
+            const hardcodedFields = dashboardFields.filter(f => f.source.includes('Hardcoded'));
+            if (hardcodedFields.length > 0) {
+                issues.push(`Hardcoded values found: ${hardcodedFields.map(f => f.label).join(', ')}`);
+            }
+            
+            // Check for missing data sources
+            const missingSources = dashboardFields.filter(f => !f.source.includes('dashboardData') && !f.source.includes('user'));
+            if (missingSources.length > 0) {
+                issues.push(`Fields without proper data sources: ${missingSources.map(f => f.label).join(', ')}`);
+            }
+            
+            if (issues.length > 0) {
+                status.innerHTML = '<div class="status warning">⚠️ Mapping issues found</div>';
+                data.textContent = issues.join('\n\n');
+            } else {
+                status.innerHTML = '<div class="status success">✅ No mapping issues found</div>';
+                data.textContent = 'All fields have proper data sources.';
+            }
+        }
+
+        function generateRecommendations() {
+            const container = document.getElementById('recommendations');
+            
+            const recommendations = [
+                '1. Add missing fields to dashboard My Profile page',
+                '2. Replace hardcoded values with actual form data',
+                '3. Implement proper data fetching from backend',
+                '4. Add edit functionality for all profile fields',
+                '5. Ensure data persistence across page refreshes',
+                '6. Add validation for required fields',
+                '7. Implement proper error handling for data loading'
+            ];
+            
+            container.innerHTML = recommendations.map(rec => 
+                `<div class="status info">${rec}</div>`
+            ).join('');
+        }
+
+        function refreshAllData() {
+            displayFormFields();
+            displayDashboardFields();
+            checkLocalStorage();
+            checkAutoSave();
+            analyzeMissingFields();
+            analyzeMappingIssues();
+            generateRecommendations();
+            updateDebugConsole();
+        }
+
+        function testFormSubmission() {
+            alert('Please fill out the registration form in another tab and submit it, then refresh this page to see the results.');
+        }
+
+        function checkDashboardData() {
+            alert('Please navigate to the Job Seeker Dashboard → My Profile page and check if all form data is displayed correctly.');
+        }
+
+        function generateReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                formFields: formFields.length,
+                dashboardFields: dashboardFields.length,
+                localStorageKeys: Object.keys(localStorage).length,
+                autoSaveKeys: Object.keys(localStorage).filter(k => k.includes('jobseeker_registration_')).length,
+                recommendations: [
+                    'Add missing fields to dashboard',
+                    'Replace hardcoded values',
+                    'Implement proper data flow'
+                ]
+            };
+            
+            console.log('Test Report:', report);
+            alert('Test report generated! Check the browser console for details.');
+        }
+
+        function updateDebugConsole() {
+            const console = document.getElementById('debugConsole');
+            const debugInfo = {
+                timestamp: new Date().toLocaleString(),
+                localStorageKeys: Object.keys(localStorage),
+                formFieldsCount: formFields.length,
+                dashboardFieldsCount: dashboardFields.length,
+                autoSaveData: Object.keys(localStorage).filter(k => k.includes('jobseeker_registration_')),
+                userAgent: navigator.userAgent
+            };
+            
+            console.textContent = JSON.stringify(debugInfo, null, 2);
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            refreshAllData();
+            
+            // Auto-refresh every 10 seconds
+            setInterval(() => {
+                checkLocalStorage();
+                checkAutoSave();
+                updateDebugConsole();
+            }, 10000);
+        });
+    </script>
+</body>
+</html>

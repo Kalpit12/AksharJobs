@@ -6,7 +6,7 @@
 
 /* Hero Section */
 .help_hero {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   padding: 4rem 0 3rem;
   color: white;
   text-align: center;
@@ -125,7 +125,7 @@
 .support_icon {
   width: 64px;
   height: 64px;
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -136,7 +136,7 @@
 }
 
 .support_btn {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -186,9 +186,9 @@
 }
 
 .faq_filter.active {
-  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: white;
-  border-color: #7c3aed;
+  border-color: #2563eb;
 }
 
 /* FAQ List */
@@ -231,7 +231,7 @@
 }
 
 .faq_icon {
-  color: #7c3aed;
+  color: #2563eb;
   transition: transform 0.3s ease;
 }
 

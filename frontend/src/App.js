@@ -2,8 +2,8 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
 import "./styles/Global.css";
 import ErrorBoundary from "./components/ErrorBoundary";
-import SignupPage from "./pages/SignupPage";
-import LoginPage from "./pages/LoginPage";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import EmailVerification from "./pages/EmailVerification";
@@ -25,11 +25,6 @@ import Footer from "./components/Footer";
 import TermsOfService from "./pages/termsofservice";
 import Blog from "./pages/Blog";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
-import PricingPlans from "./pages/PricingPlans";
-import PremiumSubscription from "./pages/PremiumSubscription";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCallback from "./pages/PaymentCallback";
-import PaymentCancelled from "./pages/PaymentCancelled";
 import AdminControlPanel from "./pages/AdminControlPanel";
 import AdminDashboard from "./pages/AdminDashboard";
 import CVBrowser from "./components/CVBrowser/index.jsx";
@@ -162,7 +157,7 @@ function App() {
                 </>
               </ProtectedRoute>
             } />
-            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/signup" element={<Signup />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/verify-user" element={<CommunityVerificationPage />} />
             <Route path="/reference-verification" element={
@@ -182,7 +177,7 @@ function App() {
             } />
             <Route path="/jobseeker-registration" element={<JobSeekerRegistrationForm />} />
             <Route path="/complete-profile" element={<JobSeekerRegistrationForm />} />
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/terms" element={<TermsOfService/>}/>
@@ -276,14 +271,6 @@ function App() {
             } />
             <Route path="/privacy-policy" element={<PrivacyPolicy/>}/>
             <Route path="/privacy" element={<PrivacyPolicy/>}/>
-            <Route path="/pricing" element={<PricingPlans/>}/>
-            <Route path="/premium" element={
-              <>
-                <Header />
-                <PremiumSubscription />
-                <Footer />
-              </>
-            }/>
             
             {/* Protected routes with role-based access */}
             
@@ -412,17 +399,6 @@ function App() {
               </ProtectedRoute>
             } />
 
-            <Route path="/payment-success" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <PaymentSuccess/>
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-            <Route path="/payment-callback" element={<PaymentCallback />}/>
-            <Route path="/payment-cancelled" element={<PaymentCancelled />}/>
             <Route path="/settings" element={
               <ProtectedRoute>
                 <SettingsRedirect />
