@@ -1,0 +1,471 @@
+/* Intern Registration Form Styles - Exact match to Job Seeker Comprehensive */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.jobseeker-details-comprehensive {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+  min-height: 100vh;
+  padding: 5px;
+}
+
+/* Compact Header */
+.jobseeker-header {
+  background: #f8f9fa;
+  padding: 4px 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 3px;
+  min-height: 35px;
+}
+
+.header-container {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 1;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.logo-section:hover {
+  background: rgba(0, 0, 0, 0.02);
+  transform: translateY(-1px);
+}
+
+.logo-icon img {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  justify-content: flex-start;
+}
+
+.logo-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0;
+  line-height: 1.1;
+  text-align: left;
+  align-self: flex-start;
+}
+
+.logo-subtitle {
+  font-size: 0.75rem;
+  color: #6c757d;
+  font-weight: 500;
+  margin: 0;
+  line-height: 1;
+  text-align: left;
+  align-self: flex-start;
+}
+
+.clear-form-btn {
+  background: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.clear-form-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+/* Main Content */
+.jobseeker-main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 8px;
+  min-height: calc(100vh - 50px);
+}
+
+.jobseeker-container {
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.jobseeker-form-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.jobseeker-form-container {
+  padding: 30px;
+}
+
+/* Error Banner */
+.error-banner {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+/* Progress Section */
+.progress-section-comprehensive {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+  border: 1px solid #e9ecef;
+}
+
+.progress-header-comprehensive {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.progress-header-comprehensive h2 {
+  font-size: 18px;
+  color: #2d3748;
+  margin: 0;
+}
+
+.progress-percentage-comprehensive {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ff8c42;
+}
+
+.progress-bar-comprehensive {
+  background: #e2e8f0;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill-comprehensive {
+  background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+/* Form Sections */
+.section-comprehensive {
+  margin-bottom: 30px;
+  padding-bottom: 25px;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.section-comprehensive:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.section-title-comprehensive {
+  font-size: 18px;
+  color: #2d3748;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #ff8c42;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.section-title-comprehensive svg {
+  color: #ff8c42;
+  font-size: 16px;
+}
+
+.form-row-comprehensive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group-comprehensive {
+  margin-bottom: 15px;
+}
+
+.form-group-comprehensive label {
+  display: block;
+  margin-bottom: 6px;
+  color: #4a5568;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.required-comprehensive {
+  color: #e53e3e;
+  margin-left: 3px;
+}
+
+.form-group-comprehensive input,
+.form-group-comprehensive select,
+.form-group-comprehensive textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  background: #fff;
+}
+
+.form-group-comprehensive input:focus,
+.form-group-comprehensive select:focus,
+.form-group-comprehensive textarea:focus {
+  outline: none;
+  border-color: #ff8c42;
+  box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1);
+}
+
+.form-group-comprehensive textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* File Upload */
+.file-upload-comprehensive {
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  padding: 25px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-upload-comprehensive:hover {
+  border-color: #ff8c42;
+  background: #fff5f0;
+}
+
+.file-upload-comprehensive svg {
+  font-size: 32px;
+  color: #ff8c42;
+}
+
+.file-upload-comprehensive input[type="file"] {
+  display: none;
+}
+
+.file-upload-text {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.file-upload-text strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #4a5568;
+}
+
+.profile-photo-preview-comprehensive {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin: 0 auto 15px;
+  overflow: hidden;
+  border: 3px solid #ff8c42;
+  display: none;
+}
+
+.profile-photo-preview-comprehensive img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Skills Section */
+.skills-input-container-comprehensive {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.skills-input-container-comprehensive input {
+  flex: 1;
+}
+
+.add-skill-btn-comprehensive {
+  background: #ff8c42;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.add-skill-btn-comprehensive:hover {
+  background: #e67e22;
+  transform: translateY(-1px);
+}
+
+.skills-tags-comprehensive {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.skill-tag-comprehensive {
+  background: #fff5f0;
+  color: #ff8c42;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #fed7aa;
+}
+
+.skill-tag-comprehensive button {
+  background: none;
+  border: none;
+  color: #ff8c42;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  margin-left: 4px;
+}
+
+.skill-tag-comprehensive button:hover {
+  color: #e53e3e;
+}
+
+.language-input-container-comprehensive {
+  display: grid;
+  grid-template-columns: 2fr 1fr auto;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+/* Submit Section */
+.submit-section-comprehensive {
+  background: #f8f9fa;
+  padding: 25px;
+  text-align: center;
+  border-top: 1px solid #e9ecef;
+  margin-top: 20px;
+}
+
+.submit-btn-comprehensive {
+  background: linear-gradient(135deg, #ff8c42 0%, #20b2aa 100%);
+  color: white;
+  border: none;
+  padding: 12px 40px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 140, 66, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.submit-btn-comprehensive:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 140, 66, 0.4);
+}
+
+.submit-btn-comprehensive:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .jobseeker-main {
+    padding: 4px;
+  }
+
+  .jobseeker-form-container {
+    padding: 20px;
+  }
+
+  .form-row-comprehensive {
+    grid-template-columns: 1fr;
+  }
+
+  .language-input-container-comprehensive {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-input-container-comprehensive {
+    flex-direction: column;
+  }
+
+  .add-skill-btn-comprehensive {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .form-row-comprehensive {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
 
 const RecruiterDashboard = () => {
   const navigate = useNavigate();
@@ -10,13 +11,39 @@ const RecruiterDashboard = () => {
     const [internships, setInternships] = useState([]);
     const [candidates, setCandidates] = useState([]);
     const [applications, setApplications] = useState([]);
+    const [stats, setStats] = useState({
+        activeJobs: 0,
+        totalApplications: 0,
+        inInterview: 0,
+        offersExtended: 0,
+        newJobsThisWeek: 0,
+        applicationsIncrease: 0,
+        interviewsThisWeek: 0,
+        offersAccepted: 0
+    });
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
-        fetchJobs();
-        fetchInternships();
-        fetchCandidates();
-        fetchApplications();
+        fetchAllData();
     }, []);
+
+    const fetchAllData = async () => {
+        setLoading(true);
+        try {
+            await Promise.all([
+                fetchJobs(),
+                fetchInternships(),
+                fetchCandidates(),
+                fetchApplications(),
+                fetchStats()
+            ]);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchJobs = async () => {
         try {
@@ -36,16 +63,85 @@ const RecruiterDashboard = () => {
     };
 
     const fetchInternships = async () => {
-        // Fetch internships
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/recruiters/internships', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setInternships(data);
+            }
+        } catch (error) {
+            console.error('Error fetching internships:', error);
+        }
     };
 
     const fetchCandidates = async () => {
-        // Fetch candidates
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/recruiters/candidates', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setCandidates(data);
+            }
+        } catch (error) {
+            console.error('Error fetching candidates:', error);
+        }
     };
 
     const fetchApplications = async () => {
-        // Fetch applications
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/recruiters/applications', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setApplications(data);
+            }
+        } catch (error) {
+            console.error('Error fetching applications:', error);
+        }
     };
+
+    const fetchStats = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch('/api/recruiters/stats', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setStats(data);
+            }
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <ThemedLoadingSpinner 
+                theme="recruiter"
+                size="large"
+                text="Loading your dashboard..."
+                subText="Preparing your recruitment tools"
+                showIcon={true}
+                fullScreen={true}
+            />
+        );
+    }
 
     return (
         <div>
@@ -63,17 +159,17 @@ const RecruiterDashboard = () => {
                     <div className={`nav-item ${activeSection === 'jobs' ? 'active' : ''}`} onClick={() => setActiveSection('jobs')}>
                         <i className="fas fa-briefcase"></i>
                         <span>Job Postings</span>
-                        <span className="badge">5</span>
+                        {jobs.length > 0 && <span className="badge">{jobs.length}</span>}
                     </div>
                     <div className={`nav-item ${activeSection === 'internships' ? 'active' : ''}`} onClick={() => setActiveSection('internships')}>
                         <i className="fas fa-user-graduate"></i>
                         <span>Internships</span>
-                        <span className="badge">3</span>
+                        {internships.length > 0 && <span className="badge">{internships.length}</span>}
                     </div>
                     <div className={`nav-item ${activeSection === 'candidates' ? 'active' : ''}`} onClick={() => setActiveSection('candidates')}>
                         <i className="fas fa-users"></i>
                         <span>All Candidates</span>
-                        <span className="badge">142</span>
+                        {candidates.length > 0 && <span className="badge">{candidates.length}</span>}
                     </div>
                     <div className={`nav-item ${activeSection === 'pipeline' ? 'active' : ''}`} onClick={() => setActiveSection('pipeline')}>
                         <i className="fas fa-stream"></i>
@@ -82,7 +178,8 @@ const RecruiterDashboard = () => {
                     <div className={`nav-item ${activeSection === 'messages' ? 'active' : ''}`} onClick={() => setActiveSection('messages')}>
                         <i className="fas fa-envelope"></i>
                         <span>Messages</span>
-                        <span className="badge">12</span>
+                        {applications.filter(app => app.status === 'pending').length > 0 && 
+                            <span className="badge">{applications.filter(app => app.status === 'pending').length}</span>}
                     </div>
                     <div className={`nav-item ${activeSection === 'calendar' ? 'active' : ''}`} onClick={() => setActiveSection('calendar')}>
                         <i className="fas fa-calendar-alt"></i>
@@ -105,7 +202,12 @@ const RecruiterDashboard = () => {
                 <div className="top-bar">
                     <div className="search-bar">
                         <i className="fas fa-search"></i>
-                        <input type="text" placeholder="Search candidates, jobs, or internships..." />
+                        <input 
+                            type="text" 
+                            placeholder="Search candidates, jobs, or internships..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
                     <div className="top-bar-actions">
                         <button className="icon-btn">
@@ -116,10 +218,17 @@ const RecruiterDashboard = () => {
                             <i className="fas fa-plus"></i>
                         </button>
                         <div className="user-profile">
-                            <div className="user-avatar">JD</div>
+                            <div className="user-avatar">
+                                {user?.firstName ? user.firstName.charAt(0) : 'U'}
+                                {user?.lastName ? user.lastName.charAt(0) : ''}
+                            </div>
                             <div>
-                                <div style={{ fontWeight: 600, fontSize: '14px' }}>John Doe</div>
-                                <div style={{ fontSize: '12px', color: '#666' }}>HR Manager</div>
+                                <div style={{ fontWeight: 600, fontSize: '14px' }}>
+                                    {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || 'User'}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>
+                                    {user?.role || 'Recruiter'}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -131,67 +240,82 @@ const RecruiterDashboard = () => {
                     <div className={`page-section ${activeSection === 'dashboard' ? 'active' : ''}`} id="dashboard">
                         <h1 style={{ marginBottom: '25px' }}>Dashboard Overview</h1>
                         
-                        <div className="stats-grid">
-                            <div className="stat-card">
-                                <div className="stat-header">
-                                    <div>
-                                        <div className="stat-number">8</div>
-                                        <div className="stat-label">Active Postings</div>
+                        {loading ? (
+                            <div className="stats-grid">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="stat-card">
+                                        <div className="stat-header">
+                                            <div>
+                                                <div className="stat-number" style={{ background: '#f0f0f0', height: '32px', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                                                <div className="stat-label" style={{ background: '#f0f0f0', height: '16px', borderRadius: '4px', marginTop: '8px', animation: 'pulse 1.5s infinite' }}></div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="stat-icon blue">
-                                        <i className="fas fa-briefcase"></i>
-                                    </div>
-                                </div>
-                                <div className="stat-change positive">
-                                    <i className="fas fa-arrow-up"></i> 2 new this week
-                                </div>
+                                ))}
                             </div>
+                        ) : (
+                            <div className="stats-grid">
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <div>
+                                            <div className="stat-number">{stats.activeJobs}</div>
+                                            <div className="stat-label">Active Postings</div>
+                                        </div>
+                                        <div className="stat-icon blue">
+                                            <i className="fas fa-briefcase"></i>
+                                        </div>
+                                    </div>
+                                    <div className="stat-change positive">
+                                        <i className="fas fa-arrow-up"></i> {stats.newJobsThisWeek} new this week
+                                    </div>
+                                </div>
 
-                            <div className="stat-card">
-                                <div className="stat-header">
-                                    <div>
-                                        <div className="stat-number">142</div>
-                                        <div className="stat-label">Total Applications</div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <div>
+                                            <div className="stat-number">{stats.totalApplications}</div>
+                                            <div className="stat-label">Total Applications</div>
+                                        </div>
+                                        <div className="stat-icon green">
+                                            <i className="fas fa-users"></i>
+                                        </div>
                                     </div>
-                                    <div className="stat-icon green">
-                                        <i className="fas fa-users"></i>
+                                    <div className="stat-change positive">
+                                        <i className="fas fa-arrow-up"></i> +{stats.applicationsIncrease}% from last month
                                     </div>
                                 </div>
-                                <div className="stat-change positive">
-                                    <i className="fas fa-arrow-up"></i> +23% from last month
-                                </div>
-                            </div>
 
-                            <div className="stat-card">
-                                <div className="stat-header">
-                                    <div>
-                                        <div className="stat-number">38</div>
-                                        <div className="stat-label">In Interview Stage</div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <div>
+                                            <div className="stat-number">{stats.inInterview}</div>
+                                            <div className="stat-label">In Interview Stage</div>
+                                        </div>
+                                        <div className="stat-icon purple">
+                                            <i className="fas fa-user-clock"></i>
+                                        </div>
                                     </div>
-                                    <div className="stat-icon purple">
-                                        <i className="fas fa-user-clock"></i>
+                                    <div className="stat-change">
+                                        {stats.interviewsThisWeek} scheduled this week
                                     </div>
                                 </div>
-                                <div className="stat-change">
-                                    15 scheduled this week
-                                </div>
-                            </div>
 
-                            <div className="stat-card">
-                                <div className="stat-header">
-                                    <div>
-                                        <div className="stat-number">12</div>
-                                        <div className="stat-label">Offers Extended</div>
+                                <div className="stat-card">
+                                    <div className="stat-header">
+                                        <div>
+                                            <div className="stat-number">{stats.offersExtended}</div>
+                                            <div className="stat-label">Offers Extended</div>
+                                        </div>
+                                        <div className="stat-icon orange">
+                                            <i className="fas fa-handshake"></i>
+                                        </div>
                                     </div>
-                                    <div className="stat-icon orange">
-                                        <i className="fas fa-handshake"></i>
+                                    <div className="stat-change positive">
+                                        <i className="fas fa-arrow-up"></i> {stats.offersAccepted} accepted
                                     </div>
-                                </div>
-                                <div className="stat-change positive">
-                                    <i className="fas fa-arrow-up"></i> 8 accepted
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '20px', marginTop: '20px' }}>
                             <div className="card">
@@ -211,26 +335,63 @@ const RecruiterDashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>
-                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                        <div style={{ width: '35px', height: '35px', borderRadius: '50%', background: '#667eea', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: '600' }}>SA</div>
-                                                        <div>
-                                                            <div style={{ fontWeight: '500' }}>Sarah Anderson</div>
-                                                            <div style={{ fontSize: '12px', color: '#666' }}>Full Stack Developer</div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>Senior Developer</td>
-                                                <td>2 hours ago</td>
-                                                <td><span className="status-badge status-pending">New</span></td>
-                                                <td>
-                                                    <button className="btn btn-secondary btn-sm">View</button>
-                                                </td>
-                                            </tr>
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>
+                                                        <div style={{ display: 'inline-block', background: '#f0f0f0', height: '20px', width: '100%', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                                                    </td>
+                                                </tr>
+                                            ) : applications.length > 0 ? (
+                                                applications.slice(0, 5).map((application, index) => (
+                                                    <tr key={index}>
+                                                        <td>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                                                <div style={{ 
+                                                                    width: '35px', 
+                                                                    height: '35px', 
+                                                                    borderRadius: '50%', 
+                                                                    background: 'linear-gradient(135deg, #FF8A65 0%, #FF7043 100%)', 
+                                                                    color: 'white', 
+                                                                    display: 'flex', 
+                                                                    alignItems: 'center', 
+                                                                    justifyContent: 'center', 
+                                                                    fontSize: '14px', 
+                                                                    fontWeight: '600' 
+                                                                }}>
+                                                                    {application.candidateName ? application.candidateName.charAt(0) : 'C'}
+                                                                </div>
+                                                                <div>
+                                                                    <div style={{ fontWeight: '500' }}>
+                                                                        {application.candidateName || 'Unknown Candidate'}
+                                                                    </div>
+                                                                    <div style={{ fontSize: '12px', color: '#666' }}>
+                                                                        {application.position || 'Position not specified'}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>{application.jobTitle || 'N/A'}</td>
+                                                        <td>{application.appliedDate ? new Date(application.appliedDate).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>
+                                                            <span className={`status-badge status-${application.status || 'pending'}`}>
+                                                                {application.status || 'New'}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <button className="btn btn-secondary btn-sm">View</button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                                                        No applications yet
+                                                    </td>
+                                                </tr>
+                                            )}
                                         </tbody>
                                     </table>
-              </div>
+                                </div>
             </div>
           
                             <div className="card">
@@ -241,7 +402,7 @@ const RecruiterDashboard = () => {
                                     <button className="btn btn-primary" onClick={() => navigate('/post-job')}>
                                         <i className="fas fa-plus"></i> Post New Job
                       </button>
-                                    <button className="btn btn-primary">
+                                    <button className="btn btn-primary" onClick={() => navigate('/post-internship')}>
                                         <i className="fas fa-plus"></i> Post Internship
                       </button>
                                     <button className="btn btn-secondary" onClick={() => setActiveSection('candidates')}>
@@ -265,10 +426,10 @@ const RecruiterDashboard = () => {
                         </div>
 
                         <div className="tabs">
-                            <div className="tab active">All Jobs (5)</div>
-                            <div className="tab">Active (3)</div>
-                            <div className="tab">Drafts (1)</div>
-                            <div className="tab">Closed (1)</div>
+                            <div className="tab active">All Jobs ({jobs.length})</div>
+                            <div className="tab">Active ({jobs.filter(job => job.status === 'active').length})</div>
+                            <div className="tab">Drafts ({jobs.filter(job => job.status === 'draft').length})</div>
+                            <div className="tab">Closed ({jobs.filter(job => job.status === 'closed').length})</div>
                         </div>
 
                         <div className="tab-content active">
@@ -287,18 +448,38 @@ const RecruiterDashboard = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td><strong>Senior Software Engineer</strong></td>
-                                                <td>Nairobi, Kenya</td>
-                                                <td>Full-time</td>
-                                                <td><strong>45</strong></td>
-                                                <td>2 weeks ago</td>
-                                                <td><span className="status-badge status-active">active</span></td>
-                                                <td>
-                                                    <button className="btn btn-secondary btn-sm">View</button>
-                                                    <button className="btn btn-secondary btn-sm">Edit</button>
-                                                </td>
-                                            </tr>
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                                                        <div style={{ display: 'inline-block', background: '#f0f0f0', height: '20px', width: '100%', borderRadius: '4px', animation: 'pulse 1.5s infinite' }}></div>
+                                                    </td>
+                                                </tr>
+                                            ) : jobs.length > 0 ? (
+                                                jobs.map((job, index) => (
+                                                    <tr key={index}>
+                                                        <td><strong>{job.title || 'Untitled Job'}</strong></td>
+                                                        <td>{job.location || 'Location not specified'}</td>
+                                                        <td>{job.type || 'Full-time'}</td>
+                                                        <td><strong>{job.applicationCount || 0}</strong></td>
+                                                        <td>{job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}</td>
+                                                        <td>
+                                                            <span className={`status-badge status-${job.status || 'active'}`}>
+                                                                {job.status || 'active'}
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <button className="btn btn-secondary btn-sm">View</button>
+                                                            <button className="btn btn-secondary btn-sm">Edit</button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            ) : (
+                                                <tr>
+                                                    <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                                                        No jobs posted yet
+                                                    </td>
+                                                </tr>
+                                            )}
                                         </tbody>
                                     </table>
                                 </div>

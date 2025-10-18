@@ -12,6 +12,120 @@ from datetime import datetime
 
 recruiter_bp = Blueprint('recruiter', __name__)
 
+@recruiter_bp.route('/register', methods=['POST'])
+def register_recruiter():
+    """
+    Register a new recruiter with comprehensive profile information
+    Saves data to the 'recruiters' collection in MongoDB
+    """
+    try:
+        # Get JSON data from request
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data received'}), 400
+        
+        print(f"Received recruiter registration data: {data.get('companyName', 'N/A')}")
+        
+        # Prepare recruiter document for MongoDB
+        recruiter_doc = {
+            # Company Information
+            'companyName': data.get('companyName', ''),
+            'companyEmail': data.get('companyEmail', ''),
+            'companyPhone': data.get('companyPhone', ''),
+            'companyWebsite': data.get('companyWebsite', ''),
+            'companySize': data.get('companySize', ''),
+            'yearFounded': data.get('yearFounded', ''),
+            'industry': data.get('industry', ''),
+            'companyDescription': data.get('companyDescription', ''),
+            'companyLogo': data.get('companyLogo', ''),
+            
+            # Company Location
+            'country': data.get('country', ''),
+            'state': data.get('state', ''),
+            'city': data.get('city', ''),
+            'postalCode': data.get('postalCode', ''),
+            'address': data.get('address', ''),
+            'latitude': data.get('latitude', ''),
+            'longitude': data.get('longitude', ''),
+            
+            # Recruiter Personal Details
+            'firstName': data.get('firstName', ''),
+            'lastName': data.get('lastName', ''),
+            'jobTitle': data.get('jobTitle', ''),
+            'recruiterPhone': data.get('recruiterPhone', ''),
+            'recruiterEmail': data.get('recruiterEmail', ''),
+            'linkedinProfile': data.get('linkedinProfile', ''),
+            
+            # Recruitment Specialization
+            'industries': data.get('industries', []),
+            'functions': data.get('functions', []),
+            'careerLevels': data.get('careerLevels', []),
+            'averageHiringVolume': data.get('averageHiringVolume', ''),
+            
+            # Geographic Coverage
+            'recruitCountries': data.get('recruitCountries', []),
+            'offersRemote': data.get('offersRemote', ''),
+            
+            # Services & Offerings
+            'employmentTypes': data.get('employmentTypes', []),
+            'additionalServices': data.get('additionalServices', []),
+            'averageTimeToHire': data.get('averageTimeToHire', ''),
+            
+            # Social Media & Online Presence
+            'linkedinPage': data.get('linkedinPage', ''),
+            'facebookPage': data.get('facebookPage', ''),
+            'twitterHandle': data.get('twitterHandle', ''),
+            'instagram': data.get('instagram', ''),
+            'additionalLinks': data.get('additionalLinks', []),
+            
+            # Terms & Additional Information
+            'hearAboutUs': data.get('hearAboutUs', ''),
+            'additionalComments': data.get('additionalComments', ''),
+            'agreeTerms': data.get('agreeTerms', False),
+            'agreeDataProcessing': data.get('agreeDataProcessing', False),
+            'agreeMarketing': data.get('agreeMarketing', False),
+            'verifyInfo': data.get('verifyInfo', False),
+            
+            # Metadata
+            'status': 'pending',  # pending, approved, rejected
+            'createdAt': datetime.now(),
+            'updatedAt': datetime.now()
+        }
+        
+        # Save to MongoDB 'recruiters' collection
+        from utils.db import get_db
+        db = get_db()
+        
+        if db is None:
+            print("❌ ERROR: Database connection is None!")
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        print(f"✅ Database connection successful: {db.name}")
+        print(f"📝 Attempting to insert recruiter: {recruiter_doc.get('companyName', 'N/A')}")
+        
+        # Insert into recruiters collection
+        result = db.recruiters.insert_one(recruiter_doc)
+        
+        print(f"✅ Recruiter registered successfully with ID: {result.inserted_id}")
+        print(f"📊 Verifying: Document count in recruiters collection: {db.recruiters.count_documents({})}")
+        
+        return jsonify({
+            'message': 'Recruiter registered successfully',
+            'recruiterId': str(result.inserted_id),
+            'status': 'pending'
+        }), 200
+        
+    except Exception as e:
+        print(f"Error registering recruiter: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'error': 'An error occurred while registering recruiter',
+            'details': str(e)
+        }), 500
+
+
 @recruiter_bp.route('/complete-profile', methods=['POST'])
 @jwt_required()
 def complete_recruiter_profile():
@@ -250,3 +364,214 @@ def update_recruiter_profile():
             'error': 'An error occurred while updating your profile'
         }), 500
 
+
+@recruiter_bp.route('/internships', methods=['GET'])
+@jwt_required()
+def get_recruiter_internships():
+    """
+    Get all internships posted by the current recruiter
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        print(f"Fetching internships for recruiter: {recruiter_id}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Get internships posted by this recruiter (try both ObjectId and string)
+        try:
+            internships = list(db.internships.find({'recruiter_id': ObjectId(recruiter_id)}))
+        except:
+            internships = list(db.internships.find({'recruiter_id': recruiter_id}))
+        
+        print(f"Found {len(internships)} internships")
+        
+        # Convert ObjectIds to strings for JSON serialization
+        serializable_internships = []
+        for internship in internships:
+            internship['_id'] = str(internship['_id'])
+            if 'recruiter_id' in internship:
+                internship['recruiter_id'] = str(internship['recruiter_id'])
+            if 'createdAt' in internship and isinstance(internship['createdAt'], datetime):
+                internship['createdAt'] = internship['createdAt'].isoformat()
+            serializable_internships.append(internship)
+        
+        return jsonify(serializable_internships), 200
+        
+    except Exception as e:
+        print(f"Error fetching recruiter internships: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch internships', 'details': str(e)}), 500
+
+
+@recruiter_bp.route('/candidates', methods=['GET'])
+@jwt_required()
+def get_recruiter_candidates():
+    """
+    Get all candidates for the current recruiter
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        print(f"Fetching candidates for recruiter: {recruiter_id}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Get all job seekers (candidates)
+        candidates = list(db.users.find({'userType': 'jobSeeker'}))
+        
+        print(f"Found {len(candidates)} candidates")
+        
+        # Convert ObjectIds to strings for JSON serialization
+        serializable_candidates = []
+        for candidate in candidates:
+            candidate['_id'] = str(candidate['_id'])
+            if 'createdAt' in candidate and isinstance(candidate['createdAt'], datetime):
+                candidate['createdAt'] = candidate['createdAt'].isoformat()
+            serializable_candidates.append(candidate)
+        
+        return jsonify(serializable_candidates), 200
+        
+    except Exception as e:
+        print(f"Error fetching candidates: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch candidates', 'details': str(e)}), 500
+
+
+@recruiter_bp.route('/applications', methods=['GET'])
+@jwt_required()
+def get_recruiter_applications():
+    """
+    Get all applications for jobs posted by the current recruiter
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        print(f"Fetching applications for recruiter: {recruiter_id}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Get all jobs posted by this recruiter (try both ObjectId and string)
+        try:
+            recruiter_jobs = list(db.jobs.find({'recruiter_id': ObjectId(recruiter_id)}))
+        except:
+            recruiter_jobs = list(db.jobs.find({'recruiter_id': recruiter_id}))
+        
+        job_ids = [job['_id'] for job in recruiter_jobs]
+        
+        print(f"Found {len(recruiter_jobs)} jobs, fetching applications...")
+        
+        # Get all applications for these jobs
+        applications = list(db.applications.find({'job_id': {'$in': job_ids}}))
+        
+        print(f"Found {len(applications)} applications")
+        
+        # Convert ObjectIds to strings and add candidate info
+        serializable_applications = []
+        for app in applications:
+            app['_id'] = str(app['_id'])
+            app['job_id'] = str(app['job_id'])
+            app['user_id'] = str(app['user_id'])
+            
+            # Add candidate name from user collection
+            try:
+                candidate = db.users.find_one({'_id': ObjectId(app['user_id'])})
+            except:
+                candidate = db.users.find_one({'_id': app['user_id']})
+            
+            if candidate:
+                app['candidateName'] = f"{candidate.get('firstName', '')} {candidate.get('lastName', '')}".strip()
+                app['candidateEmail'] = candidate.get('email', '')
+            
+            # Add job title
+            job = db.jobs.find_one({'_id': app['job_id'] if isinstance(app['job_id'], ObjectId) else ObjectId(app['job_id'])})
+            if job:
+                app['jobTitle'] = job.get('title', 'Unknown Job')
+            
+            if 'appliedAt' in app and isinstance(app['appliedAt'], datetime):
+                app['appliedDate'] = app['appliedAt'].isoformat()
+            
+            serializable_applications.append(app)
+        
+        return jsonify(serializable_applications), 200
+        
+    except Exception as e:
+        print(f"Error fetching recruiter applications: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch applications', 'details': str(e)}), 500
+
+
+@recruiter_bp.route('/stats', methods=['GET'])
+@jwt_required()
+def get_recruiter_stats():
+    """
+    Get dashboard statistics for the current recruiter
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        print(f"Fetching stats for recruiter: {recruiter_id}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Get recruiter's jobs (try both ObjectId and string)
+        try:
+            recruiter_jobs = list(db.jobs.find({'recruiter_id': ObjectId(recruiter_id)}))
+        except:
+            recruiter_jobs = list(db.jobs.find({'recruiter_id': recruiter_id}))
+        
+        job_ids = [job['_id'] for job in recruiter_jobs]
+        
+        # Get applications for these jobs
+        applications = list(db.applications.find({'job_id': {'$in': job_ids}}))
+        
+        print(f"Calculating stats: {len(recruiter_jobs)} jobs, {len(applications)} applications")
+        
+        # Calculate stats
+        stats = {
+            'activeJobs': len([job for job in recruiter_jobs if job.get('status') != 'closed']),
+            'totalApplications': len(applications),
+            'inInterview': len([app for app in applications if app.get('status') == 'interview']),
+            'offersExtended': len([app for app in applications if app.get('status') == 'offer']),
+            'newJobsThisWeek': 0,  # TODO: Calculate based on createdAt
+            'applicationsIncrease': 0,  # TODO: Calculate based on previous month
+            'interviewsThisWeek': 0,  # TODO: Calculate based on interview dates
+            'offersAccepted': len([app for app in applications if app.get('status') == 'accepted'])
+        }
+        
+        print(f"Stats calculated: {stats}")
+        
+        return jsonify(stats), 200
+        
+    except Exception as e:
+        print(f"Error fetching recruiter stats: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch stats', 'details': str(e)}), 500

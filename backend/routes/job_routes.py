@@ -568,3 +568,45 @@ def get_recommended_jobs_for_user():
         import traceback
         traceback.print_exc()
         return jsonify({"error": "Failed to get recommended jobs"}), 500
+
+
+@job_routes.route("/recruiter", methods=["GET"])
+@jwt_required()
+def get_recruiter_jobs():
+    """
+    Get all jobs posted by the current recruiter
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        print(f"Fetching jobs for recruiter: {recruiter_id}")
+        
+        # Get database connection
+        db = get_db()
+        if db is None:
+            print("Database connection failed")
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Try to find jobs by recruiter_id (could be string or ObjectId)
+        try:
+            # First try as ObjectId
+            jobs = list(db.jobs.find({'recruiter_id': ObjectId(recruiter_id)}))
+        except:
+            # If that fails, try as string
+            jobs = list(db.jobs.find({'recruiter_id': recruiter_id}))
+        
+        print(f"Found {len(jobs)} jobs for recruiter {recruiter_id}")
+        
+        # Convert ObjectIds to strings for JSON serialization
+        serializable_jobs = convert_objectids_to_strings(jobs)
+        
+        return jsonify(serializable_jobs), 200
+        
+    except Exception as e:
+        print(f"Error fetching recruiter jobs: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to fetch jobs', 'details': str(e)}), 500

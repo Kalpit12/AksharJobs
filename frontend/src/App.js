@@ -33,8 +33,10 @@ import OAuthRoleSelection from "./pages/OAuthRoleSelection";
 import RecruiterRegistrationForm from "./pages/RecruiterRegistrationForm";
 import Company from "./pages/Company";
 import JobSeekerRegistrationForm from "./pages/JobSeekerRegistrationFormComprehensive";
+import InternRegistrationForm from "./pages/InternRegistrationForm";
 import PromoCodePage from "./pages/PromoCodePage";
 import PostJob from "./pages/PostJob";
+import PostInternship from "./pages/PostInternship";
 import SalaryGuide from "./pages/SalaryGuide";
 import CareerAdvice from "./pages/CareerAdvice";
 import RecruitmentSolutions from "./pages/RecruitmentSolutions";
@@ -58,6 +60,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ProfilePhotoProvider } from "./context/ProfilePhotoContext";
+import { LoadingProvider } from "./context/LoadingContext";
 
 // Dashboard Redirect Component - Routes users to their role-specific dashboard
 const DashboardRedirect = () => {
@@ -87,7 +90,11 @@ const DashboardRedirect = () => {
         navigate('/recruiter-dashboard');
       }
     } else if (user.role === 'intern') {
-      navigate('/intern-dashboard');
+      if (!hasCompletedProfile) {
+        navigate('/intern-registration');
+      } else {
+        navigate('/intern-dashboard');
+      }
     } else if (user.role === 'admin') {
       navigate('/admin');
     } else {
@@ -129,7 +136,8 @@ function App() {
       <AuthProvider>
         <NotificationProvider>
           <ProfilePhotoProvider>
-            <div className="app-container">
+            <LoadingProvider>
+              <div className="app-container">
           <Routes>
             {/* Public routes without Header */}
             <Route path="/" element={<HomePage/>}/>
@@ -170,6 +178,7 @@ function App() {
               </ProtectedRoute>
             } />
             <Route path="/recruiter-registration" element={<RecruiterRegistrationForm />} />
+            <Route path="/intern-registration" element={<InternRegistrationForm />} />
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <DashboardRedirect />
@@ -296,24 +305,22 @@ function App() {
                          {/* Recruiter-only routes */}
              <Route path="/recruiter-dashboard" element={
                <ProtectedRoute requiredRole="recruiter">
-                 <>
-                   <RecruiterDashboard />
-                   <Footer />
-                 </>
+                 <RecruiterDashboard />
                </ProtectedRoute>
              } />
              
              
             <Route path="/post-job" element={
               <ProtectedRoute requiredRole="recruiter">
-                <>
-                  <Header />
-                  <PostJob />
-                  <Footer />
-                </>
+                <PostJob />
               </ProtectedRoute>
             } />
             
+            <Route path="/post-internship" element={
+              <ProtectedRoute requiredRole="recruiter">
+                <PostInternship />
+              </ProtectedRoute>
+            } />
              
              <Route path="/company" element={
                <ProtectedRoute requiredRole="recruiter">
@@ -333,10 +340,7 @@ function App() {
              {/* Intern-only routes */}
              <Route path="/intern-dashboard" element={
                <ProtectedRoute requiredRole="intern">
-                 <>
-                   <InternDashboard />
-                   <Footer />
-                 </>
+                 <InternDashboard />
                </ProtectedRoute>
              } />
             
@@ -428,6 +432,7 @@ function App() {
             <Route path="/oauth-role-selection" element={<OAuthRoleSelection />} />
           </Routes>
         </div>
+            </LoadingProvider>
           </ProfilePhotoProvider>
         </NotificationProvider>
       </AuthProvider>

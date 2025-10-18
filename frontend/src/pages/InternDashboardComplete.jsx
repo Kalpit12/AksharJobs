@@ -8,11 +8,14 @@ import {
   faPlus, faUpload, faAward, faArrowUp, faCheckCircle,
   faQuestionCircle, faCalendarCheck, faTrash, faEdit, faGraduationCap,
   faBars, faExclamationTriangle, faUserEdit, faCode, faBuilding,
-  faLanguage, faProjectDiagram, faTrophy, faChartLine, faInfoCircle
+  faLanguage, faProjectDiagram, faTrophy, faChartLine, faInfoCircle,
+  faPassport, faBullseye, faLightbulb, faSlidersH, faSave, faTimes,
+  faCertificate
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
+import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
 import '../styles/InternDashboard.css';
 
 const InternDashboardComplete = () => {
@@ -20,7 +23,12 @@ const InternDashboardComplete = () => {
   const navigate = useNavigate();
   
   // State
-  const [activeSection, setActiveSection] = useState('dashboard');
+  const [activeSection, setActiveSection] = useState(() => {
+    // Check URL hash first, then localStorage, then default to dashboard
+    const hash = window.location.hash.replace('#', '');
+    const savedSection = localStorage.getItem('internDashboardActiveSection');
+    return hash || savedSection || 'dashboard';
+  });
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState({
     stats: {
@@ -45,6 +53,14 @@ const InternDashboardComplete = () => {
     projects: []
   });
 
+  // Handle section change
+  const handleSectionChange = (section) => {
+    setActiveSection(section);
+    localStorage.setItem('internDashboardActiveSection', section);
+    // Update URL hash without causing a page reload
+    window.history.replaceState(null, null, `#${section}`);
+  };
+
   // Fetch dashboard data
   useEffect(() => {
     fetchDashboardData();
@@ -58,8 +74,8 @@ const InternDashboardComplete = () => {
 
       // Fetch data
       const [applicationsRes, jobsRes] = await Promise.all([
-        axios.get(buildApiUrl('/api/application-tracker/jobseeker'), { headers }).catch(() => null),
-        axios.get(buildApiUrl('/api/jobs/fetch_all_jobs')).catch(() => null)
+        axios.get(buildApiUrl('/api/application-tracker/tracker/job-seeker/applications'), { headers }).catch(() => null),
+        axios.get(buildApiUrl('/api/jobs/get_jobs')).catch(() => null)
       ]);
 
       setDashboardData({
@@ -108,17 +124,19 @@ const InternDashboardComplete = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
-        <div className="loading-spinner">
-          <FontAwesomeIcon icon={faUserGraduate} spin size="3x" />
-          <p style={{ marginTop: '20px', fontSize: '18px' }}>Loading your dashboard...</p>
-        </div>
-      </div>
+      <ThemedLoadingSpinner 
+        theme="intern"
+        size="large"
+        text="Loading your dashboard..."
+        subText="Preparing your internship experience"
+        showIcon={true}
+        fullScreen={true}
+      />
     );
   }
 
   return (
-    <>
+    <div className="intern-dashboard">
       {/* Sidebar */}
       <div className="sidebar" id="sidebar">
         <div className="sidebar-header">
@@ -130,14 +148,14 @@ const InternDashboardComplete = () => {
         <div className="nav-menu">
           <div 
             className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveSection('dashboard')}
+            onClick={() => handleSectionChange('dashboard')}
           >
             <FontAwesomeIcon icon={faThLarge} />
             <span>Dashboard</span>
           </div>
           <div 
             className={`nav-item ${activeSection === 'internships' ? 'active' : ''}`}
-            onClick={() => setActiveSection('internships')}
+            onClick={() => handleSectionChange('internships')}
           >
             <FontAwesomeIcon icon={faSearch} />
             <span>Browse Internships</span>
@@ -145,7 +163,7 @@ const InternDashboardComplete = () => {
           </div>
           <div 
             className={`nav-item ${activeSection === 'applications' ? 'active' : ''}`}
-            onClick={() => setActiveSection('applications')}
+            onClick={() => handleSectionChange('applications')}
           >
             <FontAwesomeIcon icon={faFileAlt} />
             <span>My Applications</span>
@@ -153,7 +171,7 @@ const InternDashboardComplete = () => {
           </div>
           <div 
             className={`nav-item ${activeSection === 'saved' ? 'active' : ''}`}
-            onClick={() => setActiveSection('saved')}
+            onClick={() => handleSectionChange('saved')}
           >
             <FontAwesomeIcon icon={faBookmark} />
             <span>Saved Internships</span>
@@ -161,7 +179,7 @@ const InternDashboardComplete = () => {
           </div>
           <div 
             className={`nav-item ${activeSection === 'interviews' ? 'active' : ''}`}
-            onClick={() => setActiveSection('interviews')}
+            onClick={() => handleSectionChange('interviews')}
           >
             <FontAwesomeIcon icon={faCalendarCheck} />
             <span>Interviews</span>
@@ -169,14 +187,14 @@ const InternDashboardComplete = () => {
           </div>
           <div 
             className={`nav-item ${activeSection === 'matches' ? 'active' : ''}`}
-            onClick={() => setActiveSection('matches')}
+            onClick={() => handleSectionChange('matches')}
           >
             <FontAwesomeIcon icon={faStar} />
             <span>Recommended</span>
           </div>
           <div 
             className={`nav-item ${activeSection === 'messages' ? 'active' : ''}`}
-            onClick={() => setActiveSection('messages')}
+            onClick={() => handleSectionChange('messages')}
           >
             <FontAwesomeIcon icon={faEnvelope} />
             <span>Messages</span>
@@ -184,45 +202,38 @@ const InternDashboardComplete = () => {
           </div>
           <div 
             className={`nav-item ${activeSection === 'profile' ? 'active' : ''}`}
-            onClick={() => setActiveSection('profile')}
+            onClick={() => handleSectionChange('profile')}
           >
             <FontAwesomeIcon icon={faUser} />
             <span>My Profile</span>
           </div>
           <div 
             className={`nav-item ${activeSection === 'academic' ? 'active' : ''}`}
-            onClick={() => setActiveSection('academic')}
+            onClick={() => handleSectionChange('academic')}
           >
             <FontAwesomeIcon icon={faGraduationCap} />
             <span>Academic Info</span>
           </div>
           <div 
             className={`nav-item ${activeSection === 'portfolio' ? 'active' : ''}`}
-            onClick={() => setActiveSection('portfolio')}
+            onClick={() => handleSectionChange('portfolio')}
           >
             <FontAwesomeIcon icon={faBriefcase} />
             <span>Portfolio</span>
           </div>
           <div 
             className={`nav-item ${activeSection === 'learning' ? 'active' : ''}`}
-            onClick={() => setActiveSection('learning')}
+            onClick={() => handleSectionChange('learning')}
           >
             <FontAwesomeIcon icon={faBook} />
             <span>Learning Resources</span>
           </div>
           <div 
             className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`}
-            onClick={() => setActiveSection('settings')}
+            onClick={() => handleSectionChange('settings')}
           >
             <FontAwesomeIcon icon={faCog} />
             <span>Settings</span>
-          </div>
-        </div>
-        <div className="sidebar-footer">
-          <div style={{ padding: '15px 20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: '12px', opacity: 0.7, textAlign: 'center', cursor: 'pointer' }}>
-              <FontAwesomeIcon icon={faQuestionCircle} /> Need Help?
-            </div>
           </div>
         </div>
       </div>
@@ -246,7 +257,7 @@ const InternDashboardComplete = () => {
             <button className="icon-btn">
               <FontAwesomeIcon icon={faQuestionCircle} />
             </button>
-            <div className="user-profile" onClick={() => setActiveSection('profile')}>
+            <div className="user-profile" onClick={() => handleSectionChange('profile')}>
               <div className="user-avatar">{getUserInitials()}</div>
               <div>
                 <div style={{ fontWeight: 600, fontSize: '14px' }}>{getUserName()}</div>
@@ -258,7 +269,7 @@ const InternDashboardComplete = () => {
 
         {/* Content Area */}
         <div className="content-area">
-          {activeSection === 'dashboard' && <DashboardSection dashboardData={dashboardData} user={user} setActiveSection={setActiveSection} />}
+          {activeSection === 'dashboard' && <DashboardSection dashboardData={dashboardData} user={user} handleSectionChange={handleSectionChange} navigate={navigate} />}
           {activeSection === 'internships' && <InternshipsSection internships={dashboardData.internships} />}
           {activeSection === 'applications' && <ApplicationsSection applications={dashboardData.applications} />}
           {activeSection === 'saved' && <SavedInternshipsSection savedInternships={dashboardData.savedInternships} />}
@@ -272,12 +283,12 @@ const InternDashboardComplete = () => {
           {activeSection === 'settings' && <SettingsSection logout={logout} navigate={navigate} />}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
 // Dashboard Section
-const DashboardSection = ({ dashboardData, user, setActiveSection }) => (
+const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }) => (
   <div>
     <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.firstName || 'there'}! 🎓</h1>
 
@@ -301,13 +312,13 @@ const DashboardSection = ({ dashboardData, user, setActiveSection }) => (
         ></div>
       </div>
       <div className="completion-actions">
-        <button className="btn" onClick={() => setActiveSection('profile')}>
+        <button className="btn" onClick={() => navigate('/intern-registration')}>
           <FontAwesomeIcon icon={faUserEdit} /> Complete Profile
         </button>
-        <button className="btn" onClick={() => setActiveSection('portfolio')}>
+        <button className="btn" onClick={() => handleSectionChange('portfolio')}>
           <FontAwesomeIcon icon={faUpload} /> Add Projects
         </button>
-        <button className="btn" onClick={() => setActiveSection('academic')}>
+        <button className="btn" onClick={() => handleSectionChange('academic')}>
           <FontAwesomeIcon icon={faAward} /> Add Coursework
         </button>
       </div>
@@ -396,7 +407,7 @@ const DashboardSection = ({ dashboardData, user, setActiveSection }) => (
       <div className="card">
         <div className="card-header">
           <h3 className="card-title">Recommended for You</h3>
-          <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('matches')}>
+          <button className="btn btn-secondary btn-sm" onClick={() => handleSectionChange('matches')}>
             View All
           </button>
         </div>
@@ -431,7 +442,7 @@ const DashboardSection = ({ dashboardData, user, setActiveSection }) => (
               <span className="progress-value">{dashboardData.academicInfo.graduation}</span>
             </div>
           </div>
-          <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: '10px' }} onClick={() => setActiveSection('academic')}>
+          <button className="btn btn-secondary btn-sm" style={{ width: '100%', marginTop: '10px' }} onClick={() => handleSectionChange('academic')}>
             Update Info
           </button>
         </div>
@@ -440,14 +451,14 @@ const DashboardSection = ({ dashboardData, user, setActiveSection }) => (
           <div className="card-header">
             <h3 className="card-title">Quick Actions</h3>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <button className="btn btn-primary" onClick={() => setActiveSection('internships')}>
+          <div className="quick-actions">
+            <button className="btn btn-primary" onClick={() => handleSectionChange('internships')}>
               <FontAwesomeIcon icon={faSearch} /> Find Internships
             </button>
-            <button className="btn btn-secondary" onClick={() => setActiveSection('portfolio')}>
+            <button className="btn btn-secondary" onClick={() => handleSectionChange('portfolio')}>
               <FontAwesomeIcon icon={faUpload} /> Update Portfolio
             </button>
-            <button className="btn btn-secondary" onClick={() => setActiveSection('profile')}>
+            <button className="btn btn-secondary" onClick={() => handleSectionChange('profile')}>
               <FontAwesomeIcon icon={faUserEdit} /> Edit Profile
             </button>
           </div>
@@ -620,37 +631,831 @@ const MessagesSection = () => (
 );
 
 // Profile Section
-const ProfileSection = ({ profile }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>My Profile</h1>
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title">Personal Information</h3>
-        <button className="btn btn-primary btn-sm">
-          <FontAwesomeIcon icon={faEdit} /> Edit
-        </button>
+const ProfileSection = ({ profile }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [profileData, setProfileData] = useState({
+    fullName: `${profile?.firstName || ''} ${profile?.lastName || ''}`.trim(),
+    email: profile?.email || '',
+    phone: profile?.phone || '',
+    location: profile?.location || '',
+    dob: '',
+    gender: '',
+    nationality: '',
+    residentCountry: '',
+    city: '',
+    address: '',
+    workAuth: '',
+    prefLoc1: '',
+    prefLoc2: '',
+    prefLoc3: '',
+    relocate: '',
+    mode: '',
+    academicLevel: '',
+    objective: '',
+    industry: '',
+    role: '',
+    duration: '',
+    availability: '',
+    timing: '',
+    stipend: '',
+    unpaid: '',
+    credit: '',
+    hobbies: '',
+    whyInternship: ''
+  });
+
+  const toggleEditMode = () => {
+    setIsEditMode(!isEditMode);
+  };
+
+  const saveProfile = () => {
+    // Here you would typically save to backend
+    console.log('Profile saved:', profileData);
+    setIsEditMode(false);
+    alert('Profile updated successfully!');
+  };
+
+  const cancelEdit = () => {
+    setIsEditMode(false);
+  };
+
+  const handleInputChange = (field, value) => {
+    setProfileData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  return (
+    <div>
+      <h1 style={{ marginBottom: '25px' }}>My Profile</h1>
+      
+      {/* Profile Header */}
+      <div className="profile-header">
+        <div className="profile-photo">
+          <div className="avatar-placeholder">
+            {profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
+          </div>
+        </div>
+        <h1 style={{ fontSize: '28px', marginBottom: '5px' }}>{profileData.fullName}</h1>
+        <p style={{ fontSize: '16px', opacity: 0.9 }}>Computer Science Student • University of Nairobi</p>
+        <div style={{ marginTop: '15px' }}>
+          <button className="btn" style={{ background: 'white', color: '#22c55e' }} onClick={toggleEditMode}>
+            <FontAwesomeIcon icon={faEdit} /> <span id="editBtnText">{isEditMode ? 'Cancel Edit' : 'Edit Profile'}</span>
+          </button>
+        </div>
       </div>
-      <div className="profile-info-grid">
-        <div>
-          <label>Full Name</label>
-          <p>{profile?.firstName} {profile?.lastName}</p>
+
+      {/* Profile Content */}
+      <div className={`profile-content ${isEditMode ? 'edit-mode' : ''}`}>
+
+        {/* Personal Information */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faUser} />
+            Personal Information
+          </h3>
+          <div className="profile-grid two-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Full Name</div>
+              <div className="profile-field-value" id="fullName">{profileData.fullName}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="fullNameInput" 
+                value={profileData.fullName}
+                onChange={(e) => handleInputChange('fullName', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Date of Birth</div>
+              <div className="profile-field-value" id="dob">{new Date(profileData.dob).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <input 
+                type="date" 
+                className="profile-field-input" 
+                id="dobInput" 
+                value={profileData.dob}
+                onChange={(e) => handleInputChange('dob', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Gender</div>
+              <div className="profile-field-value" id="gender">{profileData.gender.charAt(0).toUpperCase() + profileData.gender.slice(1)}</div>
+              <select 
+                className="profile-field-input" 
+                id="genderInput"
+                value={profileData.gender}
+                onChange={(e) => handleInputChange('gender', e.target.value)}
+              >
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+                <option value="other">Other</option>
+                <option value="prefer-not-to-say">Prefer not to say</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Email Address</div>
+              <div className="profile-field-value" id="email">{profileData.email}</div>
+              <input 
+                type="email" 
+                className="profile-field-input" 
+                id="emailInput" 
+                value={profileData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Primary Phone</div>
+              <div className="profile-field-value" id="phone">{profileData.phone || 'Not provided'}</div>
+              <input 
+                type="tel" 
+                className="profile-field-input" 
+                id="phoneInput" 
+                value={profileData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Alternative Phone</div>
+              <div className="profile-field-value" id="altPhone">+254 722 987 654</div>
+              <input 
+                type="tel" 
+                className="profile-field-input" 
+                id="altPhoneInput" 
+                value="+254 722 987 654"
+                onChange={(e) => handleInputChange('altPhone', e.target.value)}
+              />
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Email</label>
-          <p>{profile?.email}</p>
+
+        {/* Nationality & Residency */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faPassport} />
+            Nationality & Residency
+          </h3>
+          <div className="profile-grid two-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Nationality</div>
+              <div className="profile-field-value" id="nationality">{profileData.nationality}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="nationalityInput" 
+                value={profileData.nationality}
+                onChange={(e) => handleInputChange('nationality', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Resident Country</div>
+              <div className="profile-field-value" id="residentCountry">{profileData.residentCountry}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="residentCountryInput" 
+                value={profileData.residentCountry}
+                onChange={(e) => handleInputChange('residentCountry', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Current City</div>
+              <div className="profile-field-value" id="city">{profileData.city}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="cityInput" 
+                value={profileData.city}
+                onChange={(e) => handleInputChange('city', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Work Authorization</div>
+              <div className="profile-field-value" id="workAuth">
+                {profileData.workAuth === 'citizen' ? 'Citizen - No work permit required' : 
+                 profileData.workAuth === 'yes' ? 'Yes - Valid work documents' : 
+                 'No - Will need sponsorship'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="workAuthInput"
+                value={profileData.workAuth}
+                onChange={(e) => handleInputChange('workAuth', e.target.value)}
+              >
+                <option value="citizen">Citizen - No work permit required</option>
+                <option value="yes">Yes - Valid work documents</option>
+                <option value="no">No - Will need sponsorship</option>
+              </select>
+            </div>
+          </div>
+          <div className="profile-grid single-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Full Address</div>
+              <div className="profile-field-value" id="address">{profileData.address}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="addressInput" 
+                value={profileData.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+              />
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Phone</label>
-          <p>{profile?.phone || 'Not provided'}</p>
+
+        {/* Preferred Locations */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faMapMarkerAlt} />
+            Preferred Internship Locations
+          </h3>
+          <div className="profile-grid">
+            <div className="profile-field">
+              <div className="profile-field-label">Preferred Location 1</div>
+              <div className="profile-field-value" id="prefLoc1">{profileData.prefLoc1}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="prefLoc1Input" 
+                value={profileData.prefLoc1}
+                onChange={(e) => handleInputChange('prefLoc1', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Preferred Location 2</div>
+              <div className="profile-field-value" id="prefLoc2">{profileData.prefLoc2}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="prefLoc2Input" 
+                value={profileData.prefLoc2}
+                onChange={(e) => handleInputChange('prefLoc2', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Preferred Location 3</div>
+              <div className="profile-field-value" id="prefLoc3">{profileData.prefLoc3}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="prefLoc3Input" 
+                value={profileData.prefLoc3}
+                onChange={(e) => handleInputChange('prefLoc3', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="profile-grid two-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Willing to Relocate</div>
+              <div className="profile-field-value" id="relocate">
+                {profileData.relocate === 'yes' ? 'Yes, anywhere' : 
+                 profileData.relocate === 'within-country' ? 'Within my country only' : 
+                 'No, local only'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="relocateInput"
+                value={profileData.relocate}
+                onChange={(e) => handleInputChange('relocate', e.target.value)}
+              >
+                <option value="yes">Yes, anywhere</option>
+                <option value="within-country">Within my country only</option>
+                <option value="no">No, local only</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Internship Mode Preference</div>
+              <div className="profile-field-value" id="mode">
+                {profileData.mode === 'onsite' ? 'On-site' : 
+                 profileData.mode === 'remote' ? 'Remote' : 
+                 profileData.mode === 'hybrid' ? 'Hybrid' : 
+                 'Flexible - Open to all'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="modeInput"
+                value={profileData.mode}
+                onChange={(e) => handleInputChange('mode', e.target.value)}
+              >
+                <option value="onsite">On-site</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="flexible">Flexible - Open to all</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Location</label>
-          <p>{profile?.location || 'Not provided'}</p>
+
+        {/* Education */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faGraduationCap} />
+            Education
+          </h3>
+          
+          <div className="profile-grid single-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Current Academic Level</div>
+              <div className="profile-field-value" id="academicLevel">
+                {profileData.academicLevel === 'high-school' ? 'High School Student' :
+                 profileData.academicLevel === 'undergraduate' ? 'Undergraduate/Bachelor\'s Student' :
+                 profileData.academicLevel === 'graduate' ? 'Graduate/Master\'s Student' :
+                 profileData.academicLevel === 'phd' ? 'PhD Student' :
+                 'Recent Graduate'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="academicLevelInput"
+                value={profileData.academicLevel}
+                onChange={(e) => handleInputChange('academicLevel', e.target.value)}
+              >
+                <option value="high-school">High School Student</option>
+                <option value="undergraduate">Undergraduate/Bachelor's Student</option>
+                <option value="graduate">Graduate/Master's Student</option>
+                <option value="phd">PhD Student</option>
+                <option value="recent-graduate">Recent Graduate</option>
+              </select>
+            </div>
+            
+            <div className="education-item">
+              <div className="item-title">University of Nairobi</div>
+              <div className="item-subtitle">Bachelor of Science in Computer Science • 2021 - 2025</div>
+              <div className="profile-grid two-column" style={{ marginTop: '15px' }}>
+                <div className="profile-field">
+                  <div className="profile-field-label">Current Year</div>
+                  <div className="profile-field-value">3rd Year (Junior)</div>
+                </div>
+                <div className="profile-field">
+                  <div className="profile-field-label">GPA</div>
+                  <div className="profile-field-value">3.8/4.0</div>
+                </div>
+                <div className="profile-field">
+                  <div className="profile-field-label">Location</div>
+                  <div className="profile-field-value">Nairobi, Kenya</div>
+                </div>
+                <div className="profile-field">
+                  <div className="profile-field-label">Expected Graduation</div>
+                  <div className="profile-field-value">May 2025</div>
+                </div>
+              </div>
+              <div style={{ marginTop: '20px' }}>
+                <div className="profile-field-label">Relevant Coursework</div>
+                <div style={{ marginTop: '8px' }}>
+                  <p style={{ color: '#666', fontStyle: 'italic' }}>No coursework added yet</p>
+                </div>
+              </div>
+              <div style={{ marginTop: '20px' }}>
+                <div className="profile-field-label">Academic Achievements</div>
+                <div className="item-description" style={{ marginTop: '8px' }}>
+                  • Dean's List - Fall 2023, Spring 2024<br/>
+                  • Academic Excellence Scholarship Recipient<br/>
+                  • Best Final Year Project - Computer Science Department<br/>
+                  • President of Computer Science Student Association
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Career Objective */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faBullseye} />
+            Career Objective & Goals
+          </h3>
+          <div className="profile-grid single-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Professional Objective</div>
+              <div className="profile-field-value" id="objective">{profileData.objective}</div>
+              <textarea 
+                className="profile-field-input" 
+                id="objectiveInput" 
+                rows="4"
+                value={profileData.objective}
+                onChange={(e) => handleInputChange('objective', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="profile-grid two-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Industry of Interest</div>
+              <div className="profile-field-value" id="industry">
+                {profileData.industry === 'technology' ? 'Technology & IT' :
+                 profileData.industry === 'finance' ? 'Finance & Banking' :
+                 profileData.industry === 'healthcare' ? 'Healthcare & Medical' :
+                 profileData.industry === 'marketing' ? 'Marketing & Advertising' :
+                 'Consulting'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="industryInput"
+                value={profileData.industry}
+                onChange={(e) => handleInputChange('industry', e.target.value)}
+              >
+                <option value="technology">Technology & IT</option>
+                <option value="finance">Finance & Banking</option>
+                <option value="healthcare">Healthcare & Medical</option>
+                <option value="marketing">Marketing & Advertising</option>
+                <option value="consulting">Consulting</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Preferred Role</div>
+              <div className="profile-field-value" id="role">{profileData.role}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="roleInput" 
+                value={profileData.role}
+                onChange={(e) => handleInputChange('role', e.target.value)}
+              />
+            </div>
+          </div>
+          <div className="profile-grid single-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Career Interests</div>
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ color: '#666', fontStyle: 'italic' }}>No career interests added yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Skills */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faLightbulb} />
+            Skills & Competencies
+          </h3>
+          <div className="profile-grid two-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Programming Languages</div>
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ color: '#666', fontStyle: 'italic' }}>No programming languages added yet</p>
+              </div>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Web Technologies</div>
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ color: '#666', fontStyle: 'italic' }}>No web technologies added yet</p>
+              </div>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Tools & Technologies</div>
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ color: '#666', fontStyle: 'italic' }}>No tools & technologies added yet</p>
+              </div>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Soft Skills</div>
+              <div style={{ marginTop: '8px' }}>
+                <p style={{ color: '#666', fontStyle: 'italic' }}>No soft skills added yet</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Internship Preferences */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faSlidersH} />
+            Internship Preferences & Availability
+          </h3>
+          <div className="profile-grid two-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Duration Preference</div>
+              <div className="profile-field-value" id="duration">
+                {profileData.duration === '1-2-months' ? '1-2 months' :
+                 profileData.duration === '3-months' ? '3 months' :
+                 profileData.duration === '4-6-months' ? '4-6 months' :
+                 profileData.duration === '6-12-months' ? '6-12 months' :
+                 'Flexible'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="durationInput"
+                value={profileData.duration}
+                onChange={(e) => handleInputChange('duration', e.target.value)}
+              >
+                <option value="1-2-months">1-2 months</option>
+                <option value="3-months">3 months</option>
+                <option value="4-6-months">4-6 months</option>
+                <option value="6-12-months">6-12 months</option>
+                <option value="flexible">Flexible</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Availability to Start</div>
+              <div className="profile-field-value" id="availability">
+                {profileData.availability === 'immediate' ? 'Immediately Available' :
+                 profileData.availability === '1-week' ? 'Within 1 week' :
+                 profileData.availability === '2-weeks' ? 'Within 2 weeks' :
+                 profileData.availability === '1-month' ? 'Within 1 month' :
+                 profileData.availability === 'summer' ? 'Summer Break' :
+                 'Next Semester'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="availabilityInput"
+                value={profileData.availability}
+                onChange={(e) => handleInputChange('availability', e.target.value)}
+              >
+                <option value="immediate">Immediately Available</option>
+                <option value="1-week">Within 1 week</option>
+                <option value="2-weeks">Within 2 weeks</option>
+                <option value="1-month">Within 1 month</option>
+                <option value="summer">Summer Break</option>
+                <option value="semester">Next Semester</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Timing Preference</div>
+              <div className="profile-field-value" id="timing">
+                {profileData.timing === 'full-time' ? 'Full-time (during break)' :
+                 profileData.timing === 'part-time' ? 'Part-time (during semester)' :
+                 'Flexible'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="timingInput"
+                value={profileData.timing}
+                onChange={(e) => handleInputChange('timing', e.target.value)}
+              >
+                <option value="full-time">Full-time (during break)</option>
+                <option value="part-time">Part-time (during semester)</option>
+                <option value="flexible">Flexible</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Expected Stipend (Monthly)</div>
+              <div className="profile-field-value" id="stipend">{profileData.stipend}</div>
+              <input 
+                type="text" 
+                className="profile-field-input" 
+                id="stipendInput" 
+                value={profileData.stipend}
+                onChange={(e) => handleInputChange('stipend', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Willing to Accept Unpaid</div>
+              <div className="profile-field-value" id="unpaid">
+                {profileData.unpaid === 'yes' ? 'Yes' :
+                 profileData.unpaid === 'prefer-paid' ? 'Prefer paid but open' :
+                 'No, paid only'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="unpaidInput"
+                value={profileData.unpaid}
+                onChange={(e) => handleInputChange('unpaid', e.target.value)}
+              >
+                <option value="yes">Yes</option>
+                <option value="prefer-paid">Prefer paid but open</option>
+                <option value="no">No, paid only</option>
+              </select>
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Academic Credit Required</div>
+              <div className="profile-field-value" id="credit">
+                {profileData.credit === 'yes' ? 'Yes, required' :
+                 profileData.credit === 'preferred' ? 'Preferred but not required' :
+                 'No'}
+              </div>
+              <select 
+                className="profile-field-input" 
+                id="creditInput"
+                value={profileData.credit}
+                onChange={(e) => handleInputChange('credit', e.target.value)}
+              >
+                <option value="yes">Yes, required</option>
+                <option value="preferred">Preferred but not required</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Certifications & Training */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faTrophy} />
+            Certifications & Training
+          </h3>
+          
+          <div className="profile-grid single-column">
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+              <FontAwesomeIcon icon={faCertificate} style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', margin: '0' }}>No certifications added yet</p>
+              <p style={{ fontSize: '14px', margin: '8px 0 0 0', opacity: 0.7 }}>Add your certifications and training to showcase your professional development</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Extracurricular Activities & Leadership */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faUser} />
+            Extracurricular Activities & Leadership
+          </h3>
+          
+          <div className="profile-grid single-column">
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+              <FontAwesomeIcon icon={faUser} style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', margin: '0' }}>No activities added yet</p>
+              <p style={{ fontSize: '14px', margin: '8px 0 0 0', opacity: 0.7 }}>Add your extracurricular activities and leadership roles to showcase your involvement</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Information */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faInfoCircle} />
+            Additional Information
+          </h3>
+          <div className="profile-grid single-column">
+            <div className="profile-field">
+              <div className="profile-field-label">Hobbies & Interests</div>
+              <div className="profile-field-value" id="hobbies">{profileData.hobbies}</div>
+              <textarea 
+                className="profile-field-input" 
+                id="hobbiesInput" 
+                rows="3"
+                value={profileData.hobbies}
+                onChange={(e) => handleInputChange('hobbies', e.target.value)}
+              />
+            </div>
+            <div className="profile-field">
+              <div className="profile-field-label">Why Seeking an Internship</div>
+              <div className="profile-field-value" id="whyInternship">{profileData.whyInternship}</div>
+              <textarea 
+                className="profile-field-input" 
+                id="whyInternshipInput" 
+                rows="4"
+                value={profileData.whyInternship}
+                onChange={(e) => handleInputChange('whyInternship', e.target.value)}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Edit Actions */}
+        {isEditMode && (
+          <div className="edit-actions">
+            <button className="btn" onClick={saveProfile} style={{ background: '#22c55e', color: 'white' }}>
+              <FontAwesomeIcon icon={faSave} /> Save Changes
+            </button>
+            <button className="btn" onClick={cancelEdit} style={{ background: '#6b7280', color: 'white' }}>
+              <FontAwesomeIcon icon={faTimes} /> Cancel
+            </button>
+          </div>
+        )}
+
+        {/* Work Experience & Internships */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faBriefcase} />
+            Work Experience & Internships
+          </h3>
+          
+          <div className="profile-grid single-column">
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+              <FontAwesomeIcon icon={faBriefcase} style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', margin: '0' }}>No work experience added yet</p>
+              <p style={{ fontSize: '14px', margin: '8px 0 0 0', opacity: 0.7 }}>Add your internships and work experience to showcase your professional background</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Projects & Portfolio */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faCode} />
+            Academic Projects & Portfolio
+          </h3>
+          
+          <div className="profile-grid single-column">
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+              <FontAwesomeIcon icon={faCode} style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+              <p style={{ fontSize: '16px', margin: '0' }}>No projects added yet</p>
+              <p style={{ fontSize: '14px', margin: '8px 0 0 0', opacity: 0.7 }}>Add your academic projects and portfolio to showcase your technical skills</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Languages */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faLanguage} />
+            Languages
+          </h3>
+          <div className="profile-grid two-column">
+            <div style={{ textAlign: 'center', padding: '20px', color: '#666', gridColumn: '1 / -1' }}>
+              <p style={{ fontSize: '14px', margin: '0', fontStyle: 'italic' }}>No languages added yet</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Academic Projects & Portfolio */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faProjectDiagram} />
+            Academic Projects & Portfolio
+          </h3>
+          
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#666' }}>
+            <FontAwesomeIcon icon={faProjectDiagram} style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+            <p style={{ fontSize: '16px', margin: '0' }}>No projects added yet</p>
+            <p style={{ fontSize: '14px', margin: '8px 0 0 0', opacity: 0.7 }}>Add your academic projects and portfolio to showcase your technical skills</p>
+          </div>
+        </div>
+
+        {/* Extracurricular Activities & Leadership */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faUser} />
+            Extracurricular Activities & Leadership
+          </h3>
+          
+          <div className="info-box" style={{ marginBottom: '15px' }}>
+            <div style={{ fontWeight: '600', marginBottom: '5px' }}>President - Computer Science Student Society</div>
+            <div style={{ color: '#666', marginBottom: '8px' }}>2023 - Present</div>
+            <div style={{ fontSize: '14px', color: '#555' }}>
+              Lead a team of 15 students in organizing tech workshops, hackathons, and networking events. Increased membership by 40% and secured sponsorship for 3 major events.
+            </div>
+          </div>
+
+          <div className="info-box">
+            <div style={{ fontWeight: '600', marginBottom: '5px' }}>Volunteer Tutor - Code for All Initiative</div>
+            <div style={{ color: '#666', marginBottom: '8px' }}>2022 - Present</div>
+            <div style={{ fontSize: '14px', color: '#555' }}>
+              Teach basic programming to underprivileged high school students on weekends. Helped over 50 students learn fundamentals of Python and web development.
+            </div>
+          </div>
+        </div>
+
+        {/* Certifications & Training */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faTrophy} />
+            Certifications & Training
+          </h3>
+          <div className="info-box" style={{ marginBottom: '15px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+              <div>
+                <div style={{ fontWeight: '600', marginBottom: '5px' }}>Google Data Analytics Professional Certificate</div>
+                <div style={{ color: '#666' }}>Google • Issued March 2024</div>
+              </div>
+              <a href="#" style={{ color: '#22c55e', whiteSpace: 'nowrap', marginLeft: '15px' }}><FontAwesomeIcon icon={faEye} /> View</a>
+            </div>
+          </div>
+          <div className="info-box">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+              <div>
+                <div style={{ fontWeight: '600', marginBottom: '5px' }}>AWS Cloud Practitioner</div>
+                <div style={{ color: '#666' }}>Amazon Web Services • Issued January 2024</div>
+              </div>
+              <a href="#" style={{ color: '#22c55e', whiteSpace: 'nowrap', marginLeft: '15px' }}><FontAwesomeIcon icon={faEye} /> View</a>
+            </div>
+          </div>
+        </div>
+
+        {/* Online Presence & Portfolio */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">
+            <FontAwesomeIcon icon={faCode} />
+            Online Presence & Portfolio
+          </h3>
+          <div className="profile-grid">
+            <div className="info-box">
+              <div style={{ fontWeight: '600', marginBottom: '5px' }}><FontAwesomeIcon icon={faCode} /> LinkedIn</div>
+              <a href="https://linkedin.com/in/emilystudent" target="_blank" style={{ color: '#22c55e', wordBreak: 'break-all' }}>linkedin.com/in/emilystudent</a>
+            </div>
+            <div className="info-box">
+              <div style={{ fontWeight: '600', marginBottom: '5px' }}><FontAwesomeIcon icon={faCode} /> GitHub</div>
+              <a href="https://github.com/emilystudent" target="_blank" style={{ color: '#22c55e', wordBreak: 'break-all' }}>github.com/emilystudent</a>
+            </div>
+            <div className="info-box">
+              <div style={{ fontWeight: '600', marginBottom: '5px' }}><FontAwesomeIcon icon={faCode} /> Personal Portfolio</div>
+              <a href="https://emilystudent.com" target="_blank" style={{ color: '#22c55e', wordBreak: 'break-all' }}>emilystudent.com</a>
+            </div>
+          </div>
+        </div>
+
+        {/* Edit Actions (Hidden by default) */}
+        <div className="edit-actions" style={{ display: isEditMode ? 'flex' : 'none' }}>
+          <button className="btn btn-primary" onClick={saveProfile}>
+            <FontAwesomeIcon icon={faSave} /> Save Changes
+          </button>
+          <button className="btn btn-secondary" onClick={cancelEdit}>
+            <FontAwesomeIcon icon={faTimes} /> Cancel
+          </button>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Academic Section
 const AcademicSection = ({ academicInfo }) => (
@@ -695,9 +1500,7 @@ const AcademicSection = ({ academicInfo }) => (
         </button>
       </div>
       <div>
-        {['Data Structures', 'Algorithms', 'Web Development', 'Database Systems', 'Software Engineering'].map(course => (
-          <span key={course} className="skill-tag" style={{ margin: '5px' }}>{course}</span>
-        ))}
+        <p style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', margin: '20px 0' }}>No coursework added yet</p>
       </div>
     </div>
   </div>

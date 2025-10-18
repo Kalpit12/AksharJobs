@@ -1,1093 +1,1348 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback, Suspense, lazy } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
-  faBuilding, 
-  faUser,
-  faBriefcase,
-  faBullseye,
-  faInfoCircle,
-  faCheck,
-  faArrowRight,
-  faArrowLeft,
-  faEnvelope,
-  faPhone,
-  faGlobe,
-  faMapMarkerAlt,
-  faIndustry,
-  faUsers
+  faBuilding, faMapMarkerAlt, faUserTie, faBriefcase, 
+  faGlobeAmericas, faHandshake, faFileAlt, faShareAlt, 
+  faCrown, faClipboardCheck, faUpload, faImage, faPhone,
+  faEnvelope, faLink, faPlus, faTimes, faCheckCircle, 
+  faInfoCircle, faCheck, faShieldAlt, faFileUpload
 } from '@fortawesome/free-solid-svg-icons';
 import { buildApiUrl } from '../config/api';
-import { useAutoSave } from '../hooks/useAutoSave';
 import '../styles/RecruiterRegistrationForm.css';
+import 'leaflet/dist/leaflet.css';
+
+// Import Leaflet directly (same as job seeker form)
+import L from 'leaflet';
+
+// Fix Leaflet default marker icon issue
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
+
+// Countries list - moved outside component for better performance
+const COUNTRIES = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
+  "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+  "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+  "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde",
+  "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+  "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+  "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia",
+  "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
+  "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras",
+  "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+  "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "North Korea", "South Korea",
+  "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+  "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+  "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+  "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia",
+  "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Norway",
+  "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines",
+  "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis",
+  "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Saudi Arabia",
+  "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+  "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan",
+  "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania",
+  "Thailand", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+  "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States",
+  "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen",
+  "Zambia", "Zimbabwe"
+];
 
 const RecruiterRegistrationForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const userData = location.state?.userData || {};
-  
-  const [currentSection, setCurrentSection] = useState(1);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+  const markerRef = useRef(null);
+
+  const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  // Auto-save configuration
-  const AUTOSAVE_KEY = `recruiter_registration_${user?.userId || 'temp'}`;
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
-  // Smart navigation function to go to appropriate dashboard
-  const navigateToDashboard = () => {
-    const role = localStorage.getItem('role');
-    const normalizedRole = role?.toLowerCase().replace(/[_-]/g, '');
+
+  // Form state
+  const [formData, setFormData] = useState({
+    // Company Information
+    companyName: '',
+    companyEmail: '',
+    companyPhone: '',
+    companyWebsite: '',
+    companySize: '',
+    yearFounded: '',
+    industry: '',
+    companyDescription: '',
     
-    if (normalizedRole?.includes('recruiter')) {
-      navigate('/recruiter-dashboard');
-    } else if (normalizedRole?.includes('intern')) {
-      navigate('/intern-dashboard');
-    } else if (normalizedRole?.includes('admin')) {
-      navigate('/admin');
-    } else {
-      // Default to job seeker dashboard
-      navigate('/jobseeker-dashboard');
+    // Company Location
+    country: '',
+    state: '',
+    city: '',
+    postalCode: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+    
+    // Recruiter Personal Details
+    firstName: '',
+    lastName: '',
+    jobTitle: '',
+    recruiterPhone: '',
+    recruiterEmail: '',
+    linkedinProfile: '',
+    
+    // Geographic Coverage
+    offersRemote: '',
+    
+    // Terms
+    agreeTerms: false,
+    agreeDataProcessing: false,
+    agreeMarketing: false,
+    verifyInfo: false,
+    
+    // Other
+    referralSource: '',
+    additionalComments: '',
+    careerLevels: [],
+    hiringVolume: '',
+    timeToHire: '',
+    taxId: '',
+    linkedinCompany: '',
+    facebook: '',
+    twitter: '',
+    instagram: ''
+  });
+
+  const [industries, setIndustries] = useState([]);
+  const [functions, setFunctions] = useState([]);
+  const [recruitCountries, setRecruitCountries] = useState([]);
+  const [additionalLinks, setAdditionalLinks] = useState([]);
+  const [employmentTypes, setEmploymentTypes] = useState([]);
+  const [additionalServices, setAdditionalServices] = useState([]);
+
+  const [industryInput, setIndustryInput] = useState('');
+  const [functionInput, setFunctionInput] = useState('');
+  const [recruitCountryInput, setRecruitCountryInput] = useState('');
+  const [linkTypeInput, setLinkTypeInput] = useState('');
+  const [linkUrlInput, setLinkUrlInput] = useState('');
+
+  // Define setMarker function before useEffect that uses it
+  const setMarker = (lat, lng) => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (markerRef.current) {
+      map.removeLayer(markerRef.current);
     }
-  };
+    
+    const marker = L.marker([lat, lng], {
+      draggable: true
+    }).addTo(map);
 
-  // Initialize form data with auto-save (2-minute periodic save)
-  const {
-    formData,
-    setFormData,
-    isSaving,
-    saveStatus,
-    lastSaveTime,
-    clearSavedData
-  } = useAutoSave(
-    {
-      // Account Information
-      fullName: userData.firstName ? `${userData.firstName} ${userData.lastName}` : '',
-      email: userData.email || '',
-      phone: '',
-      password: '',
-      country: '',
+    markerRef.current = marker;
 
-      // Company Information
-      companyName: userData.companyName || '',
-      companyWebsite: '',
-      companySize: '',
-      industry: '',
-      yourRole: '',
-      hiringFor: '',
-      
-      // Recruiting Needs
-      numberOfRoles: '',
-      roleTypes: [],
-      employmentTypes: [],
-      hiringTimeline: '',
-      monthlyHiringVolume: '',
-      
-      // Job Locations
-      jobLocations: [],
-      internationalRoles: '',
-      specificCountries: '',
-      
-      // Candidate Preferences
-      experienceLevels: [],
-      sponsorshipOffered: '',
-      
-      // Communication Preferences
-      preferredContact: [],
-      allowDirectApplications: '',
-      
-      // Recruiting Goals
-      recruitingGoals: [],
-      valueProposition: '',
-      
-      // Additional (optional)
-      companyDescription: '',
-      linkedinProfile: '',
-      companyBenefits: '',
-      additionalNotes: ''
-    },
-    AUTOSAVE_KEY,
-    1000, // Debounce delay (1 second)
-    null, // No backend save callback
-    true // Enable periodic 2-minute auto-save
-  );
-
-  const [errors, setErrors] = useState({});
-
-  // Initialize state
-  useEffect(() => {
-    setTimeout(() => {
-      setIsInitialized(true);
-    }, 100);
-  }, []);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      latitude: lat,
+      longitude: lng
     }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
 
-  const handleMultiSelect = (field, value) => {
-    setFormData(prev => {
-      const current = prev[field] || [];
-      const updated = current.includes(value)
-        ? current.filter(v => v !== value)
-        : [...current, value];
-      return { ...prev, [field]: updated };
+    marker.on('dragend', function(e) {
+      const position = marker.getLatLng();
+      setMarker(position.lat, position.lng);
     });
+
+    // Reverse geocode
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.display_name) {
+          setFormData(prev => ({
+            ...prev,
+            address: data.display_name
+          }));
+        }
+      })
+      .catch(error => {
+        console.log('Reverse geocoding failed:', error);
+      });
   };
 
-  const validateSection = (section) => {
-    const newErrors = {};
-    
-    switch(section) {
-      case 1: // Account Information
-        if (!formData.fullName) newErrors.fullName = 'Full name is required';
-        if (!formData.email) newErrors.email = 'Work email is required';
-        if (!formData.phone) newErrors.phone = 'Phone number is required';
-        if (!formData.country) newErrors.country = 'Country/Region is required';
-        break;
-      
-      case 2: // Company Details
-        if (!formData.companyName) newErrors.companyName = 'Company name is required';
-        if (!formData.companySize) newErrors.companySize = 'Company size is required';
-        if (!formData.industry) newErrors.industry = 'Industry is required';
-        if (!formData.yourRole) newErrors.yourRole = 'Your role is required';
-        if (!formData.hiringFor) newErrors.hiringFor = 'This field is required';
-        break;
-      
-      case 3: // Recruiting Needs
-        if (!formData.numberOfRoles) newErrors.numberOfRoles = 'Number of roles is required';
-        if (formData.roleTypes.length === 0) newErrors.roleTypes = 'Select at least one role type';
-        if (formData.employmentTypes.length === 0) newErrors.employmentTypes = 'Select at least one employment type';
-        if (!formData.hiringTimeline) newErrors.hiringTimeline = 'Hiring timeline is required';
-        break;
-      
-      case 4: // Job Locations & Preferences
-        if (formData.jobLocations.length === 0) newErrors.jobLocations = 'Select at least one location type';
-        if (formData.experienceLevels.length === 0) newErrors.experienceLevels = 'Select at least one experience level';
-        break;
-      
-      case 5: // Communication & Goals
-        if (formData.preferredContact.length === 0) newErrors.preferredContact = 'Select at least one contact method';
-        if (formData.recruitingGoals.length === 0) newErrors.recruitingGoals = 'Select at least one recruiting goal';
-        break;
-      
-      case 6: // Additional Info (optional)
-        break;
-      
-      default:
-        break;
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  // Initialize map (same simple approach as job seeker form)
+  useEffect(() => {
+    const initMap = () => {
+      if (mapRef.current && !mapInstanceRef.current) {
+        // Default center (Nairobi, Kenya)
+        const map = L.map(mapRef.current).setView([-1.286389, 36.817223], 12);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors',
+          maxZoom: 19
+        }).addTo(map);
 
-  const handleNext = () => {
-    if (validateSection(currentSection)) {
-      if (currentSection < 6) {
-        setCurrentSection(currentSection + 1);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        mapInstanceRef.current = map;
+
+        // Add click event to map
+        map.on('click', function(e) {
+          setMarker(e.latlng.lat, e.latlng.lng);
+        });
+
+        // Try to get user's current location
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            map.setView([lat, lng], 13);
+            setMarker(lat, lng);
+          });
+        }
+
+        setMapLoaded(true);
       }
+    };
+
+    const timer = setTimeout(initMap, 100);
+    return () => {
+      clearTimeout(timer);
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [setMarker]);
+
+  const updateProgress = useCallback(() => {
+    const requiredFields = [
+      formData.companyName, formData.companyEmail, formData.companyPhone,
+      formData.companySize, formData.yearFounded, formData.industry,
+      formData.companyDescription, formData.country, formData.state,
+      formData.city, formData.address, formData.firstName, formData.lastName,
+      formData.jobTitle, formData.recruiterPhone, formData.recruiterEmail,
+      formData.offersRemote,
+      formData.agreeTerms, formData.agreeDataProcessing, formData.verifyInfo
+    ];
+
+    const filledFields = requiredFields.filter(field => {
+      if (typeof field === 'boolean') return field === true;
+      return field && field.toString().trim() !== '';
+    }).length;
+
+    let bonus = 0;
+    if (industries.length > 0) bonus += 2;
+    if (functions.length > 0) bonus += 2;
+    if (recruitCountries.length > 0) bonus += 2;
+
+    const progressPercent = Math.min(((filledFields + bonus) / requiredFields.length) * 100, 100);
+    setProgress(progressPercent);
+  }, [formData, industries, functions, recruitCountries]);
+
+  const handleInputChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    
+    if (type === 'checkbox') {
+      if (name === 'employmentTypes[]') {
+        const updatedTypes = checked 
+          ? [...employmentTypes, value]
+          : employmentTypes.filter(t => t !== value);
+        setEmploymentTypes(updatedTypes);
+      } else if (name === 'additionalServices[]') {
+        const updatedServices = checked
+          ? [...additionalServices, value]
+          : additionalServices.filter(s => s !== value);
+        setAdditionalServices(updatedServices);
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: checked
+        }));
+      }
+    } else if (name === 'careerLevels') {
+      const options = Array.from(e.target.selectedOptions, option => option.value);
+      setFormData(prev => ({
+        ...prev,
+        [name]: options
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+    
+    updateProgress();
+  }, [employmentTypes, additionalServices, updateProgress]);
+
+  const handleLogoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setLogoPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentSection > 1) {
-      setCurrentSection(currentSection - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const addIndustry = () => {
+    if (industryInput && !industries.includes(industryInput)) {
+      setIndustries([...industries, industryInput]);
+      setIndustryInput('');
+      updateProgress();
     }
   };
 
-  const handleStepClick = (step) => {
-    if (step <= currentSection || validateSection(currentSection)) {
-      setCurrentSection(step);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+  const removeIndustry = (index) => {
+    setIndustries(industries.filter((_, i) => i !== index));
+    updateProgress();
+  };
+
+  const addFunction = () => {
+    if (functionInput && !functions.includes(functionInput)) {
+      setFunctions([...functions, functionInput]);
+      setFunctionInput('');
+      updateProgress();
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const removeFunction = (index) => {
+    setFunctions(functions.filter((_, i) => i !== index));
+    updateProgress();
+  };
 
-    if (!validateSection(currentSection)) {
+  const addRecruitCountry = () => {
+    if (recruitCountryInput && !recruitCountries.includes(recruitCountryInput)) {
+      setRecruitCountries([...recruitCountries, recruitCountryInput]);
+      setRecruitCountryInput('');
+      updateProgress();
+    }
+  };
+
+  const removeRecruitCountry = (index) => {
+    setRecruitCountries(recruitCountries.filter((_, i) => i !== index));
+    updateProgress();
+  };
+
+  const addLink = () => {
+    if (!linkTypeInput.trim()) {
+      alert('Please enter a link type');
+      return;
+    }
+    
+    if (!linkUrlInput.trim()) {
+      alert('Please enter a URL');
       return;
     }
 
-    setIsSubmitting(true);
+    try {
+      new URL(linkUrlInput);
+    } catch (e) {
+      alert('Please enter a valid URL (including https://)');
+      return;
+    }
+
+    setAdditionalLinks([...additionalLinks, { type: linkTypeInput, url: linkUrlInput }]);
+    setLinkTypeInput('');
+    setLinkUrlInput('');
+  };
+
+  const removeLink = (index) => {
+    setAdditionalLinks(additionalLinks.filter((_, i) => i !== index));
+  };
+
+  useEffect(() => {
+    updateProgress();
+  }, [updateProgress]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (industries.length === 0) {
+      alert('Please add at least one industry you recruit for');
+      return;
+    }
+
+    if (functions.length === 0) {
+      alert('Please add at least one job function');
+      return;
+    }
+
+    if (recruitCountries.length === 0) {
+      alert('Please add at least one country you recruit for');
+      return;
+    }
+
+    setIsLoading(true);
     setSubmitError('');
 
     try {
+      const submitData = {
+        ...formData,
+        industries,
+        functions,
+        recruitCountries,
+        additionalLinks,
+        employmentTypes,
+        additionalServices
+      };
+
+      // Debug: Log the data being submitted
+      console.log('Submitting recruiter data:', submitData);
+
       const token = localStorage.getItem('token');
-
-      // Prepare FormData for file uploads
-      const submitData = new FormData();
-      
-      // Add all form fields
-      Object.keys(formData).forEach(key => {
-        if (Array.isArray(formData[key])) {
-          submitData.append(key, JSON.stringify(formData[key]));
-        } else if (formData[key] !== null && formData[key] !== '') {
-          submitData.append(key, formData[key]);
-        }
-      });
-
-      const response = await fetch(buildApiUrl('/api/recruiter/complete-profile'), {
+      const response = await fetch(buildApiUrl('/api/recruiters/register'), {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Content-Type': 'application/json',
+          ...(token && { 'Authorization': `Bearer ${token}` })
         },
-        body: submitData
+        body: JSON.stringify(submitData)
       });
 
-      if (response.ok) {
-        // Clear saved form data on successful submission
-        clearSavedData();
-        localStorage.removeItem('recruiterFormState');
-        navigate('/recruiter-dashboard', {
-          state: { message: 'Registration completed successfully!' }
-        });
-      } else {
+      if (!response.ok) {
         const errorData = await response.json();
-        setSubmitError(errorData.message || 'Registration failed. Please try again.');
+        console.error('Registration failed:', errorData);
+        throw new Error(errorData.message || 'Registration failed');
       }
+
+      const result = await response.json();
+      console.log('Registration successful:', result);
+      alert('Registration submitted successfully! Your account will be reviewed within 24-48 hours.');
+      navigate('/recruiter-dashboard');
     } catch (error) {
       console.error('Registration error:', error);
-      setSubmitError('An error occurred. Please try again.');
+      setSubmitError(error.message || 'Failed to submit registration. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
   };
 
-  const renderProgressBar = () => {
-    const steps = [
-      { number: 1, label: 'Account Info', icon: faUser },
-      { number: 2, label: 'Company Details', icon: faBuilding },
-      { number: 3, label: 'Recruiting Needs', icon: faBriefcase },
-      { number: 4, label: 'Locations & Preferences', icon: faMapMarkerAlt },
-      { number: 5, label: 'Communication & Goals', icon: faBullseye },
-      { number: 6, label: 'Additional Info', icon: faInfoCircle }
-    ];
-
-    const progress = ((currentSection - 1) / (steps.length - 1)) * 100;
-
-    return (
-      <div className="progress-bar-container">
-        <div className="progress-line">
-          <div className="progress-fill" style={{ width: `${progress}%` }} />
-            </div>
-        <div className="progress-steps">
-          {steps.map(step => {
-            const isCompleted = step.number < currentSection;
-            const isCurrent = step.number === currentSection;
-            const isClickable = step.number <= currentSection;
-
-            return (
-              <div
-                key={step.number}
-                className={`progress-step ${isCurrent ? 'active' : ''} ${isCompleted ? 'completed' : ''} ${isClickable ? 'clickable' : 'disabled'}`}
-                onClick={() => isClickable && handleStepClick(step.number)}
-              >
-                <div className="step-circle">
-                  {isCompleted ? (
-                    <FontAwesomeIcon icon={faCheck} className="step-check" />
-                  ) : (
-                    step.number
-                  )}
-                </div>
-                <span className="step-label">{step.label}</span>
-              </div>
-            );
-          })}
-          </div>
-      </div>
-    );
-  };
-
-  if (!isInitialized) {
-    return (
-      <div className="recruiter-loading">
-        <div className="spinner"></div>
-        <p>Loading form...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="recruiter-wrapper">
+    <div className="recruiter-details-comprehensive">
+      
       {/* Header */}
       <header className="recruiter-header">
         <div className="header-container">
-          <div className="logo-section" onClick={navigateToDashboard} style={{ cursor: 'pointer' }}>
-            <div className="logo-icon">
-              <img src="/AK_logo.png" alt="AksharJobs" />
-            </div>
-            <div className="logo-text">
-              <h3 className="logo-title">AksharJobs</h3>
-              <p className="logo-subtitle">Find Top Talent</p>
+          <div className="header-left">
+            <div className="logo-section" onClick={() => navigate('/recruiter-dashboard')} style={{ cursor: 'pointer' }}>
+              <div className="logo-icon">
+                <img src="/AK_logo.png" alt="AksharJobs Logo" />
+              </div>
+              <div className="logo-text">
+                <h3 className="logo-title">AksharJobs</h3>
+                <p className="logo-subtitle">Recruiter Registration</p>
+              </div>
             </div>
           </div>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '10px',
-            fontSize: '14px'
-          }}>
-            {isSaving && <span style={{ color: '#f39c12' }}>💾 Saving...</span>}
-            {saveStatus === 'saved' && (
-              <span style={{ color: '#27ae60' }}>
-                <FontAwesomeIcon icon={faCheck} /> Saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}
+          <div className="header-right">
+            <div className="header-controls">
+              <span className="auto-save-status">
+                <FontAwesomeIcon icon={faCheck} />
+                <span>Auto-saving every 2 minutes</span>
               </span>
-            )}
-            {saveStatus === 'error' && <span style={{ color: '#e74c3c' }}>⚠️ Save failed</span>}
-            {!isSaving && !saveStatus && <span style={{ color: '#666' }}>Auto-saving every 2 minutes</span>}
+              <button
+                className="clear-form-btn"
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to clear all form data? This cannot be undone.')) {
+                    window.location.reload();
+                  }
+                }}
+              >
+                Clear Form Data
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="recruiter-main">
         <div className="recruiter-container">
           <div className="recruiter-form-card">
-            
-            {/* Form Header */}
-            <div className="form-header">
-              <h1 className="form-title">Recruiter Registration</h1>
-              <p className="form-subtitle">
-                Complete your profile to start posting jobs and connect with talented candidates
-              </p>
-            </div>
-
-            {/* Progress Bar */}
-            {renderProgressBar()}
-
-            {/* Form Content */}
-            <div className="form-content">
-              <form onSubmit={handleSubmit}>
-                {/* Section 1: Account Information */}
-                {currentSection === 1 && (
-                  <div className="form-section">
-                    <h2 className="section-title">
-                      <FontAwesomeIcon icon={faUser} />
-                      Account Information
-                    </h2>
-                    <p className="section-description">
-                      Let's start with your basic information
-                    </p>
-
-                    <div className="form-grid">
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faUser} />
-                          Full Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="fullName"
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.fullName ? 'error' : ''}`}
-                          placeholder="Enter your full name"
-                        />
-                        {errors.fullName && <span className="error-text">{errors.fullName}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faEnvelope} />
-                          Work Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.email ? 'error' : ''}`}
-                          placeholder="your.name@company.com"
-                          disabled={!!userData.email}
-                        />
-                        {errors.email && <span className="error-text">{errors.email}</span>}
-                        <p className="input-hint">Please use your business email (not Gmail/Yahoo)</p>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faPhone} />
-                          Phone Number *
-                        </label>
-                        <input
-                          type="tel"
-                          name="phone"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.phone ? 'error' : ''}`}
-                          placeholder="+1 (555) 123-4567"
-                        />
-                        {errors.phone && <span className="error-text">{errors.phone}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faGlobe} />
-                          Country/Region *
-                        </label>
-                        <select
-                          name="country"
-                          value={formData.country}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.country ? 'error' : ''}`}
-                        >
-                          <option value="">Select your country</option>
-                          <option value="United States">United States</option>
-                          <option value="Canada">Canada</option>
-                          <option value="United Kingdom">United Kingdom</option>
-                          <option value="India">India</option>
-                          <option value="Australia">Australia</option>
-                          <option value="Germany">Germany</option>
-                          <option value="France">France</option>
-                          <option value="Singapore">Singapore</option>
-                          <option value="UAE">United Arab Emirates</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        {errors.country && <span className="error-text">{errors.country}</span>}
-                      </div>
-                    </div>
+            {/* Main Form */}
+            <div className="recruiter-form-container">
+              <form id="recruiterForm" onSubmit={handleSubmit}>
+                {/* Compact Progress Section */}
+                <div className="progress-section-comprehensive">
+                  <div className="progress-header-comprehensive">
+                    <h2>Registration Progress</h2>
+                    <span className="progress-percentage-comprehensive">{Math.round(progress)}%</span>
                   </div>
-                )}
-
-                {/* Section 2: Company Details */}
-                {currentSection === 2 && (
-                  <div className="form-section">
-                    <h2 className="section-title">
-                      <FontAwesomeIcon icon={faBuilding} />
-                      Company Details
-                    </h2>
-                    <p className="section-description">
-                      Tell us about your company
-                    </p>
-
-                    <div className="form-grid">
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faBuilding} />
-                          Company Name *
-                        </label>
-                        <input
-                          type="text"
-                          name="companyName"
-                          value={formData.companyName}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.companyName ? 'error' : ''}`}
-                          placeholder="Enter company name"
-                        />
-                        {errors.companyName && <span className="error-text">{errors.companyName}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faGlobe} />
-                          Company Website
-                        </label>
-                        <input
-                          type="url"
-                          name="companyWebsite"
-                          value={formData.companyWebsite}
-                          onChange={handleInputChange}
-                          className="form-input"
-                          placeholder="https://www.company.com"
-                        />
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faUsers} />
-                          Company Size *
-                        </label>
-                        <select
-                          name="companySize"
-                          value={formData.companySize}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.companySize ? 'error' : ''}`}
-                        >
-                          <option value="">Select company size</option>
-                          <option value="1-10">1-10 employees</option>
-                          <option value="11-50">11-50 employees</option>
-                          <option value="51-200">51-200 employees</option>
-                          <option value="201-500">201-500 employees</option>
-                          <option value="501-1000">501-1000 employees</option>
-                          <option value="1001-5000">1001-5000 employees</option>
-                          <option value="5001-10000">5001-10000 employees</option>
-                          <option value="10000+">10000+ employees</option>
-                        </select>
-                        {errors.companySize && <span className="error-text">{errors.companySize}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faIndustry} />
-                          Industry *
-                        </label>
-                        <select
-                          name="industry"
-                          value={formData.industry}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.industry ? 'error' : ''}`}
-                        >
-                          <option value="">Select industry</option>
-                          <option value="Technology">Technology & Software</option>
-                          <option value="Healthcare">Healthcare & Medical</option>
-                          <option value="Finance">Finance & Banking</option>
-                          <option value="Education">Education & Training</option>
-                          <option value="Manufacturing">Manufacturing</option>
-                          <option value="Retail">Retail & E-commerce</option>
-                          <option value="Consulting">Consulting</option>
-                          <option value="Marketing">Marketing & Advertising</option>
-                          <option value="Real Estate">Real Estate</option>
-                          <option value="Hospitality">Hospitality & Tourism</option>
-                          <option value="Automotive">Automotive</option>
-                          <option value="Construction">Construction</option>
-                          <option value="Energy">Energy & Utilities</option>
-                          <option value="Legal">Legal Services</option>
-                          <option value="Media">Media & Entertainment</option>
-                          <option value="Telecommunications">Telecommunications</option>
-                          <option value="Transportation">Transportation & Logistics</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        {errors.industry && <span className="error-text">{errors.industry}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faUser} />
-                          Your Role in the Company *
-                        </label>
-                        <select
-                          name="yourRole"
-                          value={formData.yourRole}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.yourRole ? 'error' : ''}`}
-                        >
-                          <option value="">Select your role</option>
-                          <option value="HR Manager">HR Manager</option>
-                          <option value="Talent Acquisition">Talent Acquisition Specialist</option>
-                          <option value="Recruiter">Recruiter</option>
-                          <option value="Hiring Manager">Hiring Manager</option>
-                          <option value="Director">Director/VP</option>
-                          <option value="Founder">Founder/Co-Founder</option>
-                          <option value="CEO">CEO/Executive</option>
-                          <option value="Consultant">Recruitment Consultant</option>
-                          <option value="Agency">Staffing Agency</option>
-                          <option value="Other">Other</option>
-                        </select>
-                        {errors.yourRole && <span className="error-text">{errors.yourRole}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faBriefcase} />
-                          Are you hiring on behalf of *
-                        </label>
-                        <select
-                          name="hiringFor"
-                          value={formData.hiringFor}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.hiringFor ? 'error' : ''}`}
-                        >
-                          <option value="">Select option</option>
-                          <option value="My company">My company (direct hire)</option>
-                          <option value="Client company">A client company</option>
-                          <option value="Multiple clients">Multiple clients (agency)</option>
-                          <option value="Startup">My startup</option>
-                        </select>
-                        {errors.hiringFor && <span className="error-text">{errors.hiringFor}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          Company Description (Optional)
-                        </label>
-                        <textarea
-                          name="companyDescription"
-                          value={formData.companyDescription}
-                          onChange={handleInputChange}
-                          className="form-textarea"
-                          placeholder="Brief description of your company, mission, and culture"
-                          rows="3"
-                        />
-                      </div>
-                    </div>
+                  <div className="progress-bar-comprehensive">
+                    <div className="progress-fill-comprehensive" style={{ width: `${progress}%` }}></div>
                   </div>
-                )}
-
-                {/* Section 3: Recruiting Needs */}
-                {currentSection === 3 && (
-                  <div className="form-section">
-                    <h2 className="section-title">
-                      <FontAwesomeIcon icon={faBriefcase} />
-                      Recruiting Needs
-                    </h2>
-                    <p className="section-description">
-                      Help us understand your hiring requirements
-                    </p>
-                    
-                    <div className="form-grid">
-                      <div className="form-group">
-                        <label className="form-label">
-                          How many roles are you hiring for? *
-                        </label>
-                        <select
-                          name="numberOfRoles"
-                          value={formData.numberOfRoles}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.numberOfRoles ? 'error' : ''}`}
-                        >
-                          <option value="">Select number of roles</option>
-                          <option value="1">1 role</option>
-                          <option value="2-5">2-5 roles</option>
-                          <option value="6-10">6-10 roles</option>
-                          <option value="11-20">11-20 roles</option>
-                          <option value="21-50">21-50 roles</option>
-                          <option value="50+">50+ roles</option>
-                        </select>
-                        {errors.numberOfRoles && <span className="error-text">{errors.numberOfRoles}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          Monthly Hiring Volume
-                        </label>
-                        <select
-                          name="monthlyHiringVolume"
-                          value={formData.monthlyHiringVolume}
-                          onChange={handleInputChange}
-                          className="form-input"
-                        >
-                          <option value="">Select monthly volume</option>
-                          <option value="1-5">1-5 hires/month</option>
-                          <option value="6-10">6-10 hires/month</option>
-                          <option value="11-20">11-20 hires/month</option>
-                          <option value="21-50">21-50 hires/month</option>
-                          <option value="50+">50+ hires/month</option>
-                          <option value="Seasonal">Seasonal hiring</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          What types of roles are you hiring for? *
-                        </label>
-                        <div className="checkbox-grid">
-                          {[
-                            'Engineering/Development',
-                            'Sales',
-                            'Marketing',
-                            'Customer Support',
-                            'Design/Creative',
-                            'Product Management',
-                            'Data/Analytics',
-                            'HR',
-                            'Finance/Accounting',
-                            'Operations',
-                            'Legal',
-                            'Executive'
-                          ].map(role => (
-                            <label key={role} className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={formData.roleTypes.includes(role)}
-                                onChange={() => handleMultiSelect('roleTypes', role)}
-                              />
-                              <span>{role}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {errors.roleTypes && <span className="error-text">{errors.roleTypes}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          Employment Types *
-                        </label>
-                        <div className="checkbox-grid">
-                          {[
-                            'Full-Time',
-                            'Part-Time',
-                            'Contract',
-                            'Freelance',
-                            'Internship',
-                            'Temporary'
-                          ].map(type => (
-                            <label key={type} className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={formData.employmentTypes.includes(type)}
-                                onChange={() => handleMultiSelect('employmentTypes', type)}
-                              />
-                              <span>{type}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {errors.employmentTypes && <span className="error-text">{errors.employmentTypes}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          What's your hiring timeline? *
-                        </label>
-                        <select
-                          name="hiringTimeline"
-                          value={formData.hiringTimeline}
-                          onChange={handleInputChange}
-                          className={`form-input ${errors.hiringTimeline ? 'error' : ''}`}
-                        >
-                          <option value="">Select timeline</option>
-                          <option value="Urgent">Urgent (Hiring immediately - within 1-2 weeks)</option>
-                          <option value="Soon">Soon (Hiring within 1 month)</option>
-                          <option value="Next few months">Next few months (1-3 months)</option>
-                          <option value="Ongoing">Ongoing (Continuous hiring)</option>
-                          <option value="Planning">Planning ahead (3+ months)</option>
-                        </select>
-                        {errors.hiringTimeline && <span className="error-text">{errors.hiringTimeline}</span>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Section 4: Job Locations & Candidate Preferences */}
-                {currentSection === 4 && (
-                  <div className="form-section">
-                    <h2 className="section-title">
-                      <FontAwesomeIcon icon={faMapMarkerAlt} />
-                      Job Locations & Candidate Preferences
-                    </h2>
-                    <p className="section-description">
-                      Where are your jobs located and what candidate profiles are you seeking?
-                    </p>
-                    
-                    <div className="form-grid">
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faMapMarkerAlt} />
-                          Where are the jobs you're hiring for located? *
-                        </label>
-                        <div className="checkbox-grid">
-                          {[
-                            'Onsite',
-                            'Remote',
-                            'Hybrid',
-                            'Multiple Countries'
-                          ].map(location => (
-                            <label key={location} className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={formData.jobLocations.includes(location)}
-                                onChange={() => handleMultiSelect('jobLocations', location)}
-                              />
-                              <span>{location}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {errors.jobLocations && <span className="error-text">{errors.jobLocations}</span>}
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faGlobe} />
-                          Are you hiring for international roles?
-                        </label>
-                        <select
-                          name="internationalRoles"
-                          value={formData.internationalRoles}
-                          onChange={handleInputChange}
-                          className="form-input"
-                        >
-                          <option value="">Select option</option>
-                          <option value="Yes">Yes, we hire internationally</option>
-                          <option value="No">No, domestic only</option>
-                          <option value="Considering">Considering it</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group">
-                        <label className="form-label">
-                          Specific Countries/Regions (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          name="specificCountries"
-                          value={formData.specificCountries}
-                          onChange={handleInputChange}
-                          className="form-input"
-                          placeholder="e.g., USA, UK, Canada"
-                        />
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          What is your ideal candidate experience level? *
-                        </label>
-                        <div className="checkbox-grid">
-                          {[
-                            'Entry-Level',
-                            'Mid-Level',
-                            'Senior',
-                            'Executive',
-                            'Student/Intern'
-                          ].map(level => (
-                            <label key={level} className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={formData.experienceLevels.includes(level)}
-                                onChange={() => handleMultiSelect('experienceLevels', level)}
-                              />
-                              <span>{level}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {errors.experienceLevels && <span className="error-text">{errors.experienceLevels}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          Do you offer sponsorship for international candidates?
-                        </label>
-                        <select
-                          name="sponsorshipOffered"
-                          value={formData.sponsorshipOffered}
-                          onChange={handleInputChange}
-                          className="form-input"
-                        >
-                          <option value="">Select option</option>
-                          <option value="Yes">Yes, we offer sponsorship</option>
-                          <option value="No">No sponsorship available</option>
-                          <option value="Case by case">Considered on a case-by-case basis</option>
-                          <option value="Certain roles">Only for certain roles</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Section 5: Communication & Recruiting Goals */}
-                {currentSection === 5 && (
-                  <div className="form-section">
-                    <h2 className="section-title">
-                      <FontAwesomeIcon icon={faBullseye} />
-                      Communication & Recruiting Goals
-                    </h2>
-                    <p className="section-description">
-                      How do you want to connect with candidates and what are your goals?
-                    </p>
-
-                    <div className="form-grid">
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faEnvelope} />
-                          How would you prefer to be contacted by candidates? *
-                        </label>
-                        <div className="checkbox-grid">
-                          {[
-                            'Email',
-                            'Phone',
-                            'LinkedIn InMail',
-                            'AksharJobs Chat',
-                            'WhatsApp'
-                          ].map(method => (
-                            <label key={method} className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={formData.preferredContact.includes(method)}
-                                onChange={() => handleMultiSelect('preferredContact', method)}
-                              />
-                              <span>{method}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {errors.preferredContact && <span className="error-text">{errors.preferredContact}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          Do you allow direct candidate applications via AksharJobs?
-                        </label>
-                        <select
-                          name="allowDirectApplications"
-                          value={formData.allowDirectApplications}
-                          onChange={handleInputChange}
-                          className="form-input"
-                        >
-                          <option value="">Select option</option>
-                          <option value="Yes">Yes, candidates can apply directly</option>
-                          <option value="No">No, I prefer to reach out to candidates</option>
-                          <option value="Depends">Depends on the role</option>
-                        </select>
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          <FontAwesomeIcon icon={faBullseye} />
-                          What are your main goals using AksharJobs? *
-                        </label>
-                        <div className="checkbox-grid">
-                          {[
-                            'Posting job openings',
-                            'Finding passive candidates',
-                            'Building company brand',
-                            'Building talent pipeline',
-                            'Networking with professionals',
-                            'Market research'
-                          ].map(goal => (
-                            <label key={goal} className="checkbox-label">
-                              <input
-                                type="checkbox"
-                                checked={formData.recruitingGoals.includes(goal)}
-                                onChange={() => handleMultiSelect('recruitingGoals', goal)}
-                              />
-                              <span>{goal}</span>
-                            </label>
-                          ))}
-                        </div>
-                        {errors.recruitingGoals && <span className="error-text">{errors.recruitingGoals}</span>}
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          What would make AksharJobs most valuable to your hiring process?
-                        </label>
-                        <textarea
-                          name="valueProposition"
-                          value={formData.valueProposition}
-                          onChange={handleInputChange}
-                          className="form-textarea"
-                          placeholder="Tell us what features or capabilities would help you most in your recruiting efforts..."
-                          rows="4"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Section 6: Additional Information */}
-                {currentSection === 6 && (
-                  <div className="form-section">
-                    <h2 className="section-title">
-                      <FontAwesomeIcon icon={faInfoCircle} />
-                      Additional Information
-                    </h2>
-                    
-                    <p className="section-description">
-                      Optional information to enhance your profile (all fields optional)
-                    </p>
-
-                    <div className="form-grid">
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          LinkedIn Profile
-                        </label>
-                        <input
-                          type="url"
-                          name="linkedinProfile"
-                          value={formData.linkedinProfile}
-                          onChange={handleInputChange}
-                          className="form-input"
-                          placeholder="https://linkedin.com/in/yourprofile"
-                        />
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          Company Benefits & Perks
-                        </label>
-                        <textarea
-                          name="companyBenefits"
-                          value={formData.companyBenefits}
-                          onChange={handleInputChange}
-                          className="form-textarea"
-                          placeholder="Health insurance, remote work options, flexible hours, professional development, etc."
-                          rows="3"
-                        />
-                      </div>
-
-                      <div className="form-group full-width">
-                        <label className="form-label">
-                          Additional Notes
-                        </label>
-                        <textarea
-                          name="additionalNotes"
-                          value={formData.additionalNotes}
-                          onChange={handleInputChange}
-                          className="form-textarea"
-                          placeholder="Any other information you'd like to share about your company or hiring needs..."
-                          rows="3"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Error Message */}
-                {submitError && (
-                  <div className="error-message">
-                    {submitError}
-                </div>
-                )}
-              </form>
                 </div>
 
-            {/* Navigation Buttons */}
-            <div className="form-actions">
-              {currentSection > 1 && (
-                <button
-                  type="button"
-                  onClick={handlePrevious}
-                  className="btn btn-secondary"
-                  disabled={isSubmitting}
-                >
-                  <FontAwesomeIcon icon={faArrowLeft} />
-                    Previous
-                  </button>
-              )}
-              
-              {currentSection < 6 ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="btn btn-primary"
-                  disabled={isSubmitting}
-                >
-                  Next
-                  <FontAwesomeIcon icon={faArrowRight} />
-                  </button>
-              ) : (
-                <button
-                  type="submit"
-                  onClick={handleSubmit}
-                  className="btn btn-success"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="spinner small"></span>
-                      Submitting...
-                      </>
-                    ) : (
-                      <>
-                      <FontAwesomeIcon icon={faCheck} />
-                        Complete Registration
-                      </>
+                {/* Company Information Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faBuilding} />
+                    Company Information
+                  </h2>
+
+                  {logoPreview && (
+                    <div className="profile-photo-preview-comprehensive">
+                      <img src={logoPreview} alt="Company Logo" />
+                    </div>
+                  )}
+
+                  <div className="form-group-comprehensive">
+                    <label className="file-upload-comprehensive">
+                      <FontAwesomeIcon icon={faImage} />
+                      <div className="file-upload-text-comprehensive">
+                        <strong>Upload Company Logo</strong>
+                        <p>Click to browse or drag and drop (PNG, JPG, max 5MB)</p>
+                      </div>
+                      <input type="file" accept="image/*" onChange={handleLogoChange} />
+                    </label>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Company Name <span className="required">*</span></label>
+                    <input 
+                      type="text" 
+                      name="companyName" 
+                      required 
+                      placeholder="Enter your company name"
+                      value={formData.companyName}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Company Email <span className="required">*</span></label>
+                      <input 
+                        type="email" 
+                        name="companyEmail" 
+                        required 
+                        placeholder="contact@company.com"
+                        value={formData.companyEmail}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Company Phone <span className="required">*</span></label>
+                      <input 
+                        type="tel" 
+                        name="companyPhone" 
+                        required 
+                        placeholder="+254 700 000 000"
+                        value={formData.companyPhone}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Company Website</label>
+                    <input 
+                      type="url" 
+                      name="companyWebsite" 
+                      placeholder="https://www.yourcompany.com"
+                      value={formData.companyWebsite}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Company Size <span className="required">*</span></label>
+                      <select 
+                        name="companySize" 
+                        required
+                        value={formData.companySize}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Select company size</option>
+                        <option value="1-10">1-10 employees</option>
+                        <option value="11-50">11-50 employees</option>
+                        <option value="51-200">51-200 employees</option>
+                        <option value="201-500">201-500 employees</option>
+                        <option value="501-1000">501-1000 employees</option>
+                        <option value="1001-5000">1001-5000 employees</option>
+                        <option value="5001+">5001+ employees</option>
+                      </select>
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Year Founded <span className="required">*</span></label>
+                      <input 
+                        type="number" 
+                        name="yearFounded" 
+                        required 
+                        min="1800" 
+                        max="2025" 
+                        placeholder="2015"
+                        value={formData.yearFounded}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Industry/Sector <span className="required">*</span></label>
+                    <select 
+                      name="industry" 
+                      required
+                      value={formData.industry}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Select your primary industry</option>
+                      <option value="technology">Technology & IT</option>
+                      <option value="finance">Finance & Banking</option>
+                      <option value="healthcare">Healthcare & Medical</option>
+                      <option value="education">Education & Training</option>
+                      <option value="manufacturing">Manufacturing</option>
+                      <option value="retail">Retail & E-commerce</option>
+                      <option value="hospitality">Hospitality & Tourism</option>
+                      <option value="construction">Construction & Real Estate</option>
+                      <option value="agriculture">Agriculture & Agribusiness</option>
+                      <option value="energy">Energy & Utilities</option>
+                      <option value="telecommunications">Telecommunications</option>
+                      <option value="media">Media & Entertainment</option>
+                      <option value="consulting">Consulting & Professional Services</option>
+                      <option value="government">Government & Public Sector</option>
+                      <option value="ngo">NGO & Non-Profit</option>
+                      <option value="legal">Legal Services</option>
+                      <option value="marketing">Marketing & Advertising</option>
+                      <option value="logistics">Logistics & Transportation</option>
+                      <option value="recruitment">Recruitment & Staffing Agency</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Company Description <span className="required">*</span></label>
+                    <textarea 
+                      name="companyDescription" 
+                      required 
+                      placeholder="Describe your company, its mission, vision, and what makes it a great place to work. (Minimum 150 characters)"
+                      value={formData.companyDescription}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Company Location Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faMapMarkerAlt} />
+                    Company Location
+                  </h2>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Country <span className="required">*</span></label>
+                      <select 
+                        name="country" 
+                        required
+                        value={formData.country}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Select your country</option>
+                {COUNTRIES.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+                      </select>
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>State/Province <span className="required">*</span></label>
+                      <input 
+                        type="text" 
+                        name="state" 
+                        required 
+                        placeholder="e.g., Nairobi"
+                        value={formData.state}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>City <span className="required">*</span></label>
+                      <input 
+                        type="text" 
+                        name="city" 
+                        required 
+                        placeholder="e.g., Nairobi"
+                        value={formData.city}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Postal/ZIP Code</label>
+                      <input 
+                        type="text" 
+                        name="postalCode" 
+                        placeholder="Enter postal code"
+                        value={formData.postalCode}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Full Address <span className="required">*</span></label>
+                    <input 
+                      type="text" 
+                      name="address" 
+                      required 
+                      placeholder="Street address, building name, suite number"
+                      value={formData.address}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Pin Your Office Location on Map (Optional)</label>
+                    <div className="info-badge">
+                      <FontAwesomeIcon icon={faMapMarkerAlt} /> Click on the map to mark your office location
+                    </div>
+                    <div ref={mapRef} className="map-container" style={{ height: '300px', width: '100%' }}>
+                      {!mapLoaded && (
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: '50%', 
+                          left: '50%', 
+                          transform: 'translate(-50%, -50%)', 
+                          color: '#666',
+                          fontSize: '14px'
+                        }}>
+                          Loading map...
+                        </div>
+                      )}
+                    </div>
+                    {mapLoaded && (
+                      <div className="coordinates-display">
+                        <strong>Selected Coordinates:</strong> 
+                        {formData.latitude && formData.longitude 
+                          ? `Lat: ${parseFloat(formData.latitude).toFixed(6)}, Lng: ${parseFloat(formData.longitude).toFixed(6)}`
+                          : ' Click on the map to select'}
+                      </div>
                     )}
-                  </button>
-              )}
+                  </div>
                 </div>
 
-              </div>
+                {/* Recruiter Personal Details Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faUserTie} />
+                    Recruiter Personal Details
+                  </h2>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>First Name <span className="required">*</span></label>
+                      <input 
+                        type="text" 
+                        name="firstName" 
+                        required 
+                        placeholder="Enter your first name"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Last Name <span className="required">*</span></label>
+                      <input 
+                        type="text" 
+                        name="lastName" 
+                        required 
+                        placeholder="Enter your last name"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Job Title <span className="required">*</span></label>
+                      <input 
+                        type="text" 
+                        name="jobTitle" 
+                        required 
+                        placeholder="e.g., HR Manager, Talent Acquisition Lead"
+                        value={formData.jobTitle}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Direct Phone Number <span className="required">*</span></label>
+                      <input 
+                        type="tel" 
+                        name="recruiterPhone" 
+                        required 
+                        placeholder="+254 700 000 000"
+                        value={formData.recruiterPhone}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Professional Email <span className="required">*</span></label>
+                    <input 
+                      type="email" 
+                      name="recruiterEmail" 
+                      required 
+                      placeholder="your.name@company.com"
+                      value={formData.recruiterEmail}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>LinkedIn Profile</label>
+                    <input 
+                      type="url" 
+                      name="linkedinProfile" 
+                      placeholder="https://www.linkedin.com/in/yourprofile"
+                      value={formData.linkedinProfile}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+                </div>
+
+                {/* Recruitment Specialization Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faBriefcase} />
+                    Recruitment Specialization
+                  </h2>
+
+                  <div className="form-group-comprehensive">
+                    <label>Industries You Recruit For <span className="required">*</span></label>
+                    <div className="info-badge">
+                      <FontAwesomeIcon icon={faInfoCircle} /> Add all industries you actively recruit for
+                    </div>
+                    <div className="skills-input-container">
+                      <select 
+                        value={industryInput}
+                        onChange={(e) => setIndustryInput(e.target.value)}
+                      >
+                        <option value="">Select an industry</option>
+                        <option value="Technology & IT">Technology & IT</option>
+                        <option value="Finance & Banking">Finance & Banking</option>
+                        <option value="Healthcare & Medical">Healthcare & Medical</option>
+                        <option value="Education & Training">Education & Training</option>
+                        <option value="Manufacturing">Manufacturing</option>
+                        <option value="Retail & E-commerce">Retail & E-commerce</option>
+                        <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                        <option value="Construction & Real Estate">Construction & Real Estate</option>
+                        <option value="Agriculture">Agriculture & Agribusiness</option>
+                        <option value="Energy & Utilities">Energy & Utilities</option>
+                        <option value="Telecommunications">Telecommunications</option>
+                        <option value="Media & Entertainment">Media & Entertainment</option>
+                        <option value="Consulting">Consulting & Professional Services</option>
+                        <option value="Government">Government & Public Sector</option>
+                        <option value="NGO & Non-Profit">NGO & Non-Profit</option>
+                        <option value="Legal Services">Legal Services</option>
+                        <option value="Marketing & Advertising">Marketing & Advertising</option>
+                        <option value="Logistics & Transportation">Logistics & Transportation</option>
+                      </select>
+                      <button type="button" className="add-btn" onClick={addIndustry}>
+                        <FontAwesomeIcon icon={faPlus} /> Add
+                      </button>
+                    </div>
+                    <div className="tags-container">
+                      {industries.map((industry, index) => (
+                        <div key={index} className="tag">
+                          {industry}
+                          <span className="remove" onClick={() => removeIndustry(index)}>
+                            <FontAwesomeIcon icon={faTimes} />
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Job Functions You Recruit For <span className="required">*</span></label>
+                    <div className="info-badge">
+                      <FontAwesomeIcon icon={faInfoCircle} /> Add specific job functions (e.g., Software Development, Sales, Marketing)
+                    </div>
+                    <div className="skills-input-container">
+                      <input 
+                        type="text" 
+                        placeholder="Enter job function (e.g., Software Development)"
+                        value={functionInput}
+                        onChange={(e) => setFunctionInput(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFunction())}
+                      />
+                      <button type="button" className="add-btn" onClick={addFunction}>
+                        <FontAwesomeIcon icon={faPlus} /> Add
+                      </button>
+                    </div>
+                    <div className="tags-container">
+                      {functions.map((func, index) => (
+                        <div key={index} className="tag">
+                          {func}
+                          <span className="remove" onClick={() => removeFunction(index)}>
+                            <FontAwesomeIcon icon={faTimes} />
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Career Levels You Recruit <span className="required">*</span></label>
+                      <select 
+                        name="careerLevels" 
+                        multiple 
+                        size="5"
+                        value={formData.careerLevels}
+                        onChange={handleInputChange}
+                      >
+                        <option value="entry">Entry Level</option>
+                        <option value="mid">Mid-Level</option>
+                        <option value="senior">Senior Level</option>
+                        <option value="lead">Lead/Principal</option>
+                        <option value="manager">Manager</option>
+                        <option value="director">Director</option>
+                        <option value="executive">Executive/C-Level</option>
+                      </select>
+                      <small style={{ color: '#666', fontSize: '11px' }}>Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Average Hiring Volume (Monthly)</label>
+                      <select 
+                        name="hiringVolume"
+                        value={formData.hiringVolume}
+                        onChange={handleInputChange}
+                      >
+                        <option value="">Select hiring volume</option>
+                        <option value="1-5">1-5 positions</option>
+                        <option value="6-10">6-10 positions</option>
+                        <option value="11-20">11-20 positions</option>
+                        <option value="21-50">21-50 positions</option>
+                        <option value="51+">51+ positions</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Geographic Coverage Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faGlobeAmericas} />
+                    Geographic Coverage
+                  </h2>
+
+                  <div className="form-group-comprehensive">
+                    <label>Countries You Recruit For <span className="required">*</span></label>
+                    <div className="info-badge">
+                      <FontAwesomeIcon icon={faInfoCircle} /> Add all countries where you actively recruit candidates
+                    </div>
+                    <div className="skills-input-container">
+                      <select 
+                        value={recruitCountryInput}
+                        onChange={(e) => setRecruitCountryInput(e.target.value)}
+                      >
+                        <option value="">Select a country</option>
+                {COUNTRIES.map(country => (
+                  <option key={country} value={country}>{country}</option>
+                ))}
+                      </select>
+                      <button type="button" className="add-btn" onClick={addRecruitCountry}>
+                        <FontAwesomeIcon icon={faPlus} /> Add
+                      </button>
+                    </div>
+                    <div className="tags-container">
+                      {recruitCountries.map((country, index) => (
+                        <div key={index} className="tag">
+                          {country}
+                          <span className="remove" onClick={() => removeRecruitCountry(index)}>
+                            <FontAwesomeIcon icon={faTimes} />
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Do you offer international/remote positions? <span className="required">*</span></label>
+                    <div className="radio-group">
+                      <div className="radio-option">
+                        <input 
+                          type="radio" 
+                          id="remoteYes" 
+                          name="offersRemote" 
+                          value="yes" 
+                          required
+                          checked={formData.offersRemote === 'yes'}
+                          onChange={handleInputChange}
+                        />
+                        <label htmlFor="remoteYes">Yes, regularly</label>
+                      </div>
+                      <div className="radio-option">
+                        <input 
+                          type="radio" 
+                          id="remoteSometimes" 
+                          name="offersRemote" 
+                          value="sometimes" 
+                          required
+                          checked={formData.offersRemote === 'sometimes'}
+                          onChange={handleInputChange}
+                        />
+                        <label htmlFor="remoteSometimes">Sometimes</label>
+                      </div>
+                      <div className="radio-option">
+                        <input 
+                          type="radio" 
+                          id="remoteNo" 
+                          name="offersRemote" 
+                          value="no" 
+                          required
+                          checked={formData.offersRemote === 'no'}
+                          onChange={handleInputChange}
+                        />
+                        <label htmlFor="remoteNo">No, only on-site</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Services & Offerings Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faHandshake} />
+                    Services & Offerings
+                  </h2>
+
+                  <div className="form-group-comprehensive">
+                    <label>Types of Employment You Offer <span className="required">*</span></label>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="fullTime" 
+                        name="employmentTypes[]" 
+                        value="full-time"
+                        checked={employmentTypes.includes('full-time')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="fullTime">Full-time Positions</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="partTime" 
+                        name="employmentTypes[]" 
+                        value="part-time"
+                        checked={employmentTypes.includes('part-time')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="partTime">Part-time Positions</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="contract" 
+                        name="employmentTypes[]" 
+                        value="contract"
+                        checked={employmentTypes.includes('contract')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="contract">Contract/Temporary</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="freelance" 
+                        name="employmentTypes[]" 
+                        value="freelance"
+                        checked={employmentTypes.includes('freelance')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="freelance">Freelance/Project-based</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="internship" 
+                        name="employmentTypes[]" 
+                        value="internship"
+                        checked={employmentTypes.includes('internship')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="internship">Internships</label>
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Additional Services Offered</label>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="visa" 
+                        name="additionalServices[]" 
+                        value="visa"
+                        checked={additionalServices.includes('visa')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="visa">Visa Sponsorship Support</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="relocation" 
+                        name="additionalServices[]" 
+                        value="relocation"
+                        checked={additionalServices.includes('relocation')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="relocation">Relocation Assistance</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="training" 
+                        name="additionalServices[]" 
+                        value="training"
+                        checked={additionalServices.includes('training')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="training">Training & Development Programs</label>
+                    </div>
+                    <div className="checkbox-group">
+                      <input 
+                        type="checkbox" 
+                        id="benefits" 
+                        name="additionalServices[]" 
+                        value="benefits"
+                        checked={additionalServices.includes('benefits')}
+                        onChange={handleInputChange}
+                      />
+                      <label htmlFor="benefits">Comprehensive Benefits Package</label>
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Average Time to Hire</label>
+                    <select 
+                      name="timeToHire"
+                      value={formData.timeToHire}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Select average time</option>
+                      <option value="1-2weeks">1-2 weeks</option>
+                      <option value="3-4weeks">3-4 weeks</option>
+                      <option value="1-2months">1-2 months</option>
+                      <option value="2-3months">2-3 months</option>
+                      <option value="3+months">3+ months</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Social Media Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faShareAlt} />
+                    Social Media & Online Presence
+                  </h2>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Company LinkedIn Page</label>
+                      <input 
+                        type="url" 
+                        name="linkedinCompany" 
+                        placeholder="https://www.linkedin.com/company/yourcompany"
+                        value={formData.linkedinCompany}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Facebook Page</label>
+                      <input 
+                        type="url" 
+                        name="facebook" 
+                        placeholder="https://www.facebook.com/yourcompany"
+                        value={formData.facebook}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-row-comprehensive">
+                    <div className="form-group-comprehensive">
+                      <label>Twitter/X Handle</label>
+                      <input 
+                        type="url" 
+                        name="twitter" 
+                        placeholder="https://twitter.com/yourcompany"
+                        value={formData.twitter}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div className="form-group-comprehensive">
+                      <label>Instagram</label>
+                      <input 
+                        type="url" 
+                        name="instagram" 
+                        placeholder="https://www.instagram.com/yourcompany"
+                        value={formData.instagram}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Additional Professional Links</label>
+                    <div style={{ marginTop: '8px' }}>
+                      <div className="form-row-comprehensive">
+                        <div className="form-group-comprehensive">
+                          <input 
+                            type="text" 
+                            placeholder="Link type (e.g., Glassdoor, Indeed)"
+                            value={linkTypeInput}
+                            onChange={(e) => setLinkTypeInput(e.target.value)}
+                          />
+                        </div>
+                        <div className="form-group-comprehensive">
+                          <input 
+                            type="url" 
+                            placeholder="https://example.com"
+                            value={linkUrlInput}
+                            onChange={(e) => setLinkUrlInput(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <button type="button" className="add-btn" onClick={addLink}>
+                        <FontAwesomeIcon icon={faPlus} /> Add Link
+                      </button>
+                    </div>
+                    
+                    <div className="links-container">
+                      {additionalLinks.map((link, index) => (
+                        <div key={index} className="link-item">
+                          <div className="link-item-content">
+                            <div className="link-item-type">
+                              <FontAwesomeIcon icon={faLink} /> {link.type}
+                            </div>
+                            <div className="link-item-url">
+                              <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a>
+                            </div>
+                          </div>
+                          <button type="button" className="remove-item-btn" onClick={() => removeLink(index)}>
+                            <FontAwesomeIcon icon={faTimes} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Terms Section */}
+                <div className="section-comprehensive">
+                  <h2 className="section-title-comprehensive">
+                    <FontAwesomeIcon icon={faClipboardCheck} />
+                    Terms & Additional Information
+                  </h2>
+
+                  <div className="form-group-comprehensive">
+                    <label>How did you hear about us?</label>
+                    <select 
+                      name="referralSource"
+                      value={formData.referralSource}
+                      onChange={handleInputChange}
+                    >
+                      <option value="">Select source</option>
+                      <option value="search">Search Engine (Google, Bing, etc.)</option>
+                      <option value="social">Social Media</option>
+                      <option value="referral">Referral from colleague</option>
+                      <option value="advertisement">Advertisement</option>
+                      <option value="event">Industry Event/Conference</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group-comprehensive">
+                    <label>Additional Comments or Questions</label>
+                    <textarea 
+                      name="additionalComments" 
+                      placeholder="Share any additional information, special requirements, or questions you have about our platform"
+                      value={formData.additionalComments}
+                      onChange={handleInputChange}
+                    />
+                  </div>
+
+                  <div className="checkbox-group">
+                    <input 
+                      type="checkbox" 
+                      id="agreeTerms" 
+                      name="agreeTerms" 
+                      required
+                      checked={formData.agreeTerms}
+                      onChange={handleInputChange}
+                    />
+                    <label htmlFor="agreeTerms">I agree to the Terms of Service and Privacy Policy <span className="required">*</span></label>
+                  </div>
+
+                  <div className="checkbox-group">
+                    <input 
+                      type="checkbox" 
+                      id="agreeDataProcessing" 
+                      name="agreeDataProcessing" 
+                      required
+                      checked={formData.agreeDataProcessing}
+                      onChange={handleInputChange}
+                    />
+                    <label htmlFor="agreeDataProcessing">I consent to the processing of company data for recruitment purposes <span className="required">*</span></label>
+                  </div>
+
+                  <div className="checkbox-group">
+                    <input 
+                      type="checkbox" 
+                      id="agreeMarketing" 
+                      name="agreeMarketing"
+                      checked={formData.agreeMarketing}
+                      onChange={handleInputChange}
+                    />
+                    <label htmlFor="agreeMarketing">I agree to receive marketing communications and platform updates</label>
+                  </div>
+
+                  <div className="checkbox-group">
+                    <input 
+                      type="checkbox" 
+                      id="verifyInfo" 
+                      name="verifyInfo" 
+                      required
+                      checked={formData.verifyInfo}
+                      onChange={handleInputChange}
+                    />
+                    <label htmlFor="verifyInfo">I verify that all information provided is accurate and truthful <span className="required">*</span></label>
+                  </div>
+                </div>
+
+                {/* Submit Section */}
+                <div className="submit-section">
+                  {submitError && (
+                    <div className="error-message" style={{ marginBottom: '12px', color: '#e74c3c', textAlign: 'center' }}>
+                      {submitError}
+                    </div>
+                  )}
+                  <button type="submit" className="submit-btn" disabled={isLoading}>
+                    <FontAwesomeIcon icon={faCheckCircle} /> 
+                    {isLoading ? 'Submitting...' : 'Complete Registration'}
+                  </button>
+                  <p style={{ marginTop: '8px', color: '#666', fontSize: '12px' }}>
+                    Your account will be reviewed and activated within 24-48 hours
+                  </p>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </main>
     </div>

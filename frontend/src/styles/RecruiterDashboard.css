@@ -5,6 +5,259 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
+/* Sidebar - Orange Theme (Matching Logo Colors) */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%);
+  color: white;
+  overflow-y: auto;
+  transition: all 0.3s;
+  z-index: 1000;
+}
+
+.sidebar-header {
+  padding: 25px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-header h2 {
+  font-size: 20px;
+  margin-bottom: 5px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar-header p {
+  font-size: 13px;
+  opacity: 0.8;
+  color: white;
+}
+
+.nav-menu {
+  padding: 20px 0;
+}
+
+.nav-item {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-left: 3px solid transparent;
+  color: white;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-left-color: white;
+}
+
+.nav-item i {
+  font-size: 18px;
+  width: 20px;
+  color: white;
+}
+
+.nav-item span {
+  color: white;
+}
+
+.badge {
+  background: #ff4757;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.badge.success {
+  background: #4caf50;
+}
+
+/* Main Content */
+.main-content {
+  margin-left: 260px;
+  min-height: 100vh;
+  transition: all 0.3s;
+}
+
+.top-bar {
+  background: white;
+  padding: 20px 30px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.search-bar {
+  flex: 1;
+  max-width: 500px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px 16px 12px 45px !important;
+  border: none !important;
+  border-radius: 0 !important;
+  font-size: 14px !important;
+  background: transparent !important;
+  transition: all 0.3s ease;
+  outline: none !important;
+  color: #333 !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+}
+
+.search-bar:hover {
+  border-color: #d0d0d0 !important;
+  background: #f5f5f5 !important;
+}
+
+.search-bar:focus-within {
+  border-color: #ff8c42 !important;
+  background: white !important;
+  box-shadow: 0 0 0 3px rgba(255, 140, 66, 0.1) !important;
+}
+
+.search-bar input::placeholder {
+  color: #999 !important;
+  font-style: normal !important;
+}
+
+.search-bar i.fas.fa-search {
+  position: absolute !important;
+  left: 15px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  color: #666 !important;
+  font-size: 16px !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  background: transparent !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.top-bar-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+/* Search bar responsive improvements */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 15px 20px;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .search-bar {
+    max-width: 100%;
+    order: 1;
+  }
+  
+  .top-bar-actions {
+    order: 2;
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-bar input {
+    padding: 10px 14px 10px 40px;
+    font-size: 13px;
+  }
+  
+  .search-bar i {
+    left: 14px;
+    font-size: 14px;
+  }
+}
+
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f5f7fa;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.icon-btn:hover {
+  background: #e8ecf1;
+}
+
+.icon-btn .notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #ff4757;
+  border-radius: 50%;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+}
+
+.content-area {
+  padding: 30px;
+}
+
+.page-section {
+  display: none;
+}
+
+.page-section.active {
+  display: block;
+}
+
 /* Header */
 .recruiter-header {
   background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
@@ -92,8 +345,9 @@
 .stat-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 1rem;
+  gap: 1rem;
 }
 
 .stat-title {
@@ -103,14 +357,16 @@
 }
 
 .stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
   font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: -2px;
 }
 
 .stat-icon.orange {
@@ -127,6 +383,24 @@
 
 .stat-icon.purple {
   background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
 }
 
 .stat-value {
@@ -376,6 +650,54 @@
   color: #f44336;
 }
 
+/* Status Badge Base Styles */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+}
+
+.status-badge.status-new,
+.status-badge.status-pending {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.status-badge.status-reviewing {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #3b82f6;
+}
+
+.status-badge.status-interview {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.status-badge.status-hired {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.status-badge.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.status-badge.status-active {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
 /* Profile Section */
 .profile-section {
   display: grid;
@@ -476,6 +798,19 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: #ff9800;
+}
+
+/* Loading Animation */
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
 }
 
 /* Responsive Design */

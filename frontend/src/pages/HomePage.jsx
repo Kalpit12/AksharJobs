@@ -64,25 +64,12 @@ const HomePage = () => {
             </ul>
           </nav>
           <div className="cta-buttons">
-            {user ? (
-              <>
-                <Link to="/dashboard" className="btn btn-secondary">
-                  Dashboard
-                </Link>
-                <Link to="/post-job" className="btn btn-primary">
-                  Post a Job
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="btn btn-secondary">
-                  SIGN IN
-                </Link>
-                <Link to="/signup" className="btn btn-primary">
-                  GET STARTED
-                </Link>
-              </>
-            )}
+            <Link to="/login" className="btn btn-secondary">
+              SIGN IN
+            </Link>
+            <Link to="/signup" className="btn btn-primary">
+              GET STARTED
+            </Link>
           </div>
         </div>
       </header>

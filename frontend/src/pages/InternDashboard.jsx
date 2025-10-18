@@ -12,6 +12,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
+import '../styles/InternDashboard.css';
 
 const InternDashboard = () => {
   const { user, logout } = useAuth();
@@ -108,7 +109,7 @@ const InternDashboard = () => {
   }
 
   return (
-    <>
+    <div className="intern-dashboard">
       {/* Sidebar */}
       <div className="sidebar" id="sidebar">
         <div className="sidebar-header">
@@ -206,16 +207,6 @@ const InternDashboard = () => {
           >
             <FontAwesomeIcon icon={faCog} />
             <span>Settings</span>
-          </div>
-        </div>
-        <div className="sidebar-footer">
-          <div style={{ padding: '15px 0' }}>
-            <div style={{ fontSize: '12px', opacity: 0.7, textAlign: 'center', cursor: 'pointer' }}>
-              <FontAwesomeIcon icon={faQuestionCircle} /> Need Help?
-            </div>
-            <div style={{ fontSize: '11px', opacity: 0.6, textAlign: 'center', marginTop: '10px' }}>
-              Version 1.0 • © 2024 InternHub
-            </div>
           </div>
         </div>
       </div>
@@ -473,7 +464,7 @@ const InternDashboard = () => {
           ))}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

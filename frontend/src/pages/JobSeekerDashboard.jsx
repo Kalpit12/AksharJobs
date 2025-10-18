@@ -11,6 +11,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
+import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
 
 const JobSeekerDashboard = () => {
   const { user, logout } = useAuth();
@@ -105,12 +106,14 @@ const JobSeekerDashboard = () => {
 
   if (loading) {
     return (
-      <div className="dashboard-loading">
-        <div className="loading-spinner">
-          <FontAwesomeIcon icon={faBriefcase} spin size="3x" />
-          <p style={{ marginTop: '20px', fontSize: '18px' }}>Loading your dashboard...</p>
-        </div>
-      </div>
+      <ThemedLoadingSpinner 
+        theme="jobseeker"
+        size="large"
+        text="Loading your dashboard..."
+        subText="Preparing your job search experience"
+        showIcon={true}
+        fullScreen={true}
+      />
     );
   }
 

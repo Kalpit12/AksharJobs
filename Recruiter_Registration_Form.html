@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Registration - AksharJobs Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .header .global-icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            background: rgba(255, 255, 255, 0.2);
+            height: 6px;
+            margin-top: 20px;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: white;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .form-content {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-row-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group label .required {
+            color: #e74c3c;
+            margin-left: 3px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .file-upload {
+            border: 2px dashed #e0e0e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .file-upload i {
+            font-size: 40px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .file-upload input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-text {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background: #e8eeff;
+            color: #667eea;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tag .remove {
+            cursor: pointer;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .tag .remove:hover {
+            color: #e74c3c;
+        }
+
+        .link-item {
+            background: #f9f9f9;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .link-item-content {
+            flex: 1;
+        }
+
+        .link-item-type {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .link-item-url {
+            color: #666;
+            word-break: break-all;
+            font-size: 14px;
+        }
+
+        .link-item-url a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .link-item-url a:hover {
+            text-decoration: underline;
+        }
+
+        .remove-item-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .remove-item-btn:hover {
+            background: #c0392b;
+        }
+
+        .add-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .add-btn:hover {
+            background: #5568d3;
+        }
+
+        .skills-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .skills-input-container input {
+            flex: 1;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-option input[type="radio"] {
+            width: auto;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .submit-section {
+            background: #f9f9f9;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .logo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 12px;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            border: 4px solid #667eea;
+            display: none;
+        }
+
+        .logo-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .info-badge {
+            background: #e8f4f8;
+            color: #0066cc;
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 10px;
+            display: inline-block;
+        }
+
+        /* Map specific styles */
+        #map {
+            z-index: 1;
+        }
+
+        .leaflet-container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #mapSearch {
+            font-size: 14px;
+        }
+
+        #mapSearch:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Pricing Plans */
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .pricing-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .pricing-card:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.2);
+        }
+
+        .pricing-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .pricing-card input[type="radio"] {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .plan-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .plan-price {
+            font-size: 32px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .plan-period {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .plan-features {
+            text-align: left;
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .plan-features li {
+            padding: 8px 0;
+            font-size: 14px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .plan-features li i {
+            color: #4caf50;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .form-content {
+                padding: 30px 20px;
+            }
+
+            .form-row,
+            .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+
+            .skills-input-container {
+                flex-direction: column;
+            }
+
+            .add-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .link-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .remove-item-btn {
+                margin-top: 10px;
+                width: 100%;
+            }
+
+            #map {
+                height: 300px;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="global-icon"><i class="fas fa-building"></i></div>
+            <h1>Recruiter Registration</h1>
+            <p>Join AksharJobs and connect with top talent worldwide</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <form id="recruiterForm" class="form-content">
+            <!-- Company Information Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-building"></i>
+                    Company Information
+                </h2>
+
+                <div class="logo-preview" id="logoPreview">
+                    <img id="previewImage" src="" alt="Company Logo">
+                </div>
+
+                <div class="form-group">
+                    <label class="file-upload" for="companyLogo">
+                        <i class="fas fa-image"></i>
+                        <div class="file-upload-text">
+                            <strong>Upload Company Logo</strong>
+                            <p>Click to browse or drag and drop (PNG, JPG, max 5MB)</p>
+                        </div>
+                        <input type="file" id="companyLogo" accept="image/*">
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Company Name <span class="required">*</span></label>
+                    <input type="text" name="companyName" required placeholder="Enter your company name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Company Email <span class="required">*</span></label>
+                        <input type="email" name="companyEmail" required placeholder="contact@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Phone <span class="required">*</span></label>
+                        <input type="tel" name="companyPhone" required placeholder="+254 700 000 000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Company Website</label>
+                    <input type="url" name="companyWebsite" placeholder="https://www.yourcompany.com">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Company Size <span class="required">*</span></label>
+                        <select name="companySize" required>
+                            <option value="">Select company size</option>
+                            <option value="1-10">1-10 employees</option>
+                            <option value="11-50">11-50 employees</option>
+                            <option value="51-200">51-200 employees</option>
+                            <option value="201-500">201-500 employees</option>
+                            <option value="501-1000">501-1000 employees</option>
+                            <option value="1001-5000">1001-5000 employees</option>
+                            <option value="5001+">5001+ employees</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Year Founded <span class="required">*</span></label>
+                        <input type="number" name="yearFounded" required min="1800" max="2025" placeholder="2015">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Industry/Sector <span class="required">*</span></label>
+                    <select name="industry" required>
+                        <option value="">Select your primary industry</option>
+                        <option value="technology">Technology & IT</option>
+                        <option value="finance">Finance & Banking</option>
+                        <option value="healthcare">Healthcare & Medical</option>
+                        <option value="education">Education & Training</option>
+                        <option value="manufacturing">Manufacturing</option>
+                        <option value="retail">Retail & E-commerce</option>
+                        <option value="hospitality">Hospitality & Tourism</option>
+                        <option value="construction">Construction & Real Estate</option>
+                        <option value="agriculture">Agriculture & Agribusiness</option>
+                        <option value="energy">Energy & Utilities</option>
+                        <option value="telecommunications">Telecommunications</option>
+                        <option value="media">Media & Entertainment</option>
+                        <option value="consulting">Consulting & Professional Services</option>
+                        <option value="government">Government & Public Sector</option>
+                        <option value="ngo">NGO & Non-Profit</option>
+                        <option value="legal">Legal Services</option>
+                        <option value="marketing">Marketing & Advertising</option>
+                        <option value="logistics">Logistics & Transportation</option>
+                        <option value="recruitment">Recruitment & Staffing Agency</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Company Description <span class="required">*</span></label>
+                    <textarea name="companyDescription" required placeholder="Describe your company, its mission, vision, and what makes it a great place to work. (Minimum 150 characters)"></textarea>
+                </div>
+            </div>
+
+            <!-- Company Location Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Company Location
+                </h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Country <span class="required">*</span></label>
+                        <select name="country" required id="countrySelect">
+                            <option value="">Select your country</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>State/Province <span class="required">*</span></label>
+                        <input type="text" name="state" required placeholder="e.g., Nairobi">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>City <span class="required">*</span></label>
+                        <input type="text" name="city" required placeholder="e.g., Nairobi">
+                    </div>
+                    <div class="form-group">
+                        <label>Postal/ZIP Code</label>
+                        <input type="text" name="postalCode" placeholder="Enter postal code">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Full Address <span class="required">*</span></label>
+                    <input type="text" name="address" id="addressInput" required placeholder="Street address, building name, suite number">
+                </div>
+
+                <div class="form-group">
+                    <label>Pin Your Office Location on Map</label>
+                    <div class="info-badge">
+                        <i class="fas fa-map-marker-alt"></i> Click on the map to mark your office location or search for a place
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <input type="text" id="mapSearch" placeholder="Search for a location..." style="width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; margin-bottom: 10px;">
+                    </div>
+                    <div id="map" style="width: 100%; height: 400px; border-radius: 8px; border: 2px solid #e0e0e0;"></div>
+                    <div style="margin-top: 10px; font-size: 13px; color: #666;">
+                        <strong>Selected Coordinates:</strong> 
+                        <span id="coordinates">Click on the map to select</span>
+                    </div>
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                </div>
+            </div>
+
+            <!-- Recruiter Personal Details Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-user-tie"></i>
+                    Recruiter Personal Details
+                </h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name <span class="required">*</span></label>
+                        <input type="text" name="firstName" required placeholder="Enter your first name">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name <span class="required">*</span></label>
+                        <input type="text" name="lastName" required placeholder="Enter your last name">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Job Title <span class="required">*</span></label>
+                        <input type="text" name="jobTitle" required placeholder="e.g., HR Manager, Talent Acquisition Lead">
+                    </div>
+                    <div class="form-group">
+                        <label>Direct Phone Number <span class="required">*</span></label>
+                        <input type="tel" name="recruiterPhone" required placeholder="+254 700 000 000">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Professional Email <span class="required">*</span></label>
+                    <input type="email" name="recruiterEmail" required placeholder="your.name@company.com">
+                </div>
+
+                <div class="form-group">
+                    <label>LinkedIn Profile</label>
+                    <input type="url" name="linkedinProfile" placeholder="https://www.linkedin.com/in/yourprofile">
+                </div>
+            </div>
+
+            <!-- Recruitment Specialization Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-briefcase"></i>
+                    Recruitment Specialization
+                </h2>
+
+                <div class="form-group">
+                    <label>Industries You Recruit For <span class="required">*</span></label>
+                    <div class="info-badge">
+                        <i class="fas fa-info-circle"></i> Add all industries you actively recruit for
+                    </div>
+                    <div class="skills-input-container">
+                        <select id="industryInput">
+                            <option value="">Select an industry</option>
+                            <option value="Technology & IT">Technology & IT</option>
+                            <option value="Finance & Banking">Finance & Banking</option>
+                            <option value="Healthcare & Medical">Healthcare & Medical</option>
+                            <option value="Education & Training">Education & Training</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Retail & E-commerce">Retail & E-commerce</option>
+                            <option value="Hospitality & Tourism">Hospitality & Tourism</option>
+                            <option value="Construction & Real Estate">Construction & Real Estate</option>
+                            <option value="Agriculture">Agriculture & Agribusiness</option>
+                            <option value="Energy & Utilities">Energy & Utilities</option>
+                            <option value="Telecommunications">Telecommunications</option>
+                            <option value="Media & Entertainment">Media & Entertainment</option>
+                            <option value="Consulting">Consulting & Professional Services</option>
+                            <option value="Government">Government & Public Sector</option>
+                            <option value="NGO & Non-Profit">NGO & Non-Profit</option>
+                            <option value="Legal Services">Legal Services</option>
+                            <option value="Marketing & Advertising">Marketing & Advertising</option>
+                            <option value="Logistics & Transportation">Logistics & Transportation</option>
+                        </select>
+                        <button type="button" class="add-btn" onclick="addIndustry()">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="tags-container" id="industriesContainer"></div>
+                    <input type="hidden" name="industries" id="industriesData">
+                </div>
+
+                <div class="form-group">
+                    <label>Job Functions You Recruit For <span class="required">*</span></label>
+                    <div class="info-badge">
+                        <i class="fas fa-info-circle"></i> Add specific job functions (e.g., Software Development, Sales, Marketing)
+                    </div>
+                    <div class="skills-input-container">
+                        <input type="text" id="functionInput" placeholder="Enter job function (e.g., Software Development)">
+                        <button type="button" class="add-btn" onclick="addFunction()">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="tags-container" id="functionsContainer"></div>
+                    <input type="hidden" name="functions" id="functionsData">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Career Levels You Recruit <span class="required">*</span></label>
+                        <select name="careerLevels" required multiple size="5">
+                            <option value="entry">Entry Level</option>
+                            <option value="mid">Mid-Level</option>
+                            <option value="senior">Senior Level</option>
+                            <option value="lead">Lead/Principal</option>
+                            <option value="manager">Manager</option>
+                            <option value="director">Director</option>
+                            <option value="executive">Executive/C-Level</option>
+                        </select>
+                        <small style="color: #666; font-size: 12px;">Hold Ctrl/Cmd to select multiple</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Average Hiring Volume (Monthly)</label>
+                        <select name="hiringVolume">
+                            <option value="">Select hiring volume</option>
+                            <option value="1-5">1-5 positions</option>
+                            <option value="6-10">6-10 positions</option>
+                            <option value="11-20">11-20 positions</option>
+                            <option value="21-50">21-50 positions</option>
+                            <option value="51+">51+ positions</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Geographic Coverage Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-globe-americas"></i>
+                    Geographic Coverage
+                </h2>
+
+                <div class="form-group">
+                    <label>Countries You Recruit For <span class="required">*</span></label>
+                    <div class="info-badge">
+                        <i class="fas fa-info-circle"></i> Add all countries where you actively recruit candidates
+                    </div>
+                    <div class="skills-input-container">
+                        <select id="recruitCountryInput">
+                            <option value="">Select a country</option>
+                        </select>
+                        <button type="button" class="add-btn" onclick="addRecruitCountry()">
+                            <i class="fas fa-plus"></i> Add
+                        </button>
+                    </div>
+                    <div class="tags-container" id="recruitCountriesContainer"></div>
+                    <input type="hidden" name="recruitCountries" id="recruitCountriesData">
+                </div>
+
+                <div class="form-group">
+                    <label>Do you offer international/remote positions? <span class="required">*</span></label>
+                    <div class="radio-group">
+                        <div class="radio-option">
+                            <input type="radio" id="remoteYes" name="offersRemote" value="yes" required>
+                            <label for="remoteYes">Yes, regularly</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="remoteSometimes" name="offersRemote" value="sometimes" required>
+                            <label for="remoteSometimes">Sometimes</label>
+                        </div>
+                        <div class="radio-option">
+                            <input type="radio" id="remoteNo" name="offersRemote" value="no" required>
+                            <label for="remoteNo">No, only on-site</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services & Offerings Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-handshake"></i>
+                    Services & Offerings
+                </h2>
+
+                <div class="form-group">
+                    <label>Types of Employment You Offer <span class="required">*</span></label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="fullTime" name="employmentTypes[]" value="full-time">
+                        <label for="fullTime">Full-time Positions</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="partTime" name="employmentTypes[]" value="part-time">
+                        <label for="partTime">Part-time Positions</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="contract" name="employmentTypes[]" value="contract">
+                        <label for="contract">Contract/Temporary</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="freelance" name="employmentTypes[]" value="freelance">
+                        <label for="freelance">Freelance/Project-based</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="internship" name="employmentTypes[]" value="internship">
+                        <label for="internship">Internships</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Services Offered</label>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="visa" name="additionalServices[]" value="visa">
+                        <label for="visa">Visa Sponsorship Support</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="relocation" name="additionalServices[]" value="relocation">
+                        <label for="relocation">Relocation Assistance</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="training" name="additionalServices[]" value="training">
+                        <label for="training">Training & Development Programs</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="benefits" name="additionalServices[]" value="benefits">
+                        <label for="benefits">Comprehensive Benefits Package</label>
+                    </div>
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="fastTrack" name="additionalServices[]" value="fasttrack">
+                        <label for="fastTrack">Fast-track Hiring Process</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Average Time to Hire</label>
+                    <select name="timeToHire">
+                        <option value="">Select average time</option>
+                        <option value="1-2weeks">1-2 weeks</option>
+                        <option value="3-4weeks">3-4 weeks</option>
+                        <option value="1-2months">1-2 months</option>
+                        <option value="2-3months">2-3 months</option>
+                        <option value="3+months">3+ months</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Verification Documents Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-file-alt"></i>
+                    Verification Documents
+                </h2>
+
+                <div class="info-badge" style="display: block; margin-bottom: 20px;">
+                    <i class="fas fa-shield-alt"></i> Upload verification documents to build trust with candidates. All documents are kept confidential.
+                </div>
+
+                <div class="form-group">
+                    <label>Company Registration Certificate</label>
+                    <label class="file-upload" for="regCertificate">
+                        <i class="fas fa-file-upload"></i>
+                        <div class="file-upload-text">
+                            <strong>Upload Registration Certificate</strong>
+                            <p>PDF, JPG, or PNG (max 10MB)</p>
+                        </div>
+                        <input type="file" id="regCertificate" accept=".pdf,.jpg,.jpeg,.png">
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Business License</label>
+                    <label class="file-upload" for="businessLicense">
+                        <i class="fas fa-file-upload"></i>
+                        <div class="file-upload-text">
+                            <strong>Upload Business License</strong>
+                            <p>PDF, JPG, or PNG (max 10MB)</p>
+                        </div>
+                        <input type="file" id="businessLicense" accept=".pdf,.jpg,.jpeg,.png">
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>Tax Identification Number (TIN)</label>
+                    <input type="text" name="taxId" placeholder="Enter your company's TIN">
+                </div>
+            </div>
+
+            <!-- Social Media & Online Presence Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-share-alt"></i>
+                    Social Media & Online Presence
+                </h2>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Company LinkedIn Page</label>
+                        <input type="url" name="linkedinCompany" placeholder="https://www.linkedin.com/company/yourcompany">
+                    </div>
+                    <div class="form-group">
+                        <label>Facebook Page</label>
+                        <input type="url" name="facebook" placeholder="https://www.facebook.com/yourcompany">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Twitter/X Handle</label>
+                        <input type="url" name="twitter" placeholder="https://twitter.com/yourcompany">
+                    </div>
+                    <div class="form-group">
+                        <label>Instagram</label>
+                        <input type="url" name="instagram" placeholder="https://www.instagram.com/yourcompany">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Professional Links</label>
+                    <div style="margin-top: 15px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <input type="text" id="linkTypeInput" placeholder="Link type (e.g., Glassdoor, Indeed)">
+                            </div>
+                            <div class="form-group">
+                                <input type="url" id="linkUrlInput" placeholder="https://example.com">
+                            </div>
+                        </div>
+                        <button type="button" class="add-btn" onclick="addLink()" style="width: fit-content;">
+                            <i class="fas fa-plus"></i> Add Link
+                        </button>
+                    </div>
+                    
+                    <div id="linksContainer" style="margin-top: 15px;">
+                        <!-- Links will be added here dynamically -->
+                    </div>
+                    <input type="hidden" name="additionalLinks" id="additionalLinksData">
+                </div>
+            </div>
+
+            <!-- Subscription Plan Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-crown"></i>
+                    Choose Your Subscription Plan
+                </h2>
+
+                <div class="info-badge" style="display: block; margin-bottom: 20px;">
+                    <i class="fas fa-info-circle"></i> Select the plan that best fits your hiring needs. You can upgrade or downgrade at any time.
+                </div>
+
+                <div class="pricing-cards">
+                    <div class="pricing-card" onclick="selectPlan('starter')">
+                        <input type="radio" name="subscriptionPlan" value="starter" id="starterPlan" required>
+                        <div class="plan-name">STARTER</div>
+                        <div class="plan-price">$99</div>
+                        <div class="plan-period">per month</div>
+                        <ul class="plan-features">
+                            <li><i class="fas fa-check"></i> 5 Job Postings/month</li>
+                            <li><i class="fas fa-check"></i> 50 Candidate Views</li>
+                            <li><i class="fas fa-check"></i> Basic Search Filters</li>
+                            <li><i class="fas fa-check"></i> Email Support</li>
+                            <li><i class="fas fa-check"></i> 30-day Job Validity</li>
+                        </ul>
+                    </div>
+
+                    <div class="pricing-card" onclick="selectPlan('professional')">
+                        <input type="radio" name="subscriptionPlan" value="professional" id="professionalPlan" required>
+                        <div class="plan-name">PROFESSIONAL</div>
+                        <div class="plan-price">$249</div>
+                        <div class="plan-period">per month</div>
+                        <ul class="plan-features">
+                            <li><i class="fas fa-check"></i> 20 Job Postings/month</li>
+                            <li><i class="fas fa-check"></i> 200 Candidate Views</li>
+                            <li><i class="fas fa-check"></i> Advanced Search & Filters</li>
+                            <li><i class="fas fa-check"></i> Priority Support</li>
+                            <li><i class="fas fa-check"></i> 60-day Job Validity</li>
+                            <li><i class="fas fa-check"></i> Featured Listings</li>
+                            <li><i class="fas fa-check"></i> Analytics Dashboard</li>
+                        </ul>
+                    </div>
+
+                    <div class="pricing-card" onclick="selectPlan('premium')">
+                        <input type="radio" name="subscriptionPlan" value="premium" id="premiumPlan" required>
+                        <div class="plan-name">PREMIUM</div>
+                        <div class="plan-price">$499</div>
+                        <div class="plan-period">per month</div>
+                        <ul class="plan-features">
+                            <li><i class="fas fa-check"></i> Unlimited Job Postings</li>
+                            <li><i class="fas fa-check"></i> Unlimited Candidate Views</li>
+                            <li><i class="fas fa-check"></i> AI-Powered Matching</li>
+                            <li><i class="fas fa-check"></i> 24/7 Dedicated Support</li>
+                            <li><i class="fas fa-check"></i> 90-day Job Validity</li>
+                            <li><i class="fas fa-check"></i> Premium Branding</li>
+                            <li><i class="fas fa-check"></i> Advanced Analytics</li>
+                            <li><i class="fas fa-check"></i> Account Manager</li>
+                            <li><i class="fas fa-check"></i> API Access</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms & Additional Information Section -->
+            <div class="section">
+                <h2 class="section-title">
+                    <i class="fas fa-clipboard-check"></i>
+                    Terms & Additional Information
+                </h2>
+
+                <div class="form-group">
+                    <label>How did you hear about us?</label>
+                    <select name="referralSource">
+                        <option value="">Select source</option>
+                        <option value="search">Search Engine (Google, Bing, etc.)</option>
+                        <option value="social">Social Media</option>
+                        <option value="referral">Referral from colleague</option>
+                        <option value="advertisement">Advertisement</option>
+                        <option value="event">Industry Event/Conference</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Additional Comments or Questions</label>
+                    <textarea name="additionalComments" placeholder="Share any additional information, special requirements, or questions you have about our platform"></textarea>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                    <label for="agreeTerms">I agree to the Terms of Service and Privacy Policy <span class="required">*</span></label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agreeDataProcessing" name="agreeDataProcessing" required>
+                    <label for="agreeDataProcessing">I consent to the processing of company data for recruitment purposes <span class="required">*</span></label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="agreeMarketing" name="agreeMarketing">
+                    <label for="agreeMarketing">I agree to receive marketing communications and platform updates</label>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="verifyInfo" name="verifyInfo" required>
+                    <label for="verifyInfo">I verify that all information provided is accurate and truthful <span class="required">*</span></label>
+                </div>
+            </div>
+
+            <!-- Submit Section -->
+            <div class="submit-section">
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-check-circle"></i> Complete Registration
+                </button>
+                <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                    Your account will be reviewed and activated within 24-48 hours
+                </p>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Country list for dropdowns
+        const countries = [
+            "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Argentina", "Armenia", "Australia",
+            "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium",
+            "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei",
+            "Bulgaria", "Burkina Faso", "Burundi", "Cambodia", "Cameroon", "Canada", "Cape Verde",
+            "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica",
+            "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic",
+            "East Timor", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia",
+            "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana",
+            "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras",
+            "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy",
+            "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "North Korea", "South Korea",
+            "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya",
+            "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives",
+            "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia",
+            "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia",
+            "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "Norway",
+            "Oman", "Pakistan", "Palau", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines",
+            "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis",
+            "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Saudi Arabia",
+            "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia",
+            "Solomon Islands", "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan",
+            "Suriname", "Swaziland", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania",
+            "Thailand", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan",
+            "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States",
+            "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen",
+            "Zambia", "Zimbabwe"
+        ];
+
+        // Populate country dropdowns
+        function populateCountryDropdowns() {
+            const countrySelect = document.getElementById('countrySelect');
+            const recruitCountryInput = document.getElementById('recruitCountryInput');
+            
+            countries.forEach(country => {
+                const option1 = document.createElement('option');
+                option1.value = country;
+                option1.textContent = country;
+                countrySelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = country;
+                option2.textContent = country;
+                recruitCountryInput.appendChild(option2);
+            });
+        }
+
+        // Initialize on page load
+        populateCountryDropdowns();
+
+        // Initialize map
+        let map;
+        let marker;
+
+        function initMap() {
+            // Default center (Nairobi, Kenya)
+            map = L.map('map').setView([-1.286389, 36.817223], 12);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add click event to map
+            map.on('click', function(e) {
+                setMarker(e.latlng.lat, e.latlng.lng);
+            });
+
+            // Try to get user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    map.setView([lat, lng], 13);
+                    setMarker(lat, lng);
+                });
+            }
+        }
+
+        function setMarker(lat, lng) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker([lat, lng], {
+                draggable: true
+            }).addTo(map);
+
+            // Update coordinates display and hidden fields
+            document.getElementById('coordinates').textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+
+            // Make marker draggable
+            marker.on('dragend', function(e) {
+                const position = marker.getLatLng();
+                setMarker(position.lat, position.lng);
+            });
+
+            // Reverse geocode to get address
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        document.getElementById('addressInput').value = data.display_name;
+                    }
+                })
+                .catch(error => console.log('Geocoding error:', error));
+        }
+
+        // Map search functionality
+        document.getElementById('mapSearch').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const searchQuery = this.value;
+                if (searchQuery) {
+                    searchLocation(searchQuery);
+                }
+            }
+        });
+
+        function searchLocation(query) {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        map.setView([lat, lng], 13);
+                        setMarker(lat, lng);
+                    } else {
+                        alert('Location not found. Please try a different search term.');
+                    }
+                })
+                .catch(error => {
+                    console.log('Search error:', error);
+                    alert('Error searching location. Please try again.');
+                });
+        }
+
+        // Initialize map after a short delay
+        setTimeout(initMap, 100);
+
+        let industries = [];
+        let functions = [];
+        let recruitCountries = [];
+        let additionalLinks = [];
+
+        // Company logo preview
+        document.getElementById('companyLogo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                    document.getElementById('logoPreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Add industry function
+        function addIndustry() {
+            const industryInput = document.getElementById('industryInput');
+            const industry = industryInput.value.trim();
+            
+            if (industry && !industries.includes(industry)) {
+                industries.push(industry);
+                updateTags('industriesContainer', industries, 'removeIndustry');
+                industryInput.value = '';
+                updateProgress();
+            }
+        }
+
+        function removeIndustry(index) {
+            industries.splice(index, 1);
+            updateTags('industriesContainer', industries, 'removeIndustry');
+            updateProgress();
+        }
+
+        // Add function
+        function addFunction() {
+            const functionInput = document.getElementById('functionInput');
+            const func = functionInput.value.trim();
+            
+            if (func && !functions.includes(func)) {
+                functions.push(func);
+                updateTags('functionsContainer', functions, 'removeFunction');
+                functionInput.value = '';
+                updateProgress();
+            }
+        }
+
+        function removeFunction(index) {
+            functions.splice(index, 1);
+            updateTags('functionsContainer', functions, 'removeFunction');
+            updateProgress();
+        }
+
+        // Add recruit country
+        function addRecruitCountry() {
+            const countryInput = document.getElementById('recruitCountryInput');
+            const country = countryInput.value.trim();
+            
+            if (country && !recruitCountries.includes(country)) {
+                recruitCountries.push(country);
+                updateTags('recruitCountriesContainer', recruitCountries, 'removeRecruitCountry');
+                countryInput.value = '';
+                updateProgress();
+            }
+        }
+
+        function removeRecruitCountry(index) {
+            recruitCountries.splice(index, 1);
+            updateTags('recruitCountriesContainer', recruitCountries, 'removeRecruitCountry');
+            updateProgress();
+        }
+
+        // Add professional link
+        function addLink() {
+            const typeInput = document.getElementById('linkTypeInput');
+            const urlInput = document.getElementById('linkUrlInput');
+            const type = typeInput.value.trim();
+            const url = urlInput.value.trim();
+            
+            if (!type) {
+                alert('Please enter a link type');
+                return;
+            }
+            
+            if (!url) {
+                alert('Please enter a URL');
+                return;
+            }
+
+            // Validate URL format
+            try {
+                new URL(url);
+            } catch (e) {
+                alert('Please enter a valid URL (including https://)');
+                return;
+            }
+
+            const linkObj = { type, url };
+            additionalLinks.push(linkObj);
+            updateLinksDisplay();
+            
+            // Clear inputs
+            typeInput.value = '';
+            urlInput.value = '';
+        }
+
+        function updateLinksDisplay() {
+            const container = document.getElementById('linksContainer');
+            container.innerHTML = '';
+            
+            additionalLinks.forEach((link, index) => {
+                const linkItem = document.createElement('div');
+                linkItem.className = 'link-item';
+                linkItem.innerHTML = `
+                    <div class="link-item-content">
+                        <div class="link-item-type">
+                            <i class="fas fa-link"></i> ${link.type}
+                        </div>
+                        <div class="link-item-url">
+                            <a href="${link.url}" target="_blank" rel="noopener">${link.url}</a>
+                        </div>
+                    </div>
+                    <button type="button" class="remove-item-btn" onclick="removeLink(${index})">×</button>
+                `;
+                container.appendChild(linkItem);
+            });
+            
+            document.getElementById('additionalLinksData').value = JSON.stringify(additionalLinks);
+        }
+
+        function removeLink(index) {
+            additionalLinks.splice(index, 1);
+            updateLinksDisplay();
+        }
+
+        // Generic tag update function
+        function updateTags(containerId, array, removeFunction) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            array.forEach((item, index) => {
+                const tag = document.createElement('div');
+                tag.className = 'tag';
+                tag.innerHTML = `
+                    ${item}
+                    <span class="remove" onclick="${removeFunction}(${index})">×</span>
+                `;
+                container.appendChild(tag);
+            });
+            
+            // Update hidden input
+            const dataId = containerId.replace('Container', 'Data');
+            document.getElementById(dataId).value = JSON.stringify(array);
+        }
+
+        // Select pricing plan
+        function selectPlan(planType) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.pricing-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            event.currentTarget.classList.add('selected');
+            
+            // Check the radio button
+            document.getElementById(planType + 'Plan').checked = true;
+        }
+
+        // Enter key support
+        document.getElementById('functionInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addFunction();
+            }
+        });
+
+        // Progress bar update
+        function updateProgress() {
+            const form = document.getElementById('recruiterForm');
+            const requiredInputs = form.querySelectorAll('input[required], textarea[required], select[required]');
+            let filled = 0;
+            
+            requiredInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    const name = input.name;
+                    if (form.querySelector(`[name="${name}"]:checked`)) {
+                        filled++;
+                    }
+                } else if (input.value.trim() !== '') {
+                    filled++;
+                }
+            });
+
+            // Bonus points for optional sections
+            if (industries.length > 0) filled += 2;
+            if (functions.length > 0) filled += 2;
+            if (recruitCountries.length > 0) filled += 2;
+            
+            const progress = Math.min((filled / requiredInputs.length) * 100, 100);
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+
+        // Update progress on input
+        document.getElementById('recruiterForm').addEventListener('input', updateProgress);
+        document.getElementById('recruiterForm').addEventListener('change', updateProgress);
+
+        // Form submission
+        document.getElementById('recruiterForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validation
+            if (industries.length === 0) {
+                alert('Please add at least one industry you recruit for');
+                document.getElementById('industryInput').focus();
+                return;
+            }
+
+            if (functions.length === 0) {
+                alert('Please add at least one job function');
+                document.getElementById('functionInput').focus();
+                return;
+            }
+
+            if (recruitCountries.length === 0) {
+                alert('Please add at least one country you recruit for');
+                document.getElementById('recruitCountryInput').focus();
+                return;
+            }
+
+            // Collect form data
+            const formData = new FormData(this);
+            formData.append('industriesData', JSON.stringify(industries));
+            formData.append('functionsData', JSON.stringify(functions));
+            formData.append('recruitCountriesData', JSON.stringify(recruitCountries));
+            formData.append('additionalLinksData', JSON.stringify(additionalLinks));
+            
+            // Log form data (in production, send to backend)
+            console.log('Recruiter Registration Submitted:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+            
+            alert('Registration submitted successfully! Your account will be reviewed within 24-48 hours. You will receive an email confirmation shortly.');
+            // window.location.href = 'thank-you.html'; // Redirect after submission
+        });
+
+        // Initialize progress
+        updateProgress();
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,158 @@
+/* Loading Button Base Styles */
+.loading-button {
+  position: relative;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  outline: none;
+  overflow: hidden;
+}
+
+.loading-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Size Variations */
+.loading-button-small {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  min-height: 36px;
+}
+
+.loading-button-medium {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  min-height: 44px;
+}
+
+.loading-button-large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+  min-height: 52px;
+}
+
+/* Variant Styles */
+.loading-button-primary {
+  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.loading-button-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #FF7043 0%, #FF5722 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 112, 67, 0.4);
+}
+
+.loading-button-secondary {
+  background: linear-gradient(135deg, #20B2AA 0%, #17a2b8 100%);
+  color: white;
+  border: 2px solid transparent;
+}
+
+.loading-button-secondary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(32, 178, 170, 0.4);
+}
+
+.loading-button-outline {
+  background: transparent;
+  color: #333;
+  border: 2px solid #e0e0e0;
+}
+
+.loading-button-outline:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #FF8A65;
+  color: #FF8A65;
+}
+
+/* Button Loading Content */
+.button-loading-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.button-spinner {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.button-spinner-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  animation: buttonSpin 1s linear infinite;
+}
+
+.button-spinner-ring:nth-child(1) {
+  border-top: 2px solid currentColor;
+}
+
+.button-spinner-ring.delay-1 {
+  animation-delay: 0.2s;
+  border-right: 2px solid currentColor;
+}
+
+/* Animation */
+@keyframes buttonSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Focus States */
+.loading-button:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 138, 101, 0.3);
+}
+
+.loading-button-primary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(255, 138, 101, 0.3);
+}
+
+.loading-button-secondary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(32, 178, 170, 0.3);
+}
+
+.loading-button-outline:focus-visible {
+  box-shadow: 0 0 0 3px rgba(224, 224, 224, 0.5);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .loading-button-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    min-height: 32px;
+  }
+  
+  .loading-button-medium {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    min-height: 40px;
+  }
+  
+  .loading-button-large {
+    padding: 0.8rem 1.6rem;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+}

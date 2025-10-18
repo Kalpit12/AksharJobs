@@ -1,0 +1,56 @@
+========================================
+MANUAL FIX FOR 502 ERRORS - SSH METHOD
+========================================
+
+1. Open PuTTY or Windows Terminal
+
+2. Connect to your server:
+   ssh -i aksharjobs-key.pem ubuntu@13.61.35.12
+
+3. Navigate to project:
+   cd /var/www/AksharJobs
+
+4. Check if backend is running:
+   pm2 status
+
+5. Restart backend:
+   pm2 restart akshar-backend
+
+   (OR if not in PM2:)
+   pm2 start ecosystem.config.js
+   pm2 save
+
+6. Verify it's working:
+   curl http://localhost:3002/api/health
+
+7. Expected output:
+   {"status":"healthy","database":"connected","port":3002}
+
+8. If you see the above output:
+   ✅ Backend is fixed!
+   ✅ Refresh your browser
+   ✅ 502 errors should be gone
+
+9. If backend still won't start, check logs:
+   pm2 logs akshar-backend --lines 50
+
+========================================
+TROUBLESHOOTING
+========================================
+
+If port 3002 is blocked:
+   sudo lsof -ti:3002 | xargs sudo kill -9
+   pm2 start ecosystem.config.js
+
+If MongoDB connection fails:
+   sudo systemctl status mongod
+
+If Nginx issues:
+   sudo systemctl restart nginx
+
+========================================
+Quick Test After Fix:
+   Open: http://13.61.35.12/api/health
+   Should see: {"status":"healthy",...}
+========================================
+
