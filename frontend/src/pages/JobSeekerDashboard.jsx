@@ -7,6 +7,7 @@ import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
 import notificationApi from '../api/notificationApi';
 import messageApi from '../api/messageApi';
+import '../styles/dashboard-unified.css';
 import {
   faChartLine,
   faThLarge,
@@ -59,7 +60,7 @@ import {
   faGithub,
   faTwitter
 } from '@fortawesome/free-brands-svg-icons';
-import '../styles/JobSeekerDashboard.css';
+// import '../styles/JobSeekerDashboard.css'; // Replaced by unified CSS
 
 const JobSeekerDashboard = () => {
   console.log('🚀 JobSeekerDashboard component rendering...');
@@ -381,6 +382,20 @@ const JobSeekerDashboard = () => {
     loadDashboardData();
   }, []); // Load only once on mount
 
+  // Animate progress indicator when percentage changes
+  useEffect(() => {
+    if (dashboardData.profileCompletion !== undefined) {
+      // Force a re-render to trigger the animation
+      const indicator = document.querySelector('.progress-indicator');
+      if (indicator) {
+        indicator.style.transition = 'none';
+        // Trigger reflow to reset the transition
+        void indicator.offsetHeight;
+        indicator.style.transition = 'left 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      }
+    }
+  }, [dashboardData.profileCompletion]);
+
   // Initialize profile form when profile loads
   useEffect(() => {
     const p = dashboardData.user?.fullProfile || {};
@@ -566,10 +581,10 @@ const JobSeekerDashboard = () => {
   };
 
   // Stat Card Component
-  const StatCard = ({ title, value, icon, color = 'green', change, changeType = 'neutral' }) => (
+  const StatCard = ({ title, value, icon, color = 'orange', change, changeType = 'neutral' }) => (
     <div className="stat-card">
       <div className="stat-header">
-        <div className="stat-icon green">
+        <div className="stat-icon orange">
           <FontAwesomeIcon icon={icon} />
         </div>
         <div className="stat-content">
@@ -595,22 +610,11 @@ const JobSeekerDashboard = () => {
   }
 
   return (
-    <div className="jobseeker-dashboard-container">
+    <div className="dashboard-container jobseeker-dashboard-container">
       {/* Sidebar */}
-      <div className="sidebar" style={{
-        background: 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)',
-        backgroundColor: '#3b82f6',
-        backgroundImage: 'linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)',
-        color: 'white',
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '320px',
-        height: '100vh',
-        zIndex: 1000
-      }}>
+      <div className="sidebar">
         <div className="sidebar-header">
-          <h2><FontAwesomeIcon icon={faBriefcase} /> AKSHARJOBS</h2>
+          <h2><FontAwesomeIcon icon={faBriefcase} /> JOBSEEKER HUB</h2>
           <p>Your Career Journey</p>
         </div>
         <div className="nav-menu">
@@ -635,14 +639,9 @@ const JobSeekerDashboard = () => {
       </div>
 
       {/* Main Content */}
-      <div className="main-content" style={{
-        marginLeft: '320px',
-        width: 'calc(100% - 320px)',
-        minHeight: '100vh',
-        background: '#ffffff'
-      }}>
+      <div className="main-content">
         {/* Top Bar */}
-        <div className="top-bar">
+        <div className="dashboard-header">
           <div className="search-bar">
             <FontAwesomeIcon icon={faSearch} />
             <input 
@@ -658,16 +657,16 @@ const JobSeekerDashboard = () => {
             <button className="icon-btn">
               <FontAwesomeIcon icon={faQuestionCircle} />
             </button>
-            <div className="user-profile">
+            <div className="user-info">
               <div className="user-avatar">
                 {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
               </div>
-              <div className="user-info">
-                <span className="user-name">{user?.firstName} {user?.lastName}</span>
-                <span className="user-role">job_seeker</span>
+              <div>
+                <div className="user-name">{user?.firstName} {user?.lastName}</div>
+                <div className="user-role">job_seeker</div>
               </div>
             </div>
-            <button className="btn btn-logout" onClick={handleLogout}>
+            <button className="btn-logout" onClick={handleLogout}>
               <FontAwesomeIcon icon={faSignOutAlt} />
               Logout
             </button>
@@ -675,13 +674,7 @@ const JobSeekerDashboard = () => {
         </div>
 
         {/* Content Area */}
-        <div className="content-area" ref={sectionRefs.current.dashboardTop} style={{
-          ...containerStyle,
-          padding: '30px',
-          maxWidth: '1400px',
-          margin: '0 auto',
-          width: '100%'
-        }}>
+        <div className="content-area" ref={sectionRefs.current.dashboardTop}>
           {/* Show different content based on active section */}
           {activeSection === 'dashboard' && (
             <>
@@ -706,6 +699,18 @@ const JobSeekerDashboard = () => {
                     className="completion-fill" 
                     style={{ width: `${dashboardData.profileCompletion}%` }}
                   ></div>
+                  <div 
+                    className="progress-indicator"
+                    style={{ 
+                      left: `${dashboardData.profileCompletion}%`,
+                      transition: 'left 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+                    }}
+                  >
+                    <div className="progress-indicator-line"></div>
+                    <div className="progress-indicator-percentage">
+                      {dashboardData.profileCompletion}%
+                    </div>
+                  </div>
                 </div>
                 <div className="completion-actions">
                   <button className="btn btn-upload">
@@ -763,10 +768,10 @@ const JobSeekerDashboard = () => {
               {/* Main Content Grid */}
               <div className="content-grid">
                 {/* Recommended Jobs */}
-                <div className="card" ref={sectionRefs.current.recommended}>
-                  <div className="card-header">
-                    <h3 className="card-title">Recommended for You</h3>
-                    <button className="btn btn-secondary btn-sm">View All</button>
+                <div className="recommended-section" ref={sectionRefs.current.recommended}>
+                  <div className="recommended-header">
+                    <h3 className="recommended-title">Recommended for You</h3>
+                    <button className="btn-view-all">View All</button>
                   </div>
                   <div className="card-content">
                     {dashboardData.recommendedJobs && dashboardData.recommendedJobs.length > 0 ? (
@@ -834,22 +839,22 @@ const JobSeekerDashboard = () => {
               </div>
               <div className="card-content">
                 {/* Application Statistics */}
-                <div className="stats-grid" style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px'}}>
-                  <div className="stat-card" style={{background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
-                    <div style={{fontSize: '24px', fontWeight: 'bold', color: '#1976d2'}}>{dashboardData.recentApplications.length}</div>
-                    <div style={{color: '#666', fontSize: '14px'}}>Total Applications</div>
+                <div className="stats-grid">
+                  <div className="stat-card">
+                    <div className="stat-value">{dashboardData.recentApplications.length}</div>
+                    <div className="stat-label">Total Applications</div>
                   </div>
-                  <div className="stat-card" style={{background: 'linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%)', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
-                    <div style={{fontSize: '24px', fontWeight: 'bold', color: '#7b1fa2'}}>{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('interview')).length}</div>
-                    <div style={{color: '#666', fontSize: '14px'}}>Interviews</div>
+                  <div className="stat-card">
+                    <div className="stat-value">{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('interview')).length}</div>
+                    <div className="stat-label">Interviews</div>
                   </div>
-                  <div className="stat-card" style={{background: 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
-                    <div style={{fontSize: '24px', fontWeight: 'bold', color: '#388e3c'}}>{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('offer')).length}</div>
-                    <div style={{color: '#666', fontSize: '14px'}}>Offers</div>
+                  <div className="stat-card">
+                    <div className="stat-value">{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('offer')).length}</div>
+                    <div className="stat-label">Offers</div>
                   </div>
-                  <div className="stat-card" style={{background: 'linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%)', padding: '20px', borderRadius: '8px', textAlign: 'center'}}>
-                    <div style={{fontSize: '24px', fontWeight: 'bold', color: '#f57c00'}}>{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('review')).length}</div>
-                    <div style={{color: '#666', fontSize: '14px'}}>Under Review</div>
+                  <div className="stat-card">
+                    <div className="stat-value">{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('review')).length}</div>
+                    <div className="stat-label">Under Review</div>
                   </div>
                 </div>
 
@@ -900,7 +905,7 @@ const JobSeekerDashboard = () => {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <FontAwesomeIcon icon={faFileAlt} style={{fontSize: '48px', color: '#ccc', marginBottom: '20px'}} />
+                    <FontAwesomeIcon icon={faFileAlt} className="empty-icon" />
                     <h3>No Applications Tracked Yet</h3>
                     <p>Start applying to jobs or manually add applications to track your progress here.</p>
                     <div style={{display: 'flex', gap: '10px', justifyContent: 'center'}}>
@@ -956,7 +961,7 @@ const JobSeekerDashboard = () => {
                 {dashboardData.allJobs && dashboardData.allJobs.length > 0 ? (
                   <div className="jobs-list">
                     {dashboardData.allJobs.map((job, idx) => (
-                      <div key={job._id || idx} className="job-card green-theme">
+                      <div key={job._id || idx} className="job-card orange-teal-theme">
                         <div className="job-header">
                           <div style={{display: 'flex', flex: 1}}>
                             <div className="company-logo">
@@ -984,7 +989,7 @@ const JobSeekerDashboard = () => {
                           {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (
                             <span key={skillIdx} className="tag">{skill}</span>
                           ))}
-                          <span className="tag" style={{marginLeft: 'auto', color: '#999'}}>
+                          <span className="tag tag-meta">
                             <FontAwesomeIcon icon={faClock} /> {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently'}
                           </span>
                         </div>
@@ -1004,7 +1009,7 @@ const JobSeekerDashboard = () => {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <FontAwesomeIcon icon={faSearch} style={{fontSize: '48px', color: '#ccc', marginBottom: '20px'}} />
+                    <FontAwesomeIcon icon={faSearch} className="empty-icon" />
                     <h3>No Jobs Found</h3>
                     <p>Try adjusting your search filters or check back later for new opportunities.</p>
                   </div>
@@ -1023,7 +1028,7 @@ const JobSeekerDashboard = () => {
                 {dashboardData.allJobs && dashboardData.allJobs.filter(j => savedJobIds.has(j._id)).length > 0 ? (
                   <div className="jobs-list">
                     {dashboardData.allJobs.filter(j => savedJobIds.has(j._id)).map((job, idx) => (
-                      <div key={job._id || idx} className="job-card green-theme">
+                      <div key={job._id || idx} className="job-card orange-teal-theme">
                         <div className="job-header">
                           <div style={{display: 'flex', flex: 1}}>
                             <div className="company-logo">
@@ -1062,7 +1067,7 @@ const JobSeekerDashboard = () => {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <FontAwesomeIcon icon={faBookmark} style={{fontSize: '48px', color: '#ccc', marginBottom: '20px'}} />
+                    <FontAwesomeIcon icon={faBookmark} className="empty-icon" />
                     <h3>No Saved Jobs</h3>
                     <p>Bookmark jobs to see them here.</p>
                     <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
@@ -1110,7 +1115,7 @@ const JobSeekerDashboard = () => {
                 {dashboardData.recommendedJobs && dashboardData.recommendedJobs.length > 0 ? (
                   <div className="jobs-list">
                     {dashboardData.recommendedJobs.map((job, idx) => (
-                      <div key={job._id || idx} className="job-card green-theme">
+                      <div key={job._id || idx} className="job-card orange-teal-theme">
                         <div className="job-header">
                           <div style={{display: 'flex', flex: 1}}>
                             <div className="company-logo">
@@ -1143,7 +1148,7 @@ const JobSeekerDashboard = () => {
                           {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (
                             <span key={skillIdx} className="tag">{skill}</span>
                           ))}
-                          <span className="tag" style={{marginLeft: 'auto', color: '#999'}}>
+                          <span className="tag tag-meta">
                             <FontAwesomeIcon icon={faClock} /> {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently'}
                           </span>
                         </div>
@@ -1163,7 +1168,7 @@ const JobSeekerDashboard = () => {
                   </div>
                 ) : (
                   <div className="empty-state">
-                    <FontAwesomeIcon icon={faStar} style={{fontSize: '48px', color: '#ccc', marginBottom: '20px'}} />
+                    <FontAwesomeIcon icon={faStar} className="empty-icon" />
                     <h3>No AI Recommendations Yet</h3>
                     <p>Complete your profile to get personalized job recommendations powered by AI.</p>
                     <button className="btn btn-primary" onClick={() => setActiveSection('profile')}>
@@ -1292,7 +1297,7 @@ const JobSeekerDashboard = () => {
                     <h3 className="card-title"><FontAwesomeIcon icon={faCode}/> Skills & Expertise</h3>
                   </div>
                   <div>
-                    <div style={{marginBottom:'15px', color:'#666', fontWeight:600}}>Technical Skills</div>
+                    <div className="skill-category-label">Technical Skills</div>
                     <div>
                       {(profileForm.skills||'').split(',').filter(Boolean).map((s,i)=> (
                         <span key={i} className="skill-tag" style={pillTagStyle}>{s.trim()}</span>
@@ -1314,7 +1319,7 @@ const JobSeekerDashboard = () => {
                   <div className="card-header">
                     <h3 className="card-title"><FontAwesomeIcon icon={faBuilding}/> Work Experience</h3>
                   </div>
-                  {(experience||[]).length === 0 && <div style={{color:'#999'}}>No experience added</div>}
+                  {(experience||[]).length === 0 && <div className="empty-text">No experience added</div>}
                   {(experience||[]).map((ex, idx) => (
                     <div key={idx} className="experience-item">
                       <h4>{ex.title || ex.role || 'Role'}</h4>
@@ -1330,7 +1335,7 @@ const JobSeekerDashboard = () => {
                   <div className="card-header">
                     <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap}/> Education</h3>
                   </div>
-                  {(education||[]).length === 0 && <div style={{color:'#999'}}>No education added</div>}
+                  {(education||[]).length === 0 && <div className="empty-text">No education added</div>}
                   {(education||[]).map((ed, idx) => (
                     <div key={idx} className="education-item">
                       <h4>{ed.degree || 'Degree'}{ed.field?` in ${ed.field}`:''}</h4>

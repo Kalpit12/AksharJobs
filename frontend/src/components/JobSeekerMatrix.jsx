@@ -10,7 +10,7 @@ import {
   faSave,
   faUndo
 } from '@fortawesome/free-solid-svg-icons';
-import '../styles/JobSeekerMatrix.css';
+// import '../styles/JobSeekerMatrix.css'; // Replaced by unified CSS
 
 const JobSeekerMatrix = () => {
   const [features, setFeatures] = useState({

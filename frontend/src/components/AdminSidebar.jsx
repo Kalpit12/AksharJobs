@@ -11,7 +11,8 @@ import {
   faShieldAlt,
   faFileUpload
 } from '@fortawesome/free-solid-svg-icons';
-import '../styles/AdminSidebar.css';
+import '../styles/dashboard-unified.css';
+// import '../styles/AdminSidebar.css'; // Replaced by unified CSS
 
 const AdminSidebar = ({ activeView, setActiveView }) => {
   const menuItems = [
@@ -72,9 +73,20 @@ const AdminSidebar = ({ activeView, setActiveView }) => {
   ];
 
   return (
-    <div className="admin-sidebar">
+    <div className="admin-sidebar" style={{
+      background: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+      backgroundColor: '#ff6b35',
+      backgroundImage: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+      color: '#ffffff',
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '320px',
+      height: '100vh',
+      zIndex: 1000
+    }}>
       <div className="sidebar-header">
-        <h2><FontAwesomeIcon icon={faCog} /> ADMINHUB</h2>
+        <h2><FontAwesomeIcon icon={faCog} /> JOBSEEKER HUB</h2>
         <p>System Management</p>
       </div>
       

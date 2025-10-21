@@ -376,7 +376,7 @@ export const AuthProvider = ({ children }) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Signup failed');
+        throw new Error(errorData.error || errorData.message || 'Signup failed');
       }
 
       const data = await response.json();

@@ -47,7 +47,7 @@
 }
 
 .header-container {
-  max-width: 1200px !important;
+  max-width: 1400px !important;
   margin: 0 auto !important;
   padding: 0 1.5rem !important;
   display: flex !important;
@@ -57,6 +57,8 @@
   position: relative !important;
   z-index: 2 !important;
   gap: 1rem !important;
+  width: 100% !important;
+  min-width: 0 !important;
 }
 
 /* Logo Section */
@@ -66,6 +68,8 @@
   gap: 0.75rem !important;
   text-decoration: none !important;
   transition: all 0.3s ease !important;
+  flex-shrink: 0 !important;
+  min-width: 0 !important;
 }
 
 .header-logo:hover {
@@ -90,6 +94,9 @@
   font-weight: 700 !important;
   color: #ffffff !important;
   letter-spacing: -0.025em !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
 }
 
 .header-logo-tagline {
@@ -876,6 +883,8 @@
   
   .header-logo-text {
     font-size: 1.125rem !important;
+    white-space: nowrap !important;
+    overflow: visible !important;
   }
   
   .header-logo-tagline {

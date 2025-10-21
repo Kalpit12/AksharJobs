@@ -317,6 +317,14 @@ def update_user_profile():
     try:
         current_user_id = get_jwt_identity()
         
+        # Get database connection
+        db = get_db()
+        if db is None:
+            print("❌ Database connection failed")
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        users_collection = db.users
+        
         # Check if request has JSON data or form data (for file uploads)
         if request.is_json:
             data = request.get_json()

@@ -135,7 +135,12 @@ const Signup = () => {
           });
           // No need to navigate here - AuthContext handles it based on role
         } catch (err) {
-          setError(err.message || 'Signup failed. Please try again.');
+          const errorMessage = err.message || 'Signup failed. Please try again.';
+          if (errorMessage.toLowerCase().includes('already exists')) {
+            setError('This email is already registered. Please login or use a different email.');
+          } else {
+            setError(errorMessage);
+          }
         } finally {
           setLoading(false);
         }

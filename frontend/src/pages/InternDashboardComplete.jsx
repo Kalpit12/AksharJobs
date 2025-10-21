@@ -16,7 +16,8 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
-import '../styles/InternDashboard.css';
+import '../styles/dashboard-unified.css';
+// import '../styles/InternDashboard.css'; // Replaced by unified CSS
 
 const InternDashboardComplete = () => {
   const { user, logout } = useAuth();
@@ -172,12 +173,23 @@ const InternDashboardComplete = () => {
   }
 
   return (
-    <div className="intern-dashboard">
+    <div className="dashboard-container intern-dashboard">
       {/* Sidebar */}
-      <div className="sidebar" id="sidebar">
+      <div className="sidebar" id="sidebar" style={{
+        background: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+        backgroundColor: '#ff6b35',
+        backgroundImage: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+        color: '#ffffff',
+        position: 'fixed',
+        left: '0',
+        top: '0',
+        width: '320px',
+        height: '100vh',
+        zIndex: 1000
+      }}>
         <div className="sidebar-header">
           <h2>
-            <FontAwesomeIcon icon={faUserGraduate} /> InternHub
+            <FontAwesomeIcon icon={faUserGraduate} /> JOBSEEKER HUB
           </h2>
           <p>Launch Your Career</p>
         </div>

@@ -147,7 +147,7 @@ const Header = () => {
         <Link to={getDashboardRoute()} className="header-logo">
           <img src={akLogo} alt="AksharJobs logo" />
           <div>
-            <div className="header-logo-text">JOBSEEKERHUB</div>
+            <div className="header-logo-text">JOBSEEKER HUB</div>
             <div className="header-logo-tagline">Where Opportunity Meets Talent</div>
           </div>
         </Link>

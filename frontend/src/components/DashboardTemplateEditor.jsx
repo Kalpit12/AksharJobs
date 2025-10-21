@@ -5,7 +5,7 @@ import {
   faPalette, faFont, faImages, faClone, faDownload, faUpload
 } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
-import '../styles/DashboardTemplateEditor.css';
+import '../styles/dashboard-unified.css';
 
 const DashboardTemplateEditor = () => {
   const [activeTemplate, setActiveTemplate] = useState('recruiter');

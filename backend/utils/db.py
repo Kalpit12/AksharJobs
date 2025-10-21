@@ -45,7 +45,8 @@ def get_db():
         print(f"[OK] MongoDB connected successfully!")
         print(f"[DEBUG] Connected to URI: {MONGO_URI}")
         print(f"[DEBUG] Database name: {DB_NAME}")
-        print(f"[DEBUG] Database object: {_db.name}")
+        if _db is not None:
+            print(f"[DEBUG] Database object: {_db.name}")
         return _db
         
     except Exception as e:

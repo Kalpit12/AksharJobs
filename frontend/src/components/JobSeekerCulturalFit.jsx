@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/JobSeekerCulturalFit.css';
+// import '../styles/JobSeekerCulturalFit.css'; // Replaced by unified CSS
 
 const JobSeekerCulturalFit = ({ isVisible, onClose, jobId, companyName }) => {
   const [currentStep, setCurrentStep] = useState(1);

@@ -13,7 +13,8 @@ import DashboardTemplateEditor from '../components/DashboardTemplateEditor';
 import AdminMessaging from '../components/AdminMessaging';
 import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
 import QuickActions from '../components/QuickActions';
-import '../styles/AdminDashboard.css';
+import '../styles/dashboard-unified.css';
+// import '../styles/AdminDashboard.css'; // Replaced by unified CSS
 
 const AdminDashboard = () => {
   const [activeView, setActiveView] = useState('dashboard');

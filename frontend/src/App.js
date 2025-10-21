@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./styles/Global.css";
-import "./styles/JobSeekerDashboard.css"; // Load with highest priority to prevent conflicts
+import "./styles/dashboard-unified.css"; // Unified orange-teal theme for all dashboards
 import ErrorBoundary from "./components/ErrorBoundary";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";

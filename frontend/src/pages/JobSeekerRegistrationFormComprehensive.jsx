@@ -14,7 +14,7 @@ import { faLinkedin, faGithub, faMedium, faTwitter } from '@fortawesome/free-bra
 import { buildApiUrl } from '../config/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import AutoSaveStatus from '../components/AutoSaveStatus';
-import '../styles/JobSeekerRegistrationFormComprehensive.css';
+// import '../styles/JobSeekerRegistrationFormComprehensive.css'; // Replaced by unified CSS
 import globalSkills from '../data/global_skills.json';
 
 import LocationMap from '../components/LocationMap';

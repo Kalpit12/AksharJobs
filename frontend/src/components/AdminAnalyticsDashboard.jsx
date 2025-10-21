@@ -22,7 +22,7 @@ import {
   ArcElement,
   BarElement
 } from 'chart.js';
-import '../styles/AdminAnalyticsDashboard.css';
+import '../styles/dashboard-unified.css';
 
 // Register Chart.js components
 ChartJS.register(

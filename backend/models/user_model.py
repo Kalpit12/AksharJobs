@@ -20,6 +20,7 @@ def _get_collections():
         users_collection = db["users"]
         print(f"[DEBUG user_model] Using database: {db.name}")
         print(f"[DEBUG user_model] Collection: users")
+        return users, users_collection
     else:
         # Fallback to direct connection if get_db fails
         try:
@@ -27,10 +28,11 @@ def _get_collections():
             db = client['TalentMatchDB']  # FIXED: Use correct database
             users = db["users"]
             users_collection = db["users"]
+            print(f"[DEBUG user_model] Fallback connection successful")
+            return users, users_collection
         except Exception as e:
             print(f"❌ Failed to connect to MongoDB: {e}")
             return None, None
-    return users, users_collection
 
 class User:
     """

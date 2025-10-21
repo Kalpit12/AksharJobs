@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/AdminDashboard.css';
+// import '../styles/AdminDashboard.css'; // Replaced by unified CSS in parent component
 
 const SwahiliAnalysisManagement = () => {
   const [settings, setSettings] = useState({

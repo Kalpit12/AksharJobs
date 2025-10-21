@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
 import { buildApiUrl } from '../config/api';
-import '../styles/RecruiterDashboard.css';
+import '../styles/dashboard-unified.css';
+// import '../styles/RecruiterDashboard.css'; // Replaced by unified CSS
 import '@fortawesome/fontawesome-free/css/all.css';
 import QuickActions from '../components/QuickActions';
 import CandidatePage from '../components/CandidatePage';
@@ -436,100 +437,24 @@ const RecruiterDashboard = () => {
     }
 
     return (
-        <div className="recruiter-dashboard">
-            <style>{`
-                /* FIXED ORANGE THEME WITH PROPER CONTRAST */
-                .recruiter-dashboard .sidebar {
-                    background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
-                    background-color: #FF8A65 !important;
-                    background-image: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
-                    color: white !important;
-                    position: fixed !important;
-                    left: 0 !important;
-                    top: 0 !important;
-                    width: 260px !important;
-                    height: 100vh !important;
-                    z-index: 1000 !important;
-                }
-                
-                /* Force white text for all sidebar elements */
-                .recruiter-dashboard .sidebar *,
-                .recruiter-dashboard .sidebar-header *,
-                .recruiter-dashboard .nav-item *,
-                .recruiter-dashboard .nav-item i,
-                .recruiter-dashboard .nav-item span,
-                .recruiter-dashboard .sidebar-header h2,
-                .recruiter-dashboard .sidebar-header p {
-                    color: white !important;
-                    text-decoration: none !important;
-                }
-                
-                /* Ensure icons are white */
-                .recruiter-dashboard .sidebar i,
-                .recruiter-dashboard .sidebar .fas,
-                .recruiter-dashboard .sidebar .fa {
-                    color: white !important;
-                }
-                
-                /* User avatar stays orange but with white text */
-                .recruiter-dashboard .user-avatar {
-                    background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%) !important;
-                    background-color: #FF8A65 !important;
-                    background-image: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%) !important;
-                    color: white !important;
-                }
-                
-                /* Override any conflicting colors */
-                .recruiter-dashboard *[style*="22c55e"],
-                .recruiter-dashboard *[style*="16a34a"],
-                .recruiter-dashboard *[style*="green"] {
-                    background: transparent !important;
-                    background-color: transparent !important;
-                    background-image: none !important;
-                    color: white !important;
-                }
-                
-                /* Ensure stat icons are visible */
-                .recruiter-dashboard .stat-icon {
-                    display: flex !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    width: 60px !important;
-                    height: 60px !important;
-                    border-radius: 50% !important;
-                    font-size: 24px !important;
-                    color: white !important;
-                }
-                
-                .recruiter-dashboard .stat-icon.blue {
-                    background: #3b82f6 !important;
-                }
-                
-                .recruiter-dashboard .stat-icon.green {
-                    background: #10b981 !important;
-                }
-                
-                .recruiter-dashboard .stat-icon.purple {
-                    background: #8b5cf6 !important;
-                }
-                
-                .recruiter-dashboard .stat-icon.orange {
-                    background: #f97316 !important;
-                }
-                
-                .recruiter-dashboard .stat-icon i {
-                    color: white !important;
-                    font-size: 24px !important;
-                }
-                
-                /* Orange-themed job cards */
-                /* Job card styles moved to JobSeekerDashboard.css for consistency */
-            `}</style>
+        <div className="dashboard-container recruiter-dashboard">
+            
             {/* Sidebar */}
-            <div className="sidebar" id="sidebar">
+            <div className="sidebar" id="sidebar" style={{
+              background: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+              backgroundColor: '#ff6b35',
+              backgroundImage: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+              color: '#ffffff',
+              position: 'fixed',
+              left: '0',
+              top: '0',
+              width: '320px',
+              height: '100vh',
+              zIndex: 1000
+            }}>
                 <div className="sidebar-header">
                     <h2>
-                        <i className="fas fa-briefcase"></i> RECRUITERHUB
+                        <i className="fas fa-briefcase"></i> JOBSEEKER HUB
                     </h2>
                     <p>
                         {user?.companyName || 'Acme Corporation'}
