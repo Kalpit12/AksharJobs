@@ -230,19 +230,18 @@ class OAuthService:
     
     @staticmethod
     def generate_jwt_token(user_data):
-        """Generate JWT token for OAuth users"""
+        """Generate JWT token for OAuth users using Flask-JWT-Extended"""
         try:
-            secret_key = os.getenv('SECRET_KEY')
-            payload = {
-                'sub': str(user_data['_id']),  # Flask-JWT-Extended expects 'sub' claim
-                'user_id': str(user_data['_id']),
-                'email': user_data['email'],
-                'role': user_data.get('userType', 'jobSeeker'),
-                'exp': datetime.utcnow() + timedelta(hours=24)
-            }
+            from flask_jwt_extended import create_access_token
             
-            token = jwt.encode(payload, secret_key, algorithm='HS256')
-            return token
+            # Use Flask-JWT-Extended to create properly formatted tokens
+            # This ensures compatibility with @jwt_required() decorator
+            user_id = str(user_data['_id'])
+            access_token = create_access_token(
+                identity=user_id,
+                expires_delta=timedelta(hours=24)
+            )
+            return access_token
             
         except Exception as e:
             print(f"Error generating JWT token: {e}")

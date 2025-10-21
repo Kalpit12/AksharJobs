@@ -25,9 +25,9 @@ class ModernResumeService:
                 genai.configure(api_key=gemini_api_key)
                 self.gemini_model = genai.GenerativeModel('gemini-1.5-flash-latest')
                 self.use_ai = True
-                logger.info("✅ Gemini AI initialized successfully")
+                logger.info("[OK] Gemini AI initialized successfully")
             except Exception as e:
-                logger.warning(f"⚠️ Gemini AI initialization failed: {e}")
+                logger.warning(f"[WARNING] Gemini AI initialization failed: {e}")
                 self.use_ai = False
         
         # Initialize text extraction methods
@@ -42,9 +42,9 @@ class ModernResumeService:
             self.pdfplumber_available = True
             self.pypdf2_available = True
             self.docx_available = True
-            logger.info("✅ All text extraction libraries available")
+            logger.info("[OK] All text extraction libraries available")
         except ImportError as e:
-            logger.warning(f"⚠️ Some text extraction libraries missing: {e}")
+            logger.warning(f"[WARNING] Some text extraction libraries missing: {e}")
             self.pdfplumber_available = False
             self.pypdf2_available = False
             self.docx_available = False

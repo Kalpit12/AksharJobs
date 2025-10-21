@@ -4,7 +4,7 @@ import { faBriefcase, faUsers, faChartLine, faCog } from '@fortawesome/free-soli
 import './GlobalLoadingScreen.css';
 
 const GlobalLoadingScreen = ({ 
-  message = "Welcome to AksharJobs",
+  message = "Welcome to JOBSEEKERHUB",
   subMessage = "Connecting you to opportunities",
   showProgress = false,
   progress = 0,
@@ -30,7 +30,7 @@ const GlobalLoadingScreen = ({
               <FontAwesomeIcon icon={faBriefcase} />
             </div>
             <div className="logo-text">
-              <h1>AksharJobs</h1>
+              <h1>JOBSEEKERHUB</h1>
               <p>Connecting Talent with Opportunity</p>
             </div>
           </div>

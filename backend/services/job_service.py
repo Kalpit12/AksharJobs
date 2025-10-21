@@ -1,5 +1,5 @@
 from bson import ObjectId
-from models.job_model import jobs_collection
+from models.job_model import _get_collections
 from datetime import datetime
 
 def create_job(data):
@@ -38,7 +38,12 @@ def create_job(data):
         "created_at": datetime.utcnow(),
     }
 
-    result= jobs_collection.insert_one(job)
+    db, jobs, jobs_collection = _get_collections()
+    if jobs_collection is None:
+        print("ERROR: No database connection for jobs")
+        return None
+    
+    result = jobs_collection.insert_one(job)
     return str(result.inserted_id)
 
 def get_job_by_id(job_id):
@@ -52,6 +57,11 @@ def get_job_by_id(job_id):
         dict or None: The job details if found, otherwise None.
     """
     print("Getting job by Id...")
+    db, jobs, jobs_collection = _get_collections()
+    if jobs_collection is None:
+        print("ERROR: No database connection for jobs")
+        return None
+    
     job = jobs_collection.find_one({"_id": ObjectId(job_id)})
     if job:
         job["_id"] = str(job["_id"])  # Convert ObjectId to string
@@ -65,6 +75,11 @@ def get_all_jobs():
         list: A list of job dictionaries with job IDs converted to strings.
     """
     print("Getting jobs...")
+    db, jobs, jobs_collection = _get_collections()
+    if jobs_collection is None:
+        print("ERROR: No database connection for jobs")
+        return []
+    
     jobs = jobs_collection.find({})
     return [{**job, "_id": str(job["_id"])} for job in jobs] # Exclude _id for frontend compatibility
 

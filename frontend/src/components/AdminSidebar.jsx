@@ -74,8 +74,8 @@ const AdminSidebar = ({ activeView, setActiveView }) => {
   return (
     <div className="admin-sidebar">
       <div className="sidebar-header">
-        <h2>Admin Panel</h2>
-        <p>System Control Center</p>
+        <h2><FontAwesomeIcon icon={faCog} /> ADMINHUB</h2>
+        <p>System Management</p>
       </div>
       
       <nav className="sidebar-nav">

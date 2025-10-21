@@ -197,6 +197,9 @@ def get_user_profile():
             "dateOfBirth": user.get('dateOfBirth', ''),
             "gender": user.get('gender', ''),
             "bloodGroup": user.get('bloodGroup', ''),
+            "community": user.get('community', '') or user.get('primary_community', ''),
+            "communities": user.get('communities', []),
+            "primary_community": user.get('primary_community', ''),
             "location": user.get('location', {}),
             "currentAddress": user.get('currentAddress', ''),
             "currentAddressPin": user.get('currentAddressPin', ''),
@@ -339,6 +342,7 @@ def update_user_profile():
         fields_to_update = [
             # Basic fields
             'fullName', 'firstName', 'middleName', 'lastName', 'phone', 'dateOfBirth', 'gender', 'bloodGroup', 
+            'community', 'communities', 'primary_community',
             'location', 'currentAddress', 'currentAddressPin', 'homeAddress', 'homeAddressPin', 'commuteOptions',
             'email', 'phoneNumber', 'altPhone', 'postalCode', 'address', 'latitude', 'longitude',
             # Nationality & Residency
@@ -371,6 +375,8 @@ def update_user_profile():
             # Additional Information
             'askCommunity', 'hobbies', 'additionalComments', 'additionalInfo', 'achievements', 'agreeTerms', 'allowContact',
             'bio',
+            # Profile completion status
+            'profileCompleted', 'hasCompletedProfile',
             # Company fields for recruiters
             'companyName', 'companyWebsite', 'companySize', 'foundedYear', 'companyDescription'
         ]

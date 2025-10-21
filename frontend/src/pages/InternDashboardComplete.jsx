@@ -78,6 +78,42 @@ const InternDashboardComplete = () => {
         axios.get(buildApiUrl('/api/jobs/get_jobs')).catch(() => null)
       ]);
 
+      // Transform jobs data from snake_case to camelCase for frontend compatibility
+      const transformedJobs = (jobsRes?.data || []).map(job => ({
+        ...job,
+        jobTitle: job.job_title || job.jobTitle,
+        companyName: job.company_name || job.companyName,
+        salary: job.salary_range || job.salary,
+        remoteOption: job.remote_option || job.remoteOption,
+        jobType: job.job_type || job.jobType,
+        experienceRequired: job.experience_required || job.experienceRequired,
+        requiredSkills: job.required_skills || job.requiredSkills,
+        educationRequired: job.education_required || job.educationRequired,
+        applicationDeadline: job.application_deadline || job.applicationDeadline,
+        companyWebsite: job.company_website || job.companyWebsite
+      }));
+
+      // Filter for internship-type jobs and other relevant works for interns
+      const internshipJobs = transformedJobs.filter(job => {
+        const jobType = job.jobType || job.job_type || '';
+        const title = job.jobTitle || job.job_title || job.title || '';
+        
+        // Include internships, entry-level jobs, and jobs with "intern" in title
+        return jobType.toLowerCase().includes('internship') ||
+               jobType.toLowerCase().includes('intern') ||
+               title.toLowerCase().includes('internship') ||
+               title.toLowerCase().includes('intern') ||
+               jobType.toLowerCase().includes('entry') ||
+               jobType.toLowerCase().includes('junior') ||
+               jobType.toLowerCase().includes('graduate') ||
+               jobType.toLowerCase().includes('trainee');
+      });
+
+      console.log('Fetched internships:', internshipJobs.length, 'internship-type jobs out of', transformedJobs.length, 'total jobs');
+      if (internshipJobs.length > 0) {
+        console.log('Sample internship data:', internshipJobs[0]);
+      }
+
       setDashboardData({
         stats: {
           applications: applicationsRes?.data?.applications?.length || 0,
@@ -88,7 +124,7 @@ const InternDashboardComplete = () => {
         profileCompletion: 65,
         applications: applicationsRes?.data?.applications || [],
         interviews: [],
-        internships: jobsRes?.data?.jobs || [],
+        internships: internshipJobs,
         savedInternships: [],
         academicInfo: {
           currentYear: user?.currentYear || '3rd Year',
@@ -412,12 +448,15 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
           </button>
         </div>
         <div>
-          {dashboardData.internships.slice(0, 3).map((internship, index) => (
-            <InternshipCard key={index} internship={internship} />
-          ))}
-          {dashboardData.internships.length === 0 && (
+          {dashboardData.internships && dashboardData.internships.length > 0 ? (
+            dashboardData.internships.slice(0, 3).map((internship, index) => (
+              <InternshipCard key={internship._id || index} internship={internship} />
+            ))
+          ) : (
             <div className="empty-state">
+              <FontAwesomeIcon icon={faBriefcase} style={{ fontSize: '48px', color: '#ccc', marginBottom: '15px' }} />
               <p>No internships available at the moment</p>
+              <p style={{ fontSize: '14px', color: '#999', marginTop: '8px' }}>New opportunities will appear here</p>
             </div>
           )}
         </div>
@@ -501,14 +540,16 @@ const InternshipsSection = ({ internships }) => (
     </div>
 
     <div className="card">
-      {internships.map((internship, index) => (
-        <InternshipCard key={index} internship={internship} showApplyButton />
-      ))}
-      {internships.length === 0 && (
+      {internships && internships.length > 0 ? (
+        internships.map((internship, index) => (
+          <InternshipCard key={internship._id || index} internship={internship} showApplyButton />
+        ))
+      ) : (
         <div className="empty-state">
-          <FontAwesomeIcon icon={faSearch} style={{ fontSize: '64px', color: '#ccc' }} />
-          <h3>No Internships Found</h3>
-          <p>Try adjusting your filters</p>
+          <FontAwesomeIcon icon={faSearch} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
+          <h3>No Internships Available</h3>
+          <p style={{ marginBottom: '10px' }}>There are currently no internship listings available.</p>
+          <p style={{ color: '#999', fontSize: '14px' }}>Check back later for new opportunities!</p>
         </div>
       )}
     </div>
@@ -602,16 +643,27 @@ const InterviewsSection = ({ interviews }) => (
 const RecommendedSection = ({ internships }) => (
   <div>
     <h1 style={{ marginBottom: '25px' }}>Recommended Internships</h1>
-    <div className="alert success">
-      <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
-      <div>
-        Based on your profile, we found <strong>{internships.length} internships</strong> matching your skills!
+    {internships && internships.length > 0 && (
+      <div className="alert success">
+        <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
+        <div>
+          Based on your profile, we found <strong>{internships.length} internships</strong> matching your skills!
+        </div>
       </div>
-    </div>
+    )}
     <div className="card">
-      {internships.map((internship, index) => (
-        <InternshipCard key={index} internship={internship} showApplyButton />
-      ))}
+      {internships && internships.length > 0 ? (
+        internships.map((internship, index) => (
+          <InternshipCard key={internship._id || index} internship={internship} showApplyButton />
+        ))
+      ) : (
+        <div className="empty-state">
+          <FontAwesomeIcon icon={faStar} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
+          <h3>No Recommendations Yet</h3>
+          <p style={{ marginBottom: '10px' }}>We're working on finding the perfect internships for you!</p>
+          <p style={{ color: '#999', fontSize: '14px' }}>Complete your profile to get better matches</p>
+        </div>
+      )}
     </div>
   </div>
 );
@@ -692,11 +744,6 @@ const ProfileSection = ({ profile }) => {
       
       {/* Profile Header */}
       <div className="profile-header">
-        <div className="profile-photo">
-          <div className="avatar-placeholder">
-            {profileData.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
-          </div>
-        </div>
         <h1 style={{ fontSize: '28px', marginBottom: '5px' }}>{profileData.fullName}</h1>
         <p style={{ fontSize: '16px', opacity: 0.9 }}>Computer Science Student • University of Nairobi</p>
         <div style={{ marginTop: '15px' }}>
@@ -1495,7 +1542,7 @@ const AcademicSection = ({ academicInfo }) => (
     <div className="card">
       <div className="card-header">
         <h3 className="card-title"><FontAwesomeIcon icon={faBook} /> Relevant Coursework</h3>
-        <button className="btn btn-secondary btn-sm">
+        <button className="btn btn-primary btn-sm">
           <FontAwesomeIcon icon={faPlus} /> Add Course
         </button>
       </div>
@@ -1546,22 +1593,22 @@ const LearningResourcesSection = () => (
       <div className="card">
         <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faBook} /> Online Courses</h3>
         <p style={{ color: '#666', marginBottom: '15px' }}>Enhance your skills with free and paid courses</p>
-        <button className="btn btn-secondary btn-sm">Explore Courses</button>
+        <button className="btn btn-primary btn-sm">Explore Courses</button>
       </div>
       <div className="card">
         <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faCode} /> Coding Challenges</h3>
         <p style={{ color: '#666', marginBottom: '15px' }}>Practice coding and problem-solving</p>
-        <button className="btn btn-secondary btn-sm">Start Practicing</button>
+        <button className="btn btn-primary btn-sm">Start Practicing</button>
       </div>
       <div className="card">
         <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faChartLine} /> Career Tips</h3>
         <p style={{ color: '#666', marginBottom: '15px' }}>Get advice on internships and career growth</p>
-        <button className="btn btn-secondary btn-sm">Read Articles</button>
+        <button className="btn btn-primary btn-sm">Read Articles</button>
       </div>
       <div className="card">
         <h3 style={{ marginBottom: '15px' }}><FontAwesomeIcon icon={faTrophy} /> Certifications</h3>
         <p style={{ color: '#666', marginBottom: '15px' }}>Earn certificates to boost your resume</p>
-        <button className="btn btn-secondary btn-sm">View Certifications</button>
+        <button className="btn btn-primary btn-sm">View Certifications</button>
       </div>
     </div>
   </div>
@@ -1588,8 +1635,8 @@ const SettingsSection = ({ logout, navigate }) => (
         <h3 className="card-title"><FontAwesomeIcon icon={faCog} /> Account Actions</h3>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <button className="btn btn-secondary">Change Password</button>
-        <button className="btn btn-secondary" onClick={() => { logout(); navigate('/login'); }}>Logout</button>
+        <button className="btn btn-danger">Change Password</button>
+        <button className="btn btn-danger" onClick={() => { logout(); navigate('/login'); }}>Logout</button>
         <button className="btn btn-danger">Delete Account</button>
       </div>
     </div>
@@ -1603,32 +1650,64 @@ const InternshipCard = ({ internship, showApplyButton = false, showUnsaveBtn = f
     return company.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
   };
 
+  // Format salary display
+  const formatSalary = (salary) => {
+    if (!salary) return 'Negotiable';
+    if (typeof salary === 'string') return salary;
+    if (salary.min && salary.max) return `$${salary.min} - $${salary.max}`;
+    return 'Negotiable';
+  };
+
+  // Get job type display
+  const getJobType = () => {
+    const jobType = internship.jobType || internship.job_type;
+    const remoteOption = internship.remoteOption || internship.remote_option;
+    
+    if (remoteOption === 'Remote') return 'Remote';
+    if (remoteOption === 'Hybrid') return 'Hybrid';
+    return jobType || 'Full-time';
+  };
+
   return (
     <div className="internship-card">
       <div className="internship-header">
         <div style={{ display: 'flex', flex: 1 }}>
           <div className="company-logo">
-            {getCompanyInitials(internship.companyName || internship.company)}
+            {getCompanyInitials(internship.companyName || internship.company_name || internship.company)}
           </div>
           <div className="internship-info">
-            <h3>{internship.jobTitle || internship.title}</h3>
-            <div className="internship-company">{internship.companyName || internship.company}</div>
+            <h3>{internship.jobTitle || internship.job_title || internship.title || 'Internship Position'}</h3>
+            <div className="internship-company">
+              {internship.companyName || internship.company_name || internship.company || 'Company'}
+            </div>
             <div className="internship-meta">
               <span>
                 <FontAwesomeIcon icon={faMapMarkerAlt} /> {internship.location || 'Not specified'}
               </span>
               <span>
-                <FontAwesomeIcon icon={faClock} /> 3-6 months
+                <FontAwesomeIcon icon={faClock} /> {getJobType()}
               </span>
               <span>
-                <FontAwesomeIcon icon={faDollarSign} /> {internship.salary || 'Negotiable'}
+                <FontAwesomeIcon icon={faDollarSign} /> {formatSalary(internship.salary || internship.salary_range)}
               </span>
+            </div>
+            {/* Show tags for job attributes */}
+            <div style={{ marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {(internship.remoteOption === 'Remote' || internship.remote_option === 'Remote') && (
+                <span className="tag remote">Remote</span>
+              )}
+              {(internship.remoteOption === 'Hybrid' || internship.remote_option === 'Hybrid') && (
+                <span className="tag remote">Hybrid</span>
+              )}
+              {internship.salary_range && (
+                <span className="tag paid">Paid</span>
+              )}
             </div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="btn btn-secondary btn-sm">
-            <FontAwesomeIcon icon={showUnsaveBtn ? faBookmark : faBookmark} />
+            <FontAwesomeIcon icon={faBookmark} />
           </button>
         </div>
       </div>

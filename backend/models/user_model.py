@@ -10,23 +10,26 @@ users = None
 users_collection = None
 
 def _get_collections():
-    """Lazy-load database collections when needed"""
+    """Get database collections - NO CACHING to avoid stale data"""
     global db, users, users_collection
-    if db is None:
-        db = get_db()
-        if db is not None:
+    
+    # ALWAYS get fresh database connection (no caching)
+    db = get_db()
+    if db is not None:
+        users = db["users"]
+        users_collection = db["users"]
+        print(f"[DEBUG user_model] Using database: {db.name}")
+        print(f"[DEBUG user_model] Collection: users")
+    else:
+        # Fallback to direct connection if get_db fails
+        try:
+            client = MongoClient('mongodb://localhost:27017/')
+            db = client['TalentMatchDB']  # FIXED: Use correct database
             users = db["users"]
             users_collection = db["users"]
-        else:
-            # Fallback to direct connection if get_db fails
-            try:
-                client = MongoClient('mongodb://localhost:27017/')
-                db = client['resume_matcher']
-                users = db["users"]
-                users_collection = db["users"]
-            except Exception as e:
-                print(f"❌ Failed to connect to MongoDB: {e}")
-                return None, None
+        except Exception as e:
+            print(f"❌ Failed to connect to MongoDB: {e}")
+            return None, None
     return users, users_collection
 
 class User:

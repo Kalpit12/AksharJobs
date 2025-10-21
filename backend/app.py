@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from jwt.exceptions import InvalidTokenError, DecodeError
 import google.generativeai as genai
 import os
 from datetime import datetime
@@ -19,7 +20,56 @@ app.config.from_object(Config)
 #      allow_headers=["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 #      supports_credentials=True,
 #      expose_headers=["Content-Range", "X-Content-Range"])
-JWTManager(app)
+jwt = JWTManager(app)
+
+# JWT Error Handlers - Comprehensive Coverage
+@jwt.invalid_token_loader
+def invalid_token_callback(error_string):
+    """Handle invalid token format or signature"""
+    return jsonify({
+        'error': 'Invalid or expired token',
+        'message': 'Please log in again'
+    }), 401
+
+@jwt.expired_token_loader
+def expired_token_callback(jwt_header, jwt_data):
+    """Handle expired tokens"""
+    return jsonify({
+        'error': 'Token has expired',
+        'message': 'Please log in again'
+    }), 401
+
+@jwt.unauthorized_loader
+def unauthorized_callback(error_string):
+    """Handle missing or malformed authorization header"""
+    return jsonify({
+        'error': 'Authorization required',
+        'message': 'Please provide a valid token'
+    }), 401
+
+@jwt.revoked_token_loader
+def revoked_token_callback(jwt_header, jwt_data):
+    """Handle revoked tokens"""
+    return jsonify({
+        'error': 'Token has been revoked',
+        'message': 'Please log in again'
+    }), 401
+
+@jwt.needs_fresh_token_loader
+def needs_fresh_token_callback(jwt_header, jwt_data):
+    """Handle operations requiring fresh token"""
+    return jsonify({
+        'error': 'Fresh token required',
+        'message': 'Please log in again'
+    }), 401
+
+@jwt.token_verification_failed_loader
+def token_verification_failed_callback(jwt_header, jwt_data):
+    """Handle token verification failures"""
+    return jsonify({
+        'error': 'Token verification failed',
+        'message': 'Invalid token format'
+    }), 401
 
 # Configure Gemini API
 genai.configure(api_key=os.getenv('GEMINI_API_KEY'))
@@ -46,6 +96,8 @@ from routes.cv_access_routes import cv_access_routes
 from routes.user_settings_routes import user_settings_routes
 from routes.candidates_routes import candidates_bp
 from routes.community_routes import community_routes
+from routes.ai_prediction_routes import ai_prediction_bp
+from routes.debug_routes import debug_bp
 
 # Import WebSocket service
 from services.websocket_service import init_websocket
@@ -60,6 +112,7 @@ from routes.recruiter_routes import recruiter_bp
 from routes.jobseeker_registration_routes import jobseeker_registration_routes
 from routes.ai_features_routes import ai_features_bp
 from routes.interviews_routes import interviews_routes
+from routes.template_routes import template_routes
 
 # Register blueprints
 app.register_blueprint(auth_routes, url_prefix='/api/auth')
@@ -74,12 +127,14 @@ app.register_blueprint(notification_bp, url_prefix='/api/notifications')
 app.register_blueprint(message_bp, url_prefix='/api/messages')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 app.register_blueprint(admin_routes, url_prefix='/api/admin')
+app.register_blueprint(template_routes, url_prefix='/api/admin')
 app.register_blueprint(interviews_routes, url_prefix='/api/interviews')
-print("✅ Admin routes registered at /api/admin")
-print("✅ Interviews routes registered at /api/interviews")
+print("[OK] Admin routes registered at /api/admin")
+print("[OK] Template routes registered at /api/admin")
+print("[OK] Interviews routes registered at /api/interviews")
 
 # Debug: List all admin routes
-print("📋 Admin routes available:")
+print("[INFO] Admin routes available:")
 for rule in app.url_map.iter_rules():
     if '/admin' in str(rule):
         print(f"  {rule.rule} - Methods: {rule.methods}")
@@ -101,6 +156,8 @@ app.register_blueprint(intern_bp, url_prefix='/api/interns')
 app.register_blueprint(recruiter_bp, url_prefix='/api/recruiters')
 app.register_blueprint(jobseeker_registration_routes, url_prefix='/api/jobseeker')
 app.register_blueprint(ai_features_bp, url_prefix='/api/ai')
+app.register_blueprint(ai_prediction_bp, url_prefix='/api/ai')
+app.register_blueprint(debug_bp, url_prefix='/api/debug')
 app.register_blueprint(bulk_import_bp)
 
 # Additional CORS handling for OPTIONS requests

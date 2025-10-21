@@ -9,6 +9,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import logoImage from '../assets/FINAL LOGO AK.png';
+import PhoneInput from '../components/PhoneInput';
 import '../styles/Signup.css';
 
 const Signup = () => {
@@ -128,9 +129,9 @@ const Signup = () => {
             firstName: formData.firstName,
             lastName: formData.lastName,
             email: formData.email,
-            phone: formData.phone,
+            phoneNumber: formData.phone,
             password: formData.password,
-            role: formData.role
+            userType: formData.role
           });
           // No need to navigate here - AuthContext handles it based on role
         } catch (err) {
@@ -347,17 +348,14 @@ const Signup = () => {
                 <FontAwesomeIcon icon={faPhone} className="form-label-icon" />
                 <label htmlFor="phone">Phone Number</label>
               </div>
-              <div className="input-wrapper">
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+1 234 567 8900"
-                  required
-                />
-              </div>
+              <PhoneInput
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="234 567 8900"
+                required
+              />
             </motion.div>
 
             <motion.div 

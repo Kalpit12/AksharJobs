@@ -314,7 +314,11 @@
 .signup-form {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
+}
+
+.signup-form > * {
+  margin: 0;
 }
 
 .form-row {

@@ -239,7 +239,7 @@ class ReferralTracking:
             action_type = 'share'
             should_increment_count = False
             
-            # ✅ TRACK EVERY INDIVIDUAL SHARE (No duplicate prevention)
+            # [OK] TRACK EVERY INDIVIDUAL SHARE (No duplicate prevention)
             share_record = {
                 "referrerName": data.get("referrerName", "Anonymous"),
                 "referrerEmail": referrer_email,
@@ -255,7 +255,7 @@ class ReferralTracking:
                 "source": data.get("source", "referral_page")
             }
             share_records.insert_one(share_record)
-            print(f"✅ Tracked share: {referrer_email} shared on {platform}")
+            print(f"[OK] Tracked share: {referrer_email} shared on {platform}")
             
         else:
             # Someone registered via referral link
@@ -285,7 +285,7 @@ class ReferralTracking:
                 "timestamp": timestamp,
                 "coinsAwarded": coins_to_award
             })
-            print(f"✅ Tracked registration: {referred_email} registered via {referrer_email}")
+            print(f"[OK] Tracked registration: {referred_email} registered via {referrer_email}")
         
         # Find or create referrer summary record (aggregated stats)
         referrer = referrals.find_one({"referrerEmail": referrer_email})

@@ -72,12 +72,12 @@
 
 /* Header */
 .job-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   padding: 2rem;
   border-radius: 12px;
   margin-bottom: 2rem;
-  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 8px 32px rgba(16, 185, 129, 0.3);
 }
 
 .header-content {
@@ -116,6 +116,7 @@
   font-weight: 700;
   margin-bottom: 1rem;
   line-height: 1.2;
+  color: #ffffff !important;
 }
 
 .company-info {
@@ -128,10 +129,11 @@
 .company-name {
   font-weight: 600;
   font-size: 1.2rem;
+  color: #ffffff !important;
 }
 
 .company-website {
-  color: rgba(255, 255, 255, 0.9);
+  color: #ffffff !important;
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -219,7 +221,7 @@
 }
 
 .meta-item svg {
-  color: #667eea;
+  color: #10b981;
   font-size: 1.2rem;
   min-width: 20px;
 }
@@ -265,7 +267,7 @@
 }
 
 .job-section h3 svg {
-  color: #667eea;
+  color: #10b981;
 }
 
 .section-content {
@@ -285,7 +287,7 @@
 }
 
 .skill-tag {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 20px;
@@ -296,7 +298,7 @@
 
 .skill-tag:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 /* Responsibilities List */
@@ -350,7 +352,7 @@
 }
 
 .apply-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -439,6 +441,18 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 2px solid #f0f0f0;
 }
+/* Force visible black text inside stats card to avoid inherited styles */
+.job-stats-card, .job-stats-card * {
+  color: #111827 !important; /* near-black */
+  text-shadow: none !important;
+}
+/* Ensure stats are always visible and readable */
+.job-stats-card .stat-item .stat-value,
+.job-stats-card .stat-item .stat-label,
+.job-stats-card .job-stat-item .stat-value,
+.job-stats-card .job-stat-item .stat-label {
+  color: #000000; /* black text for statistics */
+}
 
 .job-stats-card h4 {
   color: #2c3e50;
@@ -452,6 +466,18 @@
   grid-template-columns: 1fr;
   gap: 1rem;
 }
+
+/* Explicit classes to avoid collisions with other pages */
+.job-stats-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; }
+.job-stat-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 8px; }
+.job-stat-item { color: #000000; }
+.job-stat-item svg { color: #10b981; font-size: 1.1rem; }
+.job-stat-item .stat-value { color: #111827 !important; font-weight: 700; }
+.job-stat-item .stat-label { color: #111827 !important; opacity: 0.8; font-weight: 600; text-transform: uppercase; letter-spacing: .02em; }
+.job-actions-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.job-action-button { background: #ffffff; color: #111827; border: 1px solid #e5e7eb; padding: 0.75rem 1rem; border-radius: 8px; font-weight: 500; cursor: pointer; text-align: left; }
+.job-action-button:hover { background: #e9ecef; }
+.job-action-button.favorited { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
 
 .stat-item {
   display: flex;
@@ -485,6 +511,11 @@
   padding: 1.5rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 2px solid #f0f0f0;
+}
+/* Improve visibility for quick actions */
+.quick-actions-card .action-button {
+  color: #374151; /* slate-700 */
+  background: #f8f9fa;
 }
 
 .quick-actions-card h4 {

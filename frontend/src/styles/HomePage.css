@@ -147,6 +147,20 @@ div.homepage header div.nav-container div.cta-buttons a.btn-primary[href="/signu
     border-color: white !important;
 }
 
+div.homepage header div.nav-container div.cta-buttons a.btn-secondary[href="/login"] {
+    background: #1e40af !important;
+    color: white !important;
+    border: 2px solid #1e40af !important;
+}
+
+div.homepage header div.nav-container div.cta-buttons a.btn-secondary[href="/login"]:hover {
+    background: #1e40af !important;
+    color: white !important;
+    border: 2px solid #1e40af !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.4);
+}
+
 .btn-secondary {
     background: transparent !important;
     color: white !important;
@@ -403,19 +417,7 @@ div.homepage header div.nav-container div.cta-buttons a.btn-primary[href="/signu
 }
 
 
-.job-card {
-    background: white !important;
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    margin-bottom: 1.5rem;
-    transition: all 0.3s;
-    cursor: pointer;
-}
-
-.job-card:hover {
-    box-shadow: 0 8px 20px rgba(102, 187, 106, 0.2);
-}
+/* Job card styles moved to JobSeekerDashboard.css for consistency */
 
 .job-header {
     display: flex;

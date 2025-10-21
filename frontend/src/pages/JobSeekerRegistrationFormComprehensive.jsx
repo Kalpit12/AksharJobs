@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,28 +15,17 @@ import { buildApiUrl } from '../config/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import AutoSaveStatus from '../components/AutoSaveStatus';
 import '../styles/JobSeekerRegistrationFormComprehensive.css';
+import globalSkills from '../data/global_skills.json';
 
-// Import Leaflet
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-
-// Fix Leaflet default marker icon issue
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
+import LocationMap from '../components/LocationMap';
 
 const JobSeekerRegistrationFormComprehensive = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const userData = location.state?.userData || {};
   const existingData = location.state?.existingData || null;
-  const mapRef = useRef(null);
-  const mapInstanceRef = useRef(null);
-  const markerRef = useRef(null);
+  // Map handled by LocationMap component
 
   const [isLoading, setIsLoading] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -53,7 +42,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
         const token = localStorage.getItem('token');
         if (!token) return;
         
-        const response = await fetch(buildApiUrl('/api/jobseeker/profile'), {
+        const response = await fetch(buildApiUrl('/api/profile/profile'), {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -102,6 +91,8 @@ const JobSeekerRegistrationFormComprehensive = () => {
     "Zambia", "Zimbabwe"
   ];
 
+  const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
   // Initialize form data with auto-save (2-minute periodic save)
   const {
     formData,
@@ -121,6 +112,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
       altPhone: existingData?.altPhone || userProfileData?.altPhone || '',
       dateOfBirth: existingData?.dateOfBirth || '',
       gender: existingData?.gender || '',
+      bloodGroup: existingData?.bloodGroup || '',
       community: existingData?.community || '',
       profilePhoto: existingData?.profilePhoto || null,
       
@@ -250,6 +242,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
         // Populate other fields if they exist in userProfileData
         dateOfBirth: prev.dateOfBirth || userProfileData.dateOfBirth || '',
         gender: prev.gender || userProfileData.gender || '',
+        bloodGroup: prev.bloodGroup || userProfileData.bloodGroup || '',
         community: prev.community || userProfileData.community || '',
         nationality: prev.nationality || userProfileData.nationality || '',
         residentCountry: prev.residentCountry || userProfileData.residentCountry || '',
@@ -286,103 +279,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
         professionalLinks: (prev.professionalLinks?.length > 0 ? prev.professionalLinks : userProfileData.professionalLinks) || prev.professionalLinks
       }));
     }
-  }, [userProfileData, user]);
+  }, [userProfileData, user, setFormData]);
 
-  // Initialize map
-  useEffect(() => {
-    const initMap = () => {
-      if (mapRef.current && !mapInstanceRef.current) {
-        // Default center (Nairobi, Kenya)
-        const map = L.map(mapRef.current).setView([-1.286389, 36.817223], 12);
-        
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-          maxZoom: 19
-        }).addTo(map);
-
-        mapInstanceRef.current = map;
-
-        // Add click event to map
-        map.on('click', function(e) {
-          setMarker(e.latlng.lat, e.latlng.lng);
-        });
-
-        // Try to get user's current location
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            map.setView([lat, lng], 13);
-            setMarker(lat, lng);
-          });
-        }
-      }
-    };
-
-    const timer = setTimeout(initMap, 100);
-    return () => {
-      clearTimeout(timer);
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
-    };
-  }, []);
-
-  const setMarker = (lat, lng) => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    if (markerRef.current) {
-      map.removeLayer(markerRef.current);
-    }
-    
-    const marker = L.marker([lat, lng], {
-      draggable: true
-    }).addTo(map);
-
-    markerRef.current = marker;
-
-    // Update form data
-    setFormData(prev => ({
-      ...prev,
-      latitude: lat.toFixed(6),
-      longitude: lng.toFixed(6)
-    }));
-
-    // Make marker draggable
-    marker.on('dragend', function(e) {
-      const position = marker.getLatLng();
-      setMarker(position.lat, position.lng);
-    });
-
-    // Note: Address is entered manually by user, not auto-filled from coordinates
-  };
-
-  const handleMapSearch = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const searchQuery = e.target.value;
-      if (searchQuery && mapInstanceRef.current) {
-        fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`)
-          .then(response => response.json())
-          .then(data => {
-            if (data && data.length > 0) {
-              const lat = parseFloat(data[0].lat);
-              const lng = parseFloat(data[0].lon);
-              mapInstanceRef.current.setView([lat, lng], 13);
-              setMarker(lat, lng);
-            } else {
-              alert('Location not found. Please try a different search term.');
-            }
-          })
-          .catch(error => {
-            console.log('Search error:', error);
-            alert('Error searching location. Please try again.');
-          });
-      }
-    }
-  };
+  // Map behavior (moved to LocationMap)
 
   // Calculate progress
   useEffect(() => {
@@ -716,6 +615,16 @@ const JobSeekerRegistrationFormComprehensive = () => {
         // Clear saved form data on successful submission
         clearSavedData();
         
+        // Sync updated identity into auth context and localStorage so header/dashboard show correct name
+        try {
+          if (formData.firstName) localStorage.setItem('userFirstName', formData.firstName);
+          if (formData.lastName) localStorage.setItem('userLastName', formData.lastName);
+          if (formData.email) localStorage.setItem('userEmail', formData.email);
+          if (typeof updateUser === 'function') {
+            updateUser({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email });
+          }
+        } catch { /* no-op */ }
+
         // Update user context to mark profile as completed
         alert('Profile completed successfully! Redirecting to your dashboard...');
         navigate('/jobseeker-dashboard', { 
@@ -926,6 +835,19 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <option value="prefer-not-to-say">Prefer not to say</option>
               </select>
             </div>
+            <div className="form-group-comprehensive">
+              <label>Blood Group</label>
+              <select 
+                name="bloodGroup"
+                value={formData.bloodGroup}
+                onChange={handleInputChange}
+              >
+                <option value="">Select blood group</option>
+                {BLOOD_GROUPS.map(bg => (
+                  <option key={bg} value={bg}>{bg}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="form-row-comprehensive">
@@ -1056,31 +978,13 @@ const JobSeekerRegistrationFormComprehensive = () => {
             <div className="info-badge-comprehensive">
               <FontAwesomeIcon icon={faMapMarkerAlt} /> Click on the map to mark your exact location or search for a place
             </div>
-            <div style={{ marginTop: '10px' }}>
-              <input 
-                type="text" 
-                id="mapSearch" 
-                placeholder="Search for a location..."
-                onKeyPress={handleMapSearch}
-                style={{ 
-                  width: '100%', 
-                  padding: '10px', 
-                  border: '2px solid #e0e0e0', 
-                  borderRadius: '8px', 
-                  marginBottom: '10px' 
-                }}
-              />
-            </div>
-            <div 
-              ref={mapRef}
-              id="map" 
-              style={{ 
-                width: '100%', 
-                height: '400px', 
-                borderRadius: '8px', 
-                border: '2px solid #e0e0e0' 
-              }}
-            ></div>
+            <LocationMap
+              latitude={formData.latitude}
+              longitude={formData.longitude}
+              address={formData.address}
+              onLocationChange={(lat, lng) => setFormData(prev => ({ ...prev, latitude: lat, longitude: lng }))}
+              onAddressChange={(addr) => setFormData(prev => ({ ...prev, address: addr }))}
+            />
             <div style={{ marginTop: '10px', fontSize: '13px', color: '#666' }}>
               <strong>Selected Coordinates:</strong> 
               <span id="coordinates">
@@ -1619,16 +1523,22 @@ const JobSeekerRegistrationFormComprehensive = () => {
           <div className="form-group-comprehensive">
             <label>Core Skills <span className="required-comprehensive">*</span></label>
             <div className="info-badge-comprehensive">
-              <FontAwesomeIcon icon={faInfoCircle} /> Add skills relevant to your profession and job preferences
+              <FontAwesomeIcon icon={faInfoCircle} /> Add skills relevant to your profession and job preferences. Start typing to see suggestions.
             </div>
             <div className="skills-input-container-comprehensive">
               <input 
                 type="text" 
+                list="globalSkillsList"
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
                 placeholder="Enter a skill (e.g., Python, Project Management)"
               />
+              <datalist id="globalSkillsList">
+                {Array.isArray(globalSkills?.skills) && globalSkills.skills.slice(0, 1000).map((s, idx) => (
+                  <option key={idx} value={s} />
+                ))}
+              </datalist>
               <button type="button" className="add-btn-comprehensive" onClick={addSkill}>
                 <FontAwesomeIcon icon={faPlus} /> Add
               </button>

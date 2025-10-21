@@ -38,25 +38,7 @@
   margin-bottom: 3rem;
 }
 
-/* Job Card */
-.job-card {
-  background: white;
-  border-radius: 20px;
-  padding: 2rem;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-  border: 1px solid #f0f0f0;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Removed purple gradient ::before pseudo-element */
-
-.job-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
+/* Job Card styles moved to JobSeekerDashboard.css for consistency */
 
 /* Job Card Header */
 .job-card-header {

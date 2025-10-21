@@ -6,9 +6,9 @@ import json
 from bson import ObjectId
 from utils.db import get_db
 
-print("🔵 Loading admin_routes.py...")
+print("[INFO] Loading admin_routes.py...")
 admin_routes = Blueprint('admin_routes', __name__)
-print("✅ Admin routes Blueprint created")
+print("[OK] Admin routes Blueprint created")
 
 # Test route to verify blueprint is registered
 @admin_routes.route('/test', methods=['GET'])

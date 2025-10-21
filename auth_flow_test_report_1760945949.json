@@ -1,0 +1,169 @@
+{
+  "total": 27,
+  "passed": 25,
+  "failed": 2,
+  "tests": [
+    {
+      "name": "Job Seeker Signup",
+      "passed": false,
+      "details": "HTTPConnectionPool(host='localhost', port=3002): Read timed out. (read timeout=10)",
+      "timestamp": "2025-10-20T10:38:03.973642"
+    },
+    {
+      "name": "Recruiter Signup",
+      "passed": false,
+      "details": "HTTPConnectionPool(host='localhost', port=3002): Read timed out. (read timeout=10)",
+      "timestamp": "2025-10-20T10:38:16.019525"
+    },
+    {
+      "name": "Intern Signup",
+      "passed": true,
+      "details": "Email: intern_1760945896@test.com",
+      "timestamp": "2025-10-20T10:38:23.693243"
+    },
+    {
+      "name": "Response Contains User Data",
+      "passed": true,
+      "details": "User data returned",
+      "timestamp": "2025-10-20T10:38:23.693364"
+    },
+    {
+      "name": "Validation: Missing firstName",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:25.731440"
+    },
+    {
+      "name": "Validation: Missing userType",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:27.759529"
+    },
+    {
+      "name": "Validation: Missing email",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:29.791289"
+    },
+    {
+      "name": "Validation: Invalid email format",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:31.829320"
+    },
+    {
+      "name": "First Signup",
+      "passed": true,
+      "details": "User created successfully",
+      "timestamp": "2025-10-20T10:38:34.356835"
+    },
+    {
+      "name": "Duplicate Prevention",
+      "passed": true,
+      "details": "Duplicate email rejected",
+      "timestamp": "2025-10-20T10:38:36.496312"
+    },
+    {
+      "name": "Intern Login",
+      "passed": true,
+      "details": "Email: intern_1760945896@test.com",
+      "timestamp": "2025-10-20T10:38:38.638278"
+    },
+    {
+      "name": "Token Returned",
+      "passed": true,
+      "details": "JWT token present",
+      "timestamp": "2025-10-20T10:38:38.638413"
+    },
+    {
+      "name": "User Data Returned",
+      "passed": true,
+      "details": "User data present",
+      "timestamp": "2025-10-20T10:38:38.638518"
+    },
+    {
+      "name": "Wrong Password Rejected",
+      "passed": true,
+      "details": "Login rejected as expected",
+      "timestamp": "2025-10-20T10:38:40.781833"
+    },
+    {
+      "name": "Nonexistent User Rejected",
+      "passed": true,
+      "details": "Login rejected as expected",
+      "timestamp": "2025-10-20T10:38:42.918761"
+    },
+    {
+      "name": "Validation: Empty request",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:44.949766"
+    },
+    {
+      "name": "Validation: Missing password",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:46.979434"
+    },
+    {
+      "name": "Validation: Missing email",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:49.033990"
+    },
+    {
+      "name": "Validation: Invalid email format",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:38:51.080963"
+    },
+    {
+      "name": "Password Test: Too short",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:38:54.208028"
+    },
+    {
+      "name": "Password Test: No uppercase or numbers",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:38:56.708606"
+    },
+    {
+      "name": "Password Test: No numbers or special chars",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:38:59.220607"
+    },
+    {
+      "name": "Password Test: Too short",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:39:01.704374"
+    },
+    {
+      "name": "Invalid Token Rejected",
+      "passed": true,
+      "details": "Access denied as expected",
+      "timestamp": "2025-10-20T10:39:03.731082"
+    },
+    {
+      "name": "Login page accessible",
+      "passed": true,
+      "details": "Page loads successfully",
+      "timestamp": "2025-10-20T10:39:05.791806"
+    },
+    {
+      "name": "Signup page accessible",
+      "passed": true,
+      "details": "Page loads successfully",
+      "timestamp": "2025-10-20T10:39:07.851861"
+    },
+    {
+      "name": "Forgot password page accessible",
+      "passed": true,
+      "details": "Page loads successfully",
+      "timestamp": "2025-10-20T10:39:09.891177"
+    }
+  ]
+}

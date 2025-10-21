@@ -5,72 +5,85 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-/* Sidebar - Orange Theme (Matching Logo Colors) */
-.sidebar {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 260px;
-  height: 100vh;
-  background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%);
-  color: white;
-  overflow-y: auto;
-  transition: all 0.3s;
-  z-index: 1000;
+/* Sidebar - Orange Theme (Matching Logo Colors) - HIGH SPECIFICITY */
+.recruiter-dashboard .sidebar,
+div.recruiter-dashboard .sidebar {
+  position: fixed !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 260px !important;
+  height: 100vh !important;
+  background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
+  background-color: #FF8A65 !important;
+  background-image: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
+  color: white !important;
+  overflow-y: auto !important;
+  transition: all 0.3s !important;
+  z-index: 1000 !important;
 }
 
-.sidebar-header {
-  padding: 25px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+/* HIGH SPECIFICITY for sidebar elements */
+.recruiter-dashboard .sidebar-header,
+div.recruiter-dashboard .sidebar-header {
+  padding: 25px 20px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-.sidebar-header h2 {
-  font-size: 20px;
-  margin-bottom: 5px;
-  color: white;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.recruiter-dashboard .sidebar-header h2,
+div.recruiter-dashboard .sidebar-header h2 {
+  font-size: 20px !important;
+  margin-bottom: 5px !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
 }
 
-.sidebar-header p {
-  font-size: 13px;
-  opacity: 0.8;
-  color: white;
+.recruiter-dashboard .sidebar-header p,
+div.recruiter-dashboard .sidebar-header p {
+  font-size: 13px !important;
+  opacity: 0.8 !important;
+  color: white !important;
 }
 
-.nav-menu {
-  padding: 20px 0;
+.recruiter-dashboard .nav-menu,
+div.recruiter-dashboard .nav-menu {
+  padding: 20px 0 !important;
 }
 
-.nav-item {
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-  border-left: 3px solid transparent;
-  color: white;
+.recruiter-dashboard .nav-item,
+div.recruiter-dashboard .nav-item {
+  padding: 12px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  transition: all 0.3s !important;
+  border-left: 3px solid transparent !important;
+  color: white !important;
 }
 
-.nav-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+.recruiter-dashboard .nav-item:hover,
+div.recruiter-dashboard .nav-item:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
-.nav-item.active {
-  background: rgba(255, 255, 255, 0.15);
-  border-left-color: white;
+.recruiter-dashboard .nav-item.active,
+div.recruiter-dashboard .nav-item.active {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-left-color: white !important;
 }
 
-.nav-item i {
-  font-size: 18px;
-  width: 20px;
-  color: white;
+.recruiter-dashboard .nav-item i,
+div.recruiter-dashboard .nav-item i {
+  font-size: 18px !important;
+  width: 20px !important;
+  color: white !important;
 }
 
-.nav-item span {
-  color: white;
+.recruiter-dashboard .nav-item span,
+div.recruiter-dashboard .nav-item span {
+  color: white !important;
 }
 
 .badge {
@@ -234,16 +247,20 @@
   cursor: pointer;
 }
 
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
+/* HIGH SPECIFICITY for user avatar */
+.recruiter-dashboard .user-avatar,
+div.recruiter-dashboard .user-avatar {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%) !important;
+  background-color: #FF8A65 !important;
+  background-image: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: white !important;
+  font-weight: 600 !important;
 }
 
 .content-area {
@@ -470,21 +487,7 @@
   gap: 0.5rem;
 }
 
-/* Job Cards */
-.job-card {
-  border: 1px solid #fff3e0;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  transition: all 0.3s ease;
-  background: white;
-}
-
-.job-card:hover {
-  border-color: #ff9800;
-  box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
-  transform: translateY(-1px);
-}
+/* Job Cards styles moved to JobSeekerDashboard.css for consistency */
 
 .job-header {
   display: flex;
@@ -811,6 +814,168 @@
   100% {
     opacity: 1;
   }
+}
+
+/* Button Styles - Orange Theme */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 112, 67, 0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, #FF7043 0%, #FF5722 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 112, 67, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 112, 67, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: #FF7043;
+  border: 2px solid #FF7043;
+  padding: 10px 22px;
+}
+
+.btn-secondary:hover {
+  background: #FF7043;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 112, 67, 0.3);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 112, 67, 0.3);
+}
+
+/* Quick Actions - Brand Orange-Blue Theme (from logo) */
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.quick-actions .btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 12px 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quick-actions .btn-primary {
+  background: linear-gradient(135deg, #ff6b35, #f7931e) !important;
+  background-color: #ff6b35 !important;
+  background-image: linear-gradient(135deg, #ff6b35, #f7931e) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3) !important;
+}
+
+.quick-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #f7931e, #e67e22) !important;
+  background-color: #f7931e !important;
+  background-image: linear-gradient(135deg, #f7931e, #e67e22) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.4) !important;
+}
+
+.quick-actions .btn-secondary {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  color: #2563eb !important;
+  border: 2px solid #2563eb !important;
+}
+
+.quick-actions .btn-secondary:hover {
+  background: #2563eb !important;
+  background-color: #2563eb !important;
+  background-image: none !important;
+  color: white !important;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3) !important;
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.btn-sm.btn-primary {
+  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+  color: white;
+  border: none;
+}
+
+.btn-sm.btn-primary:hover {
+  background: linear-gradient(135deg, #FF7043 0%, #FF5722 100%);
+}
+
+.btn-sm.btn-secondary {
+  background: transparent;
+  color: #FF7043;
+  border: 1px solid #FF7043;
+  padding: 6px 14px;
+}
+
+.btn-sm.btn-secondary:hover {
+  background: #FF7043;
+  color: white;
+}
+
+/* NUCLEAR OPTION - Maximum specificity override for RecruiterDashboard */
+html body div.recruiter-dashboard .sidebar,
+html body div.recruiter-dashboard .sidebar * {
+  background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
+  background-color: #FF8A65 !important;
+  background-image: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
+}
+
+html body div.recruiter-dashboard .sidebar {
+  background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
+  background-color: #FF8A65 !important;
+  background-image: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%) !important;
+  color: white !important;
+}
+
+html body div.recruiter-dashboard .sidebar-header,
+html body div.recruiter-dashboard .nav-item,
+html body div.recruiter-dashboard .nav-item span,
+html body div.recruiter-dashboard .nav-item i {
+  color: white !important;
+}
+
+html body div.recruiter-dashboard .user-avatar {
+  background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%) !important;
+  background-color: #FF8A65 !important;
+  background-image: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%) !important;
 }
 
 /* Responsive Design */

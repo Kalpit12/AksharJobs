@@ -1,0 +1,1373 @@
+/* JobSeeker Dashboard - Clean Modern Theme */
+/* SCOPED STYLES - All styles contained within .jobseeker-dashboard-container */
+/* IMPORTANT: This file should be the ONLY source of styles for JobSeekerDashboard */
+/* FIXED: Added !important and higher specificity to prevent RecruiterDashboard.css overrides */
+
+/* ===== CRITICAL RESET - PREVENT ALL CONFLICTS ===== */
+/* Reset any inherited styles that might interfere */
+.jobseeker-dashboard-container,
+.jobseeker-dashboard-container *,
+div.jobseeker-dashboard-container,
+div.jobseeker-dashboard-container * {
+    box-sizing: border-box !important;
+}
+
+/* Force sidebar to be blue and override ALL other styles */
+.jobseeker-dashboard-container .sidebar,
+div.jobseeker-dashboard-container .sidebar,
+.jobseeker-dashboard-container .sidebar::before,
+.jobseeker-dashboard-container .sidebar::after,
+div.jobseeker-dashboard-container .sidebar::before,
+div.jobseeker-dashboard-container .sidebar::after {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    background-image: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 320px !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+}
+
+/* CRITICAL: Override any green sidebar styles from other CSS files */
+.jobseeker-dashboard-container .sidebar[style*="green"],
+.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+div.jobseeker-dashboard-container .sidebar[style*="green"],
+div.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+div.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+/* Override any global sidebar styles */
+.sidebar,
+div.sidebar,
+[class*="sidebar"],
+.jobseeker-dashboard-container .sidebar,
+div.jobseeker-dashboard-container .sidebar {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    background-image: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+
+.jobseeker-dashboard-container {
+    background: #ffffff !important;
+    min-height: 100vh;
+    color: #333;
+    display: flex;
+    width: 100%;
+    max-width: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    isolation: isolate; /* Create new stacking context to prevent style bleed */
+}
+
+.jobseeker-dashboard-container * {
+    box-sizing: border-box;
+}
+
+/* Sidebar - Modern Blue Theme - HIGHEST SPECIFICITY */
+.jobseeker-dashboard-container .sidebar,
+div.jobseeker-dashboard-container .sidebar {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 320px !important;
+    height: 100vh !important;
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    background-image: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    overflow-y: auto !important;
+    transition: all 0.3s !important;
+    z-index: 1000 !important;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.jobseeker-dashboard-container .sidebar-header,
+div.jobseeker-dashboard-container .sidebar-header {
+    padding: 25px 20px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+}
+
+.jobseeker-dashboard-container .sidebar-header h2,
+div.jobseeker-dashboard-container .sidebar-header h2 {
+    font-size: 20px !important;
+    margin-bottom: 5px !important;
+    font-weight: 600 !important;
+    color: white !important;
+    line-height: 1.2 !important;
+}
+
+.jobseeker-dashboard-container .sidebar-header p,
+div.jobseeker-dashboard-container .sidebar-header p {
+    font-size: 13px !important;
+    opacity: 0.9 !important;
+    color: white !important;
+}
+
+.jobseeker-dashboard-container .nav-menu,
+div.jobseeker-dashboard-container .nav-menu {
+    padding: 20px 0 !important;
+}
+
+.jobseeker-dashboard-container .nav-item,
+div.jobseeker-dashboard-container .nav-item {
+    padding: 12px 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+    border-left: 3px solid transparent !important;
+    font-weight: 500 !important;
+    color: white !important;
+    background: none !important;
+}
+
+.jobseeker-dashboard-container .nav-item:hover,
+div.jobseeker-dashboard-container .nav-item:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-left-color: rgba(255, 255, 255, 0.7) !important;
+    color: white !important;
+    transform: translateX(2px) !important;
+}
+
+.jobseeker-dashboard-container .nav-item.active,
+div.jobseeker-dashboard-container .nav-item.active {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-left-color: white !important;
+    font-weight: 600 !important;
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1) !important;
+}
+
+.jobseeker-dashboard-container .nav-item i,
+div.jobseeker-dashboard-container .nav-item i {
+    font-size: 18px !important;
+    width: 20px !important;
+    color: white !important;
+}
+
+.jobseeker-dashboard-container .badge {
+    background: #ff4757;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    margin-left: auto;
+    font-weight: 600;
+}
+
+.jobseeker-dashboard-container .badge.new {
+    background: #ff6b35;
+}
+
+.nav-separator {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.2);
+    margin: 15px 20px;
+    border-radius: 1px;
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 320px;
+    min-height: 100vh;
+    transition: all 0.3s;
+    background: #ffffff;
+    width: calc(100% - 320px);
+    max-width: none;
+}
+
+.jobseeker-dashboard-container .top-bar {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 6px 12px !important;
+    min-height: 52px !important;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+}
+
+.search-bar {
+    flex: 1;
+    max-width: 800px;
+    position: relative;
+}
+
+.jobseeker-dashboard-container .search-bar input {
+    width: 100%;
+    padding: 6px 10px 6px 30px !important;
+    height: 34px !important;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 13px !important;
+    transition: all 0.3s;
+}
+
+.search-bar input:focus {
+    outline: none;
+    border-color: #4caf50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.search-bar i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #999;
+}
+
+.jobseeker-dashboard-container .top-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px !important;
+}
+
+.jobseeker-dashboard-container .icon-btn {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50%;
+    background: #f5f7fa;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.icon-btn:hover {
+    background: #e8ecf1;
+    transform: translateY(-2px);
+}
+
+.notification-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    background: #ff4757;
+    border-radius: 50%;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.3s;
+}
+
+.user-profile:hover {
+    background: #f5f7fa;
+}
+
+.jobseeker-dashboard-container .user-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 12px !important;
+}
+
+.jobseeker-dashboard-container .user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.jobseeker-dashboard-container .user-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.jobseeker-dashboard-container .user-role {
+    font-size: 12px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Content Area */
+.jobseeker-dashboard-container .content-area {
+    padding: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.jobseeker-dashboard-container .welcome-section {
+    margin-bottom: 30px;
+}
+
+.jobseeker-dashboard-container .welcome-section h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+/* Profile Completion */
+.profile-completion {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(76, 175, 80, 0.2);
+}
+
+.completion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.completion-header h3 {
+    font-size: 20px;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.completion-header p {
+    font-size: 14px;
+    opacity: 0.9;
+}
+
+.completion-percentage {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.completion-bar {
+    background: rgba(255, 255, 255, 0.2);
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.completion-fill {
+    background: white;
+    height: 100%;
+    transition: width 0.3s;
+    border-radius: 4px;
+}
+
+.completion-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* Stats Grid */
+.jobseeker-dashboard-container .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+    align-items: stretch;
+    background: transparent !important;
+}
+
+.jobseeker-dashboard-container .stats-grid .stat-card {
+    background: white !important;
+}
+
+.jobseeker-dashboard-container .stats-grid .stat-card .stat-label {
+    color: #000 !important;
+    font-weight: 700 !important;
+}
+
+/* Force stat labels to be dark and visible */
+.jobseeker-dashboard-container .stat-card .stat-content .stat-label {
+    color: #000 !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+}
+
+/* Additional specificity for stat labels */
+.jobseeker-dashboard-container .stat-card .stat-label {
+    color: #000 !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+}
+
+/* Override all other CSS files - maximum specificity */
+body .jobseeker-dashboard-container .stats-grid .stat-card .stat-content .stat-label {
+    color: #000 !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    font-size: 14px !important;
+}
+
+/* Nuclear option - override everything */
+html body div.jobseeker-dashboard-container div.stats-grid div.stat-card div.stat-content div.stat-label {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.jobseeker-dashboard-container .stat-card {
+    background: white !important;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border: 1px solid #e0e0e0;
+    min-height: 160px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.jobseeker-dashboard-container .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(76, 175, 80, 0.15);
+}
+
+.stat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+}
+
+.stat-icon.green {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: 700;
+    margin: 0;
+    margin-bottom: 8px;
+    color: #4caf50;
+    line-height: 1.1;
+}
+
+.stat-label {
+    color: #000 !important;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.stat-change {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #666;
+}
+
+.stat-change.positive {
+    color: #4caf50;
+}
+
+.stat-change.neutral {
+    color: #666;
+}
+
+/* Alert */
+.alert {
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert.success {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+}
+
+.alert.success i {
+    color: #4caf50;
+}
+
+/* Content Grid */
+.content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* Cards */
+.jobseeker-dashboard-container .card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e0e0e0;
+}
+
+.jobseeker-dashboard-container .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    min-height: 40px;
+}
+
+.jobseeker-dashboard-container .card-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4caf50;
+    line-height: 1.3;
+    margin: 0;
+}
+
+.jobseeker-dashboard-container .card-content {
+    min-height: 100px;
+}
+
+/* Profile form styling */
+.profile-form-grid label {
+    display: block;
+    font-size: 13px;
+    color: #2e7d32;
+    margin-bottom: 6px;
+}
+
+.profile-form-grid .filter-input, .profile-form-grid textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.profile-section-title {
+    margin-top: 24px;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #2e7d32;
+}
+
+.profile-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.profile-subgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 20px;
+}
+
+.interview-item {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4caf50;
+}
+
+.interview-time {
+    font-weight: 600;
+    color: #4caf50;
+    margin-bottom: 5px;
+}
+
+.interview-company {
+    color: #666;
+    font-size: 14px;
+}
+
+/* Buttons */
+.jobseeker-dashboard-container .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.jobseeker-dashboard-container .btn-primary {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+}
+
+.jobseeker-dashboard-container .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+.jobseeker-dashboard-container .btn-primary:focus {
+    outline: 2px solid #4caf50;
+    outline-offset: 2px;
+}
+
+.jobseeker-dashboard-container .btn-primary:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.2);
+}
+
+.jobseeker-dashboard-container .btn-secondary {
+    background: #f5f7fa;
+    color: #4caf50;
+    border: 1px solid #e0e0e0;
+}
+
+.jobseeker-dashboard-container .btn-secondary:hover {
+    background: #e8f5e8;
+    transform: translateY(-1px);
+}
+
+.jobseeker-dashboard-container .btn-secondary:focus {
+    outline: 2px solid #4caf50;
+    outline-offset: 2px;
+}
+
+.jobseeker-dashboard-container .btn-secondary:active {
+    transform: translateY(0);
+    background: #e0e0e0;
+}
+
+.btn-logout {
+    background: #f44336;
+    color: white;
+    border: none;
+}
+
+.btn-logout:hover {
+    background: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(244, 67, 54, 0.3);
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+}
+
+.btn-upload {
+    background: #1976d2;
+    color: white;
+    border: none;
+}
+
+.btn-upload:hover {
+    background: #1565c0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(25, 118, 210, 0.3);
+}
+
+.btn-complete {
+    background: #4caf50;
+    color: white;
+    border: none;
+}
+
+.btn-complete:hover {
+    background: #388e3c;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+}
+
+/* Loading */
+.jobseeker-dashboard-container .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    gap: 20px;
+}
+
+.jobseeker-dashboard-container .loading-container p {
+    color: #4caf50;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        transform: translateX(-100%);
+        transition: transform 0.3s;
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .content-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .jobseeker-dashboard-container .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .jobseeker-dashboard-container .top-bar {
+        padding: 15px 20px;
+    }
+    
+    .jobseeker-dashboard-container .content-area {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .completion-actions {
+        flex-direction: column;
+    }
+    
+    .completion-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .top-bar-actions {
+        gap: 10px;
+    }
+    
+    .user-profile {
+        display: none;
+    }
+}
+
+/* Job Card Styles */
+.jobseeker-dashboard-container .job-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+    border: 2px solid #f0f0f0;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.jobseeker-dashboard-container .job-card:hover {
+    border-color: #4caf50;
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+}
+
+/* Green Theme Job Cards */
+.jobseeker-dashboard-container .job-card.green-theme {
+    border: 2px solid #4caf50;
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+}
+
+.jobseeker-dashboard-container .job-card.green-theme:hover {
+    border-color: #4caf50;
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.15);
+    transform: translateY(-2px);
+}
+
+.jobseeker-dashboard-container .job-card.green-theme .company-logo {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+}
+
+.jobseeker-dashboard-container .job-card.green-theme .btn-primary {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+    border: none;
+}
+
+.jobseeker-dashboard-container .job-card.green-theme .btn-primary:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.jobseeker-dashboard-container .job-card.green-theme .tag {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.jobseeker-dashboard-container .job-card.green-theme .tag.featured {
+    background: #fff3e0;
+    color: #f57c00;
+    border: 1px solid #ffcc02;
+}
+
+.jobseeker-dashboard-container .job-card.green-theme .tag.ai-recommended {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #4caf50;
+    font-weight: 600;
+}
+
+/* Override any purple or blue gradients */
+.jobseeker-dashboard-container .job-card {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border: 2px solid #4caf50 !important;
+}
+
+.jobseeker-dashboard-container .job-card:hover {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border-color: #2e7d32 !important;
+}
+
+/* More specific overrides for job cards in dashboard */
+.dashboard-content .job-card,
+.jobs-section .job-card,
+.browse-jobs .job-card {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border: 2px solid #4caf50 !important;
+}
+
+.dashboard-content .job-card:hover,
+.jobs-section .job-card:hover,
+.browse-jobs .job-card:hover {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border-color: #2e7d32 !important;
+}
+
+/* Ensure Apply Now button is green */
+.jobseeker-dashboard-container .job-card .btn-primary {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.jobseeker-dashboard-container .job-card .btn-primary:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+/* Force green theme for all job cards - highest specificity */
+.jobseeker-dashboard-container .job-card,
+.dashboard-content .job-card,
+.jobs-section .job-card,
+.browse-jobs .job-card,
+.jobseeker-dashboard-container .job-card.green-theme {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border: 2px solid #4caf50 !important;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1) !important;
+}
+
+.jobseeker-dashboard-container .job-card:hover,
+.dashboard-content .job-card:hover,
+.jobs-section .job-card:hover,
+.browse-jobs .job-card:hover,
+.jobseeker-dashboard-container .job-card.green-theme:hover {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border-color: #2e7d32 !important;
+    box-shadow: 0 4px 16px rgba(76, 175, 80, 0.2) !important;
+    transform: translateY(-2px) !important;
+}
+
+/* Force green Apply Now buttons */
+.jobseeker-dashboard-container .job-card .btn-primary,
+.dashboard-content .job-card .btn-primary,
+.jobs-section .job-card .btn-primary,
+.browse-jobs .job-card .btn-primary,
+.jobseeker-dashboard-container .job-card .btn-primary {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+.jobseeker-dashboard-container .job-card .btn-primary:hover,
+.dashboard-content .job-card .btn-primary:hover,
+.jobs-section .job-card .btn-primary:hover,
+.browse-jobs .job-card .btn-primary:hover,
+.jobseeker-dashboard-container .job-card .btn-primary:hover {
+    background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+}
+
+/* Force green View Details buttons */
+.jobseeker-dashboard-container .job-card .btn-secondary,
+.dashboard-content .job-card .btn-secondary,
+.jobs-section .job-card .btn-secondary,
+.browse-jobs .job-card .btn-secondary,
+.jobseeker-dashboard-container .job-card .btn-secondary {
+    background: transparent !important;
+    color: #4caf50 !important;
+    border: 2px solid #4caf50 !important;
+}
+
+.jobseeker-dashboard-container .job-card .btn-secondary:hover,
+.dashboard-content .job-card .btn-secondary:hover,
+.jobs-section .job-card .btn-secondary:hover,
+.browse-jobs .job-card .btn-secondary:hover,
+.jobseeker-dashboard-container .job-card .btn-secondary:hover {
+    background: #4caf50 !important;
+    color: white !important;
+    border-color: #4caf50 !important;
+}
+
+/* Force green bookmark icons */
+.jobseeker-dashboard-container .job-card .bookmark-icon,
+.dashboard-content .job-card .bookmark-icon,
+.jobs-section .job-card .bookmark-icon,
+.browse-jobs .job-card .bookmark-icon,
+.jobseeker-dashboard-container .job-card .bookmark-icon,
+.jobseeker-dashboard-container .job-card button[class*="bookmark"],
+.jobseeker-dashboard-container .job-card button svg[class*="bookmark"] {
+    color: #4caf50 !important;
+    background: #e8f5e9 !important;
+    border: 1px solid #4caf50 !important;
+}
+
+.jobseeker-dashboard-container .job-card .bookmark-icon:hover,
+.dashboard-content .job-card .bookmark-icon:hover,
+.jobs-section .job-card .bookmark-icon:hover,
+.browse-jobs .job-card .bookmark-icon:hover,
+.jobseeker-dashboard-container .job-card .bookmark-icon:hover,
+.jobseeker-dashboard-container .job-card button[class*="bookmark"]:hover,
+.jobseeker-dashboard-container .job-card button svg[class*="bookmark"]:hover {
+    color: white !important;
+    background: #4caf50 !important;
+}
+
+/* Override any blue/purple colors in job cards */
+.jobseeker-dashboard-container .job-card * {
+    color: inherit !important;
+}
+
+.jobseeker-dashboard-container .job-card button:not(.btn-primary):not(.btn-secondary) {
+    background: #e8f5e9 !important;
+    color: #4caf50 !important;
+    border: 1px solid #4caf50 !important;
+}
+
+.jobseeker-dashboard-container .job-card button:not(.btn-primary):not(.btn-secondary):hover {
+    background: #4caf50 !important;
+    color: white !important;
+}
+
+/* Override FontAwesome icon colors in job cards */
+.jobseeker-dashboard-container .job-card svg,
+.jobseeker-dashboard-container .job-card .fa,
+.jobseeker-dashboard-container .job-card [class*="fa-"] {
+    color: #4caf50 !important;
+}
+
+.jobseeker-dashboard-container .job-card .btn-primary svg,
+.jobseeker-dashboard-container .job-card .btn-primary .fa,
+.jobseeker-dashboard-container .job-card .btn-primary [class*="fa-"] {
+    color: white !important;
+}
+
+.jobseeker-dashboard-container .job-card .btn-secondary svg,
+.jobseeker-dashboard-container .job-card .btn-secondary .fa,
+.jobseeker-dashboard-container .job-card .btn-secondary [class*="fa-"] {
+    color: #4caf50 !important;
+}
+
+.jobseeker-dashboard-container .job-card .btn-secondary:hover svg,
+.jobseeker-dashboard-container .job-card .btn-secondary:hover .fa,
+.jobseeker-dashboard-container .job-card .btn-secondary:hover [class*="fa-"] {
+    color: white !important;
+}
+
+/* Override any remaining blue/purple colors */
+.jobseeker-dashboard-container .job-card *[style*="blue"],
+.jobseeker-dashboard-container .job-card *[style*="purple"],
+.jobseeker-dashboard-container .job-card *[style*="#3b82f6"],
+.jobseeker-dashboard-container .job-card *[style*="#8B5CF6"],
+.jobseeker-dashboard-container .job-card *[style*="#6366f1"] {
+    color: #4caf50 !important;
+    background: #e8f5e9 !important;
+    border-color: #4caf50 !important;
+}
+
+/* Match Score */
+.match-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.match-percentage {
+    font-size: 18px;
+    font-weight: 700;
+    color: #4caf50;
+    line-height: 1;
+}
+
+.match-label {
+    font-size: 10px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Company Logo */
+.company-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* Job Info */
+.job-info {
+    flex: 1;
+    margin-left: 15px;
+}
+
+.job-info h3 {
+    margin-bottom: 5px;
+    font-size: 18px;
+    color: #333;
+}
+
+.jobseeker-dashboard-container .job-company {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.job-meta {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: #666;
+}
+
+.job-meta span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Job Tags */
+.jobseeker-dashboard-container .job-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+
+.jobseeker-dashboard-container .tag {
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.jobseeker-dashboard-container .tag.featured {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+/* Filters */
+.filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 14px;
+    background: white;
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    text-align: left;
+    padding: 12px;
+    background: #f9fafb;
+    font-weight: 600;
+    font-size: 13px;
+    color: #666;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+tr:hover {
+    background: #f9fafb;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.status-applied {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-reviewing {
+    background: #fff3e0;
+    color: #f57c00;
+}
+
+.status-interview {
+    background: #f3e5f5;
+    color: #7b1fa2;
+}
+
+.status-offered {
+    background: #e8f5e9;
+    color: #388e3c;
+}
+
+.status-rejected {
+    background: #ffebee;
+    color: #d32f2f;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-state i {
+    font-size: 64px;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.empty-state h3 {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.empty-state p {
+    color: #999;
+    margin-bottom: 20px;
+}
+
+/* FINAL OVERRIDE - MUST BE LAST */
+.stat-label {
+    color: #000000 !important;
+    font-weight: 700 !important;
+    opacity: 1 !important;
+    text-shadow: none !important;
+    font-size: 14px !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+/* PURPLE GRADIENT KILL-SWITCH FOR JOB CARDS */
+.jobseeker-dashboard-container .job-card,
+.jobseeker-dashboard-container .job-card *,
+.jobseeker-dashboard-container .job-card *::before,
+.jobseeker-dashboard-container .job-card *::after {
+    background-image: none !important;
+}
+
+.jobseeker-dashboard-container .job-card .job-header,
+.jobseeker-dashboard-container .job-card .job-card-header,
+.jobseeker-dashboard-container .job-card .job-info,
+.jobseeker-dashboard-container .job-card .job-content,
+.jobseeker-dashboard-container .job-card .job-body,
+.jobseeker-dashboard-container .job-card .content,
+.jobseeker-dashboard-container .job-card .header {
+    background: transparent !important;
+}
+
+/* Ensure the main inner panel uses the green surface */
+.jobseeker-dashboard-container .job-card .inner,
+.jobseeker-dashboard-container .job-card .panel,
+.jobseeker-dashboard-container .job-card .container {
+    background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%) !important;
+    border-color: #4caf50 !important;
+}
+
+/* ===== FINAL OVERRIDE - HIGHEST PRIORITY ===== */
+/* This rule MUST be at the end to override everything else */
+.jobseeker-dashboard-container .sidebar,
+div.jobseeker-dashboard-container .sidebar,
+.jobseeker-dashboard-container .sidebar *,
+div.jobseeker-dashboard-container .sidebar *,
+/* ULTRA HIGH SPECIFICITY - OVERRIDE EVERYTHING */
+.jobseeker-dashboard-container .sidebar[class*="sidebar"],
+div.jobseeker-dashboard-container .sidebar[class*="sidebar"],
+.jobseeker-dashboard-container .sidebar[style*="background"],
+div.jobseeker-dashboard-container .sidebar[style*="background"],
+.jobseeker-dashboard-container .sidebar[style*="green"],
+div.jobseeker-dashboard-container .sidebar[style*="green"],
+.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+div.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+div.jobseeker-dashboard-container .sidebar[style*="#4caf50"] {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    background-image: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+}
+
+/* Override any green colors in sidebar */
+.jobseeker-dashboard-container .sidebar *[style*="green"],
+.jobseeker-dashboard-container .sidebar *[style*="#10b981"],
+.jobseeker-dashboard-container .sidebar *[style*="#4caf50"],
+div.jobseeker-dashboard-container .sidebar *[style*="green"],
+div.jobseeker-dashboard-container .sidebar *[style*="#10b981"],
+div.jobseeker-dashboard-container .sidebar *[style*="#4caf50"] {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    color: white !important;
+}
+
+/* ===== NUCLEAR OPTION - FORCE BLUE SIDEBAR ===== */
+/* This will override ANY green sidebar, no matter what */
+.jobseeker-dashboard-container .sidebar,
+div.jobseeker-dashboard-container .sidebar,
+.jobseeker-dashboard-container .sidebar[class*="sidebar"],
+div.jobseeker-dashboard-container .sidebar[class*="sidebar"],
+.jobseeker-dashboard-container .sidebar[style*="background"],
+div.jobseeker-dashboard-container .sidebar[style*="background"],
+.jobseeker-dashboard-container .sidebar[style*="green"],
+div.jobseeker-dashboard-container .sidebar[style*="green"],
+.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+div.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+div.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+.jobseeker-dashboard-container .sidebar[style*="linear-gradient"],
+div.jobseeker-dashboard-container .sidebar[style*="linear-gradient"],
+.jobseeker-dashboard-container .sidebar[style*="gradient"],
+div.jobseeker-dashboard-container .sidebar[style*="gradient"] {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    background-image: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    width: 320px !important;
+    height: 100vh !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+}
+
+/* ===== EMERGENCY OVERRIDE - FORCE BLUE SIDEBAR ===== */
+/* This is the most aggressive override possible */
+.jobseeker-dashboard-container .sidebar,
+div.jobseeker-dashboard-container .sidebar,
+.jobseeker-dashboard-container .sidebar[class*="sidebar"],
+div.jobseeker-dashboard-container .sidebar[class*="sidebar"],
+.jobseeker-dashboard-container .sidebar[style*="background"],
+div.jobseeker-dashboard-container .sidebar[style*="background"],
+.jobseeker-dashboard-container .sidebar[style*="green"],
+div.jobseeker-dashboard-container .sidebar[style*="green"],
+.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+div.jobseeker-dashboard-container .sidebar[style*="#10b981"],
+.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+div.jobseeker-dashboard-container .sidebar[style*="#4caf50"],
+.jobseeker-dashboard-container .sidebar[style*="linear-gradient"],
+div.jobseeker-dashboard-container .sidebar[style*="linear-gradient"],
+.jobseeker-dashboard-container .sidebar[style*="gradient"],
+div.jobseeker-dashboard-container .sidebar[style*="gradient"],
+.jobseeker-dashboard-container .sidebar[style*="background-color"],
+div.jobseeker-dashboard-container .sidebar[style*="background-color"],
+.jobseeker-dashboard-container .sidebar[style*="background-image"],
+div.jobseeker-dashboard-container .sidebar[style*="background-image"] {
+    background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    background-color: #3b82f6 !important;
+    background-image: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: white !important;
+    width: 320px !important;
+    height: 100vh !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+}

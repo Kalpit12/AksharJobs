@@ -36,7 +36,21 @@ const ModernJobDetails = () => {
             setLoading(true);
             const response = await axios.get(buildApiUrl(`/api/jobs/get_job/${jobId}`));
             if (response.data) {
-                setJob(response.data);
+                // Transform job data from snake_case to camelCase for frontend compatibility
+                const transformedJob = {
+                    ...response.data,
+                    job_title: response.data.job_title || response.data.jobTitle,
+                    company_name: response.data.company_name || response.data.companyName,
+                    salary_range: response.data.salary_range || response.data.salary || response.data.salaryRange,
+                    remote_option: response.data.remote_option || response.data.remoteOption,
+                    job_type: response.data.job_type || response.data.jobType,
+                    experience_required: response.data.experience_required || response.data.experienceRequired,
+                    required_skills: response.data.required_skills || response.data.requiredSkills,
+                    education_required: response.data.education_required || response.data.educationRequired,
+                    application_deadline: response.data.application_deadline || response.data.applicationDeadline,
+                    company_website: response.data.company_website || response.data.companyWebsite
+                };
+                setJob(transformedJob);
             }
         } catch (error) {
             console.error('Error fetching job details:', error);
@@ -165,13 +179,18 @@ const ModernJobDetails = () => {
                     <FontAwesomeIcon icon={faExclamationTriangle} className="error-icon" />
                     <h2>Job Not Found</h2>
                     <p>{error || "The job you're looking for doesn't exist or has been removed."}</p>
-                    <button onClick={() => navigate('/jobs')} className="back-button">
+                    <button onClick={() => navigate('/jobseeker-dashboard', { state: { section: 'jobs' } })} className="back-button">
                         <FontAwesomeIcon icon={faArrowLeft} /> Back to Jobs
                     </button>
                 </div>
             </div>
         );
     }
+
+    const sanitizeJobTitle = (title) => {
+        if (!title) return title;
+        return String(title).replace(/^Updated\s*[-:]?\s*/i, "");
+    };
 
     const skills = formatSkills(job.required_skills || job.skills);
     const responsibilities = formatResponsibilities(job.responsibilities);
@@ -186,10 +205,10 @@ const ModernJobDetails = () => {
                     </button>
                     
                     <div className="job-title-section">
-                        <h1>{job.job_title}</h1>
+                        <h1>{sanitizeJobTitle(job.job_title || job.jobTitle)}</h1>
                         <div className="company-info">
                             <FontAwesomeIcon icon={faBuilding} />
-                            <span className="company-name">{job.company_name}</span>
+                            <span className="company-name">{job.company_name || job.companyName}</span>
                             {job.company_website && (
                                 <a 
                                     href={job.company_website} 
@@ -240,7 +259,7 @@ const ModernJobDetails = () => {
                             <FontAwesomeIcon icon={faClock} />
                             <div className="meta-content">
                                 <span className="meta-label">Job Type</span>
-                                <span className="meta-value">{job.job_type}</span>
+                                <span className="meta-value">{job.job_type || job.jobType}</span>
                             </div>
                         </div>
                         
@@ -248,7 +267,7 @@ const ModernJobDetails = () => {
                             <FontAwesomeIcon icon={faHome} />
                             <div className="meta-content">
                                 <span className="meta-label">Remote Option</span>
-                                <span className="meta-value">{job.remote_option}</span>
+                                <span className="meta-value">{job.remote_option || job.remoteOption}</span>
                             </div>
                         </div>
                         
@@ -256,7 +275,7 @@ const ModernJobDetails = () => {
                             <FontAwesomeIcon icon={faDollarSign} />
                             <div className="meta-content">
                                 <span className="meta-label">Salary</span>
-                                <span className="meta-value">{job.salary_range}</span>
+                                <span className="meta-value">{job.salary_range || job.salaryRange}</span>
                             </div>
                         </div>
                         
@@ -264,7 +283,7 @@ const ModernJobDetails = () => {
                             <FontAwesomeIcon icon={faUserTie} />
                             <div className="meta-content">
                                 <span className="meta-label">Experience</span>
-                                <span className="meta-value">{job.experience_required}</span>
+                                <span className="meta-value">{job.experience_required || job.experienceRequired}</span>
                             </div>
                         </div>
                         
@@ -418,7 +437,7 @@ const ModernJobDetails = () => {
                         ) : (
                             <div className="apply-section">
                                 <h4>Ready to Apply?</h4>
-                                <p>Join {job.company_name} and make an impact in your career.</p>
+                                <p>Join {job.company_name || job.companyName} and make an impact in your career.</p>
                                 <button 
                                     onClick={handleApply}
                                     disabled={applying}
@@ -446,18 +465,18 @@ const ModernJobDetails = () => {
                     {/* Job Stats */}
                     <div className="job-stats-card">
                         <h4>Job Statistics</h4>
-                        <div className="stats-grid">
-                            <div className="stat-item">
+                        <div className="job-stats-grid">
+                            <div className="job-stat-item">
                                 <FontAwesomeIcon icon={faEye} />
                                 <span className="stat-value">{job.views || 0}</span>
                                 <span className="stat-label">Views</span>
                             </div>
-                            <div className="stat-item">
+                            <div className="job-stat-item">
                                 <FontAwesomeIcon icon={faUser} />
                                 <span className="stat-value">{job.applicants?.length || 0}</span>
                                 <span className="stat-label">Applicants</span>
                             </div>
-                            <div className="stat-item">
+                            <div className="job-stat-item">
                                 <FontAwesomeIcon icon={faCalendarAlt} />
                                 <span className="stat-label">Posted</span>
                                 <span className="stat-value">{formatDate(job.created_at)}</span>
@@ -468,21 +487,21 @@ const ModernJobDetails = () => {
                     {/* Quick Actions */}
                     <div className="quick-actions-card">
                         <h4>Quick Actions</h4>
-                        <div className="actions-list">
+                        <div className="job-actions-list">
                             <button 
                                 onClick={toggleFavorite}
-                                className={`action-button ${isFavorite ? 'favorited' : ''}`}
+                                className={`job-action-button ${isFavorite ? 'favorited' : ''}`}
                             >
                                 <FontAwesomeIcon icon={faHeart} />
                                 {isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}
                             </button>
-                            <button onClick={shareJob} className="action-button">
+                            <button onClick={shareJob} className="job-action-button">
                                 <FontAwesomeIcon icon={faShare} />
                                 Share Job
                             </button>
                             <button 
                                 onClick={() => navigate('/jobs')}
-                                className="action-button"
+                                className="job-action-button"
                             >
                                 <FontAwesomeIcon icon={faBriefcase} />
                                 Browse More Jobs

@@ -26,7 +26,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
-import NetworkStatus from './NetworkStatus';
 import ModernProfileDropdown from './ModernProfileDropdown';
 import '../styles/Header.css';
 import akLogo from '../assets/FINAL LOGO AK.png';
@@ -148,7 +147,7 @@ const Header = () => {
         <Link to={getDashboardRoute()} className="header-logo">
           <img src={akLogo} alt="AksharJobs logo" />
           <div>
-            <div className="header-logo-text">AksharJobs</div>
+            <div className="header-logo-text">JOBSEEKERHUB</div>
             <div className="header-logo-tagline">Where Opportunity Meets Talent</div>
           </div>
         </Link>
@@ -438,8 +437,7 @@ const Header = () => {
         </div>
       </div>
       
-      {/* Network Status Component */}
-      <NetworkStatus />
+      {/* Network Status Component removed on request */}
       
       {/* Connection Status Component */}
     </header>

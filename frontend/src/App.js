@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import "./styles/Global.css";
+import "./styles/JobSeekerDashboard.css"; // Load with highest priority to prevent conflicts
 import ErrorBoundary from "./components/ErrorBoundary";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
@@ -10,15 +11,12 @@ import EmailVerification from "./pages/EmailVerification";
 import CommunityVerificationPage from "./pages/CommunityVerificationPage";
 import ReferenceVerificationPage from "./pages/ReferenceVerificationPage";
 import Community from "./pages/Community";
-import JobSeekerDashboard from "./pages/JobSeekerDashboardComplete";
-import RecruiterDashboard from "./pages/RecruiterDashboardComplete";
+import JobSeekerDashboard from "./pages/JobSeekerDashboard";
+import MyProfile from "./pages/MyProfile";
+import RecruiterDashboard from "./pages/RecruiterDashboard";
 import InternDashboard from "./pages/InternDashboardComplete";
 import ModernJobDetails from "./pages/ModernJobDetails";
-import JobListing from "./pages/JobListing";
-import JobSearch from "./pages/JobSearch";
 import HomePage from "./pages/HomePage";
-import PublicJobs from "./pages/PublicJobs";
-import AllJobs from "./pages/AllJobs";
 
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -125,6 +123,15 @@ const SettingsRedirect = () => {
   return <div>Redirecting to settings...</div>;
 };
 
+// Lightweight redirect component to avoid HMR issues with <Navigate /> in dev
+const Redirect = ({ to, replace = false }) => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    navigate(to, { replace });
+  }, [navigate, to, replace]);
+  return null;
+};
+
 function App() {
   return (
     <Router
@@ -141,30 +148,7 @@ function App() {
           <Routes>
             {/* Public routes without Header */}
             <Route path="/" element={<HomePage/>}/>
-            <Route path="/public-jobs" element={
-              <>
-                <PublicJobs />
-                <Footer />
-              </>
-            }/>
-            <Route path="/jobs" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <JobSearch />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
-            <Route path="/joblisting" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <JobListing />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
+            <Route path="/jobs" element={<Redirect to="/jobseeker-dashboard" replace />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/verify-email" element={<EmailVerification />} />
             <Route path="/verify-user" element={<CommunityVerificationPage />} />
@@ -336,6 +320,12 @@ function App() {
                  <JobSeekerDashboard />
                </ProtectedRoute>
              } />
+            <Route path="/profile" element={
+              <ProtectedRoute requiredRole="jobSeeker">
+                <MyProfile />
+              </ProtectedRoute>
+            } />
+             
              
              {/* Intern-only routes */}
              <Route path="/intern-dashboard" element={
@@ -365,41 +355,14 @@ function App() {
             
             
             {/* Other protected routes */}
-            <Route path="/allJobs" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <AllJobs/>
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            }/>
-
-            <Route path="/joblisting" element={
-              <ProtectedRoute>
-                <>
-                  <Header />
-                  <JobListing />
-                  <Footer />
-                </>
-              </ProtectedRoute>
-            } />
             <Route path="/job-details/:jobId" element={
               <ProtectedRoute>
-                <>
-                  <Header />
-                  <ModernJobDetails />
-                  <Footer />
-                </>
+                <ModernJobDetails />
               </ProtectedRoute>
             } />
             <Route path="/job-details" element={
               <ProtectedRoute>
-                <>
-                  <Header />
-                  <JobListing />
-                  <Footer />
-                </>
+                <ModernJobDetails />
               </ProtectedRoute>
             } />
 

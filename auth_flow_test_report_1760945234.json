@@ -1,0 +1,229 @@
+{
+  "total": 37,
+  "passed": 36,
+  "failed": 1,
+  "tests": [
+    {
+      "name": "Job Seeker Signup",
+      "passed": true,
+      "details": "Email: jobseeker_1760945170@test.com",
+      "timestamp": "2025-10-20T10:26:13.029032"
+    },
+    {
+      "name": "Response Contains User Data",
+      "passed": true,
+      "details": "User data returned",
+      "timestamp": "2025-10-20T10:26:13.029226"
+    },
+    {
+      "name": "Recruiter Signup",
+      "passed": true,
+      "details": "Email: recruiter_1760945173@test.com",
+      "timestamp": "2025-10-20T10:26:15.764298"
+    },
+    {
+      "name": "Response Contains User Data",
+      "passed": true,
+      "details": "User data returned",
+      "timestamp": "2025-10-20T10:26:15.764525"
+    },
+    {
+      "name": "Intern Signup",
+      "passed": true,
+      "details": "Email: intern_1760945175@test.com",
+      "timestamp": "2025-10-20T10:26:18.521879"
+    },
+    {
+      "name": "Response Contains User Data",
+      "passed": true,
+      "details": "User data returned",
+      "timestamp": "2025-10-20T10:26:18.522015"
+    },
+    {
+      "name": "Validation: Missing firstName",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:20.571013"
+    },
+    {
+      "name": "Validation: Missing userType",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:22.610616"
+    },
+    {
+      "name": "Validation: Missing email",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:24.655225"
+    },
+    {
+      "name": "Validation: Invalid email format",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:26.705973"
+    },
+    {
+      "name": "First Signup",
+      "passed": true,
+      "details": "User created successfully",
+      "timestamp": "2025-10-20T10:26:29.410404"
+    },
+    {
+      "name": "Duplicate Prevention",
+      "passed": true,
+      "details": "Duplicate email rejected",
+      "timestamp": "2025-10-20T10:26:31.564579"
+    },
+    {
+      "name": "Job Seeker Login",
+      "passed": true,
+      "details": "Email: jobseeker_1760945170@test.com",
+      "timestamp": "2025-10-20T10:26:33.698309"
+    },
+    {
+      "name": "Token Returned",
+      "passed": true,
+      "details": "JWT token present",
+      "timestamp": "2025-10-20T10:26:33.698531"
+    },
+    {
+      "name": "User Data Returned",
+      "passed": true,
+      "details": "User data present",
+      "timestamp": "2025-10-20T10:26:33.698627"
+    },
+    {
+      "name": "Recruiter Login",
+      "passed": true,
+      "details": "Email: recruiter_1760945173@test.com",
+      "timestamp": "2025-10-20T10:26:35.830244"
+    },
+    {
+      "name": "Token Returned",
+      "passed": true,
+      "details": "JWT token present",
+      "timestamp": "2025-10-20T10:26:35.830537"
+    },
+    {
+      "name": "User Data Returned",
+      "passed": true,
+      "details": "User data present",
+      "timestamp": "2025-10-20T10:26:35.830733"
+    },
+    {
+      "name": "Intern Login",
+      "passed": true,
+      "details": "Email: intern_1760945175@test.com",
+      "timestamp": "2025-10-20T10:26:37.955218"
+    },
+    {
+      "name": "Token Returned",
+      "passed": true,
+      "details": "JWT token present",
+      "timestamp": "2025-10-20T10:26:37.955384"
+    },
+    {
+      "name": "User Data Returned",
+      "passed": true,
+      "details": "User data present",
+      "timestamp": "2025-10-20T10:26:37.955516"
+    },
+    {
+      "name": "Wrong Password Rejected",
+      "passed": true,
+      "details": "Login rejected as expected",
+      "timestamp": "2025-10-20T10:26:40.072150"
+    },
+    {
+      "name": "Nonexistent User Rejected",
+      "passed": true,
+      "details": "Login rejected as expected",
+      "timestamp": "2025-10-20T10:26:42.220197"
+    },
+    {
+      "name": "Validation: Empty request",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:44.260045"
+    },
+    {
+      "name": "Validation: Missing password",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:46.327339"
+    },
+    {
+      "name": "Validation: Missing email",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:48.389295"
+    },
+    {
+      "name": "Validation: Invalid email format",
+      "passed": true,
+      "details": "Status: 400",
+      "timestamp": "2025-10-20T10:26:50.430370"
+    },
+    {
+      "name": "Password Test: Too short",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:26:53.208544"
+    },
+    {
+      "name": "Password Test: No uppercase or numbers",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:26:57.663165"
+    },
+    {
+      "name": "Password Test: No numbers or special chars",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:27:00.937882"
+    },
+    {
+      "name": "Password Test: Too short",
+      "passed": true,
+      "details": "Status: 201",
+      "timestamp": "2025-10-20T10:27:03.901188"
+    },
+    {
+      "name": "Access Protected Route",
+      "passed": true,
+      "details": "Authenticated access granted",
+      "timestamp": "2025-10-20T10:27:06.156716"
+    },
+    {
+      "name": "User Profile Retrieved",
+      "passed": true,
+      "details": "User profile data returned",
+      "timestamp": "2025-10-20T10:27:06.157082"
+    },
+    {
+      "name": "Invalid Token Rejected",
+      "passed": false,
+      "details": "Should reject invalid token",
+      "timestamp": "2025-10-20T10:27:08.209608"
+    },
+    {
+      "name": "Login page accessible",
+      "passed": true,
+      "details": "Page loads successfully",
+      "timestamp": "2025-10-20T10:27:10.251071"
+    },
+    {
+      "name": "Signup page accessible",
+      "passed": true,
+      "details": "Page loads successfully",
+      "timestamp": "2025-10-20T10:27:12.288417"
+    },
+    {
+      "name": "Forgot password page accessible",
+      "passed": true,
+      "details": "Page loads successfully",
+      "timestamp": "2025-10-20T10:27:14.325835"
+    }
+  ]
+}

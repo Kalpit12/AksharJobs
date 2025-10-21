@@ -20,19 +20,14 @@ def get_db():
     global _client, _db
     
     try:
-        # If we already have a connection, test it and reuse if valid
-        if _client is not None and _db is not None:
+        # ALWAYS create a fresh connection (no caching) to avoid stale data
+        if _client is not None:
             try:
-                # Test the connection
-                _db.command('ping')
-                return _db
-            except Exception:
-                # Connection is stale, close it and create a new one
-                print("[RECONNECT] Stale connection detected, creating new connection...")
-                if _client:
-                    _client.close()
-                _client = None
-                _db = None
+                _client.close()
+            except:
+                pass
+        _client = None
+        _db = None
         
         # Create new connection
         _client = MongoClient(
@@ -47,7 +42,10 @@ def get_db():
         
         # Test the connection
         _db.command('ping')
-        print("[OK] MongoDB connected successfully!")  
+        print(f"[OK] MongoDB connected successfully!")
+        print(f"[DEBUG] Connected to URI: {MONGO_URI}")
+        print(f"[DEBUG] Database name: {DB_NAME}")
+        print(f"[DEBUG] Database object: {_db.name}")
         return _db
         
     except Exception as e:

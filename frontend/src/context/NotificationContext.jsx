@@ -22,36 +22,88 @@ export const NotificationProvider = ({ children }) => {
   const [unreadMessageCount, setUnreadMessageCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  
+  // Add a flag to completely disable API calls when not properly authenticated
+  const shouldMakeApiCalls = () => {
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      console.log('🚫 User not authenticated, skipping API calls');
+      return false;
+    }
+    console.log('✅ API calls enabled for authenticated user');
+    return true;
+  };
+
+  // Helper function to validate token
+  const isValidToken = (token) => {
+    if (!token) return false;
+    try {
+      // Basic JWT token validation - check if it has 3 parts separated by dots
+      const parts = token.split('.');
+      if (parts.length !== 3) return false;
+      
+      // Check if token is expired (basic check)
+      const payload = JSON.parse(atob(parts[1]));
+      const now = Math.floor(Date.now() / 1000);
+      return payload.exp > now;
+    } catch (e) {
+      return false;
+    }
+  };
 
   // Load initial data
   const loadNotifications = useCallback(async () => {
-    if (!isAuthenticated) return;
+    console.log('🔍 loadNotifications called - shouldMakeApiCalls:', shouldMakeApiCalls());
+    
+    if (!shouldMakeApiCalls()) {
+      console.log('❌ Not authorized to make API calls, skipping notifications load');
+      return;
+    }
+    
+    console.log('✅ All checks passed, making API call...');
     
     try {
       setIsLoading(true);
       const response = await notificationApi.getNotifications();
-      if (response.success) {
-        setNotifications(response.notifications);
+      console.log('📨 API Response:', response);
+      if (response && response.success) {
+        setNotifications(response.notifications || []);
       }
     } catch (err) {
-      console.error('Error loading notifications:', err);
-      setError('Failed to load notifications');
+      console.error('❌ Error loading notifications:', err);
+      // Only set error if it's not a 401/403 (authentication error)
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        setError('Failed to load notifications');
+      }
     } finally {
       setIsLoading(false);
     }
   }, [isAuthenticated]);
 
   const loadMessages = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping messages load');
+      return;
+    }
+    
+    // Check if we have a valid token before making the request
+    const token = localStorage.getItem('token');
+    if (!token || !isValidToken(token)) {
+      console.log('No valid token found, skipping messages load');
+      return;
+    }
     
     try {
       const response = await messageApi.getMessages();
-      if (response.success) {
-        setMessages(response.messages);
+      if (response && response.success) {
+        setMessages(response.messages || []);
       }
     } catch (err) {
       console.error('Error loading messages:', err);
-      setError('Failed to load messages');
+      // Only set error if it's not a 401/403 (authentication error)
+      if (err.response?.status !== 401 && err.response?.status !== 403) {
+        setError('Failed to load messages');
+      }
     }
   }, [isAuthenticated]);
 
@@ -113,6 +165,8 @@ export const NotificationProvider = ({ children }) => {
 
   // Initialize WebSocket connection
   useEffect(() => {
+    console.log('🔍 NotificationProvider useEffect - isAuthenticated:', isAuthenticated);
+    
     if (isAuthenticated && user?.token) {
       console.log('🔌 Initializing WebSocket connection...');
       websocketService.connect(user.token);
@@ -125,11 +179,19 @@ export const NotificationProvider = ({ children }) => {
       websocketService.on('new_message', handleNewMessage);
       websocketService.on('message_count_update', handleMessageCountUpdate);
       
-      // Load initial data
-      loadNotifications();
-      loadMessages();
-      loadUnreadCounts();
+      // Load initial data only if authorized to make API calls
+      console.log('🔍 useEffect - shouldMakeApiCalls:', shouldMakeApiCalls());
+      
+      if (shouldMakeApiCalls()) {
+        console.log('✅ Authorized to make API calls, loading data...');
+        loadNotifications();
+        loadMessages();
+        loadUnreadCounts();
+      } else {
+        console.log('❌ Not authorized to make API calls, skipping data load');
+      }
     } else {
+      console.log('🚫 User not authenticated, cleaning up notification context');
       // Disconnect WebSocket if not authenticated
       websocketService.disconnect();
       setNotifications([]);

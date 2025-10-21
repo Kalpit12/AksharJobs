@@ -34,8 +34,14 @@ def get_dashboard_data():
         if not user:
             return jsonify({"error": "User not found"}), 404
         
-        # Get user's applications
+        # Get user's applications - try both ObjectId and string formats
         user_applications = list(applications_collection.find({'userId': user_object_id}))
+        if not user_applications:
+            # Try with string user ID
+            user_applications = list(applications_collection.find({'userId': current_user_id}))
+        if not user_applications:
+            # Try with applicant_id field (ObjectId format)
+            user_applications = list(applications_collection.find({'applicant_id': user_object_id}))
         
         # Get saved jobs
         saved_job_ids = user.get('savedJobs', [])

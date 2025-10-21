@@ -69,7 +69,7 @@ const JobApplicationModal = ({ job, onClose, onApplicationSubmitted }) => {
           <div className="success-content">
             <div className="success-icon">✅</div>
             <h2>Application Submitted!</h2>
-            <p>Your application for <strong>{job.job_title}</strong> at <strong>{job.company_name}</strong> has been submitted successfully.</p>
+            <p>Your application for <strong>{job.job_title || job.jobTitle}</strong> at <strong>{job.company_name || job.companyName}</strong> has been submitted successfully.</p>
             <p>We'll review your application and get back to you soon!</p>
             <button className="close-success-btn" onClick={handleClose}>
               Close
@@ -84,16 +84,16 @@ const JobApplicationModal = ({ job, onClose, onApplicationSubmitted }) => {
     <div className="application-modal-overlay" onClick={handleClose}>
       <div className="application-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>Apply for {job.job_title}</h2>
+          <h2>Apply for {job.job_title || job.jobTitle}</h2>
           <button className="close-btn" onClick={handleClose}>×</button>
         </div>
 
         <div className="modal-content">
           <div className="job-summary">
-            <h3>{job.company_name}</h3>
+            <h3>{job.company_name || job.companyName}</h3>
             <p className="job-location">📍 {job.location}</p>
-            <p className="job-salary">💰 {job.salary_range}</p>
-            <p className="job-type">📋 {job.job_type}</p>
+            <p className="job-salary">💰 {job.salary_range || job.salaryRange}</p>
+            <p className="job-type">📋 {job.job_type || job.jobType}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="application-form">

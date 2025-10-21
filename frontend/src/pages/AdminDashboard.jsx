@@ -9,7 +9,10 @@ import AnalyticsDashboard from '../components/AdminAnalyticsDashboard';
 import UserManagement from '../components/UserManagement';
 import SwahiliAnalysisManagement from '../components/SwahiliAnalysisManagement';
 import BulkImport from '../components/BulkImport';
+import DashboardTemplateEditor from '../components/DashboardTemplateEditor';
+import AdminMessaging from '../components/AdminMessaging';
 import ModernLoadingSpinner from '../components/ModernLoadingSpinner';
+import QuickActions from '../components/QuickActions';
 import '../styles/AdminDashboard.css';
 
 const AdminDashboard = () => {
@@ -139,38 +142,38 @@ const AdminDashboard = () => {
               </div>
             </div>
             
-            <div className="quick-actions">
-              <h3>Quick Actions</h3>
-              <div className="action-buttons">
-                <button 
-                  onClick={() => setActiveView('bulk-import')}
-                  className="bulk-upload-btn"
-                  style={{
-                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    fontSize: '1.1rem',
-                    fontWeight: '700',
-                    padding: '1.2rem 2rem'
-                  }}
-                >
-                  📊 BULK UPLOAD
-                </button>
-                <button onClick={() => setActiveView('jobseeker-matrix')}>
-                  Manage Job Seeker Features
-                </button>
-                <button onClick={() => setActiveView('recruiter-matrix')}>
-                  Manage Recruiter Features
-                </button>
-                <button onClick={() => setActiveView('plans')}>
-                  Manage Subscription Plans
-                </button>
-                <button onClick={() => setActiveView('users')}>
-                  Manage Users
-                </button>
-                <button onClick={() => setActiveView('swahili-analysis')}>
-                  Manage Swahili Analysis
-                </button>
-              </div>
-            </div>
+            <QuickActions
+              theme="admin"
+              onBrowseJobs={() => setActiveView('jobseeker-matrix')}
+              onUpdateResume={() => setActiveView('bulk-import')}
+              onEditProfile={() => setActiveView('users')}
+              customActions={[
+                {
+                  id: 'analytics',
+                  text: 'VIEW ANALYTICS',
+                  icon: 'faChartBar',
+                  emoji: '📊',
+                  onClick: () => setActiveView('analytics'),
+                  description: 'View system analytics and reports'
+                },
+                {
+                  id: 'plans',
+                  text: 'MANAGE PLANS',
+                  icon: 'faCreditCard',
+                  emoji: '💳',
+                  onClick: () => setActiveView('plans'),
+                  description: 'Manage subscription plans'
+                },
+                {
+                  id: 'settings',
+                  text: 'SYSTEM SETTINGS',
+                  icon: 'faCog',
+                  emoji: '⚙️',
+                  onClick: () => setActiveView('settings'),
+                  description: 'Configure system settings'
+                }
+              ]}
+            />
           </div>
         );
       case 'jobseeker-matrix':
@@ -181,6 +184,10 @@ const AdminDashboard = () => {
         return <PlanManagement />;
       case 'analytics':
         return <AnalyticsDashboard />;
+      case 'template-editor':
+        return <DashboardTemplateEditor />;
+      case 'messaging':
+        return <AdminMessaging />;
       case 'users':
         return <UserManagement />;
       case 'swahili-analysis':

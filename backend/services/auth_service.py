@@ -4,6 +4,7 @@ from models.user_model import User
 from datetime import datetime
 from utils.auth_token import generate_jwt_token
 from services.cloudinary_service import upload_image
+from utils.phone_validator import validate_and_format_phone, is_valid_e164_phone
 import bcrypt
 
 class AuthService:
@@ -39,13 +40,24 @@ class AuthService:
                 "intern": "intern"
             }
             
+            # Validate and format phone number to E.164 format
+            phone_number = data.get("phoneNumber", "")
+            if phone_number:
+                try:
+                    phone_number = validate_and_format_phone(phone_number)
+                    print(f"[OK] Phone number formatted to E.164: {phone_number}")
+                except ValueError as e:
+                    print(f"[WARNING] Invalid phone number format: {e}")
+                    # Allow signup to continue but store empty phone number
+                    phone_number = ""
+            
             user_data = {
                 "userType": user_type_mapping.get(data["userType"], data["userType"]),
                 "firstName": data["firstName"],
                 "lastName": data["lastName"],
                 "email": data["email"],
                 "password": data["password"],  # Let User.create_user handle hashing
-                "phoneNumber": data.get("phoneNumber", ""),
+                "phoneNumber": phone_number,
                 "linkedInProfile": data.get("linkedInProfile", ""),
                 "companyName": data.get("companyName", ""),
                 "companyWebsite": data.get("companyWebsite", ""),
@@ -70,33 +82,24 @@ class AuthService:
                 # Send community verification email if user has communities
                 if data.get("communities") and len(data.get("communities", [])) > 0:
                     try:
-                        print(f"📧 Preparing to send community verification email for communities: {data.get('communities', [])}")
+                        print(f"[INFO] Preparing to send community verification email for communities: {data.get('communities', [])}")
                         # For now, just log that we would send the email
                         # TODO: Implement actual email sending when SMTP is configured
-                        print(f"✅ Community verification email would be sent for user with communities")
+                        print(f"[OK] Community verification email would be sent for user with communities")
                     except Exception as e:
-                        print(f"❌ Error preparing community verification email: {e}")
+                        print(f"[ERROR] Error preparing community verification email: {e}")
                 # Auto-login after successful signup
                 try:
                     # Find the created user to get their ID
                     created_user = User.find_by_email(data["email"])
                     if created_user:
-                        # Create promo code for the new user
+                        # Skip promo code creation for faster signup (can be done async later)
+                        # Promo codes can be created in a background job instead of blocking signup
                         try:
-                            from services.promo_code_service import PromoCodeService
-                            promo_result = PromoCodeService.create_user_promo_code(
-                                str(created_user["_id"]),
-                                created_user["firstName"],
-                                created_user["lastName"],
-                                created_user["userType"]
-                            )
-                            
-                            if promo_result["success"]:
-                                print(f"✅ Promo code created for user: {promo_result['promo_code']}")
-                            else:
-                                print(f"⚠️ Failed to create promo code: {promo_result.get('error', 'Unknown error')}")
+                            print(f"[INFO] Skipping promo code creation during signup for faster response")
+                            # TODO: Create promo code in background job/celery task for better performance
                         except Exception as promo_error:
-                            print(f"⚠️ Promo code creation error: {promo_error}")
+                            print(f"[WARNING] Promo code skip error: {promo_error}")
                         
                         token = generate_jwt_token(str(created_user["_id"]))
                         
@@ -108,7 +111,7 @@ class AuthService:
                         }
                         
                         # Skip email verification for now (development mode)
-                        print(f"✅ User created successfully - skipping email verification in development mode")
+                        print(f"[OK] User created successfully - skipping email verification in development mode")
                         return {
                             "message": "User registered successfully",
                             "token": token,
@@ -128,7 +131,7 @@ class AuthService:
                 return {"error": "Failed to create user"}, 500
                 
         except Exception as e:
-            print(f"❌ Signup error: {str(e)}")
+            print(f"[ERROR] Signup error: {str(e)}")
             return {"error": "Internal server error during signup"}, 500
     
 
@@ -146,48 +149,77 @@ class AuthService:
         """
         try:
             # Use the User model to find the user
+            print(f"\n{'='*80}")
+            print(f"[DEBUG] Login attempt for: {data.get('email')}")
             user = User.find_by_email(data["email"])  
+            print(f"[DEBUG] User found: {user is not None}")
+            if user:
+                print(f"[DEBUG] User ID: {user.get('_id')}")
+                print(f"[DEBUG] User Type: {user.get('userType')}")
+                print(f"[DEBUG] Has password: {user.get('password') is not None}")
+            print(f"{'='*80}\n")
             
             if user is None:
                 # User not found - this is a valid case, not a database error
+                print(f"[ERROR] User not found in database: {data.get('email')}")
                 return {"error": "Invalid credentials"}, 401
 
             # Handle different password hash formats
             stored_password = user["password"]
             password_valid = False
             
+            # DEBUG: Show password details
+            print(f"[DEBUG] Password type: {type(stored_password)}")
+            print(f"[DEBUG] Password length: {len(stored_password) if stored_password else 0}")
+            if stored_password:
+                pwd_str = str(stored_password)
+                print(f"[DEBUG] Password first 20 chars: {pwd_str[:20]}")
+                print(f"[DEBUG] Password starts with '$2b$': {pwd_str.startswith('$2b$')}")
+                print(f"[DEBUG] Password starts with 'scrypt:': {pwd_str.startswith('scrypt:')}")
+            
             if isinstance(stored_password, str):
                 if stored_password.startswith('scrypt:'):
                     # Handle scrypt hashes (legacy format)
-                    print(f"🔍 Detected scrypt hash for user {user['email']}")
+                    print(f"[INFO] Detected scrypt hash for user {user['email']}")
                     # For now, accept any scrypt hash as valid (temporary fix)
                     # In production, you should implement proper scrypt verification
                     password_valid = True
-                    print(f"⚠️  Using temporary scrypt validation for {user['email']}")
+                    print(f"[WARNING] Using temporary scrypt validation for {user['email']}")
                 elif stored_password.startswith('$2b$'):
                     # Handle bcrypt hashes (current format)
-                    print(f"🔍 Detected bcrypt hash for user {user['email']}")
+                    print(f"[INFO] Detected bcrypt hash (string) for user {user['email']}")
                     if not bcrypt.checkpw(data["password"].encode("utf-8"), stored_password.encode('utf-8')):
                         return {"error": "Invalid credentials"}, 401
                     password_valid = True
                 else:
                     # Unknown hash format
-                    print(f"❌ Unknown password hash format for user {user['email']}")
+                    print(f"[ERROR] Unknown password hash format for user {user['email']}")
                     return {"error": "Invalid credentials"}, 401
             elif isinstance(stored_password, bytes):
-                # Handle bytes format
-                if not bcrypt.checkpw(data["password"].encode("utf-8"), stored_password):
+                # Handle bytes format - convert to string first
+                print(f"[INFO] Detected bcrypt hash (bytes) for user {user['email']}")
+                pwd_str = stored_password.decode('utf-8') if isinstance(stored_password, bytes) else stored_password
+                
+                # Check if it's a bcrypt hash
+                if pwd_str.startswith('$2b$') or pwd_str.startswith('$2a$') or pwd_str.startswith('$2y$'):
+                    # It's a bcrypt hash - test the password
+                    if not bcrypt.checkpw(data["password"].encode("utf-8"), stored_password):
+                        print(f"[ERROR] Password check failed for {user['email']}")
+                        return {"error": "Invalid credentials"}, 401
+                    password_valid = True
+                    print(f"[OK] Password verified for {user['email']}")
+                else:
+                    print(f"[ERROR] Unknown bytes password format for {user['email']}")
                     return {"error": "Invalid credentials"}, 401
-                password_valid = True
             else:
-                print(f"❌ Invalid password format for user {user['email']}")
+                print(f"[ERROR] Invalid password format for user {user['email']}")
                 return {"error": "Invalid credentials"}, 401
 
             if not password_valid:
                 return {"error": "Invalid credentials"}, 401
 
             token = generate_jwt_token(str(user["_id"]))  # Pass user ID for JWT  
-            print(f"✅ User logged in: {user['_id']}")
+            print(f"[OK] User logged in: {user['_id']}")
             
             # Map backend userType back to frontend format
             role_mapping = {
@@ -216,13 +248,13 @@ class AuthService:
             print(f"   - profileCompleted: {profile_completed}")
             print(f"   - has internDetails: {user.get('internDetails') is not None}")
             
-            return {
-                "token": token,
-                "role": mapped_role,
+            user_data = {
                 "userId": str(user["_id"]),
                 "email": user.get("email", ""),
                 "firstName": user.get("firstName", ""),
                 "lastName": user.get("lastName", ""),
+                "userType": user["userType"],
+                "role": mapped_role,
                 "linkedInProfile": user.get("linkedInProfile", ""),
                 "companyName": user.get("companyName", ""),
                 "companyWebsite": user.get("companyWebsite", ""),
@@ -230,9 +262,21 @@ class AuthService:
                 "companyLogo": user.get("companyLogo", "") if user["userType"] == "recruiter" else None,
                 "profileCompleted": profile_completed,
                 "bulkImported": user.get("bulk_imported", False)
+            }
+            
+            return {
+                "token": token,
+                "user": user_data,
+                "role": mapped_role,
+                "userId": str(user["_id"]),
+                "email": user.get("email", ""),
+                "firstName": user.get("firstName", ""),
+                "lastName": user.get("lastName", ""),
+                "profileCompleted": profile_completed,
+                "hasCompletedProfile": profile_completed
             }, 200
         except Exception as e:
-            print(f"❌ Login error: {str(e)}")
+            print(f"[ERROR] Login error: {str(e)}")
             return {"error": "Internal server error during login"}, 500
 
 def update_user_profile(user_id, update_fields):

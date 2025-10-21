@@ -51,12 +51,22 @@ class ApiService {
           console.error(`❌ API Error: ${originalRequest?.method?.toUpperCase()} ${originalRequest?.url} ${error.response?.status || 'Network Error'}`);
         }
         
-        // Handle 401 errors (unauthorized)
-        if (error.response?.status === 401) {
-          // Clear token and redirect to login
+        // Handle 401 errors (unauthorized) and 422 errors (malformed JWT token)
+        if (error.response?.status === 401 || error.response?.status === 422) {
+          console.warn(`🔐 Authentication error (${error.response.status}). Clearing session and redirecting to login...`);
+          // Clear all authentication data
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          localStorage.removeItem('role');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userFirstName');
+          localStorage.removeItem('userLastName');
+          
+          // Redirect to login with message
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login?message=session_expired';
+          }
           return Promise.reject(error);
         }
         

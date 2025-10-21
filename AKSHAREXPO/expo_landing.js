@@ -587,9 +587,9 @@ function initRollingCardEffects() {
 // Initialize rolling card effects
 document.addEventListener('DOMContentLoaded', initRollingCardEffects);
 
-// New Countdown Timer for October 20th, 2025
+// New Countdown Timer for October 26th, 2025
 function startCountdown() {
-    const targetDate = new Date('October 20, 2025 00:00:00').getTime();
+    const targetDate = new Date('October 26, 2025 00:00:00').getTime();
     
     function updateTimer() {
         const now = new Date().getTime();
@@ -655,19 +655,19 @@ function initStickyCTA() {
 // Social Share Functions
 function shareOnTwitter() {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('🚀 Excited about AksharJobs - AI-powered job portal launching October 20th, 2025! Join the waitlist now! #AksharJobs #AI #JobPortal #Global');
+    const text = encodeURIComponent('🚀 Excited about AksharJobs - AI-powered job portal launching October 26th, 2025! Join the waitlist now! #AksharJobs #AI #JobPortal #Global');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}&utm_source=twitter&utm_medium=social&utm_campaign=expo2025`, '_blank');
 }
 
 function shareOnLinkedIn() {
     const url = encodeURIComponent(window.location.href);
     const title = encodeURIComponent('AksharJobs - AI-Powered Job Portal');
-    const summary = encodeURIComponent('Revolutionizing recruitment with advanced AI, multilingual support, and cultural intelligence. Launching October 20th, 2025!');
+    const summary = encodeURIComponent('Revolutionizing recruitment with advanced AI, multilingual support, and cultural intelligence. Launching October 26th, 2025!');
     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}&title=${title}&summary=${summary}&utm_source=linkedin&utm_medium=social&utm_campaign=expo2025`, '_blank');
 }
 
 function shareOnWhatsApp() {
-    const text = encodeURIComponent('🚀 Check out AksharJobs - AI-powered job portal launching October 20th, 2025! Join the waitlist: ');
+    const text = encodeURIComponent('🚀 Check out AksharJobs - AI-powered job portal launching October 26th, 2025! Join the waitlist: ');
     const url = encodeURIComponent(window.location.href);
     window.open(`https://wa.me/?text=${text}${url}&utm_source=whatsapp&utm_medium=social&utm_campaign=expo2025`, '_blank');
 }

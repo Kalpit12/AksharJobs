@@ -174,9 +174,9 @@ const ModernJobDetailsModal = ({
                 <FontAwesomeIcon icon={faBuilding} />
               </div>
               <div className="job-title-section">
-                <h1 className="job-title-modern">{job.job_title}</h1>
+                <h1 className="job-title-modern">{job.job_title || job.jobTitle}</h1>
                 <div className="company-info-modern">
-                  <span className="company-name">{job.company_name}</span>
+                  <span className="company-name">{job.company_name || job.companyName}</span>
                   <span className="location-badge">
                     <FontAwesomeIcon icon={faMapMarkerAlt} />
                     {job.location}
@@ -226,7 +226,7 @@ const ModernJobDetailsModal = ({
                         <button onClick={() => navigator.clipboard.writeText(window.location.href)}>
                           Copy Link
                         </button>
-                        <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=Check out this job: ${job.job_title} at ${job.company_name}`)}>
+                        <button onClick={() => window.open(`https://twitter.com/intent/tweet?text=Check out this job: ${job.job_title || job.jobTitle} at ${job.company_name || job.companyName}`)}>
                           Twitter
                         </button>
                         <button onClick={() => window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${window.location.href}`)}>
@@ -258,19 +258,19 @@ const ModernJobDetailsModal = ({
           >
             <div className="stat-item">
               <FontAwesomeIcon icon={faClock} />
-              <span>{job.job_type}</span>
+              <span>{job.job_type || job.jobType}</span>
             </div>
             <div className="stat-item">
               <FontAwesomeIcon icon={faGlobe} />
-              <span>{job.remote_option}</span>
+              <span>{job.remote_option || job.remoteOption}</span>
             </div>
             <div className="stat-item">
               <FontAwesomeIcon icon={faDollarSign} />
-              <span>{formatSalary(job.salary_range, getUserCountry())}</span>
+              <span>{formatSalary(job.salary_range || job.salaryRange, getUserCountry())}</span>
             </div>
             <div className="stat-item">
               <FontAwesomeIcon icon={faBriefcase} />
-              <span>{job.experience_required}</span>
+              <span>{job.experience_required || job.experienceRequired}</span>
             </div>
           </motion.div>
 
@@ -446,8 +446,8 @@ const ModernJobDetailsModal = ({
                     <div className="benefits-grid">
                       {[
                         { icon: faShieldAlt, title: "Health Insurance", desc: "Comprehensive medical coverage" },
-                        { icon: faDollarSign, title: "Competitive Salary", desc: formatSalary(job.salary_range, getUserCountry()) },
-                        { icon: faGlobe, title: "Remote Work", desc: job.remote_option },
+                        { icon: faDollarSign, title: "Competitive Salary", desc: formatSalary(job.salary_range || job.salaryRange, getUserCountry()) },
+                        { icon: faGlobe, title: "Remote Work", desc: job.remote_option || job.remoteOption },
                         { icon: faGraduationCap, title: "Learning Budget", desc: "Professional development fund" }
                       ].map((benefit, index) => (
                         <motion.div
@@ -505,7 +505,7 @@ const ModernJobDetailsModal = ({
                     <div className="requirement-card">
                       <FontAwesomeIcon icon={faBriefcase} className="req-icon" />
                       <h4>Experience</h4>
-                      <p>{job.experience_required}</p>
+                      <p>{job.experience_required || job.experienceRequired}</p>
                     </div>
                     
                     <div className="requirement-card">
@@ -532,7 +532,7 @@ const ModernJobDetailsModal = ({
                         <FontAwesomeIcon icon={faBuilding} />
                       </div>
                       <div className="company-info">
-                        <h3>{job.company_name}</h3>
+                        <h3>{job.company_name || job.companyName}</h3>
                         <p className="company-industry">{job.industry || "Technology"}</p>
                         {job.company_website && (
                           <a 
@@ -566,7 +566,7 @@ const ModernJobDetailsModal = ({
                       <h4>About the Company</h4>
                       <p>
                         {job.company_description || 
-                         `${job.company_name} is a leading company in the ${job.industry || 'technology'} sector, committed to innovation and excellence. We're passionate about creating solutions that make a difference and building a workplace where talented individuals can thrive.`
+                         `${job.company_name || job.companyName} is a leading company in the ${job.industry || 'technology'} sector, committed to innovation and excellence. We're passionate about creating solutions that make a difference and building a workplace where talented individuals can thrive.`
                         }
                       </p>
                     </div>

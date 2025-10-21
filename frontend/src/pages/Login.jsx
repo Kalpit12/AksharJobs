@@ -80,13 +80,13 @@ const Login = () => {
 
   const buttonVariants = {
     hover: {
-      scale: 1.02,
+      scale: 1.01,
       transition: {
         duration: 0.2
       }
     },
     tap: {
-      scale: 0.98
+      scale: 0.99
     }
   };
 

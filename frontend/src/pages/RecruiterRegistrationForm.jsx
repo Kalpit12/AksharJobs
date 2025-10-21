@@ -134,7 +134,7 @@ const RecruiterRegistrationForm = () => {
   const [linkUrlInput, setLinkUrlInput] = useState('');
 
   // Define setMarker function before useEffect that uses it
-  const setMarker = (lat, lng) => {
+  const setMarker = useCallback((lat, lng) => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
@@ -156,7 +156,26 @@ const RecruiterRegistrationForm = () => {
 
     marker.on('dragend', function(e) {
       const position = marker.getLatLng();
-      setMarker(position.lat, position.lng);
+      setFormData(prev => ({
+        ...prev,
+        latitude: position.lat,
+        longitude: position.lng
+      }));
+      
+      // Reverse geocode for the new position
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.display_name) {
+            setFormData(prev => ({
+              ...prev,
+              address: data.display_name
+            }));
+          }
+        })
+        .catch(error => {
+          console.log('Reverse geocoding failed:', error);
+        });
     });
 
     // Reverse geocode
@@ -173,7 +192,7 @@ const RecruiterRegistrationForm = () => {
       .catch(error => {
         console.log('Reverse geocoding failed:', error);
       });
-  };
+  }, []);
 
   // Initialize map (same simple approach as job seeker form)
   useEffect(() => {

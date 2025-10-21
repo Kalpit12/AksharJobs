@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Dashboard - AksharJobs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* COMPLETE RECRUITER DASHBOARD - ORANGE THEME */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            min-height: 100vh;
+        }
+
+        /* Sidebar - Orange Theme */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #FF8A65 0%, #FF7043 100%);
+            color: white;
+            overflow-y: auto;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .sidebar-header p {
+            font-size: 13px;
+            opacity: 0.8;
+            color: white;
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            color: white;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: white;
+        }
+
+        .nav-item i {
+            font-size: 18px;
+            width: 20px;
+        }
+
+        .badge {
+            background: #ff4757;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: auto;
+        }
+
+        .badge.success {
+            background: #4caf50;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px 12px 45px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fafafa;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f5f7fa;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            background: #e8ecf1;
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ff4757;
+            border-radius: 50%;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF8A65 0%, #FF7043 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .content-area {
+            padding: 30px;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
+            border-left: 4px solid #ff9800;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 152, 0, 0.15);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .stat-icon.blue {
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+        }
+
+        .stat-icon.green {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+        }
+
+        .stat-icon.purple {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+        }
+
+        .stat-icon.orange {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            color: #4caf50;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            color: #4caf50;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ff9800;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #f57c00, #ef6c00);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: #ff9800;
+            border: 1px solid #ff9800;
+        }
+
+        .btn-secondary:hover {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            background: #f9fafb;
+            font-weight: 600;
+            font-size: 13px;
+            color: #666;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+
+        .status-new, .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .status-reviewing {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        .status-interview {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #f59e0b;
+        }
+
+        .status-hired, .status-active {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: rgba(255, 152, 0, 0.1);
+            color: #ff9800;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-briefcase"></i> RecruiterHub</h2>
+            <p>Acme Corporation</p>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active" data-section="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" data-section="jobs">
+                <i class="fas fa-briefcase"></i>
+                <span>Job Postings</span>
+                <span class="badge">8</span>
+            </div>
+            <div class="nav-item" data-section="internships">
+                <i class="fas fa-user-graduate"></i>
+                <span>Internships</span>
+                <span class="badge">3</span>
+            </div>
+            <div class="nav-item" data-section="candidates">
+                <i class="fas fa-users"></i>
+                <span>All Candidates</span>
+                <span class="badge">24</span>
+            </div>
+            <div class="nav-item" data-section="pipeline">
+                <i class="fas fa-stream"></i>
+                <span>Recruitment Pipeline</span>
+            </div>
+            <div class="nav-item" data-section="messages">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+                <span class="badge">5</span>
+            </div>
+            <div class="nav-item" data-section="calendar">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Interview Calendar</span>
+            </div>
+            <div class="nav-item" data-section="analytics">
+                <i class="fas fa-chart-bar"></i>
+                <span>Analytics</span>
+            </div>
+            <div class="nav-item" data-section="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search candidates, jobs, or internships...">
+            </div>
+            <div class="top-bar-actions">
+                <button class="icon-btn">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+                <button class="icon-btn">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <div class="user-profile">
+                    <div class="user-avatar">SJ</div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 14px;">Sarah Johnson</div>
+                        <div style="font-size: 12px; color: #666;">Recruiter</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Dashboard Section -->
+            <div class="page-section active" id="dashboard">
+                <h1 style="margin-bottom: 25px;">Dashboard Overview</h1>
+                
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">24</div>
+                                <div class="stat-label">Active Postings</div>
+                            </div>
+                            <div class="stat-icon blue">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> 3 new this week
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">156</div>
+                                <div class="stat-label">Total Applications</div>
+                            </div>
+                            <div class="stat-icon green">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +25% from last month
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">12</div>
+                                <div class="stat-label">In Interview Stage</div>
+                            </div>
+                            <div class="stat-icon purple">
+                                <i class="fas fa-user-clock"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change">
+                            8 scheduled this week
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">Offers Extended</div>
+                            </div>
+                            <div class="stat-icon orange">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                        </div>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> 5 accepted
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                    <!-- Recent Applications -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Applications</h3>
+                            <button class="btn btn-secondary btn-sm">View All</button>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Candidate</th>
+                                        <th>Position</th>
+                                        <th>Applied</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF8A65, #FF7043); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">JD</div>
+                                                <div>
+                                                    <div style="font-weight: 500;">John Doe</div>
+                                                    <div style="font-size: 12px; color: #666;">john@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Senior Developer</td>
+                                        <td>2 hours ago</td>
+                                        <td><span class="status-badge status-new">New</span></td>
+                                        <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF8A65, #FF7043); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">AS</div>
+                                                <div>
+                                                    <div style="font-weight: 500;">Alice Smith</div>
+                                                    <div style="font-size: 12px; color: #666;">alice@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Product Manager</td>
+                                        <td>5 hours ago</td>
+                                        <td><span class="status-badge status-reviewing">Reviewing</span></td>
+                                        <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #FF8A65, #FF7043); color: white; display: flex; align-items: center; justify-content: center; font-weight: 600;">MP</div>
+                                                <div>
+                                                    <div style="font-weight: 500;">Michael Park</div>
+                                                    <div style="font-size: 12px; color: #666;">michael@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>UX Designer</td>
+                                        <td>1 day ago</td>
+                                        <td><span class="status-badge status-interview">Interview</span></td>
+                                        <td><button class="btn btn-secondary btn-sm">View</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Quick Actions</h3>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Post New Job
+                            </button>
+                            <button class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Post Internship
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-search"></i> Search Candidates
+                            </button>
+                            <button class="btn btn-secondary">
+                                <i class="fas fa-calendar"></i> Schedule Interview
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Jobs Section -->
+            <div class="page-section" id="jobs">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                    <h1>Job Postings</h1>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Post New Job
+                    </button>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active">All Jobs (24)</div>
+                    <div class="tab">Active (18)</div>
+                    <div class="tab">Drafts (4)</div>
+                    <div class="tab">Closed (2)</div>
+                </div>
+
+                <div class="tab-content active">
+                    <div class="card">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Job Title</th>
+                                        <th>Location</th>
+                                        <th>Type</th>
+                                        <th>Applications</th>
+                                        <th>Posted</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Senior Full Stack Developer</strong></td>
+                                        <td>New York, NY</td>
+                                        <td>Full-time</td>
+                                        <td><strong>42</strong></td>
+                                        <td>2 days ago</td>
+                                        <td><span class="status-badge status-active">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">View</button>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Product Manager</strong></td>
+                                        <td>San Francisco, CA</td>
+                                        <td>Full-time</td>
+                                        <td><strong>28</strong></td>
+                                        <td>1 week ago</td>
+                                        <td><span class="status-badge status-active">Active</span></td>
+                                        <td>
+                                            <button class="btn btn-secondary btn-sm">View</button>
+                                            <button class="btn btn-secondary btn-sm">Edit</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Other Sections -->
+            <div class="page-section" id="internships">
+                <h1 style="margin-bottom: 25px;">Internships</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-user-graduate"></i>
+                        <h3>Internships</h3>
+                        <p>Manage your internship postings here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-section" id="candidates">
+                <h1 style="margin-bottom: 25px;">All Candidates</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h3>Candidates</h3>
+                        <p>Browse and manage candidate applications</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-section" id="pipeline">
+                <h1 style="margin-bottom: 25px;">Recruitment Pipeline</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-stream"></i>
+                        <h3>Recruitment Pipeline</h3>
+                        <p>Track candidates through your hiring process</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-section" id="messages">
+                <h1 style="margin-bottom: 25px;">Messages</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-envelope"></i>
+                        <h3>Messages</h3>
+                        <p>Communicate with candidates</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-section" id="calendar">
+                <h1 style="margin-bottom: 25px;">Interview Calendar</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-calendar-alt"></i>
+                        <h3>Interview Calendar</h3>
+                        <p>Schedule and manage interviews</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-section" id="analytics">
+                <h1 style="margin-bottom: 25px;">Analytics</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>Analytics</h3>
+                        <p>View detailed recruitment analytics</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page-section" id="settings">
+                <h1 style="margin-bottom: 25px;">Settings</h1>
+                <div class="card">
+                    <div class="empty-state">
+                        <i class="fas fa-cog"></i>
+                        <h3>Settings</h3>
+                        <p>Manage your account settings</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation handler
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const section = this.getAttribute('data-section');
+                
+                // Update nav items
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Update sections
+                document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(section).classList.add('active');
+            });
+        });
+
+        // Tab handler
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const parent = this.closest('.tabs');
+                parent.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

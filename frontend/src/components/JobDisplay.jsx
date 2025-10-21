@@ -15,6 +15,11 @@ const JobDisplay = () => {
     fetchJobs();
   }, []);
 
+  const sanitizeJobTitle = (title) => {
+    if (!title) return title;
+    return String(title).replace(/^Updated\s*[-:]?\s*/i, "");
+  };
+
   const fetchJobs = async () => {
     try {
       setLoading(true);
@@ -23,7 +28,12 @@ const JobDisplay = () => {
         throw new Error('Failed to fetch jobs');
       }
       const data = await response.json();
-      setJobs(data);
+      const transformed = (data || []).map(job => ({
+        ...job,
+        job_title: sanitizeJobTitle(job.job_title || job.jobTitle),
+        jobTitle: sanitizeJobTitle(job.jobTitle || job.job_title)
+      }));
+      setJobs(transformed);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -90,25 +100,25 @@ const JobDisplay = () => {
           <div key={job._id} className="job-card" onClick={() => handleJobClick(job)}>
             <div className="job-card-header">
               <div className="job-title-section">
-                <h3 className="job-title">{job.job_title}</h3>
-                <span className="company-name">{job.company_name}</span>
+                <h3 className="job-title">{job.job_title || job.jobTitle}</h3>
+                <span className="company-name">{job.company_name || job.companyName}</span>
               </div>
               <div className="job-badge">
-                <span className="badge-text">{job.job_type}</span>
+                <span className="badge-text">{job.job_type || job.jobType}</span>
               </div>
             </div>
             
             <div className="job-location">
               <span className="location-icon">📍</span>
               <span>{job.location}</span>
-              {job.remote_option && (
-                <span className="remote-badge">{job.remote_option}</span>
+              {(job.remote_option || job.remoteOption) && (
+                <span className="remote-badge">{job.remote_option || job.remoteOption}</span>
               )}
             </div>
 
             <div className="job-salary">
               <span className="salary-icon">💰</span>
-              <span>{job.salary_range}</span>
+              <span>{job.salary_range || job.salaryRange}</span>
             </div>
 
             <div className="job-skills-preview">

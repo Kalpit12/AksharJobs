@@ -385,22 +385,47 @@ def get_recruiter_internships():
             return jsonify({'error': 'Database connection failed'}), 500
         
         # Get internships posted by this recruiter (try both ObjectId and string)
-        try:
-            internships = list(db.internships.find({'recruiter_id': ObjectId(recruiter_id)}))
-        except:
-            internships = list(db.internships.find({'recruiter_id': recruiter_id}))
+        print(f"Searching for internships with recruiter_id: {recruiter_id}")
+        internships = []
+        
+        # Try string match first (most common case)
+        internships = list(db.internships.find({'recruiter_id': recruiter_id}))
+        print(f"String match found {len(internships)} internships")
+        
+        # If no results, try ObjectId match
+        if not internships:
+            try:
+                internships = list(db.internships.find({'recruiter_id': ObjectId(recruiter_id)}))
+                print(f"ObjectId match found {len(internships)} internships")
+            except Exception as e:
+                print(f"ObjectId conversion failed: {e}")
+                internships = []
         
         print(f"Found {len(internships)} internships")
         
         # Convert ObjectIds to strings for JSON serialization
         serializable_internships = []
         for internship in internships:
-            internship['_id'] = str(internship['_id'])
-            if 'recruiter_id' in internship:
-                internship['recruiter_id'] = str(internship['recruiter_id'])
-            if 'createdAt' in internship and isinstance(internship['createdAt'], datetime):
-                internship['createdAt'] = internship['createdAt'].isoformat()
-            serializable_internships.append(internship)
+            # Create a clean copy of the internship data
+            clean_internship = {}
+            for key, value in internship.items():
+                if key == '_id':
+                    clean_internship[key] = str(value)
+                elif key == 'recruiter_id':
+                    clean_internship[key] = str(value)
+                elif key == 'createdAt' and isinstance(value, datetime):
+                    clean_internship[key] = value.isoformat()
+                elif isinstance(value, bytes):
+                    # Skip bytes objects that can't be JSON serialized
+                    clean_internship[key] = str(value) if value else None
+                elif isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                    # Only include JSON-serializable types
+                    clean_internship[key] = value
+                else:
+                    # Convert other types to string
+                    clean_internship[key] = str(value) if value is not None else None
+            
+            serializable_internships.append(clean_internship)
         
         return jsonify(serializable_internships), 200
         
@@ -409,6 +434,124 @@ def get_recruiter_internships():
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Failed to fetch internships', 'details': str(e)}), 500
+
+@recruiter_bp.route('/internships', methods=['POST'])
+@jwt_required()
+def create_internship():
+    """
+    Create a new internship posting
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        print(f"Creating internship for recruiter: {recruiter_id}")
+        print(f"Internship data: {data}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Create internship document
+        internship_data = {
+            'title': data.get('title', ''),
+            'company': data.get('company', ''),
+            'location': data.get('location', ''),
+            'type': data.get('type', 'Remote'),
+            'duration': data.get('duration', '3-6 months'),
+            'stipend': data.get('stipend', ''),
+            'domain': data.get('domain', ''),
+            'requiredSkills': data.get('requiredSkills', []),
+            'description': data.get('description', ''),
+            'responsibilities': data.get('responsibilities', ''),
+            'requirements': data.get('requirements', ''),
+            'benefits': data.get('benefits', ''),
+            'applicationDeadline': data.get('applicationDeadline', ''),
+            'recruiter_id': recruiter_id,
+            'status': data.get('status', 'active'),
+            'createdAt': datetime.utcnow(),
+            'applicants': [],
+            'views': 0
+        }
+        
+        # Insert internship
+        result = db.internships.insert_one(internship_data)
+        internship_data['_id'] = str(result.inserted_id)
+        internship_data['recruiter_id'] = str(internship_data['recruiter_id'])
+        internship_data['createdAt'] = internship_data['createdAt'].isoformat()
+        
+        print(f"Internship created successfully: {result.inserted_id}")
+        
+        return jsonify(internship_data), 201
+        
+    except Exception as e:
+        print(f"Error creating internship: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to create internship', 'details': str(e)}), 500
+
+@recruiter_bp.route('/internships/<internship_id>', methods=['PUT'])
+@jwt_required()
+def update_internship(internship_id):
+    """
+    Update an existing internship
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        print(f"Updating internship {internship_id} for recruiter: {recruiter_id}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Find and update internship
+        from bson import ObjectId
+        try:
+            result = db.internships.update_one(
+                {'_id': ObjectId(internship_id), 'recruiter_id': recruiter_id},
+                {'$set': data}
+            )
+            
+            if result.matched_count == 0:
+                return jsonify({'error': 'Internship not found or not authorized'}), 404
+            
+            # Return updated internship
+            updated_internship = db.internships.find_one({'_id': ObjectId(internship_id)})
+            if updated_internship:
+                updated_internship['_id'] = str(updated_internship['_id'])
+                updated_internship['recruiter_id'] = str(updated_internship['recruiter_id'])
+                if 'createdAt' in updated_internship and isinstance(updated_internship['createdAt'], datetime):
+                    updated_internship['createdAt'] = updated_internship['createdAt'].isoformat()
+                
+                return jsonify(updated_internship), 200
+            else:
+                return jsonify({'error': 'Failed to retrieve updated internship'}), 500
+                
+        except Exception as e:
+            print(f"Error updating internship: {e}")
+            return jsonify({'error': 'Invalid internship ID'}), 400
+        
+    except Exception as e:
+        print(f"Error updating internship: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to update internship', 'details': str(e)}), 500
 
 
 @recruiter_bp.route('/candidates', methods=['GET'])
@@ -438,10 +581,24 @@ def get_recruiter_candidates():
         # Convert ObjectIds to strings for JSON serialization
         serializable_candidates = []
         for candidate in candidates:
-            candidate['_id'] = str(candidate['_id'])
-            if 'createdAt' in candidate and isinstance(candidate['createdAt'], datetime):
-                candidate['createdAt'] = candidate['createdAt'].isoformat()
-            serializable_candidates.append(candidate)
+            # Create a clean copy of the candidate data
+            clean_candidate = {}
+            for key, value in candidate.items():
+                if key == '_id':
+                    clean_candidate[key] = str(value)
+                elif key == 'createdAt' and isinstance(value, datetime):
+                    clean_candidate[key] = value.isoformat()
+                elif isinstance(value, bytes):
+                    # Skip bytes objects that can't be JSON serialized
+                    clean_candidate[key] = str(value) if value else None
+                elif isinstance(value, (str, int, float, bool, list, dict, type(None))):
+                    # Only include JSON-serializable types
+                    clean_candidate[key] = value
+                else:
+                    # Convert other types to string
+                    clean_candidate[key] = str(value) if value is not None else None
+            
+            serializable_candidates.append(clean_candidate)
         
         return jsonify(serializable_candidates), 200
         
@@ -471,20 +628,48 @@ def get_recruiter_applications():
         if db is None:
             return jsonify({'error': 'Database connection failed'}), 500
         
-        # Get all jobs posted by this recruiter (try both ObjectId and string)
+        # Get all jobs posted by this recruiter
+        # First try to find jobs by recruiter_id as ObjectId
         try:
             recruiter_jobs = list(db.jobs.find({'recruiter_id': ObjectId(recruiter_id)}))
         except:
+            # If that fails, try as string
             recruiter_jobs = list(db.jobs.find({'recruiter_id': recruiter_id}))
+        
+        # If no jobs found, try to find jobs where recruiter_id matches the user's email or other identifier
+        if not recruiter_jobs:
+            # Get user details to find alternative identifiers
+            user = db.users.find_one({'_id': ObjectId(recruiter_id)})
+            if user:
+                user_email = user.get('email', '')
+                # Try to find jobs by email or other patterns
+                recruiter_jobs = list(db.jobs.find({
+                    '$or': [
+                        {'recruiter_id': user_email},
+                        {'recruiter_email': user_email},
+                        {'posted_by': user_email},
+                        {'company_email': user_email}
+                    ]
+                }))
         
         job_ids = [job['_id'] for job in recruiter_jobs]
         
         print(f"Found {len(recruiter_jobs)} jobs, fetching applications...")
+        print(f"Job IDs: {job_ids}")
         
         # Get all applications for these jobs
-        applications = list(db.applications.find({'job_id': {'$in': job_ids}}))
+        # Convert job_ids to strings for comparison since applications store job_id as string
+        job_id_strings = [str(job_id) for job_id in job_ids]
+        print(f"Job ID strings: {job_id_strings}")
         
+        applications = list(db.applications.find({'job_id': {'$in': job_id_strings}}))
         print(f"Found {len(applications)} applications")
+        
+        # Debug: Check all applications to see what job_ids exist
+        all_apps = list(db.applications.find({}, {'job_id': 1, 'candidateName': 1}))
+        print(f"All applications in database: {len(all_apps)}")
+        for app in all_apps[:5]:  # Show first 5
+            print(f"  App job_id: {app.get('job_id')} (candidate: {app.get('candidateName', 'Unknown')})")
         
         # Convert ObjectIds to strings and add candidate info
         serializable_applications = []
@@ -547,10 +732,28 @@ def get_recruiter_stats():
         except:
             recruiter_jobs = list(db.jobs.find({'recruiter_id': recruiter_id}))
         
+        # If no jobs found, try to find jobs where recruiter_id matches the user's email or other identifier
+        if not recruiter_jobs:
+            # Get user details to find alternative identifiers
+            user = db.users.find_one({'_id': ObjectId(recruiter_id)})
+            if user:
+                user_email = user.get('email', '')
+                # Try to find jobs by email or other patterns
+                recruiter_jobs = list(db.jobs.find({
+                    '$or': [
+                        {'recruiter_id': user_email},
+                        {'recruiter_email': user_email},
+                        {'posted_by': user_email},
+                        {'company_email': user_email}
+                    ]
+                }))
+        
         job_ids = [job['_id'] for job in recruiter_jobs]
         
         # Get applications for these jobs
-        applications = list(db.applications.find({'job_id': {'$in': job_ids}}))
+        # Convert job_ids to strings for comparison since applications store job_id as string
+        job_id_strings = [str(job_id) for job_id in job_ids]
+        applications = list(db.applications.find({'job_id': {'$in': job_id_strings}}))
         
         print(f"Calculating stats: {len(recruiter_jobs)} jobs, {len(applications)} applications")
         

@@ -75,6 +75,25 @@ def login():
         return jsonify({"message": "OK"}), 200
     
     data = request.json
+    
+    # Validate request data
+    if data is None:
+        return jsonify({"error": "No JSON data received"}), 400
+    
+    if not isinstance(data, dict):
+        return jsonify({"error": "Invalid data format"}), 400
+        
+    if 'email' not in data or 'password' not in data:
+        return jsonify({"error": "Missing email or password"}), 400
+    
+    # Validate email format
+    import re
+    email = data.get('email', '').strip()
+    # Strict email validation
+    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+\.[a-zA-Z]{2,}$'
+    if not email or '@' not in email or '.' not in email.split('@')[-1] or not re.match(email_pattern, email):
+        return jsonify({"error": "Invalid email format"}), 400
+    
     response, status = AuthService.login(data)
 
     print("User got",response)
@@ -133,7 +152,8 @@ def get_current_user():
         
     except Exception as e:
         print(f"Error getting current user: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
+        # Return 401 for any authentication-related errors
+        return jsonify({"error": "Authentication failed"}), 401
 
 @auth_routes.route('/update_profile', methods=['PUT'])
 def update_profile():

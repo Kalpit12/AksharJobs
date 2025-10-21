@@ -22,9 +22,9 @@ try:
     # Test connection with very short timeout
     redis_client.ping()
     REDIS_AVAILABLE = True
-    print("✅ Redis connected successfully")
+    print("[OK] Redis connected successfully")
 except Exception as e:
-    print(f"⚠️ Redis not available: {e}. Using in-memory storage.")
+    print(f"[WARNING] Redis not available: {e}. Using in-memory storage.")
     REDIS_AVAILABLE = False
     redis_client = None
     # Fallback to in-memory storage

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intern Dashboard - AksharJobs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* COMPLETE INTERN DASHBOARD - GREEN THEME */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); min-height: 100vh; }
+        
+        /* Sidebar - Green Theme */
+        .sidebar { position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; z-index: 1000; overflow-y: auto; box-shadow: 4px 0 12px rgba(34, 197, 94, 0.3); }
+        .sidebar-header { padding: 2rem 1.5rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .sidebar-header h2 { font-size: 1.5rem; font-weight: 700; margin: 0 0 0.5rem 0; }
+        .sidebar-header p { margin: 0; opacity: 0.8; font-size: 0.9rem; }
+        .nav-menu { padding: 1rem 0 2rem 0; }
+        .nav-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1.5rem; cursor: pointer; transition: all 0.3s ease; position: relative; margin-bottom: 0.25rem; }
+        .nav-item:hover { background: rgba(255, 255, 255, 0.1); }
+        .nav-item.active { background: rgba(255, 255, 255, 0.15); border-right: 4px solid white; }
+        .nav-item i { font-size: 18px; width: 20px; }
+        .badge { background: rgba(255, 255, 255, 0.2); color: white; padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-left: auto; }
+        .badge.success { background: #22c55e; }
+        .badge.warning { background: #ff9800; }
+        
+        /* Main Content */
+        .main-content { margin-left: 280px; min-height: 100vh; }
+        .top-bar { background: white; padding: 1rem 2rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); display: flex; align-items: center; gap: 1rem; position: sticky; top: 0; z-index: 100; }
+        .search-bar { flex: 1; max-width: 500px; position: relative; display: flex; align-items: center; background: #f5f5f5; border-radius: 8px; padding: 0.5rem 1rem; }
+        .search-bar input { border: none; background: none; outline: none; flex: 1; padding: 0.5rem; font-size: 0.9rem; }
+        .search-bar i { color: #666; margin-right: 0.5rem; }
+        
+        .icon-btn { background: none; border: none; padding: 0.5rem; border-radius: 8px; cursor: pointer; color: #666; position: relative; }
+        .icon-btn:hover { background: #f5f5f5; color: #22c55e; }
+        .notification-dot { position: absolute; top: 0.25rem; right: 0.25rem; width: 8px; height: 8px; background: #f44336; border-radius: 50%; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #22c55e, #16a34a); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; }
+        
+        .content-area { padding: 2rem; }
+        .page-section { display: none; }
+        .page-section.active { display: block; }
+        
+        /* Profile Completion */
+        .profile-completion { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; padding: 2rem; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 8px 24px rgba(34, 197, 94, 0.3); }
+        .completion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .completion-bar { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.2); border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem; }
+        .completion-fill { height: 100%; background: white; border-radius: 4px; transition: width 0.3s ease; }
+        .completion-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .completion-actions .btn { background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.75rem 1.5rem; }
+        .completion-actions .btn:hover { background: rgba(255, 255, 255, 0.3); }
+        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); border-left: 4px solid #22c55e; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .stat-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem; }
+        .stat-icon.blue { background: linear-gradient(135deg, #2196f3, #1976d2); }
+        .stat-icon.green { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .stat-icon.purple { background: linear-gradient(135deg, #9c27b0, #7b1fa2); }
+        .stat-icon.orange { background: linear-gradient(135deg, #ff9800, #f57c00); }
+        .stat-number { font-size: 2rem; font-weight: 700; color: #333; }
+        .stat-label { font-size: 0.9rem; color: #666; font-weight: 500; }
+        .stat-change { font-size: 0.8rem; color: #666; font-weight: 500; }
+        .stat-change.positive { color: #22c55e; }
+        
+        /* Alerts */
+        .alert { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.5rem; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
+        .alert.success { background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); color: #15803d; }
+        .alert.warning { background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.2); color: #f57c00; }
+        
+        /* Cards */
+        .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); margin-bottom: 1.5rem; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #f0f0f0; }
+        .card-title { font-size: 1.2rem; font-weight: 600; color: #333; }
+        
+        /* Internship Cards */
+        .internship-card { border: 1px solid #e8f5e8; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; background: white; }
+        .internship-card:hover { border-color: #22c55e; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.1); transform: translateY(-1px); }
+        .company-logo { width: 50px; height: 50px; border-radius: 8px; background: linear-gradient(135deg, #22c55e, #16a34a); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; margin-right: 1rem; }
+        .internship-meta { display: flex; gap: 1rem; flex-wrap: wrap; margin: 1rem 0; }
+        .internship-meta span { display: flex; align-items: center; gap: 0.25rem; color: #666; font-size: 0.8rem; }
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; display: inline-block; margin-right: 5px; }
+        .tag.featured { background: rgba(255, 193, 7, 0.1); color: #f57c00; }
+        .tag.remote { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .tag.paid { background: rgba(33, 150, 243, 0.1); color: #2196f3; }
+        
+        /* Buttons */
+        .btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-weight: 500; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+        .btn-primary { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, #16a34a, #15803d); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); }
+        .btn-secondary { background: transparent; color: #22c55e; border: 1px solid #22c55e; }
+        .btn-secondary:hover { background: #22c55e; color: white; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.8rem; }
+        
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 1rem; text-align: left; border-bottom: 1px solid #f0f0f0; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; font-size: 0.9rem; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+        .status-applied { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .status-reviewing { background: rgba(255, 152, 0, 0.1); color: #f57c00; }
+        .status-interview { background: rgba(156, 39, 176, 0.1); color: #9c27b0; }
+        .status-accepted { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+        .status-rejected { background: rgba(244, 67, 54, 0.1); color: #f44336; }
+        
+        /* Academic Progress */
+        .academic-progress { display: flex; flex-direction: column; gap: 1rem; }
+        .progress-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid #f0f0f0; }
+        .progress-item:last-child { border-bottom: none; }
+        .progress-label { font-weight: 500; color: #666; }
+        .progress-value { font-weight: 600; color: #22c55e; }
+        
+        /* Responsive */
+        @media (max-width: 768px) { .sidebar { transform: translateX(-100%); } .main-content { margin-left: 0; } .stats-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fas fa-user-graduate"></i> InternHub</h2>
+            <p>Launch Your Career</p>
+        </div>
+        <div class="nav-menu">
+            <div class="nav-item active" data-section="dashboard"><i class="fas fa-th-large"></i> <span>Dashboard</span></div>
+            <div class="nav-item" data-section="internships"><i class="fas fa-search"></i> <span>Browse Internships</span> <span class="badge success">NEW</span></div>
+            <div class="nav-item" data-section="applications"><i class="fas fa-file-alt"></i> <span>My Applications</span> <span class="badge">8</span></div>
+            <div class="nav-item" data-section="saved"><i class="fas fa-bookmark"></i> <span>Saved Internships</span> <span class="badge">5</span></div>
+            <div class="nav-item" data-section="interviews"><i class="fas fa-calendar-check"></i> <span>Interviews</span> <span class="badge">2</span></div>
+            <div class="nav-item" data-section="matches"><i class="fas fa-star"></i> <span>Recommended</span></div>
+            <div class="nav-item" data-section="messages"><i class="fas fa-envelope"></i> <span>Messages</span> <span class="badge warning">3</span></div>
+            <div class="nav-item" data-section="profile"><i class="fas fa-user"></i> <span>My Profile</span></div>
+            <div class="nav-item" data-section="academic"><i class="fas fa-graduation-cap"></i> <span>Academic Info</span></div>
+            <div class="nav-item" data-section="portfolio"><i class="fas fa-briefcase"></i> <span>Portfolio</span></div>
+            <div class="nav-item" data-section="learning"><i class="fas fa-book"></i> <span>Learning Resources</span></div>
+            <div class="nav-item" data-section="settings"><i class="fas fa-cog"></i> <span>Settings</span></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search internships, companies, or skills...">
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <button class="icon-btn"><i class="fas fa-bell"></i><span class="notification-dot"></span></button>
+                <button class="icon-btn"><i class="fas fa-question-circle"></i></button>
+                <div class="user-avatar">IN</div>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Dashboard Section -->
+            <div class="page-section active" id="dashboard">
+                <h1 style="margin-bottom: 25px;">Welcome back, Intern! 🎓</h1>
+
+                <!-- Profile Completion -->
+                <div class="profile-completion">
+                    <div class="completion-header">
+                        <div>
+                            <h3 style="margin-bottom: 5px;">Complete Your Profile</h3>
+                            <p style="opacity: 0.9; font-size: 14px;">65% Complete - Stand out to recruiters!</p>
+                        </div>
+                        <div style="font-size: 32px; font-weight: 700;">65%</div>
+                    </div>
+                    <div class="completion-bar">
+                        <div class="completion-fill" style="width: 65%;"></div>
+                    </div>
+                    <div class="completion-actions">
+                        <button class="btn"><i class="fas fa-user-edit"></i> Complete Profile</button>
+                        <button class="btn"><i class="fas fa-upload"></i> Upload Resume</button>
+                        <button class="btn"><i class="fas fa-award"></i> Add Coursework</button>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">8</div>
+                                <div class="stat-label">Applications Sent</div>
+                            </div>
+                            <div class="stat-icon blue"><i class="fas fa-paper-plane"></i></div>
+                        </div>
+                        <div class="stat-change positive"><i class="fas fa-arrow-up"></i> 2 this week</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">2</div>
+                                <div class="stat-label">Interviews Scheduled</div>
+                            </div>
+                            <div class="stat-icon green"><i class="fas fa-calendar-check"></i></div>
+                        </div>
+                        <div class="stat-change">Next: Tomorrow at 10:00 AM</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">35</div>
+                                <div class="stat-label">Profile Views</div>
+                            </div>
+                            <div class="stat-icon purple"><i class="fas fa-eye"></i></div>
+                        </div>
+                        <div class="stat-change positive"><i class="fas fa-arrow-up"></i> +25% this month</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-number">5</div>
+                                <div class="stat-label">Saved Opportunities</div>
+                            </div>
+                            <div class="stat-icon orange"><i class="fas fa-bookmark"></i></div>
+                        </div>
+                        <div class="stat-change">3 new matches today</div>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <div class="alert success">
+                    <i class="fas fa-check-circle" style="font-size: 24px;"></i>
+                    <div><strong>Congratulations!</strong> You've been shortlisted for the Software Development Internship at TechStart Inc.</div>
+                </div>
+                <div class="alert warning">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px;"></i>
+                    <div><strong>Application Deadline:</strong> Marketing Internship at Brand Agency closes in 2 days!</div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                    <!-- Recommended Internships -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Recommended for You</h3>
+                            <button class="btn btn-secondary btn-sm">View All</button>
+                        </div>
+                        <div class="internship-card">
+                            <div style="display: flex; margin-bottom: 1rem;">
+                                <div class="company-logo">TS</div>
+                                <div style="flex: 1;">
+                                    <h3 style="margin-bottom: 0.5rem;">Software Development Internship</h3>
+                                    <div style="color: #666; font-weight: 500; margin-bottom: 0.5rem;">TechStart Inc.</div>
+                                    <div class="internship-meta">
+                                        <span><i class="fas fa-map-marker-alt"></i> San Francisco, CA</span>
+                                        <span><i class="fas fa-clock"></i> 3-6 months</span>
+                                        <span><i class="fas fa-dollar-sign"></i> $20/hour</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 1rem;">
+                                <span class="tag featured"><i class="fas fa-star"></i> Featured</span>
+                                <span class="tag remote"><i class="fas fa-map-marker-alt"></i> Remote</span>
+                                <span class="tag paid"><i class="fas fa-dollar-sign"></i> Paid</span>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i> Apply Now</button>
+                                <button class="btn btn-secondary btn-sm"><i class="fas fa-eye"></i> View Details</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info -->
+                    <div>
+                        <!-- Academic Progress -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Academic Progress</h3>
+                            </div>
+                            <div class="academic-progress">
+                                <div class="progress-item">
+                                    <span class="progress-label">Current Year</span>
+                                    <span class="progress-value">3rd Year</span>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-label">GPA</span>
+                                    <span class="progress-value">3.8/4.0</span>
+                                </div>
+                                <div class="progress-item">
+                                    <span class="progress-label">Expected Graduation</span>
+                                    <span class="progress-value">May 2025</span>
+                                </div>
+                            </div>
+                            <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 10px;">Update Info</button>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Quick Actions</h3>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <button class="btn" style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white;"><i class="fas fa-search"></i> Find Internships</button>
+                                <button class="btn" style="background: linear-gradient(135deg, #14b8a6, #0d9488); color: white;"><i class="fas fa-upload"></i> Update Resume</button>
+                                <button class="btn" style="background: linear-gradient(135deg, #ff9800, #f57c00); color: white;"><i class="fas fa-user-edit"></i> Edit Profile</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Applications -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Applications</h3>
+                        <button class="btn btn-secondary btn-sm">View All</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Internship Title</th>
+                                <th>Company</th>
+                                <th>Duration</th>
+                                <th>Applied</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Software Development Internship</strong></td>
+                                <td>TechStart Inc.</td>
+                                <td>3 months</td>
+                                <td>3 days ago</td>
+                                <td><span class="status-badge status-applied">Applied</span></td>
+                                <td><button class="btn btn-secondary btn-sm">View</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Marketing Internship</strong></td>
+                                <td>Brand Agency</td>
+                                <td>6 months</td>
+                                <td>1 week ago</td>
+                                <td><span class="status-badge status-interview">Interview</span></td>
+                                <td><button class="btn btn-secondary btn-sm">View</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Other Sections (Placeholders) -->
+            <div class="page-section" id="internships">
+                <h1 style="margin-bottom: 25px;">Browse Internships</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;"><i class="fas fa-search" style="font-size: 64px; opacity: 0.3; display: block; margin-bottom: 20px;"></i>Internship listings coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="applications">
+                <h1 style="margin-bottom: 25px;">My Applications</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Application tracking coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="saved">
+                <h1 style="margin-bottom: 25px;">Saved Internships</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Saved internships will appear here...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="interviews">
+                <h1 style="margin-bottom: 25px;">Interviews</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Interview schedule coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="matches">
+                <h1 style="margin-bottom: 25px;">Recommended</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Personalized recommendations coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="messages">
+                <h1 style="margin-bottom: 25px;">Messages</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Messages coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="profile">
+                <h1 style="margin-bottom: 25px;">My Profile</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Profile management coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="academic">
+                <h1 style="margin-bottom: 25px;">Academic Info</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Academic information coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="portfolio">
+                <h1 style="margin-bottom: 25px;">Portfolio</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Portfolio management coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="learning">
+                <h1 style="margin-bottom: 25px;">Learning Resources</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Learning resources coming soon...</p>
+                </div>
+            </div>
+
+            <div class="page-section" id="settings">
+                <h1 style="margin-bottom: 25px;">Settings</h1>
+                <div class="card">
+                    <p style="text-align: center; color: #999; padding: 40px;">Settings coming soon...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const section = this.getAttribute('data-section');
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+                document.getElementById(section).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
