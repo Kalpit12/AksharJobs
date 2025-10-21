@@ -7,6 +7,7 @@ import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
 import notificationApi from '../api/notificationApi';
 import messageApi from '../api/messageApi';
+import JobCard from '../components/JobCard';
 import '../styles/dashboard-unified.css';
 import {
   faChartLine,
@@ -32,9 +33,6 @@ import {
   faArrowUp,
   faMapMarkerAlt,
   faBriefcase,
-  faLayerGroup,
-  faDollarSign,
-  faClock,
   faVideo,
   faCalendar,
   faEdit,
@@ -60,7 +58,6 @@ import {
   faGithub,
   faTwitter
 } from '@fortawesome/free-brands-svg-icons';
-// import '../styles/JobSeekerDashboard.css'; // Replaced by unified CSS
 
 const JobSeekerDashboard = () => {
   console.log('🚀 JobSeekerDashboard component rendering...');
@@ -961,50 +958,14 @@ const JobSeekerDashboard = () => {
                 {dashboardData.allJobs && dashboardData.allJobs.length > 0 ? (
                   <div className="jobs-list">
                     {dashboardData.allJobs.map((job, idx) => (
-                      <div key={job._id || idx} className="job-card orange-teal-theme">
-                        <div className="job-header">
-                          <div style={{display: 'flex', flex: 1}}>
-                            <div className="company-logo">
-                              {job.company_name ? job.company_name.charAt(0).toUpperCase() : 'J'}
-                            </div>
-                            <div className="job-info">
-                              <h3>{sanitizeJobTitle(job.job_title || job.title)}</h3>
-                              <div className="job-company">{job.company_name || job.company}</div>
-                              <div className="job-meta">
-                                <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location || 'Not specified'}</span>
-                                <span><FontAwesomeIcon icon={faBriefcase} /> {job.job_type || 'Full-time'}</span>
-                                <span><FontAwesomeIcon icon={faLayerGroup} /> {job.experience_level || 'Mid Level'}</span>
-                                <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary_range || 'Competitive'}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="job-actions">
-                            <button className={`btn btn-secondary btn-sm ${savedJobIds.has(job._id) ? 'active' : ''}`} onClick={() => toggleSaveJob(job._id)} title={savedJobIds.has(job._id) ? 'Unsave' : 'Save'}>
-                              <FontAwesomeIcon icon={faBookmark} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="job-tags">
-                          {job.featured && <span className="tag featured"><FontAwesomeIcon icon={faStar} /> Featured</span>}
-                          {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (
-                            <span key={skillIdx} className="tag">{skill}</span>
-                          ))}
-                          <span className="tag tag-meta">
-                            <FontAwesomeIcon icon={faClock} /> {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently'}
-                          </span>
-                        </div>
-                        <div style={{marginTop: '15px', display: 'flex', gap: '10px'}}>
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleApplyToJob(job)}
-                          >
-                            <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
-                          </button>
-                          <button className="btn btn-secondary btn-sm" onClick={() => viewDetails(job)}>
-                            <FontAwesomeIcon icon={faEye} /> View Details
-                          </button>
-                        </div>
-                      </div>
+                      <JobCard
+                        key={job._id || idx}
+                        job={job}
+                        onApply={handleApplyToJob}
+                        onSave={toggleSaveJob}
+                        onViewDetails={viewDetails}
+                        isSaved={savedJobIds.has(job._id)}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -1028,41 +989,14 @@ const JobSeekerDashboard = () => {
                 {dashboardData.allJobs && dashboardData.allJobs.filter(j => savedJobIds.has(j._id)).length > 0 ? (
                   <div className="jobs-list">
                     {dashboardData.allJobs.filter(j => savedJobIds.has(j._id)).map((job, idx) => (
-                      <div key={job._id || idx} className="job-card orange-teal-theme">
-                        <div className="job-header">
-                          <div style={{display: 'flex', flex: 1}}>
-                            <div className="company-logo">
-                              {job.company_name ? job.company_name.charAt(0).toUpperCase() : 'J'}
-                            </div>
-                            <div className="job-info">
-                              <h3>{sanitizeJobTitle(job.job_title || job.title)}</h3>
-                              <div className="job-company">{job.company_name || job.company}</div>
-                              <div className="job-meta">
-                                <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location || 'Not specified'}</span>
-                                <span><FontAwesomeIcon icon={faBriefcase} /> {job.job_type || 'Full-time'}</span>
-                                <span><FontAwesomeIcon icon={faLayerGroup} /> {job.experience_level || 'Mid Level'}</span>
-                                <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary_range || 'Competitive'}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="job-actions">
-                            <button className="btn btn-secondary btn-sm" onClick={() => toggleSaveJob(job._id)} title="Remove">
-                              <FontAwesomeIcon icon={faBookmark} />
-                            </button>
-                          </div>
-                        </div>
-                        <div style={{marginTop: '15px', display: 'flex', gap: '10px'}}>
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleApplyToJob(job)}
-                          >
-                            <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
-                          </button>
-                          <button className="btn btn-secondary btn-sm" onClick={() => viewDetails(job)}>
-                            <FontAwesomeIcon icon={faEye} /> View Details
-                          </button>
-                        </div>
-                      </div>
+                      <JobCard
+                        key={job._id || idx}
+                        job={job}
+                        onApply={handleApplyToJob}
+                        onSave={toggleSaveJob}
+                        onViewDetails={viewDetails}
+                        isSaved={savedJobIds.has(job._id)}
+                      />
                     ))}
                   </div>
                 ) : (
@@ -1115,55 +1049,14 @@ const JobSeekerDashboard = () => {
                 {dashboardData.recommendedJobs && dashboardData.recommendedJobs.length > 0 ? (
                   <div className="jobs-list">
                     {dashboardData.recommendedJobs.map((job, idx) => (
-                      <div key={job._id || idx} className="job-card orange-teal-theme">
-                        <div className="job-header">
-                          <div style={{display: 'flex', flex: 1}}>
-                            <div className="company-logo">
-                              {job.company_name ? job.company_name.charAt(0).toUpperCase() : 'J'}
-                            </div>
-                            <div className="job-info">
-                              <h3>{sanitizeJobTitle(job.job_title || job.title)}</h3>
-                              <div className="job-company">{job.company_name || job.company}</div>
-                              <div className="job-meta">
-                                <span><FontAwesomeIcon icon={faMapMarkerAlt} /> {job.location || 'Not specified'}</span>
-                                <span><FontAwesomeIcon icon={faBriefcase} /> {job.job_type || 'Full-time'}</span>
-                                <span><FontAwesomeIcon icon={faLayerGroup} /> {job.experience_level || 'Mid Level'}</span>
-                                <span><FontAwesomeIcon icon={faDollarSign} /> {job.salary_range || 'Competitive'}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="job-actions">
-                            <div className="match-score">
-                              <span className="match-percentage">{job.match_score || Math.floor(Math.random() * 30) + 70}%</span>
-                              <span className="match-label">Match</span>
-                            </div>
-                            <button className={`btn btn-secondary btn-sm ${savedJobIds.has(job._id) ? 'active' : ''}`} onClick={() => toggleSaveJob(job._id)} title={savedJobIds.has(job._id) ? 'Unsave' : 'Save'}>
-                              <FontAwesomeIcon icon={faBookmark} />
-                            </button>
-                          </div>
-                        </div>
-                        <div className="job-tags">
-                          {job.featured && <span className="tag featured"><FontAwesomeIcon icon={faStar} /> Featured</span>}
-                          <span className="tag ai-recommended"><FontAwesomeIcon icon={faStar} /> AI Recommended</span>
-                          {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (
-                            <span key={skillIdx} className="tag">{skill}</span>
-                          ))}
-                          <span className="tag tag-meta">
-                            <FontAwesomeIcon icon={faClock} /> {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently'}
-                          </span>
-                        </div>
-                        <div style={{marginTop: '15px', display: 'flex', gap: '10px'}}>
-                          <button 
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleApplyToJob(job)}
-                          >
-                            <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
-                          </button>
-                          <button className="btn btn-secondary btn-sm" onClick={() => viewDetails(job)}>
-                            <FontAwesomeIcon icon={faEye} /> View Details
-                          </button>
-                        </div>
-                      </div>
+                      <JobCard
+                        key={job._id || idx}
+                        job={job}
+                        onApply={handleApplyToJob}
+                        onSave={toggleSaveJob}
+                        onViewDetails={viewDetails}
+                        isSaved={savedJobIds.has(job._id)}
+                      />
                     ))}
                   </div>
                 ) : (

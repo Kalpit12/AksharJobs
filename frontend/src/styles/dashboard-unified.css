@@ -26,8 +26,8 @@
   --bg-gray-100: #f3f4f6;
   --bg-hover: rgba(255, 255, 255, 0.1);
   
-  /* Status Colors */
-  --status-success: #10b981;
+  /* Status Colors - Orange-Teal Theme */
+  --status-success: #0d9488;
   --status-warning: #f59e0b;
   --status-error: #ef4444;
   
@@ -1326,111 +1326,12 @@ tr:hover {
   font-weight: 600 !important;
 }
 
-/* === JOB CARDS === */
-.job-card,
-.job-card.orange-teal-theme,
-.job-card[class*="orange-teal"] {
-  background: var(--gradient-card) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 16px !important;
-  padding: 1.5rem !important;
-  box-shadow: var(--shadow-md) !important;
-  transition: all 0.3s ease !important;
-  margin-bottom: 1rem !important;
-  position: relative !important;
-  overflow: hidden !important;
-}
+/* === OLD JOB CARDS - DEPRECATED === */
+/* Old job card styles removed - now using new JobCard component */
 
-.job-card:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: var(--shadow-lg) !important;
-  border-color: var(--primary-orange) !important;
-}
+/* Old job card styles removed - now using new JobCard component */
 
-.job-card::before {
-  content: '' !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  height: 4px !important;
-  background: var(--gradient-primary) !important;
-}
-
-.job-title {
-  font-size: 1.25rem !important;
-  font-weight: 700 !important;
-  color: var(--text-dark) !important;
-  margin-bottom: 0.5rem !important;
-}
-
-.job-company {
-  font-size: 1rem !important;
-  font-weight: 600 !important;
-  color: var(--primary-orange) !important;
-  margin-bottom: 0.75rem !important;
-}
-
-.job-description {
-  color: var(--text-gray) !important;
-  line-height: 1.6 !important;
-  margin-bottom: 1rem !important;
-}
-
-.job-tags {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 0.5rem !important;
-  margin-bottom: 1rem !important;
-}
-
-.job-tag {
-  background: var(--gradient-primary) !important;
-  color: var(--text-white) !important;
-  padding: 0.25rem 0.75rem !important;
-  border-radius: 20px !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  text-transform: uppercase !important;
-  letter-spacing: 0.05em !important;
-}
-
-.job-actions {
-  display: flex !important;
-  gap: 0.75rem !important;
-  margin-top: 1rem !important;
-}
-
-.btn-apply {
-  background: var(--gradient-primary) !important;
-  color: var(--text-white) !important;
-  border: none !important;
-  padding: 0.75rem 1.5rem !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-  flex: 1 !important;
-}
-
-.btn-apply:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: var(--shadow-md) !important;
-}
-
-.btn-save {
-  background: var(--bg-white) !important;
-  color: var(--primary-orange) !important;
-  border: 2px solid var(--primary-orange) !important;
-  padding: 0.75rem 1rem !important;
-  border-radius: 8px !important;
-  font-weight: 600 !important;
-  transition: all 0.3s ease !important;
-}
-
-.btn-save:hover {
-  background: var(--primary-orange) !important;
-  color: var(--text-white) !important;
-}
+/* Old job card styles removed - now using new JobCard component */
 
 /* === FORCE ORANGE-TEAL THEME === */
 /* Override any remaining white backgrounds */
@@ -1616,74 +1517,263 @@ html body .jobseeker-dashboard-container .stat-card .stat-icon {
   border: 2px solid var(--primary-orange) !important;
 }
 
-/* Force override any green job cards */
-.job-card[style*="green"],
-.job-card[style*="#10b981"],
-.job-card[style*="#059669"],
-.job-card[style*="#22c55e"],
-.job-card[style*="#4caf50"] {
-  background: var(--gradient-card) !important;
-  background-image: var(--gradient-card) !important;
-  background-color: var(--bg-white) !important;
-  border: 1px solid var(--border-color) !important;
-  color: var(--text-dark) !important;
-}
+/* Old job card override rules removed - now using new JobCard component */
 
-/* Force override any green job card elements */
-.job-card *[style*="green"],
-.job-card *[style*="#10b981"],
-.job-card *[style*="#059669"],
-.job-card *[style*="#22c55e"],
-.job-card *[style*="#4caf50"] {
-  background: var(--gradient-primary) !important;
-  color: var(--text-white) !important;
-}
+/* Old job card override rules removed - now using new JobCard component */
 
-/* Ultra aggressive job card overrides */
-.job-card,
-.job-card.orange-teal-theme,
-.job-card[class*="orange-teal"],
-.job-card[style],
-.job-card[style*="green"],
-.job-card[style*="#10b981"],
-.job-card[style*="#059669"] {
-  background: var(--gradient-card) !important;
-  background-image: var(--gradient-card) !important;
-  background-color: var(--bg-white) !important;
-  border: 1px solid var(--border-color) !important;
+/* Old job card content rules removed - now using new JobCard component */
+
+/* Old job card override rules removed - now using new JobCard component */
+
+/* Old job card nuclear override rules removed - now using new JobCard component */
+
+/* Old job card override rules removed - now using new JobCard component */
+
+/* === NEW JOB CARD COMPONENT - ORANGE-TEAL THEME === */
+.new-job-card {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(13, 148, 136, 0.08) 100%) !important;
+  background-color: #ffffff !important;
+  border: 2px solid var(--primary-orange) !important;
   border-radius: 16px !important;
-  color: var(--text-dark) !important;
-  box-shadow: var(--shadow-md) !important;
+  padding: 1.5rem !important;
+  margin-bottom: 1rem !important;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15) !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-/* Force job card content to use orange-teal theme */
-.job-card .job-title,
-.job-card .job-company,
-.job-card .job-meta,
-.job-card .job-tags,
-.job-card .tag {
-  color: var(--text-dark) !important;
+.new-job-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.3) !important;
+  border-color: var(--primary-teal) !important;
 }
 
-.job-card .job-company {
+.new-job-card::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 4px !important;
+  background: var(--gradient-primary) !important;
+  border-radius: 16px 16px 0 0 !important;
+}
+
+.new-job-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 1rem !important;
+}
+
+.new-job-card-main {
+  display: flex !important;
+  flex: 1 !important;
+  gap: 1rem !important;
+}
+
+.new-job-card-logo {
+  width: 60px !important;
+  height: 60px !important;
+  background: var(--gradient-primary) !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  flex-shrink: 0 !important;
+}
+
+.new-job-card-info {
+  flex: 1 !important;
+}
+
+.new-job-card-title {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+  margin: 0 0 0.5rem 0 !important;
+  line-height: 1.3 !important;
+}
+
+.new-job-card-company {
+  font-size: 1rem !important;
+  font-weight: 700 !important;
   color: var(--primary-orange) !important;
+  margin-bottom: 0.75rem !important;
 }
 
-.job-card .tag.featured {
-  background: var(--gradient-primary) !important;
-  color: var(--text-white) !important;
+.new-job-card-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1rem !important;
 }
 
-.job-card .btn-primary {
-  background: var(--gradient-primary) !important;
-  color: var(--text-white) !important;
-  border: none !important;
+.new-job-card-meta-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  color: #1f2937 !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
 }
 
-.job-card .btn-secondary {
-  background: var(--bg-white) !important;
+.new-job-card-meta-item svg {
+  color: var(--primary-orange) !important;
+  font-size: 0.8rem !important;
+}
+
+.new-job-card-actions {
+  display: flex !important;
+  gap: 0.5rem !important;
+}
+
+.new-job-card-save-btn {
+  background: #ffffff !important;
   color: var(--primary-orange) !important;
   border: 2px solid var(--primary-orange) !important;
+  padding: 0.5rem !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.new-job-card-save-btn:hover {
+  background: var(--primary-orange) !important;
+  color: #ffffff !important;
+  transform: scale(1.05) !important;
+}
+
+.new-job-card-save-btn.saved {
+  background: var(--primary-orange) !important;
+  color: #ffffff !important;
+}
+
+.new-job-card-tags {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 0.5rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.new-job-card-tag {
+  background: var(--gradient-primary) !important;
+  color: #ffffff !important;
+  padding: 0.25rem 0.75rem !important;
+  border-radius: 20px !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.25rem !important;
+}
+
+.new-job-card-tag.featured {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+
+.new-job-card-tag.meta {
+  background: rgba(107, 114, 128, 0.1) !important;
+  color: #6b7280 !important;
+  border: 1px solid rgba(107, 114, 128, 0.2) !important;
+}
+
+.new-job-card-buttons {
+  display: flex !important;
+  gap: 0.75rem !important;
+  margin-top: 1rem !important;
+  padding-top: 0.5rem !important;
+  border-top: 1px solid rgba(249, 115, 22, 0.2) !important;
+}
+
+.new-job-card-apply-btn {
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
+  color: #ffffff !important;
+  border: 3px solid #f97316 !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-weight: 900 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 4px 8px rgba(249, 115, 22, 0.4) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  opacity: 1 !important;
+}
+
+.new-job-card-apply-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 12px rgba(249, 115, 22, 0.6) !important;
+  background: linear-gradient(135deg, #ea580c 0%, #0f766e 100%) !important;
+  border-color: #ea580c !important;
+}
+
+/* Force Apply Now button to always be visible */
+.new-job-card-apply-btn,
+.new-job-card-apply-btn * {
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+}
+
+.new-job-card-apply-btn svg {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+/* ULTRA AGGRESSIVE OVERRIDE - FORCE APPLY BUTTON VISIBILITY */
+html body .new-job-card-apply-btn,
+html body .new-job-card-apply-btn *,
+html body .new-job-card-apply-btn svg,
+html body .new-job-card-apply-btn span {
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: flex !important;
+  font-weight: 900 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 4px 8px rgba(249, 115, 22, 0.4) !important;
+  border: 3px solid #f97316 !important;
+}
+
+.new-job-card-view-btn {
+  background: #ffffff !important;
+  color: var(--primary-orange) !important;
+  border: 2px solid var(--primary-orange) !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 8px !important;
+  font-weight: 800 !important;
+  font-size: 0.9rem !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.2) !important;
+}
+
+.new-job-card-view-btn:hover {
+  background: var(--primary-orange) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 8px rgba(249, 115, 22, 0.3) !important;
 }
 
 /* Force override any green stat cards */
