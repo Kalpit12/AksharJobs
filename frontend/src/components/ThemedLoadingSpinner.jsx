@@ -19,9 +19,9 @@ const THEME_CONFIGS = {
     name: 'Intern'
   },
   jobseeker: {
-    primaryColor: '#3b82f6',
-    secondaryColor: '#2563eb',
-    accentColor: '#1d4ed8',
+    primaryColor: '#f97316',
+    secondaryColor: '#ea580c',
+    accentColor: '#0d9488',
     lightColor: '#eff6ff',
     icon: faBriefcase,
     name: 'Job Seeker'

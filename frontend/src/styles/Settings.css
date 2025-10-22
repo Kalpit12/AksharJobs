@@ -1,41 +1,20 @@
 /* Modern Settings Page with Enhanced UI and Animations */
 
-/* CSS Variables for consistent theming - Updated to match image */
-:root {
-  --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-  --secondary-gradient: linear-gradient(135deg, #93c5fd 0%, #60a5fa 100%);
-  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --verified-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  --card-shadow-hover: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --border-radius: 16px;
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --text-primary: #000000;
-  --text-secondary: #374151;
-  --text-muted: #6b7280;
-  --background-primary: #ffffff;
-  --background-secondary: #f9fafb;
-  --accent-purple: #3b82f6;
-  --accent-purple-light: #60a5fa;
-}
+/* Import unified design system */
+@import './DesignSystem.css';
 
 /* Enhanced font visibility and contrast */
 .settings-container {
   color: var(--text-primary);
+  min-height: 100vh;
+  background: var(--bg-secondary);
+  display: flex;
+  font-family: var(--font-family-primary);
+  animation: fadeInUp 0.6s ease-out;
 }
 
 .settings-sidebar {
   color: var(--text-primary);
-}
-
-/* Main container with animated background */
-.settings-container {
-    min-height: 100vh;
-    background: var(--background-secondary);
-    display: flex;
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    animation: fadeInUp 0.6s ease-out;
 }
 
 @keyframes fadeInUp {
@@ -52,15 +31,15 @@
 /* Enhanced Sidebar */
 .settings-sidebar {
   width: 320px;
-  background: var(--background-primary);
+  background: var(--bg-primary);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(59, 130, 246, 0.1);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-lg);
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
-  z-index: 10;
+  z-index: var(--z-sticky);
   animation: slideInLeft 0.5s ease-out;
 }
 
@@ -182,14 +161,14 @@
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
   color: white;
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
   transform: translateX(5px);
 }
 
 .nav-item.active:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #0d9488 100%);
   color: white;
 }
 
@@ -424,7 +403,7 @@
 }
 
 .verify-btn:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #0d9488 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
 }
@@ -572,7 +551,7 @@
 }
 
 .settings-sidebar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #ea580c 0%, #0d9488 100%);
 }
 
 /* Responsive Design */

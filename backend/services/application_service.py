@@ -119,8 +119,18 @@ def process_application(user_id, job_id, status):
     job_data = get_job_by_id(job_id)  
 
     if not resume_data:
-        print(f"❌ No resume found for user {user_id}")
-        return {"error": "No resume found for this user. Please upload your resume first."}, 404
+        print(f"⚠️ No resume found for user {user_id} - returning default application")
+        # Return default application data instead of error - allow applications without resume
+        return {
+            "final_score": 0,
+            "education_score": 0,
+            "skill_score": 0,
+            "experience_score": 0,
+            "skills_match": 0,
+            "education_match": 0,
+            "experience_match": 0,
+            "message": "Application submitted without resume - match score not calculated"
+        }
     if not job_data:
         return {"error": "No job found for this ID"}, 404
    
@@ -270,8 +280,18 @@ def get_match_score(user_id, job_id):
     job_data = get_job_by_id(job_id)  
 
     if not resume_data:
-        print(f"❌ No resume found for user {user_id}")
-        return {"error": "No resume found for this user. Please upload your resume first."}, 404
+        print(f"⚠️ No resume found for user {user_id} - returning default scores")
+        # Return default scores instead of error - allow applications without resume
+        return {
+            "final_score": 0,
+            "education_score": 0,
+            "skill_score": 0,
+            "experience_score": 0,
+            "skills_match": 0,
+            "education_match": 0,
+            "experience_match": 0,
+            "message": "Application submitted without resume - match score not calculated"
+        }
     if not job_data:
         return {"error": "No job found for this ID"}, 404
    

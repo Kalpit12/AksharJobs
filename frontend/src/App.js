@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import "./styles/DesignSystem.css"; // Unified design system
 import "./styles/Global.css";
 import "./styles/dashboard-unified.css"; // Unified orange-teal theme for all dashboards
 import ErrorBoundary from "./components/ErrorBoundary";

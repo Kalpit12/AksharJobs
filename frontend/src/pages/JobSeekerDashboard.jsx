@@ -86,24 +86,9 @@ const JobSeekerDashboard = () => {
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [unreadMessages, setUnreadMessages] = useState(0);
   const [savedJobIds, setSavedJobIds] = useState(new Set());
-  const [profileForm, setProfileForm] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-    location: '',
-    professionalTitle: '',
-    professionalSummary: '',
-    yearsOfExperience: '',
-    skills: '',
-    tools: '',
-    expectedSalary: '',
-    currency: '',
-    availability: '',
-    careerLevel: '',
-    industry: '',
-    jobTypePreference: ''
-  });
+  // Profile state - moved to dedicated MyProfile page
+  // These are kept for backward compatibility but not used in dashboard UI
+  const [profileForm, setProfileForm] = useState({});
   const [education, setEducation] = useState([]);
   const [experience, setExperience] = useState([]);
   const [languages, setLanguages] = useState([]);
@@ -128,8 +113,8 @@ const JobSeekerDashboard = () => {
   };
   const pillTagStyle = {
     display: 'inline-block',
-    background: '#eaf3ff',
-    color: '#1d4ed8',
+    background: '#fed7aa',
+    color: '#ea580c',
     padding: '8px 14px',
     borderRadius: '999px',
     margin: '5px',
@@ -259,15 +244,27 @@ const JobSeekerDashboard = () => {
     console.log('🔑 Token exists:', !!localStorage.getItem('token'));
     const fetchProfile = async () => {
       try {
-        const res = await axios.get(buildApiUrl('/api/profile/profile'), { headers: authHeaders() });
+        // Try jobseeker profile first (has more detailed data)
+        const res = await axios.get(buildApiUrl('/api/jobseeker/profile'), { headers: authHeaders() });
+        console.log('✅ Jobseeker profile data:', res?.data);
         return res?.data || null;
       } catch (e) {
-        // Fallback to /api/auth/me to at least get basic fields
+        console.log('⚠️ Jobseeker profile failed, trying general profile...');
         try {
-          const res = await axios.get(buildApiUrl('/api/auth/me'), { headers: authHeaders() });
+          const res = await axios.get(buildApiUrl('/api/profile/profile'), { headers: authHeaders() });
+          console.log('✅ General profile data:', res?.data);
           return res?.data || null;
-        } catch {
-          return null;
+        } catch (e2) {
+          console.log('⚠️ General profile failed, trying auth/me...');
+          // Fallback to /api/auth/me to at least get basic fields
+          try {
+            const res = await axios.get(buildApiUrl('/api/auth/me'), { headers: authHeaders() });
+            console.log('✅ Auth/me data:', res?.data);
+            return res?.data || null;
+          } catch {
+            console.log('❌ All profile endpoints failed');
+            return null;
+          }
         }
       }
     };
@@ -366,6 +363,9 @@ const JobSeekerDashboard = () => {
             // prefer explicit names, fallback to fullName split
             firstName: user?.firstName || profile?.firstName || (profile?.fullName ? profile.fullName.split(' ')[0] : 'User'),
             lastName: user?.lastName || profile?.lastName || (profile?.fullName ? profile.fullName.split(' ').slice(1).join(' ') : ''),
+            // Include professional title directly for easy access
+            professionalTitle: profile?.professionalTitle,
+            currentJobTitle: profile?.currentJobTitle,
             fullProfile: profile || {}
           }
         }));
@@ -660,7 +660,9 @@ const JobSeekerDashboard = () => {
               </div>
               <div>
                 <div className="user-name">{user?.firstName} {user?.lastName}</div>
-                <div className="user-role">job_seeker</div>
+                <div className="user-role">
+                  {dashboardData.user?.professionalTitle || dashboardData.user?.currentJobTitle || user?.professionalTitle || user?.currentJobTitle || 'Job Seeker'}
+                </div>
               </div>
             </div>
             <button className="btn-logout" onClick={handleLogout}>
@@ -1085,8 +1087,9 @@ const JobSeekerDashboard = () => {
             </div>
           )}
 
-          {/* My Profile Section moved to dedicated route /profile */}
-          {false && activeSection === 'profile' && (
+          {/* My Profile Section - Now handled by dedicated /profile route */}
+          {/* REMOVED: Old profile section to prevent conflicts with dedicated MyProfile page */}
+          {false && (
             <div className="card" ref={sectionRefs.current.profile} style={elevatedCardStyle}>
               <div className="card-content" style={{padding:0}}>
                 {/* Profile Header Card */}

@@ -544,8 +544,8 @@ const Signup = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.3 }}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.995 }}
             >
               {loading ? (
                 <div className="loading-spinner"></div>

@@ -347,6 +347,11 @@ def get_comprehensive_profile():
         current_user_id = get_jwt_identity()
         db = get_db()
         
+        # Check if database connection is valid
+        if db is None:
+            print("❌ Database connection failed - db is None")
+            return jsonify({"error": "Database connection failed"}), 500
+        
         # Convert string ID to ObjectId
         try:
             user_object_id = ObjectId(current_user_id)
@@ -358,80 +363,343 @@ def get_comprehensive_profile():
         jobseeker_profiles_collection = db.jobseeker_profiles
         profile = jobseeker_profiles_collection.find_one({'userId': user_object_id})
         
+        # Get user data from users collection for missing fields
+        users_collection = db.users
+        user_data = users_collection.find_one({'_id': user_object_id})
+        
+        # If profile not found in jobseeker_profiles, try to get from users collection
         if not profile:
-            return jsonify({"error": "Profile not found"}), 404
+            print(f"⚠️ Profile not found in jobseeker_profiles for user {current_user_id}, checking users collection...")
+            
+            if not user_data:
+                print(f"❌ User not found in users collection: {current_user_id}")
+                return jsonify({"error": "Profile not found"}), 404
+            
+            # Create a profile structure from user data
+            print(f"✅ Found user in users collection, creating profile structure...")
+            profile = {
+                'userId': user_object_id,
+                'personalInfo': {
+                    'firstName': user_data.get('firstName', ''),
+                    'middleName': user_data.get('middleName', ''),
+                    'lastName': user_data.get('lastName', ''),
+                    'email': user_data.get('email', ''),
+                    'phone': user_data.get('phone', '') or user_data.get('phoneNumber', ''),
+                    'altPhone': user_data.get('altPhone', ''),
+                    'dateOfBirth': user_data.get('dateOfBirth', ''),
+                    'gender': user_data.get('gender', ''),
+                    'community': user_data.get('community', ''),
+                },
+                'nationalityResidency': {
+                    'nationality': user_data.get('nationality', ''),
+                    'residentCountry': user_data.get('residentCountry', ''),
+                    'currentCity': user_data.get('currentCity', ''),
+                    'postalCode': user_data.get('postalCode', ''),
+                    'address': user_data.get('address', ''),
+                    'latitude': user_data.get('latitude', ''),
+                    'longitude': user_data.get('longitude', ''),
+                    'workPermit': user_data.get('workPermit', ''),
+                },
+                'preferredLocations': {
+                    'preferredLocation1': user_data.get('preferredLocation1', ''),
+                    'preferredLocation2': user_data.get('preferredLocation2', ''),
+                    'preferredLocation3': user_data.get('preferredLocation3', ''),
+                    'willingToRelocate': user_data.get('willingToRelocate', ''),
+                    'workLocation': user_data.get('workLocation', ''),
+                },
+                'professionalProfile': {
+                    'professionalTitle': user_data.get('professionalTitle', ''),
+                    'yearsExperience': user_data.get('yearsOfExperience', '') or user_data.get('yearsExperience', ''),
+                    'careerLevel': user_data.get('careerLevel', ''),
+                    'industry': user_data.get('industry', ''),
+                    'summary': user_data.get('professionalSummary', '') or user_data.get('summary', ''),
+                },
+                'skillsInfo': {
+                    'coreSkills': user_data.get('skills', []) if isinstance(user_data.get('skills'), list) else [],
+                    'tools': user_data.get('tools', []) if isinstance(user_data.get('tools'), list) else [],
+                },
+                'languages': user_data.get('languages', []),
+                'experienceEntries': user_data.get('experience', []) or user_data.get('workExperience', []),
+                'educationEntries': user_data.get('education', []),
+                'certificationEntries': user_data.get('certifications', []),
+                'referenceEntries': user_data.get('references', []),
+                'professionalLinks': user_data.get('professionalLinks', {}),
+                'jobPreferences': {
+                    'jobType': user_data.get('jobType', ''),
+                    'jobTypePreference': user_data.get('jobTypePreference', ''),
+                    'noticePeriod': user_data.get('noticePeriod', ''),
+                    'currentSalary': user_data.get('currentSalary', ''),
+                    'expectedSalary': user_data.get('expectedSalary', ''),
+                    'currencyPreference': user_data.get('currencyPreference', ''),
+                    'travelAvailability': user_data.get('travelAvailability', ''),
+                    'availability': user_data.get('availability', ''),
+                },
+                'professionalMemberships': {
+                    'membershipOrg': user_data.get('membershipOrg', ''),
+                    'membershipType': user_data.get('membershipType', ''),
+                    'membershipDate': user_data.get('membershipDate', ''),
+                },
+                'additionalInfo': {
+                    'bloodGroup': user_data.get('bloodGroup', ''),
+                    'askCommunity': user_data.get('askCommunity', ''),
+                    'hobbies': user_data.get('hobbies', ''),
+                    'additionalComments': user_data.get('additionalComments', ''),
+                }
+            }
+        else:
+            print(f"✅ Found profile in jobseeker_profiles collection")
+            # Profile exists in jobseeker_profiles, but we still need to check users collection for missing fields
+            if user_data:
+                print(f"🔍 Checking users collection for missing fields...")
+                
+                # Fill in missing fields from users collection
+                missing_fields = []
+                
+                # Additional Info fields
+                if not profile.get('additionalInfo', {}).get('bloodGroup') and user_data.get('bloodGroup'):
+                    print(f"🩸 Adding missing bloodGroup from users collection: {user_data.get('bloodGroup')}")
+                    if 'additionalInfo' not in profile:
+                        profile['additionalInfo'] = {}
+                    profile['additionalInfo']['bloodGroup'] = user_data.get('bloodGroup')
+                    missing_fields.append('bloodGroup')
+                
+                if not profile.get('additionalInfo', {}).get('askCommunity') and user_data.get('askCommunity'):
+                    if 'additionalInfo' not in profile:
+                        profile['additionalInfo'] = {}
+                    profile['additionalInfo']['askCommunity'] = user_data.get('askCommunity')
+                    missing_fields.append('askCommunity')
+                
+                if not profile.get('additionalInfo', {}).get('hobbies') and user_data.get('hobbies'):
+                    if 'additionalInfo' not in profile:
+                        profile['additionalInfo'] = {}
+                    profile['additionalInfo']['hobbies'] = user_data.get('hobbies')
+                    missing_fields.append('hobbies')
+                
+                if not profile.get('additionalInfo', {}).get('additionalComments') and user_data.get('additionalComments'):
+                    if 'additionalInfo' not in profile:
+                        profile['additionalInfo'] = {}
+                    profile['additionalInfo']['additionalComments'] = user_data.get('additionalComments')
+                    missing_fields.append('additionalComments')
+                
+                # Nationality & Residency fields
+                profile_work_permit = profile.get('nationalityResidency', {}).get('workPermit')
+                user_work_permit = user_data.get('workPermit')
+                
+                # Always update workPermit if user_data has a different value (not just if missing)
+                if user_work_permit and profile_work_permit != user_work_permit:
+                    print(f"🛂 Updating workPermit from '{profile_work_permit}' to '{user_work_permit}' from users collection")
+                    if 'nationalityResidency' not in profile:
+                        profile['nationalityResidency'] = {}
+                    profile['nationalityResidency']['workPermit'] = user_work_permit
+                    missing_fields.append('workPermit')
+                elif not profile_work_permit and user_work_permit:
+                    print(f"🛂 Adding missing workPermit from users collection: {user_work_permit}")
+                    if 'nationalityResidency' not in profile:
+                        profile['nationalityResidency'] = {}
+                    profile['nationalityResidency']['workPermit'] = user_work_permit
+                    missing_fields.append('workPermit')
+                else:
+                    print(f"🛂 Work Permit debug - profile has: {profile_work_permit}, user_data has: {user_work_permit}")
+                
+                if not profile.get('nationalityResidency', {}).get('postalCode') and user_data.get('postalCode'):
+                    if 'nationalityResidency' not in profile:
+                        profile['nationalityResidency'] = {}
+                    profile['nationalityResidency']['postalCode'] = user_data.get('postalCode')
+                    missing_fields.append('postalCode')
+                
+                if not profile.get('nationalityResidency', {}).get('address') and user_data.get('address'):
+                    if 'nationalityResidency' not in profile:
+                        profile['nationalityResidency'] = {}
+                    profile['nationalityResidency']['address'] = user_data.get('address')
+                    missing_fields.append('address')
+                
+                if not profile.get('nationalityResidency', {}).get('latitude') and user_data.get('latitude'):
+                    if 'nationalityResidency' not in profile:
+                        profile['nationalityResidency'] = {}
+                    profile['nationalityResidency']['latitude'] = user_data.get('latitude')
+                    missing_fields.append('latitude')
+                
+                if not profile.get('nationalityResidency', {}).get('longitude') and user_data.get('longitude'):
+                    if 'nationalityResidency' not in profile:
+                        profile['nationalityResidency'] = {}
+                    profile['nationalityResidency']['longitude'] = user_data.get('longitude')
+                    missing_fields.append('longitude')
+                
+                # Preferred Locations fields
+                if not profile.get('preferredLocations', {}).get('preferredLocation1') and user_data.get('preferredLocation1'):
+                    if 'preferredLocations' not in profile:
+                        profile['preferredLocations'] = {}
+                    profile['preferredLocations']['preferredLocation1'] = user_data.get('preferredLocation1')
+                    missing_fields.append('preferredLocation1')
+                
+                if not profile.get('preferredLocations', {}).get('preferredLocation2') and user_data.get('preferredLocation2'):
+                    if 'preferredLocations' not in profile:
+                        profile['preferredLocations'] = {}
+                    profile['preferredLocations']['preferredLocation2'] = user_data.get('preferredLocation2')
+                    missing_fields.append('preferredLocation2')
+                
+                if not profile.get('preferredLocations', {}).get('preferredLocation3') and user_data.get('preferredLocation3'):
+                    if 'preferredLocations' not in profile:
+                        profile['preferredLocations'] = {}
+                    profile['preferredLocations']['preferredLocation3'] = user_data.get('preferredLocation3')
+                    missing_fields.append('preferredLocation3')
+                
+                if not profile.get('preferredLocations', {}).get('willingToRelocate') and user_data.get('willingToRelocate'):
+                    if 'preferredLocations' not in profile:
+                        profile['preferredLocations'] = {}
+                    profile['preferredLocations']['willingToRelocate'] = user_data.get('willingToRelocate')
+                    missing_fields.append('willingToRelocate')
+                
+                if not profile.get('preferredLocations', {}).get('workLocation') and user_data.get('workLocation'):
+                    if 'preferredLocations' not in profile:
+                        profile['preferredLocations'] = {}
+                    profile['preferredLocations']['workLocation'] = user_data.get('workLocation')
+                    missing_fields.append('workLocation')
+                
+                # Job Preferences fields
+                if not profile.get('jobPreferences', {}).get('noticePeriod') and user_data.get('noticePeriod'):
+                    if 'jobPreferences' not in profile:
+                        profile['jobPreferences'] = {}
+                    profile['jobPreferences']['noticePeriod'] = user_data.get('noticePeriod')
+                    missing_fields.append('noticePeriod')
+                
+                if not profile.get('jobPreferences', {}).get('currentSalary') and user_data.get('currentSalary'):
+                    if 'jobPreferences' not in profile:
+                        profile['jobPreferences'] = {}
+                    profile['jobPreferences']['currentSalary'] = user_data.get('currentSalary')
+                    missing_fields.append('currentSalary')
+                
+                if not profile.get('jobPreferences', {}).get('expectedSalary') and user_data.get('expectedSalary'):
+                    if 'jobPreferences' not in profile:
+                        profile['jobPreferences'] = {}
+                    profile['jobPreferences']['expectedSalary'] = user_data.get('expectedSalary')
+                    missing_fields.append('expectedSalary')
+                
+                if not profile.get('jobPreferences', {}).get('currencyPreference') and user_data.get('currencyPreference'):
+                    if 'jobPreferences' not in profile:
+                        profile['jobPreferences'] = {}
+                    profile['jobPreferences']['currencyPreference'] = user_data.get('currencyPreference')
+                    missing_fields.append('currencyPreference')
+                
+                if not profile.get('jobPreferences', {}).get('travelAvailability') and user_data.get('travelAvailability'):
+                    if 'jobPreferences' not in profile:
+                        profile['jobPreferences'] = {}
+                    profile['jobPreferences']['travelAvailability'] = user_data.get('travelAvailability')
+                    missing_fields.append('travelAvailability')
+                
+                # Professional Memberships fields
+                if not profile.get('professionalMemberships', {}).get('membershipOrg') and user_data.get('membershipOrg'):
+                    if 'professionalMemberships' not in profile:
+                        profile['professionalMemberships'] = {}
+                    profile['professionalMemberships']['membershipOrg'] = user_data.get('membershipOrg')
+                    missing_fields.append('membershipOrg')
+                
+                if not profile.get('professionalMemberships', {}).get('membershipType') and user_data.get('membershipType'):
+                    if 'professionalMemberships' not in profile:
+                        profile['professionalMemberships'] = {}
+                    profile['professionalMemberships']['membershipType'] = user_data.get('membershipType')
+                    missing_fields.append('membershipType')
+                
+                if not profile.get('professionalMemberships', {}).get('membershipDate') and user_data.get('membershipDate'):
+                    if 'professionalMemberships' not in profile:
+                        profile['professionalMemberships'] = {}
+                    profile['professionalMemberships']['membershipDate'] = user_data.get('membershipDate')
+                    missing_fields.append('membershipDate')
+                
+                if missing_fields:
+                    print(f"✅ Added {len(missing_fields)} missing fields from users collection: {missing_fields}")
+                else:
+                    print(f"✅ No missing fields found - all data is in jobseeker_profiles")
         
         # Flatten the nested structure for frontend compatibility
+        # Handle both nested profile structure and direct user data
         flattened_profile = {
             # Personal Information
-            'firstName': profile.get('personalInfo', {}).get('firstName'),
-            'middleName': profile.get('personalInfo', {}).get('middleName'),
-            'lastName': profile.get('personalInfo', {}).get('lastName'),
-            'email': profile.get('personalInfo', {}).get('email'),
-            'phone': profile.get('personalInfo', {}).get('phone'),
-            'altPhone': profile.get('personalInfo', {}).get('altPhone'),
-            'dateOfBirth': profile.get('personalInfo', {}).get('dateOfBirth'),
-            'gender': profile.get('personalInfo', {}).get('gender'),
-            'community': profile.get('personalInfo', {}).get('community'),
+            'firstName': profile.get('personalInfo', {}).get('firstName') or profile.get('firstName'),
+            'middleName': profile.get('personalInfo', {}).get('middleName') or profile.get('middleName'),
+            'lastName': profile.get('personalInfo', {}).get('lastName') or profile.get('lastName'),
+            'email': profile.get('personalInfo', {}).get('email') or profile.get('email'),
+            'phone': profile.get('personalInfo', {}).get('phone') or profile.get('phone'),
+            'altPhone': profile.get('personalInfo', {}).get('altPhone') or profile.get('altPhone'),
+            'dateOfBirth': profile.get('personalInfo', {}).get('dateOfBirth') or profile.get('dateOfBirth'),
+            'gender': profile.get('personalInfo', {}).get('gender') or profile.get('gender'),
+            'community': profile.get('personalInfo', {}).get('community') or profile.get('community'),
             
-            # Nationality & Residency
-            'nationality': profile.get('nationalityResidency', {}).get('nationality'),
-            'residentCountry': profile.get('nationalityResidency', {}).get('residentCountry'),
-            'currentCity': profile.get('nationalityResidency', {}).get('currentCity'),
-            'postalCode': profile.get('nationalityResidency', {}).get('postalCode'),
-            'address': profile.get('nationalityResidency', {}).get('address'),
-            'latitude': profile.get('nationalityResidency', {}).get('latitude'),
-            'longitude': profile.get('nationalityResidency', {}).get('longitude'),
-            'workPermit': profile.get('nationalityResidency', {}).get('workPermit'),
+            # Additional Info (including bloodGroup) - FIXED: Check both nested and direct
+            'bloodGroup': profile.get('additionalInfo', {}).get('bloodGroup') or profile.get('bloodGroup'),
+            'askCommunity': profile.get('additionalInfo', {}).get('askCommunity') or profile.get('askCommunity'),
+            'hobbies': profile.get('additionalInfo', {}).get('hobbies') or profile.get('hobbies'),
+            'additionalComments': profile.get('additionalInfo', {}).get('additionalComments') or profile.get('additionalComments'),
             
-            # Preferred Locations
-            'preferredLocation1': profile.get('preferredLocations', {}).get('preferredLocation1'),
-            'preferredLocation2': profile.get('preferredLocations', {}).get('preferredLocation2'),
-            'preferredLocation3': profile.get('preferredLocations', {}).get('preferredLocation3'),
-            'willingToRelocate': profile.get('preferredLocations', {}).get('willingToRelocate'),
-            'workLocation': profile.get('preferredLocations', {}).get('workLocation'),
+            # Nationality & Residency - FIXED: Check both nested and direct
+            'nationality': profile.get('nationalityResidency', {}).get('nationality') or profile.get('nationality'),
+            'residentCountry': profile.get('nationalityResidency', {}).get('residentCountry') or profile.get('residentCountry'),
+            'currentCity': profile.get('nationalityResidency', {}).get('currentCity') or profile.get('currentCity'),
+            'postalCode': profile.get('nationalityResidency', {}).get('postalCode') or profile.get('postalCode'),
+            'address': profile.get('nationalityResidency', {}).get('address') or profile.get('address'),
+            'latitude': profile.get('nationalityResidency', {}).get('latitude') or profile.get('latitude'),
+            'longitude': profile.get('nationalityResidency', {}).get('longitude') or profile.get('longitude'),
+            'workPermit': profile.get('nationalityResidency', {}).get('workPermit') or profile.get('workPermit'),
             
-            # Professional Profile
-            'professionalTitle': profile.get('professionalProfile', {}).get('professionalTitle'),
-            'yearsOfExperience': profile.get('professionalProfile', {}).get('yearsExperience'),
-            'careerLevel': profile.get('professionalProfile', {}).get('careerLevel'),
-            'industry': profile.get('professionalProfile', {}).get('industry'),
-            'professionalSummary': profile.get('professionalProfile', {}).get('summary'),
+            # Preferred Locations - FIXED: Check both nested and direct
+            'preferredLocation1': profile.get('preferredLocations', {}).get('preferredLocation1') or profile.get('preferredLocation1'),
+            'preferredLocation2': profile.get('preferredLocations', {}).get('preferredLocation2') or profile.get('preferredLocation2'),
+            'preferredLocation3': profile.get('preferredLocations', {}).get('preferredLocation3') or profile.get('preferredLocation3'),
+            'willingToRelocate': profile.get('preferredLocations', {}).get('willingToRelocate') or profile.get('willingToRelocate'),
+            'workLocation': profile.get('preferredLocations', {}).get('workLocation') or profile.get('workLocation'),
             
-            # Skills
-            'coreSkills': profile.get('skillsInfo', {}).get('coreSkills', []),
-            'tools': profile.get('skillsInfo', {}).get('tools', []),
+            # Combined location field for dedicated MyProfile page compatibility
+            'location': ', '.join(filter(None, [
+                profile.get('nationalityResidency', {}).get('currentCity') or profile.get('currentCity'),
+                profile.get('nationalityResidency', {}).get('residentCountry') or profile.get('residentCountry')
+            ])),
             
-            # Arrays
-            'languages': profile.get('languages', []),
-            'experienceEntries': profile.get('experienceEntries', []),
-            'educationEntries': profile.get('educationEntries', []),
-            'certificationEntries': profile.get('certificationEntries', []),
-            'referenceEntries': profile.get('referenceEntries', []),
-            'professionalLinks': profile.get('professionalLinks', []),
+            # Professional Profile - FIXED: Check both nested and direct
+            'professionalTitle': profile.get('professionalProfile', {}).get('professionalTitle') or profile.get('professionalTitle'),
+            'yearsOfExperience': profile.get('professionalProfile', {}).get('yearsExperience') or profile.get('yearsOfExperience'),
+            'careerLevel': profile.get('professionalProfile', {}).get('careerLevel') or profile.get('careerLevel'),
+            'industry': profile.get('professionalProfile', {}).get('industry') or profile.get('industry'),
+            'professionalSummary': profile.get('professionalProfile', {}).get('summary') or profile.get('professionalSummary'),
             
-            # Job Preferences
-            'jobType': profile.get('jobPreferences', {}).get('jobType'),
-            'jobTypePreference': profile.get('jobPreferences', {}).get('jobType'),
-            'noticePeriod': profile.get('jobPreferences', {}).get('noticePeriod'),
-            'availability': profile.get('jobPreferences', {}).get('noticePeriod'),
-            'currentSalary': profile.get('jobPreferences', {}).get('currentSalary'),
-            'expectedSalary': profile.get('jobPreferences', {}).get('expectedSalary'),
-            'salaryCurrency': profile.get('jobPreferences', {}).get('currencyPreference'),
-            'currencyPreference': profile.get('jobPreferences', {}).get('currencyPreference'),
-            'travelAvailability': profile.get('jobPreferences', {}).get('travelAvailability'),
+            # Skills - FIXED: Check both nested and direct
+            'coreSkills': profile.get('skillsInfo', {}).get('coreSkills', []) or profile.get('skills', []) or profile.get('coreSkills', []),
+            'tools': profile.get('skillsInfo', {}).get('tools', []) or profile.get('tools', []),
             
-            # Memberships
-            'membershipOrg': profile.get('memberships', {}).get('membershipOrg'),
-            'membershipType': profile.get('memberships', {}).get('membershipType'),
-            'membershipDate': profile.get('memberships', {}).get('membershipDate'),
+            # Professional Memberships - FIXED: Check both nested and direct
+            'membershipOrg': profile.get('professionalMemberships', {}).get('membershipOrg') or profile.get('membershipOrg'),
+            'membershipType': profile.get('professionalMemberships', {}).get('membershipType') or profile.get('membershipType'),
+            'membershipDate': profile.get('professionalMemberships', {}).get('membershipDate') or profile.get('membershipDate'),
             
-            # Additional Info
-            'askCommunity': profile.get('additionalInfo', {}).get('askCommunity'),
-            'hobbies': profile.get('additionalInfo', {}).get('hobbies'),
-            'additionalComments': profile.get('additionalInfo', {}).get('additionalComments'),
-            'agreeTerms': profile.get('additionalInfo', {}).get('agreeTerms'),
-            'allowContact': profile.get('additionalInfo', {}).get('allowContact'),
+            # Arrays - FIXED: Check both nested and direct
+            'languages': profile.get('languages', []) or profile.get('languages', []),
+            'experienceEntries': profile.get('experienceEntries', []) or profile.get('experience', []) or profile.get('workExperience', []),
+            'educationEntries': profile.get('educationEntries', []) or profile.get('education', []),
+            'certificationEntries': profile.get('certificationEntries', []) or profile.get('certifications', []),
+            'referenceEntries': profile.get('referenceEntries', []) or profile.get('references', []),
+            'professionalLinks': profile.get('professionalLinks', {}) or profile.get('professionalLinks', {}),
+            
+            # Job Preferences - FIXED: Check both nested and direct
+            'jobType': profile.get('jobPreferences', {}).get('jobType') or profile.get('jobType'),
+            'jobTypePreference': profile.get('jobPreferences', {}).get('jobTypePreference') or profile.get('jobTypePreference'),
+            'noticePeriod': profile.get('jobPreferences', {}).get('noticePeriod') or profile.get('noticePeriod'),
+            'availability': profile.get('jobPreferences', {}).get('availability') or profile.get('availability'),
+            'currentSalary': profile.get('jobPreferences', {}).get('currentSalary') or profile.get('currentSalary'),
+            'expectedSalary': profile.get('jobPreferences', {}).get('expectedSalary') or profile.get('expectedSalary'),
+            'salaryCurrency': profile.get('jobPreferences', {}).get('currencyPreference') or profile.get('currencyPreference'),
+            'currencyPreference': profile.get('jobPreferences', {}).get('currencyPreference') or profile.get('currencyPreference'),
+            'travelAvailability': profile.get('jobPreferences', {}).get('travelAvailability') or profile.get('travelAvailability'),
+            
+            # Memberships - FIXED: Check both nested and direct
+            'membershipOrg': profile.get('memberships', {}).get('membershipOrg') or profile.get('membershipOrg'),
+            'membershipType': profile.get('memberships', {}).get('membershipType') or profile.get('membershipType'),
+            'membershipDate': profile.get('memberships', {}).get('membershipDate') or profile.get('membershipDate'),
+            
+            # Additional Info - FIXED: Check both nested and direct
+            'askCommunity': profile.get('additionalInfo', {}).get('askCommunity') or profile.get('askCommunity'),
+            'hobbies': profile.get('additionalInfo', {}).get('hobbies') or profile.get('hobbies'),
+            'additionalComments': profile.get('additionalInfo', {}).get('additionalComments') or profile.get('additionalComments'),
+            'agreeTerms': profile.get('additionalInfo', {}).get('agreeTerms') or profile.get('agreeTerms'),
+            'allowContact': profile.get('additionalInfo', {}).get('allowContact') or profile.get('allowContact'),
             
             # File paths
             'profilePhotoPath': profile.get('profilePhotoPath'),
@@ -443,6 +711,29 @@ def get_comprehensive_profile():
             'createdAt': profile.get('createdAt'),
             'updatedAt': profile.get('updatedAt')
         }
+        
+        # Log what's being returned for debugging
+        print(f"🩸 Returning Blood Group: {flattened_profile.get('bloodGroup')}")
+        print(f"🛂 Returning Work Permit: {flattened_profile.get('workPermit')}")
+        print(f"👤 Returning Demographics: bloodGroup={flattened_profile.get('bloodGroup')}, gender={flattened_profile.get('gender')}, dateOfBirth={flattened_profile.get('dateOfBirth')}")
+        print(f"🌍 Returning Location: nationality={flattened_profile.get('nationality')}, currentCity={flattened_profile.get('currentCity')}, workPermit={flattened_profile.get('workPermit')}")
+        
+        # Debug: Check the actual profile structure
+        print(f"🔍 Profile structure debug:")
+        print(f"  - profile type: {type(profile)}")
+        print(f"  - profile keys: {list(profile.keys()) if isinstance(profile, dict) else 'Not a dict'}")
+        print(f"  - profile.bloodGroup direct: {profile.get('bloodGroup') if isinstance(profile, dict) else 'N/A'}")
+        print(f"  - profile.additionalInfo: {profile.get('additionalInfo') if isinstance(profile, dict) else 'N/A'}")
+        if isinstance(profile, dict) and 'additionalInfo' in profile:
+            print(f"  - profile.additionalInfo.bloodGroup: {profile.get('additionalInfo', {}).get('bloodGroup')}")
+        
+        # Debug: Check what the fallback logic is doing
+        nested_blood = profile.get('additionalInfo', {}).get('bloodGroup') if isinstance(profile, dict) else None
+        direct_blood = profile.get('bloodGroup') if isinstance(profile, dict) else None
+        print(f"🔍 Blood Group fallback debug:")
+        print(f"  - nested_blood: {nested_blood}")
+        print(f"  - direct_blood: {direct_blood}")
+        print(f"  - final result: {nested_blood or direct_blood}")
         
         return jsonify(flattened_profile), 200
         

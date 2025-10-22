@@ -12,7 +12,7 @@ const NotificationCenter = () => {
       message: 'John Doe applied for Senior Developer position',
       time: '2 minutes ago',
       isRead: false,
-      color: '#3b82f6'
+      color: '#f97316'
     },
     {
       id: 2,

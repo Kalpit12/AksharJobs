@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoImage from '../assets/FINAL LOGO AK.png';
+import JobCard from '../components/JobCard';
 import '../styles/HomePage.css';
+import '../styles/dashboard-unified.css';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -175,80 +177,88 @@ const HomePage = () => {
           <h2 className="section-title">Featured Jobs</h2>
           <p className="section-subtitle">Hand-picked opportunities from top companies</p>
 
-          <div className="job-card">
-            <div className="job-header">
-              <div style={{ display: 'flex', flex: 1 }}>
-                <div className="company-logo">TC</div>
-                <div className="job-info">
-                  <h3 className="job-title">Senior Software Engineer</h3>
-                  <p className="company-name">TechCorp Solutions</p>
-                </div>
-              </div>
-            </div>
-            <div className="job-meta">
-              <span>📍 San Francisco, CA</span>
-              <span>💼 Full-time</span>
-              <span>💰 $120K - $180K</span>
-              <span>⏰ Posted 2 days ago</span>
-            </div>
-            <div className="job-tags">
-              <span className="tag">React</span>
-              <span className="tag">Node.js</span>
-              <span className="tag">AWS</span>
-              <span className="tag">Remote Available</span>
-            </div>
-          </div>
+          <div className="featured-jobs-grid">
+            <JobCard 
+              job={{
+                _id: '1',
+                job_title: 'Senior Software Engineer',
+                company_name: 'TechCorp Solutions',
+                location: 'San Francisco, CA',
+                job_type: 'Full-time',
+                experience_level: 'Senior',
+                salary_range: '$120K - $180K',
+                skills: ['React', 'Node.js', 'AWS'],
+                featured: true,
+                posted_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+              }}
+              onApply={(job) => {
+                showToast(`🚀 Applying to ${job.job_title} at ${job.company_name}...`, 'success');
+                navigate('/jobseeker-dashboard');
+              }}
+              onSave={(jobId) => {
+                showToast(`💾 Job saved successfully!`, 'success');
+              }}
+              onViewDetails={(job) => {
+                showToast(`👀 Viewing details for ${job.job_title}...`, 'success');
+                navigate('/jobseeker-dashboard');
+              }}
+            />
 
-          <div className="job-card">
-            <div className="job-header">
-              <div style={{ display: 'flex', flex: 1 }}>
-                <div className="company-logo">DI</div>
-                <div className="job-info">
-                  <h3 className="job-title">Product Designer</h3>
-                  <p className="company-name">Design Innovations Inc.</p>
-                </div>
-              </div>
-            </div>
-            <div className="job-meta">
-              <span>📍 New York, NY</span>
-              <span>💼 Full-time</span>
-              <span>💰 $90K - $130K</span>
-              <span>⏰ Posted 1 week ago</span>
-            </div>
-            <div className="job-tags">
-              <span className="tag">Figma</span>
-              <span className="tag">UI/UX</span>
-              <span className="tag">Prototyping</span>
-              <span className="tag">Hybrid</span>
-            </div>
-          </div>
+            <JobCard 
+              job={{
+                _id: '2',
+                job_title: 'Product Designer',
+                company_name: 'Design Innovations Inc.',
+                location: 'New York, NY',
+                job_type: 'Full-time',
+                experience_level: 'Mid Level',
+                salary_range: '$90K - $130K',
+                skills: ['Figma', 'UI/UX', 'Prototyping'],
+                featured: false,
+                posted_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+              }}
+              onApply={(job) => {
+                showToast(`🚀 Applying to ${job.job_title} at ${job.company_name}...`, 'success');
+                navigate('/jobseeker-dashboard');
+              }}
+              onSave={(jobId) => {
+                showToast(`💾 Job saved successfully!`, 'success');
+              }}
+              onViewDetails={(job) => {
+                showToast(`👀 Viewing details for ${job.job_title}...`, 'success');
+                navigate('/jobseeker-dashboard');
+              }}
+            />
 
-          <div className="job-card">
-            <div className="job-header">
-              <div style={{ display: 'flex', flex: 1 }}>
-                <div className="company-logo">FM</div>
-                <div className="job-info">
-                  <h3 className="job-title">Marketing Manager</h3>
-                  <p className="company-name">FutureMark Agency</p>
-                </div>
-              </div>
-            </div>
-            <div className="job-meta">
-              <span>📍 Austin, TX</span>
-              <span>💼 Full-time</span>
-              <span>💰 $80K - $110K</span>
-              <span>⏰ Posted 3 days ago</span>
-            </div>
-            <div className="job-tags">
-              <span className="tag">Digital Marketing</span>
-              <span className="tag">SEO</span>
-              <span className="tag">Content Strategy</span>
-              <span className="tag">Remote Option</span>
-            </div>
+            <JobCard 
+              job={{
+                _id: '3',
+                job_title: 'Marketing Manager',
+                company_name: 'FutureMark Agency',
+                location: 'Austin, TX',
+                job_type: 'Full-time',
+                experience_level: 'Mid Level',
+                salary_range: '$80K - $110K',
+                skills: ['Digital Marketing', 'SEO', 'Content Strategy'],
+                featured: false,
+                posted_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+              }}
+              onApply={(job) => {
+                showToast(`🚀 Applying to ${job.job_title} at ${job.company_name}...`, 'success');
+                navigate('/jobseeker-dashboard');
+              }}
+              onSave={(jobId) => {
+                showToast(`💾 Job saved successfully!`, 'success');
+              }}
+              onViewDetails={(job) => {
+                showToast(`👀 Viewing details for ${job.job_title}...`, 'success');
+                navigate('/jobseeker-dashboard');
+              }}
+            />
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '2rem' }}>
-            <Link to="/jobs" className="btn btn-primary btn-large">
+            <Link to="/jobseeker-dashboard" className="btn btn-primary btn-large">
               View All Jobs
             </Link>
           </div>
@@ -259,7 +269,7 @@ const HomePage = () => {
       <section 
         className="cta-section" 
         style={{
-          background: 'linear-gradient(135deg, #4FC3F7 0%, #66BB6A 50%, #FFB74D 100%) !important',
+          background: 'var(--gradient-hero) !important',
           color: 'white !important',
           padding: '4rem 2rem !important',
           textAlign: 'center !important'
@@ -277,7 +287,7 @@ const HomePage = () => {
               to="/signup"
               className="btn btn-primary btn-large" 
               style={{
-                background: '#4285F4 !important',
+                background: 'var(--brand-primary) !important',
                 color: 'white !important',
                 border: 'none !important',
                 textDecoration: 'none !important'

@@ -4,13 +4,43 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faUser, faCog, faSignOutAlt, faBuilding, faClipboardList, faGift, faCrown, faShieldAlt, faHome, faSearch, faChartLine, faFileAlt, faUsers, faCoins, faBriefcase } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import { useProfilePhoto } from '../context/ProfilePhotoContext';
+import axios from 'axios';
+import { buildApiUrl } from '../config/api';
 import '../styles/ModernProfileDropdown.css';
 
 const ModernProfileDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [profileData, setProfileData] = useState(null);
   const dropdownRef = useRef(null);
   const { user, logout, isJobSeeker, isRecruiter, isAuthenticated } = useAuth();
   const { profilePhoto, getUserInitials } = useProfilePhoto();
+
+  // Fetch profile data to get professional title
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!isAuthenticated || !user) return;
+      
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(buildApiUrl('/api/jobseeker/profile'), {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.data) {
+          setProfileData(response.data);
+          console.log('✅ Profile data fetched for dropdown:', response.data);
+        }
+      } catch (error) {
+        console.log('⚠️ Could not fetch profile data for dropdown:', error.message);
+        // Don't fail silently, just use user data from auth context
+      }
+    };
+
+    fetchProfileData();
+  }, [isAuthenticated, user]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,6 +61,15 @@ const ModernProfileDropdown = () => {
     console.log('🔐 ModernProfileDropdown - User not authenticated, not rendering');
     return null;
   }
+
+  // Debug: Log user data to see what's available
+  console.log('🔍 ModernProfileDropdown - User data:', {
+    user: user,
+    professionalTitle: user?.professionalTitle,
+    currentJobTitle: user?.currentJobTitle,
+    role: user?.role,
+    isJobSeeker: isJobSeeker()
+  });
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -105,7 +144,7 @@ const ModernProfileDropdown = () => {
                 {user?.name || user?.firstName + ' ' + user?.lastName || 'User'}
               </div>
               <div className="modern-header-role">
-                {isJobSeeker() ? 'Jobseeker' : isRecruiter() ? 'Recruiter' : 'User'}
+                {isJobSeeker() ? (profileData?.professionalTitle || profileData?.currentJobTitle || user?.professionalTitle || user?.currentJobTitle || 'Job Seeker') : isRecruiter() ? 'Recruiter' : 'User'}
               </div>
             </div>
           </div>

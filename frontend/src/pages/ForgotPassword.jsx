@@ -1,15 +1,23 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { 
   faArrowLeft, 
   faEnvelope, 
   faSpinner,
   faCheckCircle,
-  faExclamationCircle
+  faExclamationCircle,
+  faLock,
+  faShieldAlt,
+  faUsers,
+  faBriefcase,
+  faChartLine
 } from '@fortawesome/free-solid-svg-icons';
 import { buildApiUrl } from '../config/api';
+import logoImage from '../assets/FINAL LOGO AK.png';
 import '../styles/ForgotPassword.css';
+import '../styles/DesignSystem.css';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
@@ -62,78 +70,172 @@ const ForgotPassword = () => {
     }
   };
 
+  const benefits = [
+    {
+      icon: faUsers,
+      title: "50,000+ Active Jobs",
+      description: "Find opportunities across all industries"
+    },
+    {
+      icon: faBriefcase,
+      title: "10,000+ Companies",
+      description: "Connect with top employers worldwide"
+    },
+    {
+      icon: faChartLine,
+      title: "2M+ Job Seekers",
+      description: "Join our thriving professional community"
+    },
+    {
+      icon: faShieldAlt,
+      title: "100% Secure",
+      description: "Your data is protected with enterprise-grade security"
+    }
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const leftVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.8,
+        delay: 0.2
+      }
+    }
+  };
+
+  const rightVariants = {
+    hidden: { opacity: 0, x: 50 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.8,
+        delay: 0.4
+      }
+    }
+  };
+
   return (
-    <div className="forgot-password-wrapper">
-      {/* Header */}
-      <header className="forgot-password-header">
-        <div className="header-container">
-          <div className="logo-section">
-            <div className="logo-icon">
-              <img src="/AK_logo.png" alt="AksharJobs Logo" />
-            </div>
-            <div className="logo-text">
-              <div className="logo-title">AksharJobs</div>
-              <div className="logo-subtitle">Reset Your Password</div>
-            </div>
-          </div>
-          
-          <div className="header-actions">
-            <Link to="/login" className="btn btn-secondary">
-              <FontAwesomeIcon icon={faArrowLeft} />
-              Back to Login
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="forgot-password-main">
-        <div className="forgot-password-container">
-          <div className="forgot-password-card">
-            
-            {/* Form Header */}
-            <div className="form-header">
-              <h1 className="form-title">Reset your password</h1>
-              <p className="form-subtitle">
-                Your new password must be different from previously used passwords.
-              </p>
+    <div className="forgot-password-container">
+      <motion.div 
+        className="forgot-password-layout"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Left Side - Benefits & Info */}
+        <motion.div 
+          className="forgot-password-left"
+          variants={leftVariants}
+        >
+          <div className="left-content">
+            <div className="logo-section">
+              <img src={logoImage} alt="AksharJobs Logo" className="main-logo" />
+              <h1>AksharJobs</h1>
+              <p className="tagline">CONNECT | DISCOVER | ELEVATE</p>
             </div>
 
-            {/* Form Content */}
-            <div className="form-content">
+            <div className="benefits-section">
+              <h2>Why Choose AksharJobs?</h2>
+              <div className="benefits-grid">
+                {benefits.map((benefit, index) => (
+                  <motion.div 
+                    key={index}
+                    className="benefit-item"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 + (index * 0.1) }}
+                  >
+                    <div className="benefit-icon">
+                      <FontAwesomeIcon icon={benefit.icon} />
+                    </div>
+                    <div className="benefit-content">
+                      <h3>{benefit.title}</h3>
+                      <p>{benefit.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            <div className="security-note">
+              <div className="security-icon">
+                <FontAwesomeIcon icon={faLock} />
+              </div>
+              <div className="security-text">
+                <h3>Secure Password Reset</h3>
+                <p>Your password reset is protected with industry-standard encryption and security measures.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Right Side - Reset Form */}
+        <motion.div 
+          className="forgot-password-right"
+          variants={rightVariants}
+        >
+          <div className="reset-card">
+            <div className="reset-header">
+              <Link to="/login" className="back-link">
+                <FontAwesomeIcon icon={faArrowLeft} />
+                Back to Login
+              </Link>
+              <h2>Reset Your Password</h2>
+              <p>Enter your email address and we'll send you a secure link to reset your password.</p>
+            </div>
+
+            <div className="reset-content">
               {!isEmailSent ? (
-                <form onSubmit={handleSubmit} className="forgot-password-form">
-                  
-                  {/* Email Input */}
+                <form onSubmit={handleSubmit} className="reset-form">
                   <div className="form-group">
-                    <label className="form-label">
-                      <FontAwesomeIcon icon={faEnvelope} />
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="form-input"
-                      placeholder="Enter your email address"
-                      required
-                      disabled={isLoading}
-                    />
+                    <div className="label-group">
+                      <FontAwesomeIcon icon={faEnvelope} className="form-label-icon" />
+                      <label htmlFor="email">Email Address</label>
+                    </div>
+                    <div className="input-wrapper">
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="form-input"
+                        placeholder="your@email.com"
+                        required
+                        disabled={isLoading}
+                      />
+                    </div>
                   </div>
 
-                  {/* Error Message */}
                   {error && (
-                    <div className="error-message">
+                    <motion.div 
+                      className="error-message"
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
                       <FontAwesomeIcon icon={faExclamationCircle} />
                       {error}
-                    </div>
+                    </motion.div>
                   )}
 
-                  {/* Submit Button */}
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className="reset-button"
                     disabled={isLoading || !email}
                   >
                     {isLoading ? (
@@ -146,9 +248,8 @@ const ForgotPassword = () => {
                     )}
                   </button>
 
-                  {/* Additional Help */}
                   <div className="help-text">
-                    <p>Enter the email address associated with your account and we'll send you a link to reset your password.</p>
+                    <p>We'll send you a secure link to reset your password. Check your email inbox and spam folder.</p>
                   </div>
                 </form>
               ) : (
@@ -156,7 +257,7 @@ const ForgotPassword = () => {
                   <div className="success-icon">
                     <FontAwesomeIcon icon={faCheckCircle} />
                   </div>
-                  <h2 className="success-title">Email Sent Successfully!</h2>
+                  <h3>Email Sent Successfully!</h3>
                   <p className="success-message">{message}</p>
                   
                   <div className="success-details">
@@ -187,38 +288,8 @@ const ForgotPassword = () => {
               )}
             </div>
           </div>
-
-          {/* Right Side Promotional Content */}
-          <div className="promotional-section">
-            <div className="promotional-content">
-              <div className="promotional-logo">
-                <img src="/AK_logo.jpg" alt="AksharJobs" />
-                <span>AksharJobs</span>
-              </div>
-              
-              <h2 className="promotional-title">
-                Explore the world's leading job opportunities.
-              </h2>
-              
-              <p className="promotional-description">
-                Millions of job seekers and employers around the world connect through AksharJobs - the platform where talent meets opportunity.
-              </p>
-              
-              <div className="stats-section">
-                <div className="stats-avatars">
-                  <div className="avatar"></div>
-                  <div className="avatar"></div>
-                  <div className="avatar"></div>
-                  <div className="avatar"></div>
-                </div>
-                <div className="stats-text">
-                  Rated Best Over <strong>15.7k</strong> Reviews
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };

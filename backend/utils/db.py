@@ -20,30 +20,39 @@ def get_db():
     global _client, _db
     
     try:
-        # ALWAYS create a fresh connection (no caching) to avoid stale data
-        if _client is not None:
+        # Use cached connection if available and healthy
+        if _client is not None and _db is not None:
             try:
-                _client.close()
+                # Test if connection is still alive
+                _db.command('ping')
+                return _db
             except:
-                pass
-        _client = None
-        _db = None
+                # Connection is stale, close it
+                print("[DEBUG] Existing connection is stale, creating new one...")
+                try:
+                    _client.close()
+                except:
+                    pass
+                _client = None
+                _db = None
         
         # Create new connection
+        print("[DEBUG] Creating new MongoDB connection...")
         _client = MongoClient(
             MONGO_URI, 
             socketTimeoutMS=60000, 
             connectTimeoutMS=60000,
-            maxPoolSize=10,
-            minPoolSize=1,
-            maxIdleTimeMS=30000
+            maxPoolSize=50,
+            minPoolSize=10,
+            maxIdleTimeMS=45000,
+            serverSelectionTimeoutMS=60000
         )
         _db = _client[DB_NAME]
         
         # Test the connection
         _db.command('ping')
         print(f"[OK] MongoDB connected successfully!")
-        print(f"[DEBUG] Connected to URI: {MONGO_URI}")
+        print(f"[DEBUG] Connected to URI: {MONGO_URI[:40]}...")
         print(f"[DEBUG] Database name: {DB_NAME}")
         if _db is not None:
             print(f"[DEBUG] Database object: {_db.name}")
@@ -51,6 +60,8 @@ def get_db():
         
     except Exception as e:
         print(f"[ERROR] Error connecting to MongoDB: {e}")
+        import traceback
+        traceback.print_exc()
         # Reset connection variables on error
         _client = None
         _db = None

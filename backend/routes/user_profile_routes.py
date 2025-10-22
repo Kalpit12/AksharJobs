@@ -182,6 +182,36 @@ def get_user_profile():
         # Check if profile is completed
         profile_completed = user.get('profileCompleted', False)
         
+        # Helper function to format location string
+        def format_location(user_data):
+            """Format location from various sources into a string"""
+            location_obj = user_data.get('location', {})
+            
+            # If location is already a string, return it
+            if isinstance(location_obj, str) and location_obj:
+                return location_obj
+            
+            # If location is an object, build string from its parts
+            if isinstance(location_obj, dict):
+                parts = []
+                if location_obj.get('city'):
+                    parts.append(location_obj['city'])
+                if location_obj.get('state'):
+                    parts.append(location_obj['state'])
+                if location_obj.get('country'):
+                    parts.append(location_obj['country'])
+                if parts:
+                    return ', '.join(parts)
+            
+            # Fallback to currentCity and residentCountry
+            parts = []
+            if user_data.get('currentCity'):
+                parts.append(user_data['currentCity'])
+            if user_data.get('residentCountry'):
+                parts.append(user_data['residentCountry'])
+            
+            return ', '.join(parts) if parts else ''
+        
         # Return profile data (including company fields for recruiters and comprehensive job seeker fields)
         profile_data = {
             "_id": str(user.get('_id')) if user.get('_id') else "",
@@ -200,7 +230,7 @@ def get_user_profile():
             "community": user.get('community', '') or user.get('primary_community', ''),
             "communities": user.get('communities', []),
             "primary_community": user.get('primary_community', ''),
-            "location": user.get('location', {}),
+            "location": format_location(user),
             "currentAddress": user.get('currentAddress', ''),
             "currentAddressPin": user.get('currentAddressPin', ''),
             "homeAddress": user.get('homeAddress', ''),
@@ -287,6 +317,9 @@ def get_user_profile():
             "bio": user.get('bio', ''),
             # Professional Memberships
             "memberships": user.get('memberships', []),
+            "membershipOrg": user.get('membershipOrg', ''),
+            "membershipType": user.get('membershipType', ''),
+            "membershipDate": user.get('membershipDate', ''),
             # Profile status
             "profileCompleted": profile_completed,
             "resumePath": user.get('resumePath', ''),
@@ -365,20 +398,20 @@ def update_user_profile():
             # Education
             'education',
             # Skills & Competencies
-            'skills', 'tools', 'softwareTools',
+            'skills', 'tools', 'softwareTools', 'coreSkills',
             # Languages
             'languages', 'languageProficiency',
             # Certifications & Licenses
             'certifications',
             # Professional Memberships
-            'professionalMemberships', 'memberships',
+            'professionalMemberships', 'memberships', 'membershipOrg', 'membershipType', 'membershipDate',
             # Professional References
             'references',
             # Professional Online Presence
             'professionalLinks', 'linkedinProfile', 'linkedinUrl', 'portfolio', 'portfolioUrl', 'githubProfile', 'githubUrl', 
             'personalWebsite', 'websiteUrl',
             # Job Preferences & Availability
-            'jobPreferences', 'jobType', 'jobTypes', 'workArrangements', 'industries', 'companySizes', 'noticePeriod', 
+            'jobPreferences', 'jobType', 'jobTypes', 'jobTypePreference', 'workArrangements', 'industries', 'companySizes', 'noticePeriod', 
             'currentSalary', 'expectedSalary', 'salaryExpectations', 'currencyPreference', 'travelAvailability', 'availability',
             # Additional Information
             'askCommunity', 'hobbies', 'additionalComments', 'additionalInfo', 'achievements', 'agreeTerms', 'allowContact',
@@ -391,6 +424,13 @@ def update_user_profile():
         for field in fields_to_update:
             if field in data:
                 update_data[field] = data[field]
+        
+        # Log critical fields for debugging
+        print(f"ി Blood Group in request: {data.get('bloodGroup')}")
+        print(f"🛂 Work Permit in request: {data.get('workPermit')}")
+        print(f"👤 Demographics fields in request: bloodGroup={data.get('bloodGroup')}, gender={data.get('gender')}, dateOfBirth={data.get('dateOfBirth')}")
+        print(f"🌍 Location fields in request: nationality={data.get('nationality')}, currentCity={data.get('currentCity')}, workPermit={data.get('workPermit')}")
+        print(f"📋 Total fields in update_data: {len(update_data)}")
         
         # Handle profile photo upload
         if 'profilePhoto' in request.files:
@@ -425,6 +465,14 @@ def update_user_profile():
         )
         
         print(f"📋 Update result: matched={result.matched_count}, modified={result.modified_count}")
+        
+        # Verify the update was persisted
+        updated_user = users_collection.find_one({'_id': user_object_id})
+        if updated_user:
+            print(f"✅ Verified in DB - Blood Group: {updated_user.get('bloodGroup')}")
+            print(f"✅ Verified in DB - Work Permit: {updated_user.get('workPermit')}")
+            print(f"✅ Verified in DB - Gender: {updated_user.get('gender')}, DOB: {updated_user.get('dateOfBirth')}")
+            print(f"✅ Verified in DB - Nationality: {updated_user.get('nationality')}, City: {updated_user.get('currentCity')}, Work Permit: {updated_user.get('workPermit')}")
         
         if result.matched_count > 0:
             # Also update resume profile for job seekers

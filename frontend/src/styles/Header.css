@@ -1,7 +1,7 @@
 /* ===== CLEAN MINIMAL HEADER DESIGN ===== */
 
 .header {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
   position: sticky !important;
   top: 0 !important;
@@ -295,7 +295,7 @@
   justify-content: center !important;
   font-size: 0.7rem !important;
   font-weight: 600 !important;
-  border: 2px solid #1d4ed8 !important;
+  border: 2px solid #0d9488 !important;
   animation: pulse 2s infinite !important;
 }
 
@@ -350,7 +350,7 @@
 }
 
 .mark-all-read, .clear-all {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
   color: #ffffff !important;
   border: none !important;
   padding: 0.4rem 0.8rem !important;
@@ -413,7 +413,7 @@
 }
 
 .notification-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
   color: #ffffff !important;
   width: 32px !important;
   height: 32px !important;
@@ -464,7 +464,7 @@
   justify-content: center !important;
   font-size: 0.7rem !important;
   font-weight: 600 !important;
-  border: 2px solid #1d4ed8 !important;
+  border: 2px solid #0d9488 !important;
   animation: pulse 2s infinite !important;
 }
 
@@ -735,7 +735,7 @@
 
 /* Enhanced Upload Resume Mobile Link */
 .upload-resume-mobile {
-  background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #fb923c 100%) !important;
   border-radius: 0.75rem !important;
   margin: 0.5rem 0 !important;
   position: relative !important;
@@ -760,7 +760,7 @@
 }
 
 .upload-resume-mobile:hover {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #ea580c 0%, #0d9488 100%) !important;
   transform: translateX(8px) scale(1.02) !important;
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4) !important;
   animation: none !important;
@@ -928,7 +928,7 @@
 }
 
 .messages-header {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
   color: white !important;
   padding: 1rem !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
@@ -984,7 +984,7 @@
 }
 
 .message-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
   color: #ffffff !important;
   width: 32px !important;
   height: 32px !important;
@@ -1027,7 +1027,7 @@
 }
 
 .view-all-messages {
-  color: #3b82f6 !important;
+  color: #f97316 !important;
   text-decoration: none !important;
   font-size: 0.875rem !important;
   font-weight: 500 !important;
@@ -1035,7 +1035,7 @@
 }
 
 .view-all-messages:hover {
-  color: #1d4ed8 !important;
+  color: #0d9488 !important;
   text-decoration: underline !important;
 }
 

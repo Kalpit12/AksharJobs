@@ -147,22 +147,23 @@ def apply_for_job():
         #             'requires_promo': True
         #         }), 402  # Payment Required
         
-        # Calculate match score before creating application
-        print(f"🔍 Calculating match score for application...")
+        # Try to calculate match score, but don't require it
+        print(f"🔍 Attempting to calculate match score for application...")
+        final_score = 0
+        education_score = 0
+        skill_score = 0
+        experience_score = 0
+        skills_match = 0
+        education_match = 0
+        experience_match = 0
+        
         try:
             from services.application_service import get_match_score
             match_result = get_match_score(current_user_id, job_id)
             
             if "error" in match_result:
-                print(f"⚠️ Match score calculation failed: {match_result['error']}")
-                # Use default scores if calculation fails
-                final_score = 0
-                education_score = 0
-                skill_score = 0
-                experience_score = 0
-                skills_match = 0
-                education_match = 0
-                experience_match = 0
+                print(f"⚠️ Match score calculation failed (resume not required): {match_result['error']}")
+                print(f"✅ Proceeding with application without match score")
             else:
                 print(f"✅ Match score calculated successfully: {match_result.get('final_score', 0)}")
                 final_score = match_result.get('final_score', 0)
@@ -173,15 +174,8 @@ def apply_for_job():
                 education_match = match_result.get('education_match', 0)
                 experience_match = match_result.get('experience_match', 0)
         except Exception as e:
-            print(f"❌ Error calculating match score: {e}")
-            # Use default scores if calculation fails
-            final_score = 0
-            education_score = 0
-            skill_score = 0
-            experience_score = 0
-            skills_match = 0
-            education_match = 0
-            experience_match = 0
+            print(f"⚠️ Error calculating match score (resume not required): {e}")
+            print(f"✅ Proceeding with application without match score")
 
         # Create application with calculated match scores
         application = {

@@ -23,6 +23,7 @@ const MyProfile = () => {
   const { user } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [editingSections, setEditingSections] = useState({});
   const [skillsDropdownOpen, setSkillsDropdownOpen] = useState(false);
   
@@ -124,16 +125,47 @@ const MyProfile = () => {
   const [profileForm, setProfileForm] = useState({
     firstName: '',
     lastName: '',
+    middleName: '',
     email: '',
     phoneNumber: '',
+    altPhone: '',
+    dateOfBirth: '',
+    gender: '',
+    bloodGroup: '',
+    community: '',
+    nationality: '',
+    residentCountry: '',
+    currentCity: '',
+    postalCode: '',
+    address: '',
+    latitude: '',
+    longitude: '',
+    workPermit: '',
+    preferredLocation1: '',
+    preferredLocation2: '',
+    preferredLocation3: '',
+    willingToRelocate: '',
     location: '',
     professionalTitle: '',
     professionalSummary: '',
     yearsOfExperience: '',
     expectedSalary: '',
     jobTypePreference: '',
+    jobType: '',
     availability: '',
     industry: '',
+    careerLevel: '',
+    noticePeriod: '',
+    currentSalary: '',
+    currencyPreference: '',
+    travelAvailability: '',
+    workLocation: '',
+    membershipOrg: '',
+    membershipType: '',
+    membershipDate: '',
+    askCommunity: '',
+    hobbies: '',
+    additionalComments: '',
     skills: '',
     tools: ''
   });
@@ -141,7 +173,7 @@ const MyProfile = () => {
   const [experience, setExperience] = useState([]);
   const [languages, setLanguages] = useState([]);
   const [certifications, setCertifications] = useState([]);
-  const [professionalLinks, setProfessionalLinks] = useState([]);
+  const [professionalLinks, setProfessionalLinks] = useState({});
   const [references, setReferences] = useState([]);
 
   const authHeaders = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
@@ -157,16 +189,61 @@ const MyProfile = () => {
   const saveSection = async (section) => {
     setSaving(true);
     try {
+      console.log(`💾 Saving ${section} section...`);
+      console.log(`🔍 Current profileForm state:`, profileForm);
+      
       const payload = {
         ...profileForm,
+        // Convert skills and tools to arrays
         skills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
+        coreSkills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         tools: profileForm.tools ? profileForm.tools.split(',').map(s => s.trim()).filter(Boolean) : [],
-        education, experience, languages, certifications, professionalLinks, profileCompleted: true
+        // Include all arrays
+        education, 
+        experience, 
+        languages, 
+        certifications, 
+        professionalLinks,
+        references,
+        // Mark profile as completed
+        profileCompleted: true
       };
-      await axios.put(buildApiUrl('/api/profile/profile'), payload, { headers: { ...authHeaders(), 'Content-Type': 'application/json' } });
+      
+      console.log(`📤 Sending payload for ${section}:`, payload);
+      console.log(`🩸 Blood Group in payload:`, payload.bloodGroup);
+      console.log(`👤 Demographics fields in payload:`, {
+        bloodGroup: payload.bloodGroup,
+        dateOfBirth: payload.dateOfBirth,
+        gender: payload.gender,
+        community: payload.community,
+        nationality: payload.nationality,
+        currentCity: payload.currentCity
+      });
+      
+      const response = await axios.put(buildApiUrl('/api/profile/profile'), payload, { 
+        headers: { 
+          ...authHeaders(), 
+          'Content-Type': 'application/json' 
+        } 
+      });
+      
+      console.log(`✅ ${section} section saved successfully:`, response.data);
+      
       setEditingSections(prev => ({ ...prev, [section]: false }));
+      
+      // Clear cache to force fresh data on next load
+      sessionStorage.removeItem('myProfileData');
+      sessionStorage.removeItem('myProfileTimestamp');
+      
+      // Show success message
+      alert(`${section.charAt(0).toUpperCase() + section.slice(1)} section saved successfully!`);
+      
     } catch (error) {
-      console.error('Error saving section:', error);
+      console.error(`❌ Error saving ${section} section:`, error);
+      console.error('Error details:', error.response?.data || error.message);
+      
+      // Show error message
+      alert(`Error saving ${section} section: ${error.response?.data?.error || error.message}`);
     } finally {
       setSaving(false);
     }
@@ -206,10 +283,120 @@ const MyProfile = () => {
   }, [skillsDropdownOpen]);
 
   useEffect(() => {
+    let isMounted = true; // Prevent state updates after component unmount
+
     const load = async () => {
+      try {
+        console.log('🔄 Loading profile data...');
+        setLoading(true);
+        
+        // Check for cached data first (faster initial render)
+        const cachedData = sessionStorage.getItem('myProfileData');
+        const cacheTimestamp = sessionStorage.getItem('myProfileTimestamp');
+        const cacheMaxAge = 5 * 60 * 1000; // 5 minutes
+        
+        // Use cached data if available and not expired
+        if (cachedData && cacheTimestamp && (Date.now() - parseInt(cacheTimestamp)) < cacheMaxAge) {
+          console.log('⚡ Loading from cache (fast!)');
+          const p = JSON.parse(cachedData);
+          
+          if (!isMounted) return;
+          
+          // Populate form with cached data immediately
+          setProfileForm(prev => ({
+            ...prev,
+            firstName: p.firstName || '',
+            lastName: p.lastName || '',
+            middleName: p.middleName || '',
+            email: p.email || '',
+            phoneNumber: p.phone || p.phoneNumber || '',
+            altPhone: p.altPhone || '',
+            dateOfBirth: p.dateOfBirth || '',
+            gender: p.gender || '',
+            bloodGroup: p.bloodGroup || '',
+            community: p.community || '',
+            nationality: p.nationality || '',
+            residentCountry: p.residentCountry || '',
+            currentCity: p.currentCity || '',
+            postalCode: p.postalCode || '',
+            address: p.address || '',
+            latitude: p.latitude || '',
+            longitude: p.longitude || '',
+            workPermit: p.workPermit || '',
+            preferredLocation1: p.preferredLocation1 || '',
+            preferredLocation2: p.preferredLocation2 || '',
+            preferredLocation3: p.preferredLocation3 || '',
+            willingToRelocate: p.willingToRelocate || '',
+            location: p.location || '',
+            professionalTitle: p.professionalTitle || '',
+            professionalSummary: p.professionalSummary || p.summary || '',
+            yearsOfExperience: p.yearsOfExperience || p.yearsExperience || '',
+            expectedSalary: p.expectedSalary || '',
+            jobTypePreference: p.jobTypePreference || '',
+            availability: p.availability || '',
+            industry: p.industry || '',
+            careerLevel: p.careerLevel || '',
+            noticePeriod: p.noticePeriod || '',
+            currentSalary: p.currentSalary || '',
+            currencyPreference: p.currencyPreference || '',
+            travelAvailability: p.travelAvailability || '',
+            workLocation: p.workLocation || '',
+            membershipOrg: p.membershipOrg || '',
+            membershipType: p.membershipType || '',
+            membershipDate: p.membershipDate || '',
+            askCommunity: p.askCommunity || '',
+            hobbies: p.hobbies || '',
+            additionalComments: p.additionalComments || '',
+            jobType: p.jobType || '',
+            skills: Array.isArray(p.coreSkills) ? p.coreSkills.join(', ') : (Array.isArray(p.skills) ? p.skills.join(', ') : (p.skills || '')),
+            tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || '')
+          }));
+          
+          setEducation(Array.isArray(p.educationEntries) ? p.educationEntries : (Array.isArray(p.education) ? p.education : []));
+          setExperience(Array.isArray(p.experienceEntries) ? p.experienceEntries : (Array.isArray(p.experience) ? p.experience : []));
+          setLanguages(Array.isArray(p.languages) ? p.languages : []);
+          setCertifications(Array.isArray(p.certificationEntries) ? p.certificationEntries : (Array.isArray(p.certifications) ? p.certifications : []));
+          setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
+          
+          const links = p.professionalLinks || {};
+          setProfessionalLinks({
+            linkedin: links.linkedin || links.linkedinUrl || '',
+            github: links.github || links.githubUrl || '',
+            portfolio: links.portfolio || links.portfolioUrl || '',
+            website: links.website || links.websiteUrl || ''
+          });
+          
+          setLoading(false);
+          console.log('✅ Cached data loaded successfully');
+          
+          // Fetch fresh data in background to update cache
+          fetchFreshData();
+          return;
+        }
+        
+        // No cache or expired - fetch fresh data
+        await fetchFreshData();
+        
+      } catch (error) {
+        if (!isMounted) return;
+        console.error('❌ Error loading profile:', error);
+        console.error('Error details:', error.response?.data || error.message);
+        setLoading(false);
+      }
+    };
+    
+    const fetchFreshData = async () => {
       try {
         const res = await axios.get(buildApiUrl('/api/jobseeker/profile'), { headers: authHeaders() });
         const p = res?.data || {};
+        
+        if (!isMounted) return; // Don't update state if component unmounted
+        
+        // Cache the fresh data
+        sessionStorage.setItem('myProfileData', JSON.stringify(p));
+        sessionStorage.setItem('myProfileTimestamp', Date.now().toString());
+        console.log('💾 Profile data cached for faster loading')
+        
         setProfileForm(prev => ({
           ...prev,
           firstName: user?.firstName || p.firstName || '',
@@ -225,18 +412,8 @@ const MyProfile = () => {
           availability: typeof p.availability === 'string' ? p.availability : (Array.isArray(p.availability) ? p.availability.join(', ') : ''),
           industry: p.industry || '',
           skills: Array.isArray(p.coreSkills) ? p.coreSkills.join(', ') : (Array.isArray(p.skills) ? p.skills.join(', ') : (p.skills || '')),
-          tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || '')
-        }));
-        setEducation(Array.isArray(p.educationEntries) ? p.educationEntries : (Array.isArray(p.education) ? p.education : []));
-        setExperience(Array.isArray(p.experienceEntries) ? p.experienceEntries : (Array.isArray(p.experience) ? p.experience : (Array.isArray(p.workExperience) ? p.workExperience : [])));
-        setLanguages(Array.isArray(p.languages) ? p.languages.map(l => (typeof l === 'string' ? { language: l, proficiency: '' } : l)) : []);
-        setCertifications(Array.isArray(p.certificationEntries) ? p.certificationEntries : (Array.isArray(p.certifications) ? p.certifications : []));
-        setProfessionalLinks(Array.isArray(p.professionalLinks) ? p.professionalLinks : []);
-        setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
-
-        // Optional extended fields from registration form
-        setProfileForm(prev => ({
-          ...prev,
+          tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || ''),
+          // Extended fields from registration form
           middleName: p.middleName || '',
           altPhone: p.altPhone || '',
           dateOfBirth: p.dateOfBirth || '',
@@ -270,27 +447,91 @@ const MyProfile = () => {
           hobbies: p.hobbies || '',
           additionalComments: p.additionalComments || ''
         }));
+        
+        setEducation(Array.isArray(p.educationEntries) ? p.educationEntries : (Array.isArray(p.education) ? p.education : []));
+        setExperience(Array.isArray(p.experienceEntries) ? p.experienceEntries : (Array.isArray(p.experience) ? p.experience : (Array.isArray(p.workExperience) ? p.workExperience : [])));
+        setLanguages(Array.isArray(p.languages) ? p.languages.map(l => (typeof l === 'string' ? { language: l, proficiency: '' } : l)) : []);
+        setCertifications(Array.isArray(p.certificationEntries) ? p.certificationEntries : (Array.isArray(p.certifications) ? p.certifications : []));
+        const links = p.professionalLinks || {};
+        setProfessionalLinks({
+          linkedin: links.linkedin || links.linkedinUrl || '',
+          github: links.github || links.githubUrl || '',
+          portfolio: links.portfolio || links.portfolioUrl || '',
+          website: links.website || links.websiteUrl || ''
+        });
+        setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
+        
         console.log('✅ Profile data loaded successfully:', p);
+        console.log('🩸 Blood Group received from API:', p.bloodGroup);
+        console.log('👤 Demographics fields received:', {
+          bloodGroup: p.bloodGroup,
+          dateOfBirth: p.dateOfBirth,
+          gender: p.gender,
+          community: p.community,
+          nationality: p.nationality,
+          currentCity: p.currentCity
+        });
+        setLoading(false);
       } catch (error) {
+        if (!isMounted) return;
         console.error('❌ Error loading profile:', error);
         console.error('Error details:', error.response?.data || error.message);
+        setLoading(false);
       }
     };
+
     load();
+
+    return () => {
+      isMounted = false; // Cleanup function
+    };
   }, [user]);
 
   const saveProfile = async () => {
     try {
       setSaving(true);
+      console.log('💾 Saving entire profile...');
+      
       const payload = {
         ...profileForm,
+        // Convert skills and tools to arrays
         skills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
+        coreSkills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         tools: profileForm.tools ? profileForm.tools.split(',').map(s => s.trim()).filter(Boolean) : [],
-        education, experience, languages, certifications, professionalLinks, profileCompleted: true
+        // Include all arrays
+        education, 
+        experience, 
+        languages, 
+        certifications, 
+        professionalLinks,
+        references,
+        // Mark profile as completed
+        profileCompleted: true
       };
-      await axios.put(buildApiUrl('/api/profile/profile'), payload, { headers: { ...authHeaders(), 'Content-Type': 'application/json' } });
+      
+      console.log('📤 Sending profile payload:', payload);
+      
+      const response = await axios.put(buildApiUrl('/api/profile/profile'), payload, { 
+        headers: { 
+          ...authHeaders(), 
+          'Content-Type': 'application/json' 
+        } 
+      });
+      
+      console.log('✅ Profile saved successfully:', response.data);
+      
       setEditMode(false);
-    } catch {
+      
+      // Clear cache to force fresh data on next load
+      sessionStorage.removeItem('myProfileData');
+      sessionStorage.removeItem('myProfileTimestamp');
+      
+      alert('Profile saved successfully!');
+      
+    } catch (error) {
+      console.error('❌ Error saving profile:', error);
+      console.error('Error details:', error.response?.data || error.message);
+      alert(`Error saving profile: ${error.response?.data?.error || error.message}`);
     } finally {
       setSaving(false);
     }
@@ -383,6 +624,63 @@ const MyProfile = () => {
     boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
   };
 
+  // Loading skeleton
+  if (loading) {
+    return (
+      <div style={{ 
+        padding: '30px', 
+        maxWidth: '1200px', 
+        margin: '0 auto',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+        minHeight: '100vh'
+      }}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.95)',
+          borderRadius: '12px',
+          padding: '30px',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)'
+        }}>
+          <div style={{ 
+            height: '40px', 
+            background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+            backgroundSize: '200% 100%',
+            animation: 'loading 1.5s ease-in-out infinite',
+            borderRadius: '8px',
+            marginBottom: '20px',
+            width: '60%'
+          }} />
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} style={{ marginBottom: '20px' }}>
+              <div style={{ 
+                height: '20px', 
+                background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'loading 1.5s ease-in-out infinite',
+                borderRadius: '4px',
+                marginBottom: '10px',
+                width: '40%'
+              }} />
+              <div style={{ 
+                height: '40px', 
+                background: 'linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%)',
+                backgroundSize: '200% 100%',
+                animation: 'loading 1.5s ease-in-out infinite',
+                borderRadius: '4px',
+                marginBottom: '10px'
+              }} />
+            </div>
+          ))}
+        </div>
+        <style>{`
+          @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   return (
     <>
       <style>{`
@@ -410,8 +708,66 @@ const MyProfile = () => {
         .profile-header h2, .profile-header p, .profile-header span {
           color: #ffffff !important;
         }
+        
+        /* Fix for Cancel button visibility - More specific selectors */
+        button.cancel-btn-fixed,
+        .cancel-btn-fixed,
+        button.btn-secondary.cancel-btn-fixed {
+          background: #dc3545 !important;
+          color: #ffffff !important;
+          border: 2px solid #dc3545 !important;
+          padding: 8px 16px !important;
+          border-radius: 6px !important;
+          cursor: pointer !important;
+          font-weight: 600 !important;
+          transition: all 0.3s ease !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          display: inline-block !important;
+        }
+        
+        button.cancel-btn-fixed:hover,
+        .cancel-btn-fixed:hover,
+        button.btn-secondary.cancel-btn-fixed:hover {
+          background: #c82333 !important;
+          border-color: #c82333 !important;
+          transform: translateY(-1px) !important;
+          box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3) !important;
+        }
+        
+        /* Override any conflicting styles */
+        .my-profile-page button.cancel-btn-fixed,
+        .my-profile-page .cancel-btn-fixed {
+          background: #dc3545 !important;
+          color: #ffffff !important;
+          border: 2px solid #dc3545 !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        
+        /* Orange-Teal theme for Edit buttons */
+        .my-profile-page button.edit-btn,
+        .my-profile-page .edit-btn {
+          background: linear-gradient(135deg, #f97316 0%, #0d9488 100%) !important;
+          color: #ffffff !important;
+          border: 2px solid #f97316 !important;
+          padding: 8px 16px !important;
+          border-radius: 6px !important;
+          cursor: pointer !important;
+          font-weight: 600 !important;
+          transition: all 0.3s ease !important;
+          box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3) !important;
+        }
+        
+        .my-profile-page button.edit-btn:hover,
+        .my-profile-page .edit-btn:hover {
+          background: linear-gradient(135deg, #ea580c 0%, #0f766e 100%) !important;
+          border-color: #ea580c !important;
+          transform: translateY(-1px) !important;
+          box-shadow: 0 4px 12px rgba(249, 115, 22, 0.4) !important;
+        }
       `}</style>
-      <div style={{ 
+      <div className="my-profile-page" style={{ 
         display: 'flex', 
         minHeight: '100vh', 
         width: '100%',
@@ -556,6 +912,99 @@ const MyProfile = () => {
             >
               <span style={{ color: '#ffffff !important' }}>🛠️ Skills & Expertise</span>
             </button>
+            <button 
+              onClick={() => {
+                const element = document.querySelector('[data-section="demographics"]');
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                background: 'rgba(0,0,0,0.3)',
+                border: '2px solid rgba(255,255,255,0.4)',
+                color: '#ffffff !important',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'left',
+                boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(0,0,0,0.5)';
+                e.target.style.transform = 'translateX(4px)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(0,0,0,0.3)';
+                e.target.style.transform = 'translateX(0)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.4)';
+              }}
+            >
+              <span style={{ color: '#ffffff !important' }}>👤 Demographics</span>
+            </button>
+            <button 
+              onClick={() => {
+                const element = document.querySelector('[data-section="residency"]');
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                background: 'rgba(0,0,0,0.3)',
+                border: '2px solid rgba(255,255,255,0.4)',
+                color: '#ffffff !important',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'left',
+                boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(0,0,0,0.5)';
+                e.target.style.transform = 'translateX(4px)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(0,0,0,0.3)';
+                e.target.style.transform = 'translateX(0)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.4)';
+              }}
+            >
+              <span style={{ color: '#ffffff !important' }}>🌍 Residency</span>
+            </button>
+            <button 
+              onClick={() => {
+                const element = document.querySelector('[data-section="locations"]');
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+              }}
+              style={{
+                background: 'rgba(0,0,0,0.3)',
+                border: '2px solid rgba(255,255,255,0.4)',
+                color: '#ffffff !important',
+                padding: '0.75rem 1rem',
+                borderRadius: '8px',
+                fontSize: '0.9rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'left',
+                boxShadow: '0 2px 8px rgba(249, 115, 22, 0.3)'
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = 'rgba(0,0,0,0.5)';
+                e.target.style.transform = 'translateX(4px)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.6)';
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = 'rgba(0,0,0,0.3)';
+                e.target.style.transform = 'translateX(0)';
+                e.target.style.borderColor = 'rgba(255,255,255,0.4)';
+              }}
+            >
+              <span style={{ color: '#ffffff !important' }}>📍 Work Locations</span>
+            </button>
           </div>
         </div>
 
@@ -680,7 +1129,10 @@ const MyProfile = () => {
                   <button className="btn btn-success btn-sm" onClick={saveProfile} disabled={saving}>
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save Changes'}
                   </button>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setEditMode(false)}>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => setEditMode(false)}
+                  >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
                 </>
@@ -731,28 +1183,8 @@ const MyProfile = () => {
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button 
-                    className="btn btn-secondary btn-sm" 
+                    className="cancel-btn-fixed" 
                     onClick={() => toggleSectionEdit('personal')}
-                    style={{ 
-                      background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)', 
-                      color: 'white', 
-                      border: '2px solid #991b1b',
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: '800',
-                      boxShadow: '0 4px 8px rgba(220, 38, 38, 0.4)',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = 'translateY(-1px)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(249, 115, 22, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 8px rgba(249, 115, 22, 0.3)';
-                    }}
                   >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
@@ -803,6 +1235,246 @@ const MyProfile = () => {
           </div>
         </div>
 
+        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="demographics">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
+            <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Demographics & Additional Details</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.demographics ? (
+                <button 
+                  className="btn btn-outline-primary btn-sm" 
+                  onClick={() => toggleSectionEdit('demographics')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => saveSection('demographics')} 
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => toggleSectionEdit('demographics')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div style={gridStyle}>
+            <div className="form-group">
+              <label className="form-label">Date of Birth</label>
+              <input type="date" style={{ ...formInputBase, ...viewModeField }} value={profileForm.dateOfBirth || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, dateOfBirth: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Gender</label>
+              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.gender || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, gender: e.target.value }))}>
+                <option value="">Select Gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="non-binary">Non-Binary</option>
+                <option value="prefer-not-to-say">Prefer Not to Say</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Blood Group</label>
+              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.bloodGroup || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, bloodGroup: e.target.value }))}>
+                <option value="">Select Blood Group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Community</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.community || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, community: e.target.value }))} />
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="residency">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
+            <h3 className="card-title"><FontAwesomeIcon icon={faMapMarkerAlt} /> Nationality & Residency</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.residency ? (
+                <button 
+                  className="btn btn-outline-primary btn-sm" 
+                  onClick={() => toggleSectionEdit('residency')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => saveSection('residency')} 
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => toggleSectionEdit('residency')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div style={gridStyle}>
+            <div className="form-group">
+              <label className="form-label">Nationality</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.nationality || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, nationality: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Resident Country</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.residentCountry || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, residentCountry: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Current City</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.currentCity || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, currentCity: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Postal Code</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.postalCode || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, postalCode: e.target.value }))} />
+            </div>
+            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
+              <label className="form-label">Full Address</label>
+              <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '80px' }} value={profileForm.address || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Work Permit Status</label>
+              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.workPermit || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}>
+                <option value="">Select Status</option>
+                <option value="citizen">Citizen</option>
+                <option value="permanent-resident">Permanent Resident</option>
+                <option value="work-visa">Work Visa</option>
+                <option value="student-visa">Student Visa</option>
+                <option value="requires-sponsorship">Requires Sponsorship</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="locations">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
+            <h3 className="card-title"><FontAwesomeIcon icon={faMapMarkerAlt} /> Preferred Work Locations</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.locations ? (
+                <button 
+                  className="btn btn-outline-primary btn-sm" 
+                  onClick={() => toggleSectionEdit('locations')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => saveSection('locations')} 
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => toggleSectionEdit('locations')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div style={gridStyle}>
+            <div className="form-group">
+              <label className="form-label">Preferred Location 1</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.preferredLocation1 || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation1: e.target.value }))} placeholder="e.g., New York, USA" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Preferred Location 2</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.preferredLocation2 || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation2: e.target.value }))} placeholder="e.g., London, UK" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Preferred Location 3</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.preferredLocation3 || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation3: e.target.value }))} placeholder="e.g., Toronto, Canada" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Willing to Relocate</label>
+              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.willingToRelocate || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, willingToRelocate: e.target.value }))}>
+                <option value="">Select Option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+                <option value="maybe">Maybe / Open to Discussion</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="professional">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faBriefcase} /> Professional Details</h3>
@@ -842,28 +1514,8 @@ const MyProfile = () => {
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button 
-                    className="btn btn-secondary btn-sm" 
+                    className="cancel-btn-fixed" 
                     onClick={() => toggleSectionEdit('professional')}
-                    style={{ 
-                      background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)', 
-                      color: 'white', 
-                      border: '2px solid #991b1b',
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: '800',
-                      boxShadow: '0 4px 8px rgba(220, 38, 38, 0.4)',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = 'translateY(-1px)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(249, 115, 22, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 8px rgba(249, 115, 22, 0.3)';
-                    }}
                   >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
@@ -876,20 +1528,148 @@ const MyProfile = () => {
               ['Current Job Title', 'professionalTitle'],
               ['Years of Experience', 'yearsOfExperience'],
               ['Industry', 'industry'],
-              ['Expected Salary (USD)', 'expectedSalary'],
-              ['Job Type Preference', 'jobTypePreference'],
-              ['Availability', 'availability'],
               ['Career Level', 'careerLevel'],
+              ['Job Type', 'jobType'],
+              ['Job Type Preference', 'jobTypePreference'],
               ['Notice Period', 'noticePeriod'],
-              ['Currency Preference', 'currencyPreference'],
               ['Current Salary', 'currentSalary'],
-              ['Work Location', 'workLocation']
+              ['Expected Salary', 'expectedSalary'],
+              ['Currency Preference', 'currencyPreference'],
+              ['Availability', 'availability'],
+              ['Work Location Preference', 'workLocation'],
+              ['Travel Availability', 'travelAvailability']
             ].map(([label, key]) => (
               <div className="form-group" key={key}>
                 <label className="form-label">{label}</label>
                 <input style={{ ...formInputBase, ...viewModeField }} value={profileForm[key] || ''} disabled={!editingSections.professional} onChange={(e) => setProfileForm(p => ({ ...p, [key]: e.target.value }))} />
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="memberships">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
+            <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Professional Memberships</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.memberships ? (
+                <button 
+                  className="btn btn-outline-primary btn-sm" 
+                  onClick={() => toggleSectionEdit('memberships')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => saveSection('memberships')} 
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => toggleSectionEdit('memberships')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div style={gridStyle}>
+            <div className="form-group">
+              <label className="form-label">Organization Name</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.membershipOrg || ''} disabled={!editingSections.memberships} onChange={(e) => setProfileForm(p => ({ ...p, membershipOrg: e.target.value }))} placeholder="e.g., IEEE, ACM, PMI" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Membership Type</label>
+              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.membershipType || ''} disabled={!editingSections.memberships} onChange={(e) => setProfileForm(p => ({ ...p, membershipType: e.target.value }))} placeholder="e.g., Student, Professional, Fellow" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Membership Date</label>
+              <input type="date" style={{ ...formInputBase, ...viewModeField }} value={profileForm.membershipDate || ''} disabled={!editingSections.memberships} onChange={(e) => setProfileForm(p => ({ ...p, membershipDate: e.target.value }))} />
+            </div>
+          </div>
+        </div>
+
+        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="additional">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
+            <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Additional Information</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.additional ? (
+                <button 
+                  className="btn btn-outline-primary btn-sm" 
+                  onClick={() => toggleSectionEdit('additional')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => saveSection('additional')} 
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => toggleSectionEdit('additional')}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="form-group" style={{ marginBottom: '15px' }}>
+            <label className="form-label">Ask Community For</label>
+            <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '80px' }} value={profileForm.askCommunity || ''} disabled={!editingSections.additional} onChange={(e) => setProfileForm(p => ({ ...p, askCommunity: e.target.value }))} placeholder="What would you like help with from the community?" />
+          </div>
+          <div className="form-group" style={{ marginBottom: '15px' }}>
+            <label className="form-label">Hobbies & Interests</label>
+            <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '80px' }} value={profileForm.hobbies || ''} disabled={!editingSections.additional} onChange={(e) => setProfileForm(p => ({ ...p, hobbies: e.target.value }))} placeholder="Tell us about your interests and hobbies" />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Additional Comments</label>
+            <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '100px' }} value={profileForm.additionalComments || ''} disabled={!editingSections.additional} onChange={(e) => setProfileForm(p => ({ ...p, additionalComments: e.target.value }))} placeholder="Any additional information you'd like to share" />
           </div>
         </div>
 
@@ -932,28 +1712,8 @@ const MyProfile = () => {
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button 
-                    className="btn btn-secondary btn-sm" 
+                    className="cancel-btn-fixed" 
                     onClick={() => toggleSectionEdit('skills')}
-                    style={{ 
-                      background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)', 
-                      color: 'white', 
-                      border: '2px solid #991b1b',
-                      padding: '10px 20px',
-                      borderRadius: '8px',
-                      fontSize: '14px',
-                      fontWeight: '800',
-                      boxShadow: '0 4px 8px rgba(220, 38, 38, 0.4)',
-                      textShadow: '0 1px 2px rgba(0,0,0,0.3)',
-                      transition: 'all 0.3s ease'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.transform = 'translateY(-1px)';
-                      e.target.style.boxShadow = '0 4px 12px rgba(249, 115, 22, 0.4)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.transform = 'translateY(0)';
-                      e.target.style.boxShadow = '0 2px 8px rgba(249, 115, 22, 0.3)';
-                    }}
                   >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
@@ -1109,11 +1869,19 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
+            {!editingSections.experience && (
+              <button 
+                onClick={() => setEditingSections(prev => ({ ...prev, experience: true }))}
+                className="edit-btn"
+              >
+                <FontAwesomeIcon icon={faEdit} /> Edit
+              </button>
+            )}
           </div>
           {(experience || []).map((ex, idx) => (
-            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #667eea' }}>
+            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6' }}>
               <h4>{ex.title || ex.role || 'Role'}</h4>
-              <div style={{ color: '#667eea', fontWeight: 600, marginBottom: '5px' }}>{ex.company || 'Company'}</div>
+              <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '5px' }}>{ex.company || 'Company'}</div>
               <div style={{ color: '#999', fontSize: '13px', marginBottom: '10px' }}>{(ex.startDate || '') + (ex.endDate ? ` - ${ex.endDate}` : '')}</div>
               <p style={{ color: '#666', marginTop: '10px' }}>{ex.description || ''}</p>
             </div>
@@ -1124,11 +1892,19 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
+            {!editingSections.education && (
+              <button 
+                onClick={() => setEditingSections(prev => ({ ...prev, education: true }))}
+                className="edit-btn"
+              >
+                <FontAwesomeIcon icon={faEdit} /> Edit
+              </button>
+            )}
           </div>
           {(education || []).map((ed, idx) => (
-            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #667eea' }}>
+            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6' }}>
               <h4>{ed.degree || 'Degree'}{ed.field ? ` in ${ed.field}` : ''}</h4>
-              <div style={{ color: '#667eea', fontWeight: 600, marginBottom: '5px' }}>{ed.school || 'Institution'}</div>
+              <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '5px' }}>{ed.school || 'Institution'}</div>
               <div style={{ color: '#999', fontSize: '13px', marginBottom: '10px' }}>{(ed.startDate || '') + (ed.endDate ? ` - ${ed.endDate}` : '')}</div>
             </div>
           ))}
@@ -1138,6 +1914,14 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Awards</h3>
+            {!editingSections.certifications && (
+              <button 
+                onClick={() => setEditingSections(prev => ({ ...prev, certifications: true }))}
+                className="edit-btn"
+              >
+                <FontAwesomeIcon icon={faEdit} /> Edit
+              </button>
+            )}
           </div>
           {(certifications || []).map((ct, idx) => (
             <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', marginBottom: '12px' }}>
@@ -1156,6 +1940,14 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
+            {!editingSections.languages && (
+              <button 
+                onClick={() => setEditingSections(prev => ({ ...prev, languages: true }))}
+                className="edit-btn"
+              >
+                <FontAwesomeIcon icon={faEdit} /> Edit
+              </button>
+            )}
           </div>
           <div style={gridStyle}>
             {(languages || []).map((lg, idx) => (
@@ -1170,13 +1962,30 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Social Links</h3>
+            {!editingSections.socialLinks && (
+              <button 
+                onClick={() => setEditingSections(prev => ({ ...prev, socialLinks: true }))}
+                className="edit-btn"
+              >
+                <FontAwesomeIcon icon={faEdit} /> Edit
+              </button>
+            )}
           </div>
           <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-            {(professionalLinks || []).map((ln, idx) => (
-              <a href={ln.url || '#'} key={idx} className="social-link" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 15px', background: '#f5f7fa', borderRadius: '8px', color: '#667eea', textDecoration: 'none' }}>
-                <FontAwesomeIcon icon={faLink} /> <span>{ln.label || ln.url}</span>
-              </a>
-            ))}
+            {professionalLinks && typeof professionalLinks === 'object' && Object.entries(professionalLinks).map(([key, url]) => {
+              if (!url) return null;
+              const labels = {
+                linkedin: 'LinkedIn',
+                github: 'GitHub', 
+                portfolio: 'Portfolio',
+                website: 'Website'
+              };
+              return (
+                <a href={url} key={key} className="social-link" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 15px', background: '#f5f7fa', borderRadius: '8px', color: '#3b82f6', textDecoration: 'none' }}>
+                  <FontAwesomeIcon icon={faLink} /> <span>{labels[key] || key}</span>
+                </a>
+              );
+            })}
           </div>
         </div>
         </div>

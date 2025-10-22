@@ -420,6 +420,14 @@ init_websocket(app)
 
 
 if __name__ == '__main__':
+    # Create database indexes for performance
+    try:
+        from utils.db_indexes import create_indexes
+        print("\n🔧 Setting up database indexes...")
+        create_indexes()
+    except Exception as e:
+        print(f"⚠️ Warning: Could not create indexes: {e}")
+    
     # Get port from environment variable (for deployment platforms)
     import os
     port = int(os.getenv('PORT', Config.PORT))

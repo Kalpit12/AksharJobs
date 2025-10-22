@@ -4,38 +4,28 @@
    Cache buster: 2024-01-21-15:00 - FORCE ORANGE-TEAL THEME
    ======================================== */
 
-/* Import Professional Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+/* Import unified design system */
+@import './DesignSystem.css';
 
-/* === CSS VARIABLES === */
+/* === DASHBOARD-SPECIFIC OVERRIDES === */
 :root {
-  /* Orange-Teal Gradient Theme - Less Bright */
-  --primary-orange: #f97316;
-  --primary-teal: #0d9488;
-  --gradient-main: linear-gradient(180deg, #f97316 0%, #fb923c 50%, #0d9488 100%);
-  
-  /* Text Colors */
-  --text-white: #ffffff;
-  --text-dark: #1f2937;
-  --text-gray: #6b7280;
-  --text-light: #9ca3af;
-  
-  /* Background Colors */
+  /* Orange-Teal Gradient Theme - Balanced */
+  --primary-orange: var(--brand-primary);
+  --primary-teal: var(--brand-secondary);
+  --gradient-main: linear-gradient(180deg, var(--brand-primary) 0%, var(--brand-primary-light) 30%, var(--brand-secondary) 70%, var(--brand-secondary-light) 100%);
+  --gradient-primary: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+  --gradient-secondary: linear-gradient(135deg, var(--brand-secondary) 0%, var(--brand-secondary-dark) 100%);
+  --gradient-card: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%);
+  --border-color: rgba(249, 115, 22, 0.2);
   --bg-white: #ffffff;
-  --bg-gray-50: #f9fafb;
-  --bg-gray-100: #f3f4f6;
+  
+  /* Dashboard-specific colors */
   --bg-hover: rgba(255, 255, 255, 0.1);
   
   /* Status Colors - Orange-Teal Theme */
   --status-success: #0d9488;
   --status-warning: #f59e0b;
   --status-error: #ef4444;
-  
-  /* Borders & Shadows */
-  --border-color: #e5e7eb;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 /* === GLOBAL RESETS === */
@@ -44,10 +34,10 @@
 .recruiter-dashboard-container,
 .admin-dashboard-container,
 .intern-dashboard-container {
-  font-family: 'Inter', 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  line-height: 1.6;
-  color: var(--text-dark);
-  background: var(--bg-gray-50);
+  font-family: var(--font-family-primary);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  background: var(--bg-secondary);
   box-sizing: border-box;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11' !important;
   -webkit-font-smoothing: antialiased !important;
@@ -1508,13 +1498,25 @@ html body .jobseeker-dashboard-container .stat-card .stat-icon {
   background-color: var(--primary-orange) !important;
 }
 
-/* Force override any green profile completion */
+/* Force override any blue/green profile completion */
 .profile-completion,
 .profile-completion[style],
+.profile-completion[style*="blue"],
 .profile-completion[style*="green"],
+.profile-completion[style*="#3b82f6"],
+.profile-completion[style*="#1d4ed8"],
 .profile-completion[style*="#10b981"] {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(13, 148, 136, 0.1) 100%) !important;
+  background: var(--gradient-primary) !important;
+  background-image: var(--gradient-primary) !important;
   border: 2px solid var(--primary-orange) !important;
+  color: var(--text-white) !important;
+}
+
+.profile-completion h3,
+.profile-completion p,
+.profile-completion .completion-percentage {
+  color: var(--text-white) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Old job card override rules removed - now using new JobCard component */
@@ -1776,23 +1778,37 @@ html body .new-job-card-apply-btn span {
   box-shadow: 0 4px 8px rgba(249, 115, 22, 0.3) !important;
 }
 
-/* Force override any green stat cards */
+/* Force override any blue/green stat cards */
 .stat-card,
 .stat-card[style],
+.stat-card[style*="blue"],
 .stat-card[style*="green"],
+.stat-card[style*="#3b82f6"],
+.stat-card[style*="#1d4ed8"],
+.stat-card[style*="#10b981"],
 .stat-card .stat-icon,
+.stat-card .stat-icon[style*="blue"],
 .stat-card .stat-icon[style*="green"] {
   background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%) !important;
   border: 2px solid var(--primary-orange) !important;
 }
 
 .stat-card .stat-icon,
+.stat-card .stat-icon[style*="blue"],
 .stat-card .stat-icon[style*="green"] {
   background: var(--gradient-primary) !important;
   color: var(--text-white) !important;
 }
 
-/* === ULTRA AGGRESSIVE STAT CARD OVERRIDE === */
+/* Force stat card text to be dark for readability */
+.stat-card .stat-value,
+.stat-card .stat-label,
+.stat-card .stat-number,
+.stat-card .stat-change {
+  color: var(--text-primary) !important;
+}
+
+/* === ULTRA AGGRESSIVE OVERRIDE FOR ALL BLUE ELEMENTS === */
 /* Force orange-teal theme with maximum specificity */
 html body .dashboard-container .stat-card,
 html body .jobseeker-dashboard-container .stat-card,
@@ -1805,6 +1821,186 @@ body .jobseeker-dashboard-container .stats-grid .stat-card {
   background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%) !important;
   border: 2px solid var(--primary-orange) !important;
   position: relative !important;
+}
+
+/* Force all blue elements to use orange-teal theme */
+[style*="background-color: #3b82f6"],
+[style*="background-color: #1d4ed8"],
+[style*="background-color: #2563eb"],
+[style*="background-color: #1e40af"],
+[style*="background: #3b82f6"],
+[style*="background: #1d4ed8"],
+[style*="background: #2563eb"],
+[style*="background: #1e40af"],
+[style*="background: blue"],
+[style*="background-color: blue"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+}
+
+/* Force profile completion to use orange-teal */
+.profile-completion,
+.profile-completion[style*="background"],
+.profile-completion[style*="blue"],
+.profile-completion[style*="green"] {
+  background: var(--gradient-primary) !important;
+  background-image: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+}
+
+/* Force all stat icons to use orange-teal */
+.stat-icon,
+.stat-icon[style*="background"],
+.stat-icon[style*="blue"],
+.stat-icon[style*="green"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  color: var(--text-white) !important;
+}
+
+/* === DASHBOARD-SPECIFIC OVERRIDES (Won't affect other pages) === */
+/* Target only elements within dashboard containers */
+.jobseeker-dashboard-container .profile-completion,
+.dashboard-container .profile-completion {
+  background: var(--gradient-primary) !important;
+  background-image: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  border: 2px solid var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container .profile-completion h3,
+.jobseeker-dashboard-container .profile-completion p,
+.jobseeker-dashboard-container .profile-completion .completion-percentage,
+.dashboard-container .profile-completion h3,
+.dashboard-container .profile-completion p,
+.dashboard-container .profile-completion .completion-percentage {
+  color: var(--text-white) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+.jobseeker-dashboard-container .completion-fill,
+.dashboard-container .completion-fill {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-teal) !important;
+}
+
+.jobseeker-dashboard-container .stat-card,
+.dashboard-container .stat-card {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%) !important;
+  border: 2px solid var(--primary-orange) !important;
+}
+
+/* Balance stat card borders - alternating orange and teal */
+.jobseeker-dashboard-container .stat-card:nth-child(1),
+.dashboard-container .stat-card:nth-child(1) {
+  border: 2px solid #f97316 !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(2),
+.dashboard-container .stat-card:nth-child(2) {
+  border: 2px solid #0d9488 !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(3),
+.dashboard-container .stat-card:nth-child(3) {
+  border: 2px solid #f97316 !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(4),
+.dashboard-container .stat-card:nth-child(4) {
+  border: 2px solid #0d9488 !important;
+}
+
+.jobseeker-dashboard-container .stat-card .stat-icon,
+.dashboard-container .stat-card .stat-icon {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  color: var(--text-white) !important;
+}
+
+.jobseeker-dashboard-container .stat-card .stat-value,
+.jobseeker-dashboard-container .stat-card .stat-number,
+.dashboard-container .stat-card .stat-value,
+.dashboard-container .stat-card .stat-number {
+  color: var(--primary-orange) !important;
+  font-weight: 700 !important;
+}
+
+/* Balance stat card numbers - alternating orange and teal */
+.jobseeker-dashboard-container .stat-card:nth-child(1) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(1) .stat-number,
+.dashboard-container .stat-card:nth-child(1) .stat-value,
+.dashboard-container .stat-card:nth-child(1) .stat-number {
+  color: #f97316 !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(2) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(2) .stat-number,
+.dashboard-container .stat-card:nth-child(2) .stat-value,
+.dashboard-container .stat-card:nth-child(2) .stat-number {
+  color: #0d9488 !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(3) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(3) .stat-number,
+.dashboard-container .stat-card:nth-child(3) .stat-value,
+.dashboard-container .stat-card:nth-child(3) .stat-number {
+  color: #f97316 !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(4) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(4) .stat-number,
+.dashboard-container .stat-card:nth-child(4) .stat-value,
+.dashboard-container .stat-card:nth-child(4) .stat-number {
+  color: #0d9488 !important;
+}
+
+/* Ultra-specific overrides for dashboard elements */
+.jobseeker-dashboard-container .profile-completion[style],
+.jobseeker-dashboard-container .profile-completion[style*="background"],
+.dashboard-container .profile-completion[style],
+.dashboard-container .profile-completion[style*="background"] {
+  background: var(--gradient-primary) !important;
+  background-image: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container .stat-card[style],
+.jobseeker-dashboard-container .stat-card[style*="background"],
+.dashboard-container .stat-card[style],
+.dashboard-container .stat-card[style*="background"] {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%) !important;
+  border: 2px solid var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container .stat-icon[style],
+.jobseeker-dashboard-container .stat-icon[style*="background"],
+.dashboard-container .stat-icon[style],
+.dashboard-container .stat-icon[style*="background"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  color: var(--text-white) !important;
+}
+
+/* Force override any remaining blue colors in dashboard */
+.jobseeker-dashboard-container [style*="color: #3b82f6"],
+.jobseeker-dashboard-container [style*="color: #1d4ed8"],
+.jobseeker-dashboard-container [style*="color: #2563eb"],
+.dashboard-container [style*="color: #3b82f6"],
+.dashboard-container [style*="color: #1d4ed8"],
+.dashboard-container [style*="color: #2563eb"] {
+  color: var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container [style*="background-color: #3b82f6"],
+.jobseeker-dashboard-container [style*="background-color: #1d4ed8"],
+.jobseeker-dashboard-container [style*="background-color: #2563eb"],
+.dashboard-container [style*="background-color: #3b82f6"],
+.dashboard-container [style*="background-color: #1d4ed8"],
+.dashboard-container [style*="background-color: #2563eb"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
 }
 
 html body .dashboard-container .stat-card::before,
@@ -1998,6 +2194,338 @@ body .jobseeker-dashboard-container .completion-bar .progress-indicator-percenta
   left: 50% !important;
   transform: translateX(-50%) !important;
   background: var(--primary-orange) !important;
+
+/* === FINAL DASHBOARD OVERRIDE - MAXIMUM SPECIFICITY === */
+/* This will override ALL previous styles for dashboard elements */
+.jobseeker-dashboard-container .profile-completion {
+  background: var(--gradient-primary) !important;
+  background-image: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  border: 2px solid var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container .completion-fill {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-teal) !important;
+}
+
+.jobseeker-dashboard-container .stat-card {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%) !important;
+  border: 2px solid var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container .stat-card .stat-icon {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  color: var(--text-white) !important;
+}
+
+.jobseeker-dashboard-container .stat-card .stat-value,
+.jobseeker-dashboard-container .stat-card .stat-number {
+  color: var(--primary-orange) !important;
+  font-weight: 700 !important;
+}
+
+/* === ULTRA AGGRESSIVE OVERRIDE FOR INLINE STYLES === */
+/* Override any inline styles that might be causing blue colors */
+.jobseeker-dashboard-container .profile-completion[style*="background"],
+.jobseeker-dashboard-container .profile-completion[style*="blue"],
+.jobseeker-dashboard-container .profile-completion[style*="#3b82f6"],
+.jobseeker-dashboard-container .profile-completion[style*="#1d4ed8"] {
+  background: var(--gradient-primary) !important;
+  background-image: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+}
+
+.jobseeker-dashboard-container .completion-fill[style*="background"],
+.jobseeker-dashboard-container .completion-fill[style*="blue"],
+.jobseeker-dashboard-container .completion-fill[style*="#3b82f6"],
+.jobseeker-dashboard-container .completion-fill[style*="#1d4ed8"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-teal) !important;
+}
+
+.jobseeker-dashboard-container .stat-card .stat-icon[style*="background"],
+.jobseeker-dashboard-container .stat-card .stat-icon[style*="blue"],
+.jobseeker-dashboard-container .stat-card .stat-icon[style*="#3b82f6"],
+.jobseeker-dashboard-container .stat-card .stat-icon[style*="#1d4ed8"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  color: var(--text-white) !important;
+}
+
+/* Force override any remaining blue colors with maximum specificity */
+.jobseeker-dashboard-container *[style*="background-color: #3b82f6"],
+.jobseeker-dashboard-container *[style*="background-color: #1d4ed8"],
+.jobseeker-dashboard-container *[style*="background-color: #2563eb"],
+.jobseeker-dashboard-container *[style*="background: #3b82f6"],
+.jobseeker-dashboard-container *[style*="background: #1d4ed8"],
+.jobseeker-dashboard-container *[style*="background: #2563eb"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+}
+
+/* Override any blue text colors */
+.jobseeker-dashboard-container *[style*="color: #3b82f6"],
+.jobseeker-dashboard-container *[style*="color: #1d4ed8"],
+.jobseeker-dashboard-container *[style*="color: #2563eb"] {
+  color: var(--primary-orange) !important;
+}
+
+/* === NUCLEAR OPTION - OVERRIDE EVERYTHING === */
+/* This will force override any blue colors regardless of source */
+html body .jobseeker-dashboard-container .profile-completion,
+html body .jobseeker-dashboard-container .profile-completion *,
+html body .jobseeker-dashboard-container .completion-fill,
+html body .jobseeker-dashboard-container .completion-fill *,
+html body .jobseeker-dashboard-container .stat-card .stat-icon,
+html body .jobseeker-dashboard-container .stat-card .stat-icon * {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+  color: var(--text-white) !important;
+}
+
+/* Force profile completion to be orange-teal */
+html body .jobseeker-dashboard-container .profile-completion {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+}
+
+/* Force completion fill to be teal */
+html body .jobseeker-dashboard-container .completion-fill {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-teal) !important;
+  background-image: var(--gradient-primary) !important;
+}
+
+/* Force stat card icons to be orange-teal */
+html body .jobseeker-dashboard-container .stat-card .stat-icon {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+  color: var(--text-white) !important;
+}
+
+/* === FINAL NUCLEAR OVERRIDE === */
+/* This will override ANY blue color anywhere in the dashboard */
+.jobseeker-dashboard-container [style*="background-color: #3b82f6"],
+.jobseeker-dashboard-container [style*="background-color: #1d4ed8"],
+.jobseeker-dashboard-container [style*="background-color: #2563eb"],
+.jobseeker-dashboard-container [style*="background-color: #1e40af"],
+.jobseeker-dashboard-container [style*="background: #3b82f6"],
+.jobseeker-dashboard-container [style*="background: #1d4ed8"],
+.jobseeker-dashboard-container [style*="background: #2563eb"],
+.jobseeker-dashboard-container [style*="background: #1e40af"],
+.jobseeker-dashboard-container [style*="background: blue"],
+.jobseeker-dashboard-container [style*="background-color: blue"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+}
+
+/* Override any blue text */
+.jobseeker-dashboard-container [style*="color: #3b82f6"],
+.jobseeker-dashboard-container [style*="color: #1d4ed8"],
+.jobseeker-dashboard-container [style*="color: #2563eb"],
+.jobseeker-dashboard-container [style*="color: #1e40af"],
+.jobseeker-dashboard-container [style*="color: blue"] {
+  color: var(--primary-orange) !important;
+}
+
+/* === COMPLETE BLUE COLOR ELIMINATION === */
+/* This will override ALL blue colors anywhere in the entire application */
+*[style*="background-color: #3b82f6"],
+*[style*="background-color: #1d4ed8"],
+*[style*="background-color: #2563eb"],
+*[style*="background-color: #1e40af"],
+*[style*="background: #3b82f6"],
+*[style*="background: #1d4ed8"],
+*[style*="background: #2563eb"],
+*[style*="background: #1e40af"],
+*[style*="background: blue"],
+*[style*="background-color: blue"],
+*[style*="color: #3b82f6"],
+*[style*="color: #1d4ed8"],
+*[style*="color: #2563eb"],
+*[style*="color: #1e40af"],
+*[style*="color: blue"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+  color: var(--primary-orange) !important;
+}
+
+/* Force all elements with blue backgrounds to use orange-teal */
+.profile-completion,
+.completion-fill,
+.stat-card .stat-icon,
+.stat-icon,
+[class*="blue"],
+[class*="Blue"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+  color: var(--text-white) !important;
+}
+
+/* === FINAL BLUE ELIMINATION - MAXIMUM OVERRIDE === */
+/* This is the ultimate override that will eliminate ALL blue colors */
+* {
+  /* Override any blue background colors */
+  background-color: var(--primary-orange) !important;
+  background: var(--gradient-primary) !important;
+}
+
+/* But only for elements that actually have blue colors */
+*[style*="blue"],
+*[style*="#3b82f6"],
+*[style*="#1d4ed8"],
+*[style*="#2563eb"],
+*[style*="#1e40af"],
+*[style*="Blue"],
+*[style*="BLUE"] {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+  color: var(--text-white) !important;
+}
+
+/* Specific overrides for dashboard elements */
+.jobseeker-dashboard-container *,
+.dashboard-container * {
+  /* Override any blue colors in dashboard */
+  background-color: var(--primary-orange) !important;
+  background: var(--gradient-primary) !important;
+  color: var(--text-white) !important;
+}
+
+/* Force profile completion to be teal gradient for balance */
+.jobseeker-dashboard-container .profile-completion,
+.dashboard-container .profile-completion {
+  background: var(--gradient-secondary) !important;
+  background-color: var(--brand-secondary) !important;
+  background-image: var(--gradient-secondary) !important;
+}
+
+/* Balance profile completion buttons - Upload: orange gradient, Complete: teal gradient */
+.jobseeker-dashboard-container .profile-completion .btn-upload,
+.dashboard-container .profile-completion .btn-upload {
+  background: var(--gradient-primary) !important;
+  background-color: var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .profile-completion .btn-complete,
+.dashboard-container .profile-completion .btn-complete {
+  background: var(--gradient-secondary) !important;
+  background-color: var(--brand-secondary) !important;
+}
+
+/* Also update primary/secondary buttons for compatibility */
+.jobseeker-dashboard-container .profile-completion .btn-primary,
+.dashboard-container .profile-completion .btn-primary {
+  background: var(--gradient-primary) !important;
+  background-color: var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .profile-completion .btn-secondary,
+.dashboard-container .profile-completion .btn-secondary {
+  background: var(--gradient-secondary) !important;
+  background-color: var(--brand-secondary) !important;
+}
+
+/* Force completion fill to be orange gradient (contrast with teal background) */
+.jobseeker-dashboard-container .completion-fill,
+.dashboard-container .completion-fill {
+  background: var(--gradient-primary) !important;
+  background-color: var(--brand-primary) !important;
+  background-image: var(--gradient-primary) !important;
+}
+
+/* Force stat card icons to be balanced orange-teal */
+.jobseeker-dashboard-container .stat-card .stat-icon,
+.dashboard-container .stat-card .stat-icon {
+  background: var(--gradient-primary) !important;
+  background-color: var(--primary-orange) !important;
+  background-image: var(--gradient-primary) !important;
+  color: var(--text-white) !important;
+}
+
+/* Create balanced stat cards - alternating orange and teal */
+.jobseeker-dashboard-container .stat-card:nth-child(1) .stat-icon,
+.dashboard-container .stat-card:nth-child(1) .stat-icon {
+  background: var(--gradient-primary) !important;
+  background-color: var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(2) .stat-icon,
+.dashboard-container .stat-card:nth-child(2) .stat-icon {
+  background: var(--gradient-secondary) !important;
+  background-color: var(--brand-secondary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(3) .stat-icon,
+.dashboard-container .stat-card:nth-child(3) .stat-icon {
+  background: var(--gradient-primary) !important;
+  background-color: var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(4) .stat-icon,
+.dashboard-container .stat-card:nth-child(4) .stat-icon {
+  background: var(--gradient-secondary) !important;
+  background-color: var(--brand-secondary) !important;
+}
+
+/* Balance stat card borders - alternating orange and teal */
+.jobseeker-dashboard-container .stat-card:nth-child(1),
+.dashboard-container .stat-card:nth-child(1) {
+  border: 2px solid var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(2),
+.dashboard-container .stat-card:nth-child(2) {
+  border: 2px solid var(--brand-secondary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(3),
+.dashboard-container .stat-card:nth-child(3) {
+  border: 2px solid var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(4),
+.dashboard-container .stat-card:nth-child(4) {
+  border: 2px solid var(--brand-secondary) !important;
+}
+
+/* Balance stat card numbers - alternating orange and teal */
+.jobseeker-dashboard-container .stat-card:nth-child(1) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(1) .stat-number,
+.dashboard-container .stat-card:nth-child(1) .stat-value,
+.dashboard-container .stat-card:nth-child(1) .stat-number {
+  color: var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(2) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(2) .stat-number,
+.dashboard-container .stat-card:nth-child(2) .stat-value,
+.dashboard-container .stat-card:nth-child(2) .stat-number {
+  color: var(--brand-secondary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(3) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(3) .stat-number,
+.dashboard-container .stat-card:nth-child(3) .stat-value,
+.dashboard-container .stat-card:nth-child(3) .stat-number {
+  color: var(--brand-primary) !important;
+}
+
+.jobseeker-dashboard-container .stat-card:nth-child(4) .stat-value,
+.jobseeker-dashboard-container .stat-card:nth-child(4) .stat-number,
+.dashboard-container .stat-card:nth-child(4) .stat-value,
+.dashboard-container .stat-card:nth-child(4) .stat-number {
+  color: var(--brand-secondary) !important;
+}
   color: white !important;
   padding: 4px 10px !important;
   border-radius: 6px !important;
@@ -2041,6 +2569,8 @@ body .jobseeker-dashboard-container .completion-bar .progress-indicator-percenta
 /* Remove all blue, green, purple, old orange colors */
 [style*="#3b82f6"],
 [style*="#1d4ed8"],
+[style*="#2563eb"],
+[style*="#1e40af"],
 [style*="#10b981"],
 [style*="#4caf50"],
 [style*="#22c55e"],
@@ -2051,9 +2581,9 @@ body .jobseeker-dashboard-container .completion-bar .progress-indicator-percenta
 [style*="blue"],
 [style*="green"],
 [style*="purple"] {
-  background: var(--gradient-main) !important;
+  background: var(--gradient-primary) !important;
   background-color: var(--primary-orange) !important;
-  background-image: var(--gradient-main) !important;
+  background-image: var(--gradient-primary) !important;
 }
 
 /* Force all sidebar elements to use orange-teal */

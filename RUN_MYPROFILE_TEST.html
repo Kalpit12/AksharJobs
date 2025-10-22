@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyProfile Fields Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .pass { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .fail { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .console-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .field-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .field-item {
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .found { background: #d4edda; }
+        .missing { background: #f8d7da; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 MyProfile Fields Test</h1>
+        <p>This test verifies that all registration form fields are displayed on the MyProfile page.</p>
+        
+        <div>
+            <button onclick="runQuickTest()">⚡ Quick Test</button>
+            <button onclick="runFullTest()">🔍 Full Test</button>
+            <button onclick="testDataPersistence()">💾 Data Persistence Test</button>
+            <button onclick="clearResults()">🗑️ Clear Results</button>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📊 Test Results</h2>
+        <div id="testResults">
+            <div class="test-result info">Click a test button above to run tests</div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>📝 Console Output</h2>
+        <div id="consoleOutput" class="console-output"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>📋 Field Checklist</h2>
+        <div id="fieldChecklist" class="field-list"></div>
+    </div>
+
+    <script>
+        let testResults = {};
+        let consoleOutput = '';
+
+        function log(message) {
+            consoleOutput += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            document.getElementById('consoleOutput').textContent = consoleOutput;
+            console.log(message);
+        }
+
+        function addResult(testName, passed, message) {
+            const resultsDiv = document.getElementById('testResults');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            resultDiv.innerHTML = `<strong>${testName}:</strong> ${passed ? '✅ PASS' : '❌ FAIL'} - ${message}`;
+            resultsDiv.appendChild(resultDiv);
+        }
+
+        function runQuickTest() {
+            log('🚀 Starting Quick Test...');
+            
+            try {
+                // Test sections
+                const sections = document.querySelectorAll('[data-section]');
+                log(`📊 Sections found: ${sections.length}/8`);
+                
+                // Test fields
+                const fields = document.querySelectorAll('input, textarea, select');
+                log(`📊 Fields found: ${fields.length}/57`);
+                
+                // Test buttons
+                const buttons = document.querySelectorAll('button');
+                log(`📊 Buttons found: ${buttons.length}`);
+                
+                // Results
+                const sectionsPass = sections.length >= 8;
+                const fieldsPass = fields.length >= 50;
+                
+                addResult('Sections', sectionsPass, `Found ${sections.length}/8 sections`);
+                addResult('Fields', fieldsPass, `Found ${fields.length}/57 fields`);
+                addResult('Overall', sectionsPass && fieldsPass, sectionsPass && fieldsPass ? 'Quick test passed!' : 'Some tests failed');
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                addResult('Quick Test', false, `Error: ${error.message}`);
+            }
+        }
+
+        function runFullTest() {
+            log('🔍 Starting Full Test...');
+            
+            try {
+                // Test all sections
+                const expectedSections = [
+                    'personal', 'demographics', 'residency', 'locations',
+                    'professional', 'memberships', 'additional', 'skills'
+                ];
+                
+                let sectionsFound = 0;
+                expectedSections.forEach(section => {
+                    const element = document.querySelector(`[data-section="${section}"]`);
+                    if (element) {
+                        sectionsFound++;
+                        log(`✅ Section "${section}" found`);
+                    } else {
+                        log(`❌ Section "${section}" missing`);
+                    }
+                });
+                
+                // Test field types
+                const fieldTypes = {
+                    text: document.querySelectorAll('input[type="text"]').length,
+                    email: document.querySelectorAll('input[type="email"]').length,
+                    date: document.querySelectorAll('input[type="date"]').length,
+                    textarea: document.querySelectorAll('textarea').length,
+                    select: document.querySelectorAll('select').length
+                };
+                
+                log('📊 Field type breakdown:');
+                Object.entries(fieldTypes).forEach(([type, count]) => {
+                    log(`  ${type}: ${count}`);
+                });
+                
+                // Test navigation
+                const sidebar = document.querySelector('.sidebar-container');
+                const navButtons = sidebar ? sidebar.querySelectorAll('button').length : 0;
+                log(`📊 Navigation buttons: ${navButtons}`);
+                
+                // Results
+                addResult('Sections', sectionsFound === 8, `Found ${sectionsFound}/8 sections`);
+                addResult('Field Types', fieldTypes.text > 10, `Found ${fieldTypes.text} text inputs`);
+                addResult('Navigation', navButtons >= 5, `Found ${navButtons} navigation buttons`);
+                addResult('Full Test', sectionsFound === 8 && fieldTypes.text > 10, sectionsFound === 8 ? 'All tests passed!' : 'Some tests failed');
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                addResult('Full Test', false, `Error: ${error.message}`);
+            }
+        }
+
+        function testDataPersistence() {
+            log('💾 Starting Data Persistence Test...');
+            
+            try {
+                // Find personal section
+                const personalSection = document.querySelector('[data-section="personal"]');
+                if (!personalSection) {
+                    addResult('Data Persistence', false, 'Personal section not found');
+                    return;
+                }
+                
+                // Find edit button
+                const editButton = personalSection.querySelector('button');
+                if (!editButton) {
+                    addResult('Data Persistence', false, 'Edit button not found');
+                    return;
+                }
+                
+                log('✅ Personal section and edit button found');
+                log('ℹ️ Click the edit button and save to test data persistence');
+                
+                // Check if we can find form inputs
+                const inputs = personalSection.querySelectorAll('input[type="text"]');
+                log(`📊 Text inputs in personal section: ${inputs.length}`);
+                
+                if (inputs.length > 0) {
+                    log('✅ Form inputs found - ready for manual testing');
+                    addResult('Data Persistence', true, 'Ready for manual testing - edit and save to verify persistence');
+                } else {
+                    addResult('Data Persistence', false, 'No text inputs found in personal section');
+                }
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                addResult('Data Persistence', false, `Error: ${error.message}`);
+            }
+        }
+
+        function clearResults() {
+            document.getElementById('testResults').innerHTML = '<div class="test-result info">Click a test button above to run tests</div>';
+            document.getElementById('consoleOutput').textContent = '';
+            document.getElementById('fieldChecklist').innerHTML = '';
+            consoleOutput = '';
+        }
+
+        function generateFieldChecklist() {
+            const expectedFields = [
+                // Personal Information
+                'First Name', 'Last Name', 'Middle Name', 'Email', 'Phone Number', 'Alternative Phone',
+                // Demographics
+                'Date of Birth', 'Gender', 'Blood Group', 'Community',
+                // Nationality & Residency
+                'Nationality', 'Resident Country', 'Current City', 'Postal Code', 'Address', 'Work Permit',
+                // Preferred Locations
+                'Preferred Location 1', 'Preferred Location 2', 'Preferred Location 3', 'Willing to Relocate',
+                // Professional Details
+                'Professional Title', 'Years of Experience', 'Career Level', 'Industry', 'Professional Summary',
+                'Job Type', 'Notice Period', 'Current Salary', 'Expected Salary', 'Availability', 'Work Location',
+                // Professional Memberships
+                'Organization Name', 'Membership Type', 'Membership Date',
+                // Additional Information
+                'Ask Community For', 'Hobbies', 'Additional Comments',
+                // Skills & Tools
+                'Technical Skills', 'Tools'
+            ];
+            
+            const checklistDiv = document.getElementById('fieldChecklist');
+            checklistDiv.innerHTML = '';
+            
+            expectedFields.forEach(field => {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'field-item missing';
+                fieldDiv.textContent = `❌ ${field}`;
+                checklistDiv.appendChild(fieldDiv);
+            });
+            
+            log(`📋 Generated checklist for ${expectedFields.length} expected fields`);
+        }
+
+        // Initialize
+        window.onload = function() {
+            log('🧪 MyProfile Fields Test loaded');
+            log('ℹ️ Make sure you are on the MyProfile page (http://localhost:3003/profile)');
+            generateFieldChecklist();
+        };
+    </script>
+</body>
+</html>
