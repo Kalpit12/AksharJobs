@@ -1,14 +1,18 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCookie, faChartLine, faShieldAlt, faCog, faUsers } from '@fortawesome/free-solid-svg-icons';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { faCookie, faChartLine, faShieldAlt, faCog, faUsers, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import '../styles/LegalPages.css';
 
 const CookiePolicy = () => {
   return (
     <div className="legal_page_wrapper">
-      <Header />
+      <div className="back-button-container">
+        <Link to="/signup" className="back-to-signup-button">
+          <FontAwesomeIcon icon={faArrowLeft} />
+          Back to Signup
+        </Link>
+      </div>
       
       <section className="legal_hero">
         <div className="legal_container">
@@ -146,8 +150,6 @@ const CookiePolicy = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

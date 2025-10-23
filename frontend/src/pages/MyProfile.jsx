@@ -128,6 +128,7 @@ const MyProfile = () => {
     middleName: '',
     email: '',
     phoneNumber: '',
+    phone: '',
     altPhone: '',
     dateOfBirth: '',
     gender: '',
@@ -148,7 +149,9 @@ const MyProfile = () => {
     location: '',
     professionalTitle: '',
     professionalSummary: '',
+    summary: '',
     yearsOfExperience: '',
+    yearsExperience: '',
     expectedSalary: '',
     jobTypePreference: '',
     jobType: '',
@@ -163,11 +166,14 @@ const MyProfile = () => {
     membershipOrg: '',
     membershipType: '',
     membershipDate: '',
-    askCommunity: '',
+    careerObjectives: '',
     hobbies: '',
     additionalComments: '',
+    agreeTerms: false,
+    allowContact: false,
     skills: '',
-    tools: ''
+    tools: '',
+    profilePhoto: null
   });
   const [education, setEducation] = useState([]);
   const [experience, setExperience] = useState([]);
@@ -186,6 +192,190 @@ const MyProfile = () => {
     }));
   };
 
+  // Function to refresh data after edits to ensure persistence
+  const refreshDataAfterEdit = async () => {
+    try {
+      console.log('🔄 Refreshing data after edit...');
+      const res = await axios.get(buildApiUrl('/api/jobseeker/profile'), { headers: authHeaders() });
+      const p = res?.data || {};
+      
+      // Update cache with fresh data
+      sessionStorage.setItem('myProfileData', JSON.stringify(p));
+      sessionStorage.setItem('myProfileTimestamp', Date.now().toString());
+      
+      // Update form state with fresh data
+      setProfileForm(prev => ({
+        ...prev,
+        // Basic Information
+        firstName: p.firstName || '',
+        lastName: p.lastName || '',
+        middleName: p.middleName || '',
+        email: p.email || '',
+        phone: p.phone || p.phoneNumber || '',
+        phoneNumber: p.phoneNumber || p.phone || '',
+        altPhone: p.altPhone || '',
+        
+        // Personal Details
+        dateOfBirth: p.dateOfBirth || '',
+        gender: p.gender || '',
+        bloodGroup: p.bloodGroup || '',
+        community: p.community || p.primary_community || '',
+        
+        // Location & Address
+        nationality: p.nationality || '',
+        residentCountry: p.residentCountry || '',
+        currentCity: p.currentCity || '',
+        postalCode: p.postalCode || '',
+        address: p.address || '',
+        latitude: p.latitude || '',
+        longitude: p.longitude || '',
+        workPermit: p.workPermit || '',
+        
+        // Preferred Working Locations
+        preferredLocation1: p.preferredLocation1 || '',
+        preferredLocation2: p.preferredLocation2 || '',
+        preferredLocation3: p.preferredLocation3 || '',
+        willingToRelocate: p.willingToRelocate || '',
+        workLocation: p.workLocation || '',
+        
+        // Professional Profile
+        professionalTitle: p.professionalTitle || '',
+        professionalSummary: p.professionalSummary || p.summary || '',
+        summary: p.summary || p.professionalSummary || '',
+        yearsExperience: p.yearsExperience || p.yearsOfExperience || '',
+        yearsOfExperience: p.yearsExperience || p.yearsOfExperience || '',
+        careerLevel: p.careerLevel || '',
+        industry: p.industry || '',
+        
+        // Job Preferences
+        jobType: p.jobType || p.jobTypePreference || '',
+        jobTypePreference: p.jobType || p.jobTypePreference || '',
+        noticePeriod: p.noticePeriod || '',
+        currentSalary: p.currentSalary || '',
+        expectedSalary: p.expectedSalary || '',
+        currencyPreference: p.currencyPreference || '',
+        travelAvailability: p.travelAvailability || '',
+        availability: p.availability || '',
+        
+        // Professional Memberships
+        membershipOrg: p.membershipOrg || '',
+        membershipType: p.membershipType || '',
+        membershipDate: p.membershipDate || '',
+        
+        // Additional Information
+        careerObjectives: p.careerObjectives || '',
+        hobbies: p.hobbies || '',
+        additionalComments: p.additionalComments || '',
+        agreeTerms: p.agreeTerms || false,
+        allowContact: p.allowContact || false,
+        
+        // Skills & Tools
+        skills: Array.isArray(p.coreSkills) ? p.coreSkills.join(', ') : (Array.isArray(p.skills) ? p.skills.join(', ') : (p.skills || '')),
+        tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || ''),
+        profilePhoto: p.profilePhoto || null
+      }));
+      
+      // Update array fields
+      setEducation(Array.isArray(p.educationEntries) ? p.educationEntries : (Array.isArray(p.education) ? p.education : []));
+      setExperience(Array.isArray(p.experienceEntries) ? p.experienceEntries : (Array.isArray(p.experience) ? p.experience : (Array.isArray(p.workExperience) ? p.workExperience : [])));
+      setLanguages(Array.isArray(p.languages) ? p.languages.map(l => (typeof l === 'string' ? { language: l, proficiency: '' } : l)) : []);
+      setCertifications(Array.isArray(p.certificationEntries) ? p.certificationEntries : (Array.isArray(p.certifications) ? p.certifications : []));
+      setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
+      
+      // Update professional links
+      const links = p.professionalLinks || {};
+      setProfessionalLinks({
+        linkedin: links.linkedin || links.linkedinUrl || '',
+        github: links.github || links.githubUrl || '',
+        portfolio: links.portfolio || links.portfolioUrl || '',
+        website: links.website || links.websiteUrl || ''
+      });
+      
+      console.log('✅ Data refreshed successfully after edit');
+    } catch (error) {
+      console.error('❌ Error refreshing data after edit:', error);
+    }
+  };
+
+  // Function to ensure array fields are properly updated in form state
+  const updateArrayFieldsInForm = () => {
+    setProfileForm(prev => ({
+      ...prev,
+      // Update skills and tools from arrays
+      skills: Array.isArray(profileForm.skills) ? profileForm.skills.join(', ') : (profileForm.skills || ''),
+      tools: Array.isArray(profileForm.tools) ? profileForm.tools.join(', ') : (profileForm.tools || ''),
+    }));
+  };
+
+  // Function to ensure array fields are properly saved
+  const ensureArrayFieldsSaved = (payload) => {
+    // Ensure all array fields are properly included
+    const arrayFields = {
+      education: education || [],
+      experience: experience || [],
+      languages: languages || [],
+      certifications: certifications || [],
+      references: references || [],
+      professionalLinks: professionalLinks || {}
+    };
+
+    return {
+      ...payload,
+      ...arrayFields,
+      // Also include with different naming conventions for backend compatibility
+      educationEntries: education || [],
+      experienceEntries: experience || [],
+      workExperience: experience || [],
+      certificationEntries: certifications || [],
+      referenceEntries: references || [],
+      languageProficiency: languages || []
+    };
+  };
+
+  // Data validation function to ensure 100% accuracy
+  const validateProfileData = (data) => {
+    const validation = {
+      isValid: true,
+      errors: [],
+      warnings: []
+    };
+
+    // Check required fields
+    const requiredFields = [
+      'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 
+      'gender', 'nationality', 'currentCity', 'workPermit',
+      'preferredLocation1', 'willingToRelocate', 'workLocation',
+      'professionalTitle', 'yearsExperience', 'industry'
+    ];
+
+    requiredFields.forEach(field => {
+      if (!data[field] || data[field] === '') {
+        validation.errors.push(`Missing required field: ${field}`);
+        validation.isValid = false;
+      }
+    });
+
+    // Check array fields
+    const arrayFields = ['education', 'experience', 'languages', 'skills'];
+    arrayFields.forEach(field => {
+      if (!Array.isArray(data[field]) || data[field].length === 0) {
+        validation.warnings.push(`Empty array field: ${field}`);
+      }
+    });
+
+    // Check professional links structure
+    if (data.professionalLinks && typeof data.professionalLinks === 'object') {
+      const linkFields = ['linkedin', 'github', 'portfolio', 'website'];
+      const hasAnyLink = linkFields.some(field => data.professionalLinks[field]);
+      if (!hasAnyLink) {
+        validation.warnings.push('No professional links provided');
+      }
+    }
+
+    console.log('🔍 Data validation result:', validation);
+    return validation;
+  };
+
   const saveSection = async (section) => {
     setSaving(true);
     try {
@@ -193,23 +383,99 @@ const MyProfile = () => {
       console.log(`🔍 Current profileForm state:`, profileForm);
       
       const payload = {
-        ...profileForm,
-        // Convert skills and tools to arrays
+        // Basic Information - Map all possible field names
+        firstName: profileForm.firstName || '',
+        middleName: profileForm.middleName || '',
+        lastName: profileForm.lastName || '',
+        fullName: `${profileForm.firstName || ''} ${profileForm.middleName || ''} ${profileForm.lastName || ''}`.trim(),
+        email: profileForm.email || '',
+        phone: profileForm.phone || profileForm.phoneNumber || '',
+        phoneNumber: profileForm.phone || profileForm.phoneNumber || '',
+        altPhone: profileForm.altPhone || '',
+        
+        // Personal Details
+        dateOfBirth: profileForm.dateOfBirth || '',
+        gender: profileForm.gender || '',
+        bloodGroup: profileForm.bloodGroup || '',
+        community: profileForm.community || '',
+        
+        // Location & Address
+        nationality: profileForm.nationality || '',
+        residentCountry: profileForm.residentCountry || '',
+        currentCity: profileForm.currentCity || '',
+        postalCode: profileForm.postalCode || '',
+        address: profileForm.address || '',
+        latitude: profileForm.latitude || '',
+        longitude: profileForm.longitude || '',
+        workPermit: profileForm.workPermit || '',
+        
+        // Preferred Working Locations
+        preferredLocation1: profileForm.preferredLocation1 || '',
+        preferredLocation2: profileForm.preferredLocation2 || '',
+        preferredLocation3: profileForm.preferredLocation3 || '',
+        willingToRelocate: profileForm.willingToRelocate || '',
+        workLocation: profileForm.workLocation || '',
+        
+        // Professional Profile
+        professionalTitle: profileForm.professionalTitle || '',
+        professionalSummary: profileForm.professionalSummary || profileForm.summary || '',
+        summary: profileForm.professionalSummary || profileForm.summary || '',
+        yearsExperience: profileForm.yearsExperience || profileForm.yearsOfExperience || '',
+        yearsOfExperience: profileForm.yearsExperience || profileForm.yearsOfExperience || '',
+        careerLevel: profileForm.careerLevel || '',
+        industry: profileForm.industry || '',
+        
+        // Job Preferences
+        jobType: profileForm.jobType || profileForm.jobTypePreference || '',
+        jobTypePreference: profileForm.jobType || profileForm.jobTypePreference || '',
+        noticePeriod: profileForm.noticePeriod || '',
+        currentSalary: profileForm.currentSalary || '',
+        expectedSalary: profileForm.expectedSalary || '',
+        currencyPreference: profileForm.currencyPreference || '',
+        travelAvailability: profileForm.travelAvailability || '',
+        availability: profileForm.availability || '',
+        
+        // Professional Memberships
+        membershipOrg: profileForm.membershipOrg || '',
+        membershipType: profileForm.membershipType || '',
+        membershipDate: profileForm.membershipDate || '',
+        
+        // Additional Information
+        careerObjectives: profileForm.careerObjectives || '',
+        hobbies: profileForm.hobbies || '',
+        additionalComments: profileForm.additionalComments || '',
+        agreeTerms: profileForm.agreeTerms || false,
+        allowContact: profileForm.allowContact || false,
+        
+        // Skills & Tools - Convert to arrays
         skills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         coreSkills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         tools: profileForm.tools ? profileForm.tools.split(',').map(s => s.trim()).filter(Boolean) : [],
-        // Include all arrays
-        education, 
-        experience, 
-        languages, 
-        certifications, 
-        professionalLinks,
-        references,
-        // Mark profile as completed
-        profileCompleted: true
+        softwareTools: profileForm.tools ? profileForm.tools.split(',').map(s => s.trim()).filter(Boolean) : [],
+        
+        // Array Fields - Use both naming conventions for compatibility
+        education: education,
+        educationEntries: education,
+        experience: experience,
+        experienceEntries: experience,
+        workExperience: experience,
+        languages: languages,
+        languageProficiency: languages,
+        certifications: certifications,
+        certificationEntries: certifications,
+        references: references,
+        referenceEntries: references,
+        professionalLinks: professionalLinks,
+        
+        // Profile completion status
+        profileCompleted: true,
+        hasCompletedProfile: true
       };
       
-      console.log(`📤 Sending payload for ${section}:`, payload);
+      // Ensure array fields are properly included
+      const finalPayload = ensureArrayFieldsSaved(payload);
+      
+      console.log(`📤 Sending payload for ${section}:`, finalPayload);
       console.log(`🩸 Blood Group in payload:`, payload.bloodGroup);
       console.log(`👤 Demographics fields in payload:`, {
         bloodGroup: payload.bloodGroup,
@@ -219,8 +485,29 @@ const MyProfile = () => {
         nationality: payload.nationality,
         currentCity: payload.currentCity
       });
+      console.log(`📋 Array fields in payload:`, {
+        education: payload.education?.length || 0,
+        experience: payload.experience?.length || 0,
+        languages: payload.languages?.length || 0,
+        certifications: payload.certifications?.length || 0,
+        references: payload.references?.length || 0,
+        skills: payload.skills?.length || 0,
+        tools: payload.tools?.length || 0
+      });
+      console.log(`🔗 Professional links in payload:`, finalPayload.professionalLinks);
       
-      const response = await axios.put(buildApiUrl('/api/profile/profile'), payload, { 
+      // Validate data before sending
+      const validation = validateProfileData(finalPayload);
+      if (!validation.isValid) {
+        console.error('❌ Data validation failed:', validation.errors);
+        alert(`Please fill in required fields: ${validation.errors.join(', ')}`);
+        return;
+      }
+      if (validation.warnings.length > 0) {
+        console.warn('⚠️ Data validation warnings:', validation.warnings);
+      }
+      
+      const response = await axios.put(buildApiUrl('/api/profile/profile'), finalPayload, { 
         headers: { 
           ...authHeaders(), 
           'Content-Type': 'application/json' 
@@ -231,12 +518,21 @@ const MyProfile = () => {
       
       setEditingSections(prev => ({ ...prev, [section]: false }));
       
-      // Clear cache to force fresh data on next load
-      sessionStorage.removeItem('myProfileData');
-      sessionStorage.removeItem('myProfileTimestamp');
+      // Update cache with the saved data instead of clearing it
+      const updatedCache = {
+        ...JSON.parse(sessionStorage.getItem('myProfileData') || '{}'),
+        ...finalPayload
+      };
+      sessionStorage.setItem('myProfileData', JSON.stringify(updatedCache));
+      sessionStorage.setItem('myProfileTimestamp', Date.now().toString());
       
       // Show success message
       alert(`${section.charAt(0).toUpperCase() + section.slice(1)} section saved successfully!`);
+      
+      // Refresh data to ensure persistence
+      setTimeout(() => {
+        refreshDataAfterEdit();
+      }, 1000);
       
     } catch (error) {
       console.error(`❌ Error saving ${section} section:`, error);
@@ -285,6 +581,16 @@ const MyProfile = () => {
   useEffect(() => {
     let isMounted = true; // Prevent state updates after component unmount
 
+    // Add page visibility change listener to refresh data when user returns
+    const handleVisibilityChange = () => {
+      if (!document.hidden && user) {
+        console.log('🔄 Page became visible, refreshing data...');
+        refreshDataAfterEdit();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     const load = async () => {
       try {
         console.log('🔄 Loading profile data...');
@@ -310,6 +616,7 @@ const MyProfile = () => {
             middleName: p.middleName || '',
             email: p.email || '',
             phoneNumber: p.phone || p.phoneNumber || '',
+            phone: p.phone || p.phoneNumber || '',
             altPhone: p.altPhone || '',
             dateOfBirth: p.dateOfBirth || '',
             gender: p.gender || '',
@@ -330,7 +637,9 @@ const MyProfile = () => {
             location: p.location || '',
             professionalTitle: p.professionalTitle || '',
             professionalSummary: p.professionalSummary || p.summary || '',
+            summary: p.summary || p.professionalSummary || '',
             yearsOfExperience: p.yearsOfExperience || p.yearsExperience || '',
+            yearsExperience: p.yearsExperience || p.yearsOfExperience || '',
             expectedSalary: p.expectedSalary || '',
             jobTypePreference: p.jobTypePreference || '',
             availability: p.availability || '',
@@ -344,12 +653,15 @@ const MyProfile = () => {
             membershipOrg: p.membershipOrg || '',
             membershipType: p.membershipType || '',
             membershipDate: p.membershipDate || '',
-            askCommunity: p.askCommunity || '',
+            careerObjectives: p.careerObjectives || '',
             hobbies: p.hobbies || '',
             additionalComments: p.additionalComments || '',
+            agreeTerms: p.agreeTerms || false,
+            allowContact: p.allowContact || false,
             jobType: p.jobType || '',
             skills: Array.isArray(p.coreSkills) ? p.coreSkills.join(', ') : (Array.isArray(p.skills) ? p.skills.join(', ') : (p.skills || '')),
-            tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || '')
+            tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || ''),
+            profilePhoto: p.profilePhoto || null
           }));
           
           setEducation(Array.isArray(p.educationEntries) ? p.educationEntries : (Array.isArray(p.education) ? p.education : []));
@@ -399,27 +711,22 @@ const MyProfile = () => {
         
         setProfileForm(prev => ({
           ...prev,
+          // Basic Information - Map all possible field names
           firstName: user?.firstName || p.firstName || '',
           lastName: user?.lastName || p.lastName || '',
+          middleName: p.middleName || '',
           email: user?.email || p.email || localStorage.getItem('userEmail') || '',
           phoneNumber: p.phoneNumber || p.phone || '',
-          location: typeof p.location === 'string' ? p.location : [p.location?.city, p.location?.state, p.location?.country].filter(Boolean).join(', '),
-          professionalTitle: p.professionalTitle || '',
-          professionalSummary: p.professionalSummary || p.summary || '',
-          yearsOfExperience: p.yearsOfExperience || '',
-          expectedSalary: p.expectedSalary || '',
-          jobTypePreference: p.jobTypePreference || p.job_type || '',
-          availability: typeof p.availability === 'string' ? p.availability : (Array.isArray(p.availability) ? p.availability.join(', ') : ''),
-          industry: p.industry || '',
-          skills: Array.isArray(p.coreSkills) ? p.coreSkills.join(', ') : (Array.isArray(p.skills) ? p.skills.join(', ') : (p.skills || '')),
-          tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || ''),
-          // Extended fields from registration form
-          middleName: p.middleName || '',
+          phone: p.phone || p.phoneNumber || '',
           altPhone: p.altPhone || '',
+          
+          // Personal Details
           dateOfBirth: p.dateOfBirth || '',
           gender: p.gender || '',
           bloodGroup: p.bloodGroup || '',
-          community: p.community || '',
+          community: p.community || p.primary_community || '',
+          
+          // Location & Address
           nationality: p.nationality || '',
           residentCountry: p.residentCountry || p.location?.country || '',
           currentCity: p.currentCity || p.location?.city || '',
@@ -432,20 +739,34 @@ const MyProfile = () => {
           preferredLocation2: p.preferredLocation2 || '',
           preferredLocation3: p.preferredLocation3 || '',
           willingToRelocate: p.willingToRelocate || '',
-          workLocation: p.workLocation || '',
-          yearsOfExperience: p.yearsOfExperience || p.yearsExperience || prev.yearsOfExperience,
+          location: typeof p.location === 'string' ? p.location : [p.location?.city, p.location?.state, p.location?.country].filter(Boolean).join(', '),
+          professionalTitle: p.professionalTitle || '',
+          professionalSummary: p.professionalSummary || p.summary || '',
+          summary: p.summary || p.professionalSummary || '',
+          yearsOfExperience: p.yearsOfExperience || p.yearsExperience || '',
+          yearsExperience: p.yearsExperience || p.yearsOfExperience || '',
           careerLevel: p.careerLevel || '',
+          industry: p.industry || '',
           jobType: p.jobType || '',
+          jobTypePreference: p.jobTypePreference || p.job_type || '',
           noticePeriod: p.noticePeriod || '',
           currentSalary: p.currentSalary || '',
+          expectedSalary: p.expectedSalary || '',
           currencyPreference: p.currencyPreference || p.currency || '',
           travelAvailability: p.travelAvailability || '',
+          workLocation: p.workLocation || '',
+          availability: typeof p.availability === 'string' ? p.availability : (Array.isArray(p.availability) ? p.availability.join(', ') : ''),
           membershipOrg: p.membershipOrg || '',
           membershipType: p.membershipType || '',
           membershipDate: p.membershipDate || '',
-          askCommunity: p.askCommunity || '',
+          careerObjectives: p.careerObjectives || '',
           hobbies: p.hobbies || '',
-          additionalComments: p.additionalComments || ''
+          additionalComments: p.additionalComments || '',
+          agreeTerms: p.agreeTerms || false,
+          allowContact: p.allowContact || false,
+          skills: Array.isArray(p.coreSkills) ? p.coreSkills.join(', ') : (Array.isArray(p.skills) ? p.skills.join(', ') : (p.skills || '')),
+          tools: Array.isArray(p.tools) ? p.tools.join(', ') : (p.tools || ''),
+          profilePhoto: p.profilePhoto || null
         }));
         
         setEducation(Array.isArray(p.educationEntries) ? p.educationEntries : (Array.isArray(p.education) ? p.education : []));
@@ -484,6 +805,7 @@ const MyProfile = () => {
 
     return () => {
       isMounted = false; // Cleanup function
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [user]);
 
@@ -493,25 +815,131 @@ const MyProfile = () => {
       console.log('💾 Saving entire profile...');
       
       const payload = {
-        ...profileForm,
-        // Convert skills and tools to arrays
+        // Basic Information - Map all possible field names
+        firstName: profileForm.firstName || '',
+        middleName: profileForm.middleName || '',
+        lastName: profileForm.lastName || '',
+        fullName: `${profileForm.firstName || ''} ${profileForm.middleName || ''} ${profileForm.lastName || ''}`.trim(),
+        email: profileForm.email || '',
+        phone: profileForm.phone || profileForm.phoneNumber || '',
+        phoneNumber: profileForm.phone || profileForm.phoneNumber || '',
+        altPhone: profileForm.altPhone || '',
+        
+        // Personal Details
+        dateOfBirth: profileForm.dateOfBirth || '',
+        gender: profileForm.gender || '',
+        bloodGroup: profileForm.bloodGroup || '',
+        community: profileForm.community || '',
+        
+        // Location & Address
+        nationality: profileForm.nationality || '',
+        residentCountry: profileForm.residentCountry || '',
+        currentCity: profileForm.currentCity || '',
+        postalCode: profileForm.postalCode || '',
+        address: profileForm.address || '',
+        latitude: profileForm.latitude || '',
+        longitude: profileForm.longitude || '',
+        workPermit: profileForm.workPermit || '',
+        
+        // Preferred Working Locations
+        preferredLocation1: profileForm.preferredLocation1 || '',
+        preferredLocation2: profileForm.preferredLocation2 || '',
+        preferredLocation3: profileForm.preferredLocation3 || '',
+        willingToRelocate: profileForm.willingToRelocate || '',
+        workLocation: profileForm.workLocation || '',
+        
+        // Professional Profile
+        professionalTitle: profileForm.professionalTitle || '',
+        professionalSummary: profileForm.professionalSummary || profileForm.summary || '',
+        summary: profileForm.professionalSummary || profileForm.summary || '',
+        yearsExperience: profileForm.yearsExperience || profileForm.yearsOfExperience || '',
+        yearsOfExperience: profileForm.yearsExperience || profileForm.yearsOfExperience || '',
+        careerLevel: profileForm.careerLevel || '',
+        industry: profileForm.industry || '',
+        
+        // Job Preferences
+        jobType: profileForm.jobType || profileForm.jobTypePreference || '',
+        jobTypePreference: profileForm.jobType || profileForm.jobTypePreference || '',
+        noticePeriod: profileForm.noticePeriod || '',
+        currentSalary: profileForm.currentSalary || '',
+        expectedSalary: profileForm.expectedSalary || '',
+        currencyPreference: profileForm.currencyPreference || '',
+        travelAvailability: profileForm.travelAvailability || '',
+        availability: profileForm.availability || '',
+        
+        // Professional Memberships
+        membershipOrg: profileForm.membershipOrg || '',
+        membershipType: profileForm.membershipType || '',
+        membershipDate: profileForm.membershipDate || '',
+        
+        // Additional Information
+        careerObjectives: profileForm.careerObjectives || '',
+        hobbies: profileForm.hobbies || '',
+        additionalComments: profileForm.additionalComments || '',
+        agreeTerms: profileForm.agreeTerms || false,
+        allowContact: profileForm.allowContact || false,
+        
+        // Skills & Tools - Convert to arrays
         skills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         coreSkills: profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
         tools: profileForm.tools ? profileForm.tools.split(',').map(s => s.trim()).filter(Boolean) : [],
-        // Include all arrays
-        education, 
-        experience, 
-        languages, 
-        certifications, 
-        professionalLinks,
-        references,
-        // Mark profile as completed
-        profileCompleted: true
+        softwareTools: profileForm.tools ? profileForm.tools.split(',').map(s => s.trim()).filter(Boolean) : [],
+        
+        // Array Fields - Use both naming conventions for compatibility
+        education: education,
+        educationEntries: education,
+        experience: experience,
+        experienceEntries: experience,
+        workExperience: experience,
+        languages: languages,
+        languageProficiency: languages,
+        certifications: certifications,
+        certificationEntries: certifications,
+        references: references,
+        referenceEntries: references,
+        professionalLinks: professionalLinks,
+        
+        // Profile completion status
+        profileCompleted: true,
+        hasCompletedProfile: true
       };
       
-      console.log('📤 Sending profile payload:', payload);
+      // Ensure array fields are properly included
+      const finalPayload = ensureArrayFieldsSaved(payload);
       
-      const response = await axios.put(buildApiUrl('/api/profile/profile'), payload, { 
+      console.log('📤 Sending profile payload:', finalPayload);
+      console.log('🩸 Blood Group in payload:', payload.bloodGroup);
+      console.log('👤 Demographics fields in payload:', {
+        bloodGroup: payload.bloodGroup,
+        dateOfBirth: payload.dateOfBirth,
+        gender: payload.gender,
+        community: payload.community,
+        nationality: payload.nationality,
+        currentCity: payload.currentCity
+      });
+      console.log('📋 Array fields in payload:', {
+        education: payload.education?.length || 0,
+        experience: payload.experience?.length || 0,
+        languages: payload.languages?.length || 0,
+        certifications: payload.certifications?.length || 0,
+        references: payload.references?.length || 0,
+        skills: payload.skills?.length || 0,
+        tools: payload.tools?.length || 0
+      });
+      console.log('🔗 Professional links in payload:', finalPayload.professionalLinks);
+      
+      // Validate data before sending
+      const validation = validateProfileData(finalPayload);
+      if (!validation.isValid) {
+        console.error('❌ Data validation failed:', validation.errors);
+        alert(`Please fill in required fields: ${validation.errors.join(', ')}`);
+        return;
+      }
+      if (validation.warnings.length > 0) {
+        console.warn('⚠️ Data validation warnings:', validation.warnings);
+      }
+      
+      const response = await axios.put(buildApiUrl('/api/profile/profile'), finalPayload, { 
         headers: { 
           ...authHeaders(), 
           'Content-Type': 'application/json' 
@@ -522,11 +950,20 @@ const MyProfile = () => {
       
       setEditMode(false);
       
-      // Clear cache to force fresh data on next load
-      sessionStorage.removeItem('myProfileData');
-      sessionStorage.removeItem('myProfileTimestamp');
+      // Update cache with the saved data instead of clearing it
+      const updatedCache = {
+        ...JSON.parse(sessionStorage.getItem('myProfileData') || '{}'),
+        ...finalPayload
+      };
+      sessionStorage.setItem('myProfileData', JSON.stringify(updatedCache));
+      sessionStorage.setItem('myProfileTimestamp', Date.now().toString());
       
       alert('Profile saved successfully!');
+      
+      // Refresh data to ensure persistence
+      setTimeout(() => {
+        refreshDataAfterEdit();
+      }, 1000);
       
     } catch (error) {
       console.error('❌ Error saving profile:', error);
@@ -1660,8 +2097,8 @@ const MyProfile = () => {
             </div>
           </div>
           <div className="form-group" style={{ marginBottom: '15px' }}>
-            <label className="form-label">Ask Community For</label>
-            <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '80px' }} value={profileForm.askCommunity || ''} disabled={!editingSections.additional} onChange={(e) => setProfileForm(p => ({ ...p, askCommunity: e.target.value }))} placeholder="What would you like help with from the community?" />
+            <label className="form-label">Career Objectives</label>
+            <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '80px' }} value={profileForm.careerObjectives || ''} disabled={!editingSections.additional} onChange={(e) => setProfileForm(p => ({ ...p, careerObjectives: e.target.value }))} placeholder="What are your short-term and long-term career goals? What do you hope to achieve in your next role?" />
           </div>
           <div className="form-group" style={{ marginBottom: '15px' }}>
             <label className="form-label">Hobbies & Interests</label>
@@ -1832,6 +2269,110 @@ const MyProfile = () => {
           </div>
           <div style={{ marginTop: '25px' }}>
             <h4 style={{ marginBottom: '15px', color: '#666' }}>Tools</h4>
+            {editingSections.skills ? (
+              <div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
+                  {(profileForm.tools || '').split(',').filter(Boolean).map((s, i) => (
+                    <span key={i} style={{
+                      ...pillTagStyle,
+                      background: '#d1fae5',
+                      color: '#065f46',
+                      border: '2px solid #10b981',
+                      fontWeight: '700',
+                      position: 'relative',
+                      paddingRight: '25px'
+                    }}>
+                      {s.trim()}
+                      <button
+                        onClick={() => {
+                          const currentTools = profileForm.tools ? profileForm.tools.split(',').map(t => t.trim()).filter(Boolean) : [];
+                          setProfileForm(prev => ({
+                            ...prev,
+                            tools: currentTools.filter(tool => tool !== s.trim()).join(', ')
+                          }));
+                        }}
+                        style={{
+                          position: 'absolute',
+                          right: '5px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: '#dc2626',
+                          border: 'none',
+                          borderRadius: '50%',
+                          width: '18px',
+                          height: '18px',
+                          color: 'white',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          fontWeight: 'bold',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder="Add tool (e.g., Microsoft Excel, AutoCAD)..."
+                    style={{
+                      ...formInputBase,
+                      flex: 1,
+                      border: '2px solid #10b981',
+                      borderRadius: '8px'
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const tool = e.target.value.trim();
+                        if (tool) {
+                          const currentTools = profileForm.tools ? profileForm.tools.split(',').map(t => t.trim()).filter(Boolean) : [];
+                          if (!currentTools.includes(tool)) {
+                            setProfileForm(prev => ({
+                              ...prev,
+                              tools: [...currentTools, tool].join(', ')
+                            }));
+                            e.target.value = '';
+                          }
+                        }
+                      }
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      const input = e.target.previousElementSibling;
+                      const tool = input.value.trim();
+                      if (tool) {
+                        const currentTools = profileForm.tools ? profileForm.tools.split(',').map(t => t.trim()).filter(Boolean) : [];
+                        if (!currentTools.includes(tool)) {
+                          setProfileForm(prev => ({
+                            ...prev,
+                            tools: [...currentTools, tool].join(', ')
+                          }));
+                          input.value = '';
+                        }
+                      }
+                    }}
+                    style={{
+                      background: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      padding: '10px 20px',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontWeight: '600'
+                    }}
+                  >
+                    Add Tool
+                  </button>
+                </div>
+              </div>
+            ) : (
             <div>
               {(profileForm.tools || '').split(',').filter(Boolean).map((s, i) => (
                 <span key={i} style={{
@@ -1846,6 +2387,7 @@ const MyProfile = () => {
                 <p style={{ color: '#999', fontStyle: 'italic' }}>No tools added yet</p>
               )}
             </div>
+            )}
           </div>
         </div>
 
@@ -1869,93 +2411,740 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
-            {!editingSections.experience && (
-              <button 
-                onClick={() => setEditingSections(prev => ({ ...prev, experience: true }))}
-                className="edit-btn"
-              >
-                <FontAwesomeIcon icon={faEdit} /> Edit
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.experience ? (
+                <button 
+                  onClick={() => setEditingSections(prev => ({ ...prev, experience: true }))}
+                  className="edit-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => {
+                      saveSection('experience');
+                      setEditingSections(prev => ({ ...prev, experience: false }));
+                    }}
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => setEditingSections(prev => ({ ...prev, experience: false }))}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {(experience || []).map((ex, idx) => (
-            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6' }}>
-              <h4>{ex.title || ex.role || 'Role'}</h4>
-              <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '5px' }}>{ex.company || 'Company'}</div>
-              <div style={{ color: '#999', fontSize: '13px', marginBottom: '10px' }}>{(ex.startDate || '') + (ex.endDate ? ` - ${ex.endDate}` : '')}</div>
-              <p style={{ color: '#666', marginTop: '10px' }}>{ex.description || ''}</p>
+            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6', position: 'relative' }}>
+              {editingSections.experience && (
+                <button
+                  onClick={() => {
+                    setExperience(prev => prev.filter((_, i) => i !== idx));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: '#dc2626',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    color: 'white',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {editingSections.experience ? (
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Job Title</label>
+                    <input
+                      type="text"
+                      value={ex.jobTitle || ex.title || ex.role || ''}
+                      onChange={(e) => {
+                        const newExp = [...experience];
+                        newExp[idx] = { ...newExp[idx], jobTitle: e.target.value, title: e.target.value, role: e.target.value };
+                        setExperience(newExp);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                      placeholder="e.g., Senior Software Engineer"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Company</label>
+                    <input
+                      type="text"
+                      value={ex.company || ''}
+                      onChange={(e) => {
+                        const newExp = [...experience];
+                        newExp[idx] = { ...newExp[idx], company: e.target.value };
+                        setExperience(newExp);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                      placeholder="e.g., ABC Corporation"
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Start Date</label>
+                      <input
+                        type="month"
+                        value={ex.startDate || ''}
+                        onChange={(e) => {
+                          const newExp = [...experience];
+                          newExp[idx] = { ...newExp[idx], startDate: e.target.value };
+                          setExperience(newExp);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>End Date</label>
+                      <input
+                        type="month"
+                        value={ex.endDate || ''}
+                        onChange={(e) => {
+                          const newExp = [...experience];
+                          newExp[idx] = { ...newExp[idx], endDate: e.target.value };
+                          setExperience(newExp);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        disabled={ex.currentJob}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        checked={ex.currentJob || false}
+                        onChange={(e) => {
+                          const newExp = [...experience];
+                          newExp[idx] = { ...newExp[idx], currentJob: e.target.checked, endDate: e.target.checked ? '' : newExp[idx].endDate };
+                          setExperience(newExp);
+                        }}
+                      />
+                      <span>I currently work here</span>
+                    </label>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Description</label>
+                    <textarea
+                      value={ex.jobDescription || ex.description || ''}
+                      onChange={(e) => {
+                        const newExp = [...experience];
+                        newExp[idx] = { ...newExp[idx], jobDescription: e.target.value, description: e.target.value };
+                        setExperience(newExp);
+                      }}
+                      style={{ ...formInputBase, width: '100%', minHeight: '100px' }}
+                      placeholder="Describe your key responsibilities and achievements..."
+                    />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h4>{ex.jobTitle || ex.title || ex.role || 'Role'}</h4>
+                  <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '5px' }}>{ex.company || 'Company'}</div>
+                  <div style={{ color: '#999', fontSize: '13px', marginBottom: '10px' }}>{(ex.startDate || '') + (ex.endDate ? ` - ${ex.endDate}` : (ex.currentJob ? ' - Present' : ''))}</div>
+                  <p style={{ color: '#666', marginTop: '10px' }}>{ex.jobDescription || ex.description || ''}</p>
+                </>
+              )}
             </div>
           ))}
           {(experience || []).length === 0 && <div style={{ color: '#999' }}>No experience added</div>}
+          {editingSections.experience && (
+            <button
+              onClick={() => {
+                setExperience(prev => [
+                  ...prev,
+                  {
+                    jobTitle: '',
+                    company: '',
+                    startDate: '',
+                    endDate: '',
+                    currentJob: false,
+                    jobDescription: ''
+                  }
+                ]);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px',
+                marginTop: '10px'
+              }}
+            >
+              + Add Experience
+            </button>
+          )}
         </div>
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
-            {!editingSections.education && (
-              <button 
-                onClick={() => setEditingSections(prev => ({ ...prev, education: true }))}
-                className="edit-btn"
-              >
-                <FontAwesomeIcon icon={faEdit} /> Edit
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.education ? (
+                <button 
+                  onClick={() => setEditingSections(prev => ({ ...prev, education: true }))}
+                  className="edit-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => {
+                      saveSection('education');
+                      setEditingSections(prev => ({ ...prev, education: false }));
+                    }}
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => setEditingSections(prev => ({ ...prev, education: false }))}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {(education || []).map((ed, idx) => (
-            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6' }}>
-              <h4>{ed.degree || 'Degree'}{ed.field ? ` in ${ed.field}` : ''}</h4>
-              <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '5px' }}>{ed.school || 'Institution'}</div>
-              <div style={{ color: '#999', fontSize: '13px', marginBottom: '10px' }}>{(ed.startDate || '') + (ed.endDate ? ` - ${ed.endDate}` : '')}</div>
+            <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6', position: 'relative' }}>
+              {editingSections.education && (
+                <button
+                  onClick={() => {
+                    setEducation(prev => prev.filter((_, i) => i !== idx));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: '#dc2626',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    color: 'white',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {editingSections.education ? (
+                <div style={{ display: 'grid', gap: '15px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Degree Type</label>
+                    <select
+                      value={ed.degreeType || ed.degree || ''}
+                      onChange={(e) => {
+                        const newEd = [...education];
+                        newEd[idx] = { ...newEd[idx], degreeType: e.target.value, degree: e.target.value };
+                        setEducation(newEd);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                    >
+                      <option value="">Select degree type</option>
+                      <option value="high-school">High School Diploma</option>
+                      <option value="associate">Associate Degree</option>
+                      <option value="bachelor">Bachelor's Degree</option>
+                      <option value="master">Master's Degree</option>
+                      <option value="phd">Doctorate/PhD</option>
+                      <option value="professional">Professional Degree</option>
+                      <option value="certificate">Certificate</option>
+                      <option value="diploma">Diploma</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Field of Study</label>
+                    <input
+                      type="text"
+                      value={ed.fieldOfStudy || ed.field || ''}
+                      onChange={(e) => {
+                        const newEd = [...education];
+                        newEd[idx] = { ...newEd[idx], fieldOfStudy: e.target.value, field: e.target.value };
+                        setEducation(newEd);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                      placeholder="e.g., Computer Science"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Institution</label>
+                    <input
+                      type="text"
+                      value={ed.institution || ed.school || ''}
+                      onChange={(e) => {
+                        const newEd = [...education];
+                        newEd[idx] = { ...newEd[idx], institution: e.target.value, school: e.target.value };
+                        setEducation(newEd);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                      placeholder="e.g., University of Nairobi"
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Start Year</label>
+                      <input
+                        type="number"
+                        value={ed.eduStartYear || ed.startYear || ''}
+                        onChange={(e) => {
+                          const newEd = [...education];
+                          newEd[idx] = { ...newEd[idx], eduStartYear: e.target.value, startYear: e.target.value };
+                          setEducation(newEd);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="2018"
+                        min="1950"
+                        max="2030"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>End Year</label>
+                      <input
+                        type="number"
+                        value={ed.eduEndYear || ed.endYear || ''}
+                        onChange={(e) => {
+                          const newEd = [...education];
+                          newEd[idx] = { ...newEd[idx], eduEndYear: e.target.value, endYear: e.target.value };
+                          setEducation(newEd);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="2022"
+                        min="1950"
+                        max="2035"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h4>{ed.degreeType || ed.degree || 'Degree'}{ed.fieldOfStudy || ed.field ? ` in ${ed.fieldOfStudy || ed.field}` : ''}</h4>
+                  <div style={{ color: '#3b82f6', fontWeight: 600, marginBottom: '5px' }}>{ed.institution || ed.school || 'Institution'}</div>
+                  <div style={{ color: '#999', fontSize: '13px', marginBottom: '10px' }}>{(ed.eduStartYear || ed.startYear || '') + (ed.eduEndYear || ed.endYear ? ` - ${ed.eduEndYear || ed.endYear}` : '')}</div>
+                </>
+              )}
             </div>
           ))}
           {(education || []).length === 0 && <div style={{ color: '#999' }}>No education added</div>}
+          {editingSections.education && (
+            <button
+              onClick={() => {
+                setEducation(prev => [
+                  ...prev,
+                  {
+                    degreeType: '',
+                    fieldOfStudy: '',
+                    institution: '',
+                    eduStartYear: '',
+                    eduEndYear: ''
+                  }
+                ]);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px',
+                marginTop: '10px'
+              }}
+            >
+              + Add Education
+            </button>
+          )}
         </div>
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Awards</h3>
-            {!editingSections.certifications && (
-              <button 
-                onClick={() => setEditingSections(prev => ({ ...prev, certifications: true }))}
-                className="edit-btn"
-              >
-                <FontAwesomeIcon icon={faEdit} /> Edit
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.certifications ? (
+                <button 
+                  onClick={() => setEditingSections(prev => ({ ...prev, certifications: true }))}
+                  className="edit-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => {
+                      saveSection('certifications');
+                      setEditingSections(prev => ({ ...prev, certifications: false }));
+                    }}
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => setEditingSections(prev => ({ ...prev, certifications: false }))}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {(certifications || []).map((ct, idx) => (
-            <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', marginBottom: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h4>{ct.name || 'Certification'}</h4>
-                  <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{(ct.issuer || '') + (ct.date ? ` - ${ct.date}` : '')}</p>
+            <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', marginBottom: '12px', position: 'relative' }}>
+              {editingSections.certifications && (
+                <button
+                  onClick={() => {
+                    setCertifications(prev => prev.filter((_, i) => i !== idx));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: '#dc2626',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    color: 'white',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    zIndex: 10
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {editingSections.certifications ? (
+                <div style={{ display: 'grid', gap: '15px', paddingRight: '40px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Certification Name</label>
+                    <input
+                      type="text"
+                      value={ct.certificationName || ct.name || ''}
+                      onChange={(e) => {
+                        const newCert = [...certifications];
+                        newCert[idx] = { ...newCert[idx], certificationName: e.target.value, name: e.target.value };
+                        setCertifications(newCert);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                      placeholder="e.g., PMP, AWS Certified"
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Issuing Organization</label>
+                    <input
+                      type="text"
+                      value={ct.certIssuer || ct.issuer || ''}
+                      onChange={(e) => {
+                        const newCert = [...certifications];
+                        newCert[idx] = { ...newCert[idx], certIssuer: e.target.value, issuer: e.target.value };
+                        setCertifications(newCert);
+                      }}
+                      style={{ ...formInputBase, width: '100%' }}
+                      placeholder="e.g., Project Management Institute"
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Issue Date</label>
+                      <input
+                        type="month"
+                        value={ct.certIssueDate || ct.date || ''}
+                        onChange={(e) => {
+                          const newCert = [...certifications];
+                          newCert[idx] = { ...newCert[idx], certIssueDate: e.target.value, date: e.target.value };
+                          setCertifications(newCert);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Expiry Date</label>
+                      <input
+                        type="month"
+                        value={ct.certExpiryDate || ''}
+                        onChange={(e) => {
+                          const newCert = [...certifications];
+                          newCert[idx] = { ...newCert[idx], certExpiryDate: e.target.value };
+                          setCertifications(newCert);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <span className="status-badge status-offered">Verified</span>
-              </div>
+              ) : (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <h4>{ct.certificationName || ct.name || 'Certification'}</h4>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{(ct.certIssuer || ct.issuer || '') + (ct.certIssueDate || ct.date ? ` - ${ct.certIssueDate || ct.date}` : '')}</p>
+                  </div>
+                  <span className="status-badge status-offered">Verified</span>
+                </div>
+              )}
             </div>
           ))}
           {(certifications || []).length === 0 && <div style={{ color: '#999' }}>No certifications added</div>}
+          {editingSections.certifications && (
+            <button
+              onClick={() => {
+                setCertifications(prev => [
+                  ...prev,
+                  {
+                    certificationName: '',
+                    certIssuer: '',
+                    certIssueDate: '',
+                    certExpiryDate: ''
+                  }
+                ]);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px',
+                marginTop: '10px'
+              }}
+            >
+              + Add Certification
+            </button>
+          )}
         </div>
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faLanguage} /> Languages</h3>
-            {!editingSections.languages && (
-              <button 
-                onClick={() => setEditingSections(prev => ({ ...prev, languages: true }))}
-                className="edit-btn"
-              >
-                <FontAwesomeIcon icon={faEdit} /> Edit
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.languages ? (
+                <button 
+                  onClick={() => setEditingSections(prev => ({ ...prev, languages: true }))}
+                  className="edit-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => {
+                      saveSection('languages');
+                      setEditingSections(prev => ({ ...prev, languages: false }));
+                    }}
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed" 
+                    onClick={() => setEditingSections(prev => ({ ...prev, languages: false }))}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-          <div style={gridStyle}>
+          <div style={{ display: 'grid', gap: '15px' }}>
             {(languages || []).map((lg, idx) => (
-              <div key={idx}>
-                <h4 style={{ marginBottom: '10px' }}>{lg.language || ''}</h4>
-                <p style={{ color: '#666' }}>{lg.proficiency || ''}</p>
+              <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', position: 'relative' }}>
+                {editingSections.languages && (
+                  <button
+                    onClick={() => {
+                      setLanguages(prev => prev.filter((_, i) => i !== idx));
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      background: '#dc2626',
+                      border: 'none',
+                      borderRadius: '50%',
+                      width: '30px',
+                      height: '30px',
+                      color: 'white',
+                      fontSize: '18px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                      zIndex: 10
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+                {editingSections.languages ? (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', paddingRight: '40px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Language</label>
+                      <input
+                        type="text"
+                        value={lg.language || ''}
+                        onChange={(e) => {
+                          const newLangs = [...languages];
+                          newLangs[idx] = { ...newLangs[idx], language: e.target.value };
+                          setLanguages(newLangs);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="e.g., English"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Proficiency</label>
+                      <select
+                        value={lg.proficiency || ''}
+                        onChange={(e) => {
+                          const newLangs = [...languages];
+                          newLangs[idx] = { ...newLangs[idx], proficiency: e.target.value };
+                          setLanguages(newLangs);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                      >
+                        <option value="">Select Level</option>
+                        <option value="native">Native/Bilingual</option>
+                        <option value="fluent">Fluent</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="basic">Basic</option>
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h4 style={{ marginBottom: '10px' }}>{lg.language || ''}</h4>
+                    <p style={{ color: '#666' }}>{lg.proficiency || ''}</p>
+                  </>
+                )}
               </div>
             ))}
+            {(languages || []).length === 0 && <div style={{ color: '#999' }}>No languages added</div>}
+            {editingSections.languages && (
+              <button
+                onClick={() => {
+                  setLanguages(prev => [
+                    ...prev,
+                    {
+                      language: '',
+                      proficiency: ''
+                    }
+                  ]);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '12px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '14px',
+                  marginTop: '10px'
+                }}
+              >
+                + Add Language
+              </button>
+            )}
           </div>
         </div>
 

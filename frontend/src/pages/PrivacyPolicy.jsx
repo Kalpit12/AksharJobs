@@ -1,14 +1,18 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShieldAlt, faLock, faUserShield, faDatabase, faGavel, faEnvelope, faUsers } from '@fortawesome/free-solid-svg-icons';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { faShieldAlt, faLock, faUserShield, faDatabase, faGavel, faEnvelope, faUsers, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import '../styles/LegalPages.css';
 
 const PrivacyPolicy = () => {
   return (
     <div className="legal_page_wrapper">
-      <Header />
+      <div className="back-button-container">
+        <Link to="/signup" className="back-to-signup-button">
+          <FontAwesomeIcon icon={faArrowLeft} />
+          Back to Signup
+        </Link>
+      </div>
       
       <section className="legal_hero">
         <div className="legal_container">
@@ -127,8 +131,6 @@ const PrivacyPolicy = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

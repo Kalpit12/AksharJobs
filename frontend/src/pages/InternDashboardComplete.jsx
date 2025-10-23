@@ -16,7 +16,6 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
-import '../styles/dashboard-unified.css';
 // import '../styles/InternDashboard.css'; // Replaced by unified CSS
 
 const InternDashboardComplete = () => {

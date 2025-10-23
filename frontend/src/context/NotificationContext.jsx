@@ -60,6 +60,13 @@ export const NotificationProvider = ({ children }) => {
       return;
     }
     
+    // Check if we have a valid token before making the request
+    const token = localStorage.getItem('token');
+    if (!token || !isValidToken(token)) {
+      console.log('🚫 No valid token found, skipping notifications load');
+      return;
+    }
+    
     console.log('✅ All checks passed, making API call...');
     
     try {
@@ -74,6 +81,8 @@ export const NotificationProvider = ({ children }) => {
       // Only set error if it's not a 401/403 (authentication error)
       if (err.response?.status !== 401 && err.response?.status !== 403) {
         setError('Failed to load notifications');
+      } else {
+        console.log('🔒 Authentication error, user may need to log in again');
       }
     } finally {
       setIsLoading(false);
@@ -108,7 +117,17 @@ export const NotificationProvider = ({ children }) => {
   }, [isAuthenticated]);
 
   const loadUnreadCounts = useCallback(async () => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated) {
+      console.log('User not authenticated, skipping unread counts');
+      return;
+    }
+    
+    // Check if we have a valid token before making the request
+    const token = localStorage.getItem('token');
+    if (!token || !isValidToken(token)) {
+      console.log('No valid token found, skipping unread counts');
+      return;
+    }
     
     try {
       const [notificationResponse, messageResponse] = await Promise.all([
@@ -125,6 +144,10 @@ export const NotificationProvider = ({ children }) => {
       }
     } catch (err) {
       console.error('Error loading unread counts:', err);
+      // Silently fail for auth errors
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        console.log('Authentication error, user may need to log in again');
+      }
     }
   }, [isAuthenticated]);
 

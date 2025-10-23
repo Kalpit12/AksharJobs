@@ -17,7 +17,6 @@ import {
 import { buildApiUrl } from '../config/api';
 import logoImage from '../assets/FINAL LOGO AK.png';
 import '../styles/ForgotPassword.css';
-import '../styles/DesignSystem.css';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');

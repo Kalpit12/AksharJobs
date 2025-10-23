@@ -5,10 +5,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
+import '../styles/JobSeekerDashboard.css';
 import notificationApi from '../api/notificationApi';
 import messageApi from '../api/messageApi';
 import JobCard from '../components/JobCard';
-import '../styles/dashboard-unified.css';
 import {
   faChartLine,
   faThLarge,
@@ -39,6 +39,7 @@ import {
   faSave,
   faTimes,
   faTrash,
+  faHandPeace,
   faDownload,
   faBuilding,
   faGraduationCap,
@@ -577,19 +578,25 @@ const JobSeekerDashboard = () => {
     }
   };
 
-  // Stat Card Component
+  // New Stat Card Component
   const StatCard = ({ title, value, icon, color = 'orange', change, changeType = 'neutral' }) => (
     <div className="stat-card">
       <div className="stat-header">
-        <div className="stat-icon orange">
-          <FontAwesomeIcon icon={icon} />
-        </div>
-        <div className="stat-content">
+        <div className="stat-title">{title}</div>
+      </div>
+      <div className="stat-content">
+        <div className="stat-number-container">
           <div className="stat-number">{value}</div>
-          <div className="stat-label">{title}</div>
-          <div className={`stat-change ${changeType}`}>
-            {change}
+          <div className="stat-icon">
+            <FontAwesomeIcon icon={icon} />
           </div>
+        </div>
+        <div className="stat-label">{title}</div>
+      </div>
+      <div className="stat-footer">
+        <div className={`stat-change ${changeType}`}>
+          {changeType === 'positive' && <FontAwesomeIcon icon={faArrowUp} />}
+          {change}
         </div>
       </div>
     </div>
@@ -599,7 +606,7 @@ const JobSeekerDashboard = () => {
     return (
       <div className="jobseeker-dashboard-container">
         <div className="loading-container">
-          <ThemedLoadingSpinner />
+          <ThemedLoadingSpinner theme="jobseeker" />
           <p>Loading your dashboard...</p>
         </div>
       </div>
@@ -679,7 +686,7 @@ const JobSeekerDashboard = () => {
             <>
               {/* Welcome Message */}
               <div className="welcome-section">
-                <h1>Welcome back, {user?.firstName}! 👋</h1>
+                <h1>Welcome back, {user?.firstName}! <FontAwesomeIcon icon={faHandPeace} className="waving-hand" /></h1>
               </div>
 
               {/* Profile Completion */}
@@ -712,9 +719,6 @@ const JobSeekerDashboard = () => {
                   </div>
                 </div>
                 <div className="completion-actions">
-                  <button className="btn btn-upload">
-                    <FontAwesomeIcon icon={faUpload} /> Upload Resume
-                  </button>
                   <button className="btn btn-complete">
                     <FontAwesomeIcon icon={faCheckCircle} /> 
                     {dashboardData.profileCompletion === 100 ? 'Edit Profile' : 'Complete Profile'}
@@ -764,26 +768,86 @@ const JobSeekerDashboard = () => {
                 </div>
               )}
 
+              {/* Quick Actions */}
+              <div className="quick-actions">
+                <h3>Quick Actions</h3>
+                <div className="actions-grid">
+                  <button className="action-card" onClick={() => setActiveSection('jobs')}>
+                    <FontAwesomeIcon icon={faSearch} />
+                    <span>Browse Jobs</span>
+                    <small>Find new opportunities</small>
+                  </button>
+                  <button className="action-card" onClick={() => setActiveSection('applications')}>
+                    <FontAwesomeIcon icon={faFileAlt} />
+                    <span>Track Applications</span>
+                    <small>Monitor your progress</small>
+                  </button>
+                  <button className="action-card" onClick={() => setActiveSection('saved')}>
+                    <FontAwesomeIcon icon={faBookmark} />
+                    <span>Saved Jobs</span>
+                    <small>Your bookmarked positions</small>
+                  </button>
+                  <button className="action-card" onClick={() => navigate('/profile')}>
+                    <FontAwesomeIcon icon={faUser} />
+                    <span>Update Profile</span>
+                    <small>Complete your information</small>
+                  </button>
+                </div>
+              </div>
+
               {/* Main Content Grid */}
               <div className="content-grid">
                 {/* Recommended Jobs */}
                 <div className="recommended-section" ref={sectionRefs.current.recommended}>
                   <div className="recommended-header">
                     <h3 className="recommended-title">Recommended for You</h3>
-                    <button className="btn-view-all">View All</button>
+                    <button className="btn-view-all" onClick={() => setActiveSection('recommended')}>View All</button>
                   </div>
                   <div className="card-content">
                     {dashboardData.recommendedJobs && dashboardData.recommendedJobs.length > 0 ? (
                       <ul className="list">
-                        {dashboardData.recommendedJobs.map((job, idx) => (
-                          <li key={idx} className="list-item">
-                            <div className="list-title">{sanitizeJobTitle(job.job_title || job.title)}</div>
-                            <div className="list-subtitle">{job.company_name || job.company}</div>
+                        {dashboardData.recommendedJobs.slice(0, 4).map((job, idx) => (
+                          <li key={idx} className="list-item" onClick={() => viewDetails(job)}>
+                            <div className="job-info">
+                              <div className="list-title">{sanitizeJobTitle(job.job_title || job.title)}</div>
+                              <div className="list-subtitle">{job.company_name || job.company}</div>
+                              <div className="job-meta">
+                                <span className="job-location">
+                                  <FontAwesomeIcon icon={faMapMarkerAlt} />
+                                  {job.location || 'Remote'}
+                                </span>
+                                <span className="job-type">
+                                  <FontAwesomeIcon icon={faBriefcase} />
+                                  {job.job_type || 'Full-time'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="job-actions">
+                              <button className="btn btn-primary btn-sm" onClick={(e) => {
+                                e.stopPropagation();
+                                handleApplyToJob(job);
+                              }}>
+                                Apply
+                              </button>
+                              <button className="btn btn-secondary btn-sm" onClick={(e) => {
+                                e.stopPropagation();
+                                toggleSaveJob(job._id);
+                              }}>
+                                <FontAwesomeIcon icon={faBookmark} />
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="empty-state">No recommendations yet. Complete your profile to get personalized job suggestions!</p>
+                      <div className="empty-state">
+                        <FontAwesomeIcon icon={faStar} className="empty-icon" />
+                        <h3>No AI Recommendations Yet</h3>
+                        <p>Complete your profile to get personalized job recommendations powered by AI.</p>
+                        <button className="btn btn-primary" onClick={() => navigate('/profile')}>
+                          <FontAwesomeIcon icon={faUser} /> Complete Profile
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -791,21 +855,126 @@ const JobSeekerDashboard = () => {
                 {/* Recent Applications */}
                 <div className="card" ref={sectionRefs.current.recentApplications}>
                   <div className="card-header">
-                    <h3 className="card-title">Recent Applications</h3>
+                    <h3 className="card-title">
+                      <FontAwesomeIcon icon={faFileAlt} />
+                      Recent Applications
+                    </h3>
+                    <button className="btn btn-secondary btn-sm" onClick={() => setActiveSection('applications')}>
+                      View All
+                    </button>
                   </div>
                   <div className="card-content">
                     {dashboardData.recentApplications && dashboardData.recentApplications.length > 0 ? (
                       <ul className="list">
-                        {dashboardData.recentApplications.map((app, idx) => (
+                        {dashboardData.recentApplications.slice(0, 4).map((app, idx) => (
                           <li key={idx} className="list-item">
-                            <div className="list-title">{sanitizeJobTitle(app.job_title)} — {app.company_name}</div>
-                            <div className="list-subtitle">Status: {(app.status || 'pending').toString()}</div>
+                            <div className="application-info">
+                              <div className="list-title">{sanitizeJobTitle(app.job_title)}</div>
+                              <div className="list-subtitle">{app.company_name}</div>
+                              <div className="application-meta">
+                                <span className="application-date">
+                                  <FontAwesomeIcon icon={faCalendar} />
+                                  Applied {new Date(app.applied_date || Date.now()).toLocaleDateString()}
+                                </span>
+                                <span className={`status-badge status-${(app.status || 'applied').toLowerCase().replace(' ', '-')}`}>
+                                  {app.status || 'Applied'}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="application-actions">
+                              <button className="btn btn-secondary btn-sm">
+                                <FontAwesomeIcon icon={faEye} />
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>
                     ) : (
-                      <p className="empty-state">No applications yet</p>
+                      <div className="empty-state">
+                        <FontAwesomeIcon icon={faFileAlt} className="empty-icon" />
+                        <h3>No Applications Yet</h3>
+                        <p>Start applying to jobs to track your progress here.</p>
+                        <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
+                          <FontAwesomeIcon icon={faSearch} /> Browse Jobs
+                        </button>
+                      </div>
                     )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Dashboard Sections */}
+              <div className="dashboard-sections">
+                {/* Profile Insights */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">
+                      <FontAwesomeIcon icon={faChartLine} />
+                      Profile Insights
+                    </h3>
+                  </div>
+                  <div className="card-content">
+                    <div className="insights-grid">
+                      <div className="insight-item">
+                        <div className="insight-icon">
+                          <FontAwesomeIcon icon={faEye} />
+                        </div>
+                        <div className="insight-content">
+                          <div className="insight-value">{dashboardData.stats.profileViews}</div>
+                          <div className="insight-label">Profile Views</div>
+                        </div>
+                      </div>
+                      <div className="insight-item">
+                        <div className="insight-icon">
+                          <FontAwesomeIcon icon={faStar} />
+                        </div>
+                        <div className="insight-content">
+                          <div className="insight-value">{dashboardData.recommendedJobs.length}</div>
+                          <div className="insight-label">Job Matches</div>
+                        </div>
+                      </div>
+                      <div className="insight-item">
+                        <div className="insight-icon">
+                          <FontAwesomeIcon icon={faBookmark} />
+                        </div>
+                        <div className="insight-content">
+                          <div className="insight-value">{dashboardData.stats.savedJobs}</div>
+                          <div className="insight-label">Saved Jobs</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Career Tips */}
+                <div className="card">
+                  <div className="card-header">
+                    <h3 className="card-title">
+                      <FontAwesomeIcon icon={faBook} />
+                      Career Tips
+                    </h3>
+                  </div>
+                  <div className="card-content">
+                    <div className="tips-list">
+                      <div className="tip-item">
+                        <div className="tip-icon">
+                          <FontAwesomeIcon icon={faCheckCircle} />
+                        </div>
+                        <div className="tip-content">
+                          <h4>Complete Your Profile</h4>
+                          <p>Add your skills, experience, and education to get better job matches.</p>
+                        </div>
+                      </div>
+                      <div className="tip-item">
+                        <div className="tip-icon">
+                          <FontAwesomeIcon icon={faSearch} />
+                        </div>
+                        <div className="tip-content">
+                          <h4>Set Job Alerts</h4>
+                          <p>Get notified when new jobs matching your criteria are posted.</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -814,10 +983,10 @@ const JobSeekerDashboard = () => {
 
           {/* Application Tracker Section */}
           {activeSection === 'applications' && (
-            <div className="card" ref={sectionRefs.current.applications}>
-              <div className="card-header">
-                <h3 className="card-title">Application Tracker</h3>
-                <div className="filters">
+            <div className="application-tracker-section" ref={sectionRefs.current.applications}>
+              <div className="application-tracker-header">
+                <h3 className="application-tracker-title">Application Tracker</h3>
+                <div className="application-tracker-filters">
                   <select className="filter-select">
                     <option>All Applications ({dashboardData.recentApplications.length})</option>
                     <option>Under Review</option>
@@ -836,7 +1005,7 @@ const JobSeekerDashboard = () => {
                   </button>
                 </div>
               </div>
-              <div className="card-content">
+              <div className="application-tracker-content">
                 {/* Application Statistics */}
                 <div className="stats-grid">
                   <div className="stat-card">

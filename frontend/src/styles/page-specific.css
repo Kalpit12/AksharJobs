@@ -1,0 +1,221 @@
+/* ===== PAGE-SPECIFIC CUSTOMIZATIONS ===== */
+/* This file allows you to customize specific pages while maintaining the unified theme */
+
+/* ===== DASHBOARD PAGE CUSTOMIZATIONS ===== */
+.dashboard-page {
+  /* Dashboard-specific overrides */
+}
+
+.dashboard-page .stat-card {
+  /* Custom stat card styling for dashboard only */
+  min-height: 180px !important;
+}
+
+.dashboard-page .profile-completion {
+  /* Custom profile completion for dashboard only */
+  margin-bottom: 40px !important;
+}
+
+/* ===== HOME PAGE CUSTOMIZATIONS ===== */
+.home-page {
+  /* Home page specific styling */
+}
+
+.home-page .hero-section {
+  background: var(--gradient-balanced) !important;
+  min-height: 80vh !important;
+}
+
+.home-page .hero-title {
+  font-size: 3.5rem !important;
+  font-weight: 800 !important;
+  color: var(--text-white) !important;
+  text-align: center !important;
+  margin-bottom: 24px !important;
+}
+
+.home-page .hero-subtitle {
+  font-size: 1.25rem !important;
+  color: var(--text-white) !important;
+  text-align: center !important;
+  opacity: 0.9 !important;
+  margin-bottom: 40px !important;
+}
+
+/* ===== JOB LISTINGS PAGE CUSTOMIZATIONS ===== */
+.job-listings-page {
+  /* Job listings specific styling */
+}
+
+.job-listings-page .job-card {
+  /* Custom job card styling */
+  margin-bottom: 20px !important;
+}
+
+.job-listings-page .search-filters {
+  background: var(--gradient-subtle-balanced) !important;
+  padding: 24px !important;
+  border-radius: 12px !important;
+  margin-bottom: 32px !important;
+}
+
+/* ===== PROFILE PAGE CUSTOMIZATIONS ===== */
+.profile-page {
+  /* Profile page specific styling */
+}
+
+.profile-page .profile-header {
+  background: var(--gradient-subtle-balanced) !important;
+  padding: 40px !important;
+  border-radius: 16px !important;
+  margin-bottom: 32px !important;
+}
+
+/* ===== LOGIN/SIGNUP PAGE CUSTOMIZATIONS ===== */
+.auth-page {
+  /* Authentication pages specific styling */
+  min-height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--gradient-subtle-balanced) !important;
+}
+
+.auth-page .auth-card {
+  background: var(--bg-primary) !important;
+  padding: 48px !important;
+  border-radius: 20px !important;
+  box-shadow: var(--shadow-xl) !important;
+  width: 100% !important;
+  max-width: 450px !important;
+}
+
+/* ===== JOB SEEKER REGISTRATION COMPREHENSIVE FORM CUSTOMIZATIONS ===== */
+.jobseeker-container {
+  max-width: 1400px !important;
+  width: 98% !important;
+  margin: 0 auto !important;
+}
+
+.jobseeker-form-card {
+  max-width: none !important;
+  width: 100% !important;
+  padding: 2rem !important;
+}
+
+.jobseeker-form-container {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.form-row-comprehensive {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+}
+
+.radio-group-comprehensive {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.radio-option-comprehensive {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--bg-primary);
+}
+
+.radio-option-comprehensive:hover {
+  border-color: var(--primary-teal);
+  background: rgba(13, 148, 136, 0.05);
+}
+
+.radio-option-comprehensive input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--primary-teal);
+}
+
+.radio-option-comprehensive label {
+  margin: 0;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.radio-option-comprehensive input[type="radio"]:checked + label {
+  color: var(--primary-teal);
+  font-weight: 600;
+}
+
+.radio-option-comprehensive:has(input[type="radio"]:checked) {
+  border-color: var(--primary-teal);
+  background: rgba(13, 148, 136, 0.1);
+}
+
+/* ===== ADMIN PAGE CUSTOMIZATIONS ===== */
+.admin-page {
+  /* Admin pages specific styling */
+}
+
+.admin-page .admin-header {
+  background: var(--gradient-balanced) !important;
+  color: var(--text-white) !important;
+  padding: 24px !important;
+  border-radius: 12px !important;
+  margin-bottom: 32px !important;
+}
+
+/* ===== UTILITY CLASSES FOR PAGE-SPECIFIC STYLING ===== */
+.page-orange-accent {
+  /* Use this class to add more orange to specific pages */
+  --primary-accent: var(--primary-orange) !important;
+}
+
+.page-teal-accent {
+  /* Use this class to add more teal to specific pages */
+  --primary-accent: var(--primary-teal) !important;
+}
+
+.page-balanced {
+  /* Use this class to ensure balanced theme on specific pages */
+  --primary-accent: var(--gradient-balanced) !important;
+}
+
+/* ===== RESPONSIVE PAGE CUSTOMIZATIONS ===== */
+@media (max-width: 768px) {
+  .home-page .hero-title {
+    font-size: 2.5rem !important;
+  }
+  
+  .dashboard-page .stat-card {
+    min-height: 150px !important;
+  }
+  
+  .auth-page .auth-card {
+    padding: 32px !important;
+    margin: 20px !important;
+  }
+}
+
+/* ===== DARK MODE PAGE CUSTOMIZATIONS ===== */
+@media (prefers-color-scheme: dark) {
+  .home-page .hero-section {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  }
+  
+  .auth-page {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  }
+}

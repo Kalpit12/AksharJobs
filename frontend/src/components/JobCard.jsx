@@ -34,19 +34,19 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
             </div>
             <div className="new-job-card-meta">
               <span className="new-job-card-meta-item">
-                <FontAwesomeIcon icon={faMapMarkerAlt} /> 
+                <FontAwesomeIcon icon={faMapMarkerAlt} className="fa-icon" /> 
                 {job.location || 'Not specified'}
               </span>
               <span className="new-job-card-meta-item">
-                <FontAwesomeIcon icon={faBriefcase} /> 
+                <FontAwesomeIcon icon={faBriefcase} className="fa-icon" /> 
                 {job.job_type || 'Full-time'}
               </span>
               <span className="new-job-card-meta-item">
-                <FontAwesomeIcon icon={faLayerGroup} /> 
+                <FontAwesomeIcon icon={faLayerGroup} className="fa-icon" /> 
                 {job.experience_level || 'Mid Level'}
               </span>
               <span className="new-job-card-meta-item">
-                <FontAwesomeIcon icon={faDollarSign} /> 
+                <FontAwesomeIcon icon={faDollarSign} className="fa-icon" /> 
                 {job.salary_range || 'Competitive'}
               </span>
             </div>

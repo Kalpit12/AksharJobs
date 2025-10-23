@@ -114,7 +114,7 @@ const PhoneInput = ({ value, onChange, placeholder, required, name, id }) => {
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
-            <div className="country-dropdown open">
+            <div className="country-dropdown">
               <div className="dropdown-search">
                 <FontAwesomeIcon icon={faSearch} className="search-icon" />
                 <input

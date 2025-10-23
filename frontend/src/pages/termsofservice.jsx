@@ -1,14 +1,18 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faGavel, faUserCheck, faExclamationTriangle, faHandshake, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { faGavel, faUserCheck, faExclamationTriangle, faHandshake, faShieldAlt, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import '../styles/LegalPages.css';
 
 const TermsOfService = () => {
   return (
     <div className="legal_page_wrapper">
-      <Header />
+      <div className="back-button-container">
+        <Link to="/signup" className="back-to-signup-button">
+          <FontAwesomeIcon icon={faArrowLeft} />
+          Back to Signup
+        </Link>
+      </div>
       
       <section className="legal_hero">
         <div className="legal_container">
@@ -124,8 +128,6 @@ const TermsOfService = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

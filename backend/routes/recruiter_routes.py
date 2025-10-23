@@ -336,9 +336,9 @@ def get_recruiter_profile():
 
 @recruiter_bp.route('/update-profile', methods=['PUT'])
 @jwt_required()
-def update_recruiter_profile():
+def update_recruiter_profile_legacy():
     """
-    Update existing recruiter profile
+    Update existing recruiter profile (legacy endpoint)
     """
     try:
         user_id = get_jwt_identity()
@@ -621,7 +621,7 @@ def get_recruiter_applications():
         if not recruiter_id:
             return jsonify({'error': 'Authentication required'}), 401
         
-        print(f"Fetching applications for recruiter: {recruiter_id}")
+        print(f"🔍 Fetching applications for recruiter: {recruiter_id}")
         
         from utils.db import get_db
         db = get_db()
@@ -629,82 +629,286 @@ def get_recruiter_applications():
             return jsonify({'error': 'Database connection failed'}), 500
         
         # Get all jobs posted by this recruiter
-        # First try to find jobs by recruiter_id as ObjectId
+        # Try both ObjectId and string formats
+        recruiter_jobs = []
         try:
-            recruiter_jobs = list(db.jobs.find({'recruiter_id': ObjectId(recruiter_id)}))
-        except:
-            # If that fails, try as string
             recruiter_jobs = list(db.jobs.find({'recruiter_id': recruiter_id}))
+            print(f"📋 Found {len(recruiter_jobs)} jobs with string recruiter_id")
+        except Exception as e:
+            print(f"Error finding jobs with string recruiter_id: {e}")
+        
+        # Also try ObjectId format
+        if not recruiter_jobs:
+            try:
+                recruiter_jobs = list(db.jobs.find({'recruiter_id': ObjectId(recruiter_id)}))
+                print(f"📋 Found {len(recruiter_jobs)} jobs with ObjectId recruiter_id")
+            except Exception as e:
+                print(f"Error finding jobs with ObjectId recruiter_id: {e}")
         
         # If no jobs found, try to find jobs where recruiter_id matches the user's email or other identifier
         if not recruiter_jobs:
-            # Get user details to find alternative identifiers
-            user = db.users.find_one({'_id': ObjectId(recruiter_id)})
-            if user:
-                user_email = user.get('email', '')
-                # Try to find jobs by email or other patterns
-                recruiter_jobs = list(db.jobs.find({
-                    '$or': [
-                        {'recruiter_id': user_email},
-                        {'recruiter_email': user_email},
-                        {'posted_by': user_email},
-                        {'company_email': user_email}
-                    ]
-                }))
-        
-        job_ids = [job['_id'] for job in recruiter_jobs]
-        
-        print(f"Found {len(recruiter_jobs)} jobs, fetching applications...")
-        print(f"Job IDs: {job_ids}")
-        
-        # Get all applications for these jobs
-        # Convert job_ids to strings for comparison since applications store job_id as string
-        job_id_strings = [str(job_id) for job_id in job_ids]
-        print(f"Job ID strings: {job_id_strings}")
-        
-        applications = list(db.applications.find({'job_id': {'$in': job_id_strings}}))
-        print(f"Found {len(applications)} applications")
-        
-        # Debug: Check all applications to see what job_ids exist
-        all_apps = list(db.applications.find({}, {'job_id': 1, 'candidateName': 1}))
-        print(f"All applications in database: {len(all_apps)}")
-        for app in all_apps[:5]:  # Show first 5
-            print(f"  App job_id: {app.get('job_id')} (candidate: {app.get('candidateName', 'Unknown')})")
-        
-        # Convert ObjectIds to strings and add candidate info
-        serializable_applications = []
-        for app in applications:
-            app['_id'] = str(app['_id'])
-            app['job_id'] = str(app['job_id'])
-            app['user_id'] = str(app['user_id'])
-            
-            # Add candidate name from user collection
             try:
-                candidate = db.users.find_one({'_id': ObjectId(app['user_id'])})
-            except:
-                candidate = db.users.find_one({'_id': app['user_id']})
-            
-            if candidate:
-                app['candidateName'] = f"{candidate.get('firstName', '')} {candidate.get('lastName', '')}".strip()
-                app['candidateEmail'] = candidate.get('email', '')
-            
-            # Add job title
-            job = db.jobs.find_one({'_id': app['job_id'] if isinstance(app['job_id'], ObjectId) else ObjectId(app['job_id'])})
-            if job:
-                app['jobTitle'] = job.get('title', 'Unknown Job')
-            
-            if 'appliedAt' in app and isinstance(app['appliedAt'], datetime):
-                app['appliedDate'] = app['appliedAt'].isoformat()
-            
-            serializable_applications.append(app)
+                user = db.users.find_one({'_id': ObjectId(recruiter_id)})
+                if user:
+                    user_email = user.get('email', '')
+                    # Try to find jobs by email or other patterns
+                    recruiter_jobs = list(db.jobs.find({
+                        '$or': [
+                            {'recruiter_id': user_email},
+                            {'recruiter_email': user_email},
+                            {'posted_by': user_email},
+                            {'company_email': user_email}
+                        ]
+                    }))
+                    print(f"📋 Found {len(recruiter_jobs)} jobs with email matching")
+            except Exception as e:
+                print(f"Error finding jobs with email: {e}")
         
-        return jsonify(serializable_applications), 200
+        if not recruiter_jobs:
+            print("⚠️ No jobs found for this recruiter")
+            return jsonify([]), 200
+        
+        # Get job IDs in both ObjectId and string formats
+        job_ids_objects = [job['_id'] for job in recruiter_jobs]
+        job_ids_strings = [str(job_id) for job_id in job_ids_objects]
+        
+        print(f"📋 Found {len(recruiter_jobs)} jobs, fetching applications...")
+        print(f"🔑 Job IDs (first 3): {job_ids_strings[:3]}")
+        
+        # Get all applications for these jobs - try both ObjectId and string formats
+        applications = list(db.applications.find({
+            '$or': [
+                {'job_id': {'$in': job_ids_objects}},
+                {'job_id': {'$in': job_ids_strings}}
+            ]
+        }))
+        
+        print(f"👥 Found {len(applications)} applications")
+        
+        # Create a job lookup dictionary for faster access
+        job_lookup = {str(job['_id']): job for job in recruiter_jobs}
+        
+        # Enrich applications with all required data
+        enriched_applications = []
+        for app in applications:
+            try:
+                # Convert ObjectIds to strings
+                app_id = str(app.get('_id', ''))
+                job_id = str(app.get('job_id', ''))
+                applicant_id = str(app.get('applicant_id', app.get('userId', '')))
+                
+                # Get job details
+                job = job_lookup.get(job_id)
+                if not job:
+                    print(f"⚠️ Job not found for job_id: {job_id}")
+                    continue
+                
+                # Get applicant details
+                applicant = None
+                try:
+                    applicant = db.users.find_one({'_id': ObjectId(applicant_id)})
+                except:
+                    pass
+                
+                if not applicant:
+                    print(f"⚠️ Applicant not found for applicant_id: {applicant_id}")
+                    # Continue anyway with whatever data we have
+                
+                # Build enriched application object with all fields the frontend expects
+                enriched_app = {
+                    '_id': app_id,
+                    'job_id': job_id,
+                    'applicant_id': applicant_id,
+                    'userId': applicant_id,  # For compatibility
+                    
+                    # Applicant information
+                    'applicant_name': app.get('applicant_name', '') or (
+                        f"{applicant.get('firstName', '')} {applicant.get('lastName', '')}".strip() if applicant else 'Unknown'
+                    ),
+                    'candidate_name': app.get('candidate_name', '') or (
+                        f"{applicant.get('firstName', '')} {applicant.get('lastName', '')}".strip() if applicant else 'Unknown'
+                    ),
+                    'applicant_email': app.get('applicant_email', '') or (applicant.get('email', '') if applicant else ''),
+                    
+                    # Job information
+                    'job_title': app.get('job_title', '') or job.get('job_title', job.get('title', 'Unknown Job')),
+                    'company_name': app.get('company_name', '') or job.get('company_name', job.get('company', '')),
+                    'location': app.get('location', '') or job.get('location', 'N/A'),
+                    'job_type': app.get('job_type', '') or job.get('job_type', 'N/A'),
+                    'salary_range': app.get('salary_range', '') or job.get('salary_range', 'N/A'),
+                    
+                    # Application status and dates
+                    'status': app.get('status', 'pending'),
+                    'status_display': (app.get('status', 'pending').replace('_', ' ').title()),
+                    'applied_at': app.get('applied_at', '') or (app.get('created_at').isoformat() if app.get('created_at') else ''),
+                    'created_at': app.get('created_at', '') if isinstance(app.get('created_at'), str) else (
+                        app.get('created_at').isoformat() if app.get('created_at') else ''
+                    ),
+                    
+                    # Match scores
+                    'matchScore': app.get('matchScore', app.get('final_score', 0)),
+                    'final_score': app.get('final_score', app.get('matchScore', 0)),
+                    'education_score': app.get('education_score', 0),
+                    'skill_score': app.get('skill_score', 0),
+                    'experience_score': app.get('experience_score', 0),
+                    
+                    # Additional details
+                    'cover_letter': app.get('cover_letter', ''),
+                    'resume_skills': app.get('resume_skills', []),
+                    'resume_path': app.get('resume_path', ''),
+                    
+                    # Tracking history (if available)
+                    'tracking_history': []
+                }
+                
+                # Get tracking history if available
+                try:
+                    tracking_history = list(db.application_tracking.find({
+                        'userId': applicant_id,
+                        'jobId': job_id
+                    }).sort('created_at', -1))
+                    
+                    for record in tracking_history:
+                        record['_id'] = str(record['_id'])
+                        enriched_app['tracking_history'].append(record)
+                except Exception as e:
+                    print(f"Error fetching tracking history: {e}")
+                
+                enriched_applications.append(enriched_app)
+                
+            except Exception as e:
+                print(f"❌ Error processing application {app.get('_id')}: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
+        
+        print(f"✅ Successfully enriched {len(enriched_applications)} applications")
+        return jsonify(enriched_applications), 200
         
     except Exception as e:
-        print(f"Error fetching recruiter applications: {e}")
+        print(f"❌ Error fetching recruiter applications: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Failed to fetch applications', 'details': str(e)}), 500
+
+
+@recruiter_bp.route('/applications/<application_id>/status', methods=['PUT'])
+@jwt_required()
+def update_application_status(application_id):
+    """
+    Update application status for a specific application
+    """
+    try:
+        recruiter_id = get_jwt_identity()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        data = request.get_json()
+        if not data or 'status' not in data:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        new_status = data.get('status')
+        notes = data.get('notes', '')
+        interview_date = data.get('interview_date')
+        interview_mode = data.get('interview_mode')
+        
+        print(f"🔄 Updating application {application_id} status to {new_status}")
+        
+        from utils.db import get_db
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        # Find the application
+        application = db.applications.find_one({'_id': ObjectId(application_id)})
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
+        
+        # Verify this application belongs to one of the recruiter's jobs
+        job_id = application.get('job_id')
+        job = db.jobs.find_one({'_id': job_id if isinstance(job_id, ObjectId) else ObjectId(job_id)})
+        
+        if not job:
+            return jsonify({'error': 'Job not found'}), 404
+        
+        # Check if recruiter owns this job
+        job_recruiter_id = str(job.get('recruiter_id', ''))
+        if job_recruiter_id != recruiter_id:
+            return jsonify({'error': 'Unauthorized - you do not own this job posting'}), 403
+        
+        # Update the application status
+        update_data = {
+            'status': new_status,
+            'status_display': new_status.replace('_', ' ').title(),
+            'last_updated': datetime.utcnow()
+        }
+        
+        if notes:
+            update_data['notes'] = notes
+        if interview_date:
+            update_data['interview_date'] = interview_date
+        if interview_mode:
+            update_data['interview_mode'] = interview_mode
+        
+        result = db.applications.update_one(
+            {'_id': ObjectId(application_id)},
+            {'$set': update_data}
+        )
+        
+        if result.modified_count == 0:
+            return jsonify({'error': 'Failed to update application'}), 500
+        
+        # Create a tracking record
+        tracking_record = {
+            'userId': str(application.get('applicant_id', application.get('userId', ''))),
+            'jobId': str(job_id),
+            'status': new_status,
+            'notes': notes,
+            'timestamp': datetime.utcnow().isoformat(),
+            'created_at': datetime.utcnow(),
+            'updated_by': recruiter_id
+        }
+        db.application_tracking.insert_one(tracking_record)
+        
+        # Send email notification to candidate
+        try:
+            applicant_id = application.get('applicant_id', application.get('userId'))
+            applicant = db.users.find_one({'_id': ObjectId(applicant_id) if isinstance(applicant_id, str) else applicant_id})
+            
+            if applicant:
+                from services.email_notification_service import get_email_service
+                email_service = get_email_service()
+                recipient_name = f"{applicant.get('firstName', '')} {applicant.get('lastName', '')}".strip()
+                recipient_email = applicant.get('email', '')
+                job_title = application.get('job_title', job.get('job_title', job.get('title', 'Unknown Job')))
+                company_name = application.get('company_name', job.get('company_name', ''))
+                
+                if new_status == 'interview' and interview_date:
+                    email_service.send_interview_notification(
+                        recipient_email, recipient_name, job_title, company_name,
+                        interview_date, interview_mode or 'TBD', notes
+                    )
+                else:
+                    email_service.send_application_status_notification(
+                        recipient_email, recipient_name, job_title, company_name,
+                        new_status, notes
+                    )
+        except Exception as e:
+            print(f"⚠️ Failed to send email notification: {e}")
+        
+        print(f"✅ Application status updated successfully")
+        return jsonify({
+            'message': 'Application status updated successfully',
+            'status': new_status,
+            'application_id': application_id
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Error updating application status: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to update application status', 'details': str(e)}), 500
 
 
 @recruiter_bp.route('/stats', methods=['GET'])
@@ -778,3 +982,267 @@ def get_recruiter_stats():
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Failed to fetch stats', 'details': str(e)}), 500
+
+# Settings Management Endpoints
+@recruiter_bp.route('/profile', methods=['PUT'])
+@jwt_required()
+def update_recruiter_profile():
+    """Update recruiter profile information"""
+    try:
+        recruiter_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        # Update user profile
+        from utils.db import get_db
+        db = get_db()
+        
+        update_data = {
+            'firstName': data.get('firstName'),
+            'lastName': data.get('lastName'),
+            'email': data.get('email'),
+            'phone': data.get('phone'),
+            'jobTitle': data.get('jobTitle'),
+            'linkedinProfile': data.get('linkedinProfile'),
+            'bio': data.get('bio'),
+            'updatedAt': datetime.utcnow()
+        }
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        result = db.users.update_one(
+            {"_id": ObjectId(recruiter_id)},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            # Get updated user data
+            updated_user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+            updated_user['_id'] = str(updated_user['_id'])
+            
+            return jsonify({
+                'message': 'Profile updated successfully',
+                'user': updated_user
+            }), 200
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+            
+    except Exception as e:
+        print(f"Error updating recruiter profile: {e}")
+        return jsonify({'error': 'Failed to update profile'}), 500
+
+@recruiter_bp.route('/company', methods=['PUT'])
+@jwt_required()
+def update_company_info():
+    """Update company information"""
+    try:
+        recruiter_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from utils.db import get_db
+        db = get_db()
+        
+        update_data = {
+            'companyName': data.get('companyName'),
+            'companyEmail': data.get('companyEmail'),
+            'companyPhone': data.get('companyPhone'),
+            'companyWebsite': data.get('companyWebsite'),
+            'companySize': data.get('companySize'),
+            'industry': data.get('industry'),
+            'companyDescription': data.get('companyDescription'),
+            'address': data.get('address'),
+            'city': data.get('city'),
+            'state': data.get('state'),
+            'country': data.get('country'),
+            'postalCode': data.get('postalCode'),
+            'updatedAt': datetime.utcnow()
+        }
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        result = db.users.update_one(
+            {"_id": ObjectId(recruiter_id)},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            updated_user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+            updated_user['_id'] = str(updated_user['_id'])
+            
+            return jsonify({
+                'message': 'Company information updated successfully',
+                'user': updated_user
+            }), 200
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+            
+    except Exception as e:
+        print(f"Error updating company info: {e}")
+        return jsonify({'error': 'Failed to update company information'}), 500
+
+@recruiter_bp.route('/notifications', methods=['PUT'])
+@jwt_required()
+def update_notification_settings():
+    """Update notification preferences"""
+    try:
+        recruiter_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from utils.db import get_db
+        db = get_db()
+        
+        update_data = {
+            'emailNotifications': data.get('emailNotifications'),
+            'newApplications': data.get('newApplications'),
+            'applicationUpdates': data.get('applicationUpdates'),
+            'interviewReminders': data.get('interviewReminders'),
+            'weeklyReports': data.get('weeklyReports'),
+            'marketingEmails': data.get('marketingEmails'),
+            'pushNotifications': data.get('pushNotifications'),
+            'smsNotifications': data.get('smsNotifications'),
+            'updatedAt': datetime.utcnow()
+        }
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        result = db.users.update_one(
+            {"_id": ObjectId(recruiter_id)},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            updated_user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+            updated_user['_id'] = str(updated_user['_id'])
+            
+            return jsonify({
+                'message': 'Notification settings updated successfully',
+                'user': updated_user
+            }), 200
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+            
+    except Exception as e:
+        print(f"Error updating notification settings: {e}")
+        return jsonify({'error': 'Failed to update notification settings'}), 500
+
+@recruiter_bp.route('/preferences', methods=['PUT'])
+@jwt_required()
+def update_preferences():
+    """Update user preferences"""
+    try:
+        recruiter_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from utils.db import get_db
+        db = get_db()
+        
+        update_data = {
+            'timezone': data.get('timezone'),
+            'dateFormat': data.get('dateFormat'),
+            'currency': data.get('currency'),
+            'language': data.get('language'),
+            'theme': data.get('theme'),
+            'autoArchiveJobs': data.get('autoArchiveJobs'),
+            'autoRejectThreshold': data.get('autoRejectThreshold'),
+            'matchScoreThreshold': data.get('matchScoreThreshold'),
+            'maxApplicationsPerJob': data.get('maxApplicationsPerJob'),
+            'updatedAt': datetime.utcnow()
+        }
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        result = db.users.update_one(
+            {"_id": ObjectId(recruiter_id)},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            updated_user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+            updated_user['_id'] = str(updated_user['_id'])
+            
+            return jsonify({
+                'message': 'Preferences updated successfully',
+                'user': updated_user
+            }), 200
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+            
+    except Exception as e:
+        print(f"Error updating preferences: {e}")
+        return jsonify({'error': 'Failed to update preferences'}), 500
+
+@recruiter_bp.route('/security', methods=['PUT'])
+@jwt_required()
+def update_security_settings():
+    """Update security settings including password"""
+    try:
+        recruiter_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not recruiter_id:
+            return jsonify({'error': 'Authentication required'}), 401
+        
+        from utils.db import get_db
+        from werkzeug.security import check_password_hash, generate_password_hash
+        db = get_db()
+        
+        # Get current user
+        user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        update_data = {
+            'twoFactorEnabled': data.get('twoFactorEnabled'),
+            'updatedAt': datetime.utcnow()
+        }
+        
+        # Handle password change
+        if data.get('currentPassword') and data.get('newPassword'):
+            if not check_password_hash(user.get('password', ''), data.get('currentPassword')):
+                return jsonify({'error': 'Current password is incorrect'}), 400
+            
+            if data.get('newPassword') != data.get('confirmPassword'):
+                return jsonify({'error': 'New passwords do not match'}), 400
+            
+            update_data['password'] = generate_password_hash(data.get('newPassword'))
+        
+        # Remove None values
+        update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        result = db.users.update_one(
+            {"_id": ObjectId(recruiter_id)},
+            {"$set": update_data}
+        )
+        
+        if result.modified_count > 0:
+            updated_user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+            # Remove password from response
+            if 'password' in updated_user:
+                del updated_user['password']
+            updated_user['_id'] = str(updated_user['_id'])
+            
+            return jsonify({
+                'message': 'Security settings updated successfully',
+                'user': updated_user
+            }), 200
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+            
+    except Exception as e:
+        print(f"Error updating security settings: {e}")
+        return jsonify({'error': 'Failed to update security settings'}), 500

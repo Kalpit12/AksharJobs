@@ -20,9 +20,9 @@ const THEME_CONFIGS = {
   },
   jobseeker: {
     primaryColor: '#f97316',
-    secondaryColor: '#ea580c',
-    accentColor: '#0d9488',
-    lightColor: '#eff6ff',
+    secondaryColor: '#0d9488',
+    accentColor: '#ea580c',
+    lightColor: '#fef7ed',
     icon: faBriefcase,
     name: 'Job Seeker'
   },

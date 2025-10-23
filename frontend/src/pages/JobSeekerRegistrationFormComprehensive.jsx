@@ -8,7 +8,7 @@ import {
   faInfoCircle, faCamera, faGlobe, faPlus, faTimes,
   faPassport, faMapMarked, faBullseye, faLightbulb, faLanguage,
   faCertificate, faUsers, faUserCheck, faLink, faSlidersH,
-  faBuilding, faCheckCircle
+  faBuilding, faCheckCircle, faSave
 } from '@fortawesome/free-solid-svg-icons';
 import { faLinkedin, faGithub, faMedium, faTwitter } from '@fortawesome/free-brands-svg-icons';
 import { buildApiUrl } from '../config/api';
@@ -100,6 +100,8 @@ const JobSeekerRegistrationFormComprehensive = () => {
     isSaving,
     saveStatus,
     lastSaveTime,
+    forceSave,
+    hasRecentSave,
     clearSavedData
   } = useAutoSave(
     {
@@ -197,7 +199,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
       }],
       
       // Professional Online Presence
-      professionalLinks: existingData?.professionalLinks || [],
+      professionalLinks: Array.isArray(existingData?.professionalLinks) ? existingData.professionalLinks : [],
       
       // Job Preferences
       jobType: existingData?.jobType || '',
@@ -208,7 +210,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
       travelAvailability: existingData?.travelAvailability || '',
       
       // Additional Information
-      askCommunity: existingData?.askCommunity || '',
+      careerObjectives: existingData?.careerObjectives || '',
       hobbies: existingData?.hobbies || '',
       additionalComments: existingData?.additionalComments || '',
       agreeTerms: existingData?.agreeTerms || false,
@@ -225,6 +227,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
   const [languageInput, setLanguageInput] = useState({ language: '', proficiency: '' });
   const [linkInput, setLinkInput] = useState({ type: '', url: '' });
   const [progressPercentage, setProgressPercentage] = useState(0);
+  const [sectionProgress, setSectionProgress] = useState({});
   
   // Update form data when user profile data is fetched
   useEffect(() => {
@@ -283,34 +286,231 @@ const JobSeekerRegistrationFormComprehensive = () => {
 
   // Map behavior (moved to LocationMap)
 
-  // Calculate progress
+  // Calculate progress - 100% accurate calculation
   useEffect(() => {
     const calculateProgress = () => {
       let filledFields = 0;
-      let totalRequired = 0;
+      let totalFields = 0;
+      let sectionProgress = {};
 
-      // Count required fields
-      const requiredFields = [
-        'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender',
-        'nationality', 'residentCountry', 'currentCity', 'workPermit',
-        'preferredLocation1', 'willingToRelocate', 'workLocation',
-        'professionalTitle', 'yearsExperience', 'careerLevel', 'industry', 'summary',
-        'jobType', 'noticePeriod'
+      // Helper function to check if a field has meaningful content
+      const hasContent = (value) => {
+        if (value === null || value === undefined) return false;
+        if (typeof value === 'string') return value.trim().length > 0;
+        if (typeof value === 'boolean') return true;
+        if (Array.isArray(value)) return value.length > 0;
+        return true;
+      };
+
+      // Helper function to check if an array entry has meaningful content
+      const hasArrayContent = (array, requiredFields = []) => {
+        if (!Array.isArray(array) || array.length === 0) return false;
+        return array.some(entry => {
+          if (requiredFields.length === 0) {
+            return Object.values(entry).some(val => hasContent(val));
+          }
+          return requiredFields.every(field => hasContent(entry[field]));
+        });
+      };
+
+      // 1. Personal Information Section (8 fields)
+      const personalFields = [
+        { name: 'firstName', required: true },
+        { name: 'lastName', required: true },
+        { name: 'email', required: true },
+        { name: 'phone', required: true },
+        { name: 'dateOfBirth', required: true },
+        { name: 'gender', required: true },
+        { name: 'bloodGroup', required: false },
+        { name: 'community', required: false }
       ];
-
-      requiredFields.forEach(field => {
-        totalRequired++;
-        if (formData[field]) filledFields++;
+      
+      let personalFilled = 0;
+      personalFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          personalFilled++;
+        }
       });
+      sectionProgress.personal = Math.round((personalFilled / personalFields.length) * 100);
 
-      // Bonus for arrays
-      if (formData.experienceEntries.some(exp => exp.jobTitle)) filledFields += 2;
-      if (formData.educationEntries.some(edu => edu.degreeType)) filledFields += 2;
-      if (formData.coreSkills.length > 0) filledFields += 2;
-      if (formData.languages.length > 0) filledFields += 2;
+      // 2. Nationality & Residency Section (7 fields)
+      const residencyFields = [
+        { name: 'nationality', required: true },
+        { name: 'residentCountry', required: true },
+        { name: 'currentCity', required: true },
+        { name: 'postalCode', required: false },
+        { name: 'address', required: false },
+        { name: 'latitude', required: false },
+        { name: 'workPermit', required: true }
+      ];
+      
+      let residencyFilled = 0;
+      residencyFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          residencyFilled++;
+        }
+      });
+      sectionProgress.residency = Math.round((residencyFilled / residencyFields.length) * 100);
 
-      const progress = Math.min((filledFields / (totalRequired + 8)) * 100, 100);
-      setProgressPercentage(Math.round(progress));
+      // 3. Preferred Working Locations Section (5 fields)
+      const locationFields = [
+        { name: 'preferredLocation1', required: true },
+        { name: 'preferredLocation2', required: false },
+        { name: 'preferredLocation3', required: false },
+        { name: 'willingToRelocate', required: true },
+        { name: 'workLocation', required: true }
+      ];
+      
+      let locationFilled = 0;
+      locationFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          locationFilled++;
+        }
+      });
+      sectionProgress.location = Math.round((locationFilled / locationFields.length) * 100);
+
+      // 4. Professional Profile Section (5 fields)
+      const professionalFields = [
+        { name: 'professionalTitle', required: true },
+        { name: 'yearsExperience', required: true },
+        { name: 'careerLevel', required: true },
+        { name: 'industry', required: true },
+        { name: 'summary', required: true }
+      ];
+      
+      let professionalFilled = 0;
+      professionalFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          professionalFilled++;
+        }
+      });
+      sectionProgress.professional = Math.round((professionalFilled / professionalFields.length) * 100);
+
+      // 5. Work Experience Section (Array-based)
+      const hasWorkExperience = hasArrayContent(formData.experienceEntries, ['jobTitle', 'company']);
+      totalFields += 2; // Count as 2 fields for experience
+      if (hasWorkExperience) {
+        filledFields += 2;
+      }
+      sectionProgress.experience = hasWorkExperience ? 100 : 0;
+
+      // 6. Education Section (Array-based)
+      const hasEducation = hasArrayContent(formData.educationEntries, ['degreeType', 'institution']);
+      totalFields += 2; // Count as 2 fields for education
+      if (hasEducation) {
+        filledFields += 2;
+      }
+      sectionProgress.education = hasEducation ? 100 : 0;
+
+      // 7. Skills Section (2 arrays)
+      const hasCoreSkills = hasContent(formData.coreSkills);
+      const hasTools = hasContent(formData.tools);
+      totalFields += 2;
+      if (hasCoreSkills) filledFields++;
+      if (hasTools) filledFields++;
+      sectionProgress.skills = Math.round(((hasCoreSkills ? 1 : 0) + (hasTools ? 1 : 0)) / 2 * 100);
+
+      // 8. Languages Section (Array-based)
+      const hasLanguages = hasContent(formData.languages);
+      totalFields++;
+      if (hasLanguages) filledFields++;
+      sectionProgress.languages = hasLanguages ? 100 : 0;
+
+      // 9. Certifications Section (Array-based)
+      const hasCertifications = hasArrayContent(formData.certificationEntries, ['certificationName', 'certIssuer']);
+      totalFields++;
+      if (hasCertifications) filledFields++;
+      sectionProgress.certifications = hasCertifications ? 100 : 0;
+
+      // 10. Professional Memberships Section (3 fields)
+      const membershipFields = [
+        { name: 'membershipOrg', required: false },
+        { name: 'membershipType', required: false },
+        { name: 'membershipDate', required: false }
+      ];
+      
+      let membershipFilled = 0;
+      membershipFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          membershipFilled++;
+        }
+      });
+      sectionProgress.memberships = Math.round((membershipFilled / membershipFields.length) * 100);
+
+      // 11. References Section (Array-based)
+      const hasReferences = hasArrayContent(formData.referenceEntries, ['referenceName', 'referenceTitle']);
+      totalFields++;
+      if (hasReferences) filledFields++;
+      sectionProgress.references = hasReferences ? 100 : 0;
+
+      // 12. Professional Links Section (Array-based)
+      const hasProfessionalLinks = hasContent(formData.professionalLinks);
+      totalFields++;
+      if (hasProfessionalLinks) filledFields++;
+      sectionProgress.links = hasProfessionalLinks ? 100 : 0;
+
+      // 13. Job Preferences Section (6 fields)
+      const jobPrefFields = [
+        { name: 'jobType', required: true },
+        { name: 'noticePeriod', required: true },
+        { name: 'currentSalary', required: false },
+        { name: 'expectedSalary', required: false },
+        { name: 'currencyPreference', required: false },
+        { name: 'travelAvailability', required: false }
+      ];
+      
+      let jobPrefFilled = 0;
+      jobPrefFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          jobPrefFilled++;
+        }
+      });
+      sectionProgress.jobPreferences = Math.round((jobPrefFilled / jobPrefFields.length) * 100);
+
+      // 14. Additional Information Section (4 fields)
+      const additionalFields = [
+        { name: 'careerObjectives', required: false },
+        { name: 'hobbies', required: false },
+        { name: 'additionalComments', required: false },
+        { name: 'agreeTerms', required: true }
+      ];
+      
+      let additionalFilled = 0;
+      additionalFields.forEach(field => {
+        totalFields++;
+        if (hasContent(formData[field.name])) {
+          filledFields++;
+          additionalFilled++;
+        }
+      });
+      sectionProgress.additional = Math.round((additionalFilled / additionalFields.length) * 100);
+
+      // Calculate overall progress
+      const progress = Math.min((filledFields / totalFields) * 100, 100);
+      const roundedProgress = Math.round(progress);
+      
+      setProgressPercentage(roundedProgress);
+      setSectionProgress(sectionProgress);
+      
+      // Debug logging
+      console.log('📊 Progress Calculation:', {
+        filledFields,
+        totalFields,
+        progress: roundedProgress,
+        sectionProgress
+      });
     };
 
     calculateProgress();
@@ -322,6 +522,12 @@ const JobSeekerRegistrationFormComprehensive = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+    
+    // Hide validation message when user makes a selection
+    const validationMessage = e.target.closest('.form-group-comprehensive')?.querySelector('.validation-message');
+    if (validationMessage) {
+      validationMessage.style.display = 'none';
+    }
   };
 
   const handlePhotoUpload = (e) => {
@@ -567,6 +773,25 @@ const JobSeekerRegistrationFormComprehensive = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Show validation messages for required fields
+    const form = e.target;
+    const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
+    
+    requiredFields.forEach(field => {
+      const formGroup = field.closest('.form-group-comprehensive');
+      const validationMessage = formGroup?.querySelector('.validation-message');
+      
+      if (!field.value && validationMessage) {
+        validationMessage.style.display = 'block';
+      }
+    });
+    
+    // Check if any required fields are empty
+    const hasEmptyRequiredFields = Array.from(requiredFields).some(field => !field.value);
+    if (hasEmptyRequiredFields) {
+      return; // Stop submission if there are empty required fields
+    }
+    
     // Validation
     if (formData.coreSkills.length === 0) {
       alert('Please add at least one skill');
@@ -600,6 +825,13 @@ const JobSeekerRegistrationFormComprehensive = () => {
           formDataToSend.append(key, formData[key]);
         }
       });
+      
+      // Mark profile as completed
+      formDataToSend.append('profileCompleted', 'true');
+      formDataToSend.append('hasCompletedProfile', 'true');
+      
+      console.log('📋 Registration form - Profile completion flags added to payload');
+      console.log('📋 Registration form - Sending to:', buildApiUrl('/api/jobseeker/complete-profile'));
 
       const response = await fetch(buildApiUrl('/api/jobseeker/complete-profile'), {
         method: 'POST',
@@ -610,6 +842,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
       });
 
       const data = await response.json();
+      
+      console.log('📋 Registration form - Response status:', response.status);
+      console.log('📋 Registration form - Response data:', data);
 
       if (response.ok) {
         // Clear saved form data on successful submission
@@ -620,20 +855,32 @@ const JobSeekerRegistrationFormComprehensive = () => {
           if (formData.firstName) localStorage.setItem('userFirstName', formData.firstName);
           if (formData.lastName) localStorage.setItem('userLastName', formData.lastName);
           if (formData.email) localStorage.setItem('userEmail', formData.email);
+          // Mark profile as completed in localStorage
+          localStorage.setItem('profileCompleted', 'true');
+          localStorage.setItem('hasCompletedProfile', 'true');
           if (typeof updateUser === 'function') {
-            updateUser({ firstName: formData.firstName, lastName: formData.lastName, email: formData.email });
+            updateUser({ 
+              firstName: formData.firstName, 
+              lastName: formData.lastName, 
+              email: formData.email,
+              profileCompleted: true,
+              hasCompletedProfile: true
+            });
           }
         } catch { /* no-op */ }
 
         // Update user context to mark profile as completed
         alert('Profile completed successfully! Redirecting to your dashboard...');
-        navigate('/jobseeker-dashboard', { 
-          state: {
-            jobSeekerName: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            isUpdate: !!existingData
-          }
-        });
+        
+        // Force refresh of user data to ensure profile completion is detected
+        setTimeout(() => {
+          // Clear any cached data and reload to ensure fresh authentication state
+          sessionStorage.clear();
+          localStorage.setItem('profileCompleted', 'true');
+          localStorage.setItem('hasCompletedProfile', 'true');
+          // Reload the page to ensure fresh authentication state
+          window.location.href = '/jobseeker-dashboard';
+        }, 1000);
       } else {
         setSubmitError(data.error || 'Failed to submit profile. Please try again.');
       }
@@ -647,6 +894,95 @@ const JobSeekerRegistrationFormComprehensive = () => {
 
   return (
     <div className="jobseeker-details-comprehensive">
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .spinner {
+          animation: spin 1s linear infinite;
+        }
+      `}</style>
+      <style>{`
+        /* Custom validation styling to show errors above fields */
+        .form-group-comprehensive input:invalid,
+        .form-group-comprehensive select:invalid,
+        .form-group-comprehensive textarea:invalid {
+          border-color: #f97316;
+          box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+        }
+        
+        .form-group-comprehensive input:invalid + .validation-message,
+        .form-group-comprehensive select:invalid + .validation-message,
+        .form-group-comprehensive textarea:invalid + .validation-message,
+        .form-group-comprehensive .validation-message {
+          display: none;
+        }
+        
+        .form-group-comprehensive:has(input:invalid) .validation-message,
+        .form-group-comprehensive:has(select:invalid) .validation-message,
+        .form-group-comprehensive:has(textarea:invalid) .validation-message {
+          display: block;
+        }
+        
+        .validation-message {
+          display: none;
+          position: absolute;
+          top: -35px;
+          left: 0;
+          right: 0;
+          background: #f8f9fa;
+          border: 1px solid #f97316;
+          border-radius: 6px;
+          padding: 8px 12px;
+          font-size: 12px;
+          color: #f97316;
+          z-index: 10;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .validation-message::before {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 20px;
+          border: 5px solid transparent;
+          border-top-color: #f97316;
+        }
+        
+        .validation-message::after {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 19px;
+          border: 4px solid transparent;
+          border-top-color: #f8f9fa;
+        }
+        
+        .form-group-comprehensive {
+          position: relative;
+        }
+        
+        .radio-group-comprehensive {
+          position: relative;
+        }
+        
+        .radio-group-comprehensive:invalid + .validation-message {
+          display: block;
+        }
+        
+        /* Custom validation for radio groups */
+        .radio-group-comprehensive input:invalid {
+          border: 2px solid #f97316;
+        }
+        
+        /* Ensure validation messages appear above all form elements */
+        .form-group-comprehensive input:focus:invalid + .validation-message,
+        .form-group-comprehensive select:focus:invalid + .validation-message,
+        .form-group-comprehensive textarea:focus:invalid + .validation-message {
+          display: block;
+        }
+      `}</style>
       {/* Header */}
       <header className="jobseeker-header">
         <div className="header-container">
@@ -663,22 +999,68 @@ const JobSeekerRegistrationFormComprehensive = () => {
           </div>
           <div className="header-right">
             <div className="header-controls">
-              <span className="auto-save-status" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                {isSaving && <span style={{ color: '#f39c12' }}>💾 Saving...</span>}
+              <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
+                {isSaving && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#f39c12' }}>
+                    <div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid #f39c12', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+                    <span>Auto-saving...</span>
+                  </div>
+                )}
                 {saveStatus === 'saved' && (
-                  <>
-                    <FontAwesomeIcon icon={faCheck} style={{ color: '#27ae60' }} />
-                    <span style={{ color: '#27ae60' }}>Saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}</span>
-                  </>
-                )}
-                {saveStatus === 'error' && <span style={{ color: '#e74c3c' }}>⚠️ Save failed</span>}
-                {!isSaving && !saveStatus && (
-                  <>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#27ae60' }}>
                     <FontAwesomeIcon icon={faCheck} />
-                    <span>Auto-saving every 2 minutes</span>
-                  </>
+                    <span>Auto-saved {lastSaveTime && `at ${lastSaveTime.toLocaleTimeString()}`}</span>
+                  </div>
                 )}
-              </span>
+                {saveStatus === 'error' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#e74c3c' }}>
+                    <FontAwesomeIcon icon={faTimes} />
+                    <span>Save failed - data preserved locally</span>
+                  </div>
+                )}
+                {saveStatus === 'loaded' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#3498db' }}>
+                    <FontAwesomeIcon icon={faCheckCircle} />
+                    <span>Previous data restored</span>
+                  </div>
+                )}
+                {!isSaving && !saveStatus && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#6c757d' }}>
+                    <FontAwesomeIcon icon={faCheckCircle} />
+                    <span>Auto-save enabled (every 2 minutes)</span>
+                  </div>
+                )}
+              </div>
+              <button
+                className="manual-save-btn"
+                type="button"
+                onClick={forceSave}
+                disabled={isSaving}
+                style={{
+                  background: isSaving ? '#bdc3c7' : '#3498db',
+                  color: 'white',
+                  border: 'none',
+                  padding: '8px 15px',
+                  borderRadius: '6px',
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  marginRight: '10px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseOver={(e) => {
+                  if (!isSaving) {
+                    e.target.style.background = '#2980b9';
+                  }
+                }}
+                onMouseOut={(e) => {
+                  if (!isSaving) {
+                    e.target.style.background = '#3498db';
+                  }
+                }}
+              >
+                <FontAwesomeIcon icon={faSave} /> {isSaving ? 'Saving...' : 'Save Now'}
+              </button>
               <button
                 className="clear-form-btn"
                 type="button"
@@ -733,22 +1115,186 @@ const JobSeekerRegistrationFormComprehensive = () => {
             </div>
           )}
 
-          {/* Compact Progress Section */}
-          <div className="progress-section-comprehensive">
-            <div className="progress-header-comprehensive">
-              <h2>Profile Progress</h2>
-              <span className="progress-percentage-comprehensive">{progressPercentage}%</span>
+          {/* Enhanced Progress Section */}
+          <div className="progress-section-comprehensive" style={{
+            background: 'linear-gradient(135deg, #ff6b35 0%, #20b2aa 100%)',
+            borderRadius: '12px',
+            padding: '20px',
+            marginBottom: '30px',
+            color: 'white',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.1)'
+          }}>
+            <div className="progress-header-comprehensive" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '15px'
+            }}>
+              <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '600' }}>
+                <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '10px' }} />
+                Profile Completion
+              </h2>
+              <div style={{
+                background: 'rgba(255,255,255,0.2)',
+                padding: '8px 16px',
+                borderRadius: '20px',
+                fontSize: '18px',
+                fontWeight: 'bold'
+              }}>
+                {progressPercentage}%
+              </div>
             </div>
-            <div className="progress-bar-comprehensive">
-              <div className="progress-fill-comprehensive" style={{ width: `${progressPercentage}%` }}></div>
+            
+            <div className="progress-bar-comprehensive" style={{
+              background: 'rgba(255,255,255,0.2)',
+              height: '12px',
+              borderRadius: '6px',
+              overflow: 'hidden',
+              marginBottom: '15px'
+            }}>
+              <div 
+                className="progress-fill-comprehensive" 
+                style={{ 
+                  width: `${progressPercentage}%`,
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #ff6b35 0%, #20b2aa 100%)',
+                  borderRadius: '6px',
+                  transition: 'width 0.5s ease-in-out',
+                  position: 'relative'
+                }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  right: '0',
+                  top: '0',
+                  height: '100%',
+                  width: '20px',
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 100%)',
+                  borderRadius: '0 6px 6px 0'
+                }}></div>
+              </div>
             </div>
+
+            {/* Progress Status Message */}
+            <div style={{
+              fontSize: '14px',
+              opacity: 0.9,
+              textAlign: 'center',
+              marginBottom: '10px'
+            }}>
+              {progressPercentage === 100 ? (
+                <span style={{ color: '#20b2aa', fontWeight: '600' }}>
+                  🎉 Profile Complete! Ready to submit.
+                </span>
+              ) : progressPercentage >= 80 ? (
+                <span style={{ color: 'white' }}>
+                  Almost there! Just a few more fields to complete.
+                </span>
+              ) : progressPercentage >= 50 ? (
+                <span style={{ color: 'white' }}>
+                  Good progress! Keep filling out the form.
+                </span>
+              ) : (
+                <span style={{ color: 'white' }}>
+                  Let's get started! Fill out your profile information.
+                </span>
+              )}
+            </div>
+
+            {/* Quick Stats */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+              gap: '10px',
+              fontSize: '12px',
+              opacity: 0.8,
+              marginBottom: '15px'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>14</div>
+                <div>Sections</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>50+</div>
+                <div>Fields</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontWeight: 'bold', fontSize: '16px' }}>Auto-save</div>
+                <div>Enabled</div>
+              </div>
+            </div>
+
+            {/* Section Completion Checklist */}
+            {progressPercentage < 100 && (
+              <div style={{
+                background: 'rgba(255,255,255,0.1)',
+                borderRadius: '8px',
+                padding: '12px',
+                fontSize: '12px'
+              }}>
+                <div style={{ fontWeight: 'bold', marginBottom: '8px', opacity: 0.9 }}>
+                  Complete these sections:
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+                  gap: '6px'
+                }}>
+                  {[
+                    { key: 'personal', name: 'Personal Info', icon: '👤' },
+                    { key: 'residency', name: 'Nationality', icon: '🌍' },
+                    { key: 'location', name: 'Locations', icon: '📍' },
+                    { key: 'professional', name: 'Professional', icon: '💼' },
+                    { key: 'experience', name: 'Experience', icon: '🏢' },
+                    { key: 'education', name: 'Education', icon: '🎓' },
+                    { key: 'skills', name: 'Skills', icon: '⚡' },
+                    { key: 'languages', name: 'Languages', icon: '🗣️' },
+                    { key: 'certifications', name: 'Certifications', icon: '📜' },
+                    { key: 'jobPreferences', name: 'Job Prefs', icon: '⚙️' },
+                    { key: 'additional', name: 'Additional', icon: '📝' }
+                  ].map(section => (
+                    <div key={section.key} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      opacity: sectionProgress[section.key] === 100 ? 0.6 : 1
+                    }}>
+                      <span style={{
+                        color: sectionProgress[section.key] === 100 ? '#20b2aa' : '#ff6b35',
+                        fontSize: '14px'
+                      }}>
+                        {sectionProgress[section.key] === 100 ? '✅' : section.icon}
+                      </span>
+                      <span style={{
+                        textDecoration: sectionProgress[section.key] === 100 ? 'line-through' : 'none',
+                        opacity: sectionProgress[section.key] === 100 ? 0.7 : 1
+                      }}>
+                        {section.name}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
         {/* Personal Information Section */}
         <div className="section-comprehensive">
-          <h2 className="section-title-comprehensive">
-            <FontAwesomeIcon icon={faUser} />
-            Personal Information
+          <h2 className="section-title-comprehensive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <FontAwesomeIcon icon={faUser} />
+              Personal Information
+            </span>
+            <span style={{
+              background: sectionProgress.personal === 100 ? '#20b2aa' : sectionProgress.personal >= 50 ? '#ff6b35' : '#ff6b35',
+              color: 'white',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {sectionProgress.personal || 0}%
+            </span>
           </h2>
 
           {profilePhotoPreview && (
@@ -902,9 +1448,21 @@ const JobSeekerRegistrationFormComprehensive = () => {
 
         {/* Nationality & Residency Section */}
         <div className="section-comprehensive">
-          <h2 className="section-title-comprehensive">
-            <FontAwesomeIcon icon={faPassport} />
-            Nationality & Residency
+          <h2 className="section-title-comprehensive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <FontAwesomeIcon icon={faPassport} />
+              Nationality & Residency
+            </span>
+            <span style={{
+              background: sectionProgress.residency === 100 ? '#20b2aa' : sectionProgress.residency >= 50 ? '#ff6b35' : '#ff6b35',
+              color: 'white',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {sectionProgress.residency || 0}%
+            </span>
           </h2>
 
           <div className="form-row-comprehensive">
@@ -1037,6 +1595,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <label htmlFor="workPermitCitizen">Citizen/Not Required</label>
               </div>
             </div>
+            <div className="validation-message">Please select one of these options.</div>
           </div>
         </div>
 
@@ -1068,6 +1627,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
                   <option key={country} value={country}>{country}</option>
                 ))}
               </select>
+              <div className="validation-message">Please select an item in the list.</div>
             </div>
             <div className="form-group-comprehensive">
               <label>Preferred Location 2</label>
@@ -1137,6 +1697,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <label htmlFor="relocateNo">No</label>
               </div>
             </div>
+            <div className="validation-message">Please select one of these options.</div>
           </div>
 
           <div className="form-group-comprehensive">
@@ -1153,14 +1714,27 @@ const JobSeekerRegistrationFormComprehensive = () => {
               <option value="hybrid">Hybrid</option>
               <option value="flexible">Flexible/Open to all</option>
             </select>
+            <div className="validation-message">Please select an item in the list.</div>
           </div>
         </div>
 
         {/* Professional Profile Section */}
         <div className="section-comprehensive">
-          <h2 className="section-title-comprehensive">
-            <FontAwesomeIcon icon={faBriefcase} />
-            Professional Profile
+          <h2 className="section-title-comprehensive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <FontAwesomeIcon icon={faBriefcase} />
+              Professional Profile
+            </span>
+            <span style={{
+              background: sectionProgress.professional === 100 ? '#20b2aa' : sectionProgress.professional >= 50 ? '#ff6b35' : '#ff6b35',
+              color: 'white',
+              padding: '4px 12px',
+              borderRadius: '12px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {sectionProgress.professional || 0}%
+            </span>
           </h2>
 
           <div className="form-group-comprehensive">
@@ -1884,7 +2458,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
           </div>
           
           <div id="linksContainer" style={{ marginTop: '15px' }}>
-            {formData.professionalLinks.map((link, index) => (
+            {Array.isArray(formData.professionalLinks) ? formData.professionalLinks.map((link, index) => (
               <div key={index} className="link-item-comprehensive">
                 <div className="link-item-content-comprehensive">
                   <div className="link-item-type-comprehensive">
@@ -1896,7 +2470,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 </div>
                 <button type="button" className="remove-item-btn-comprehensive" onClick={() => removeLink(index)}>×</button>
               </div>
-            ))}
+            )) : null}
           </div>
         </div>
 
@@ -2015,11 +2589,11 @@ const JobSeekerRegistrationFormComprehensive = () => {
           </h2>
           
           <div className="form-group-comprehensive">
-            <label>Ask Community</label>
+            <label>Career Objectives</label>
             <textarea 
-              name="askCommunity" 
-              placeholder="Do you have any questions for the community? Share them here."
-              value={formData.askCommunity}
+              name="careerObjectives" 
+              placeholder="What are your short-term and long-term career goals? What do you hope to achieve in your next role?"
+              value={formData.careerObjectives}
               onChange={handleInputChange}
             />
           </div>

@@ -11,7 +11,6 @@ import {
   faShieldAlt,
   faFileUpload
 } from '@fortawesome/free-solid-svg-icons';
-import '../styles/dashboard-unified.css';
 // import '../styles/AdminSidebar.css'; // Replaced by unified CSS
 
 const AdminSidebar = ({ activeView, setActiveView }) => {

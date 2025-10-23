@@ -25,6 +25,7 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
         const savedData = localStorage.getItem(storageKey);
         if (savedData) {
           const parsedData = JSON.parse(savedData);
+          console.log('📂 Loading saved form data:', parsedData);
           setFormData(prevData => ({ ...prevData, ...parsedData }));
           setSaveStatus('loaded');
         }
@@ -35,6 +36,34 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     }
   }, [storageKey]);
 
+  // Save data before page unload/refresh
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (storageKey && formData) {
+        console.log('💾 Saving form data before page unload...');
+        try {
+          const dataToSave = {
+            ...formData,
+            _lastSaved: new Date().toISOString(),
+            _savedOnUnload: true
+          };
+          localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+          console.log('✅ Form data saved before unload');
+        } catch (error) {
+          console.error('Error saving form data before unload:', error);
+        }
+      }
+    };
+
+    // Add event listener for beforeunload
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup event listener on unmount
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [storageKey, formData]);
+
   // Save form data function
   const saveFormData = useCallback(async () => {
     if (!storageKey) return;
@@ -43,12 +72,21 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     setSaveStatus('saving');
     
     try {
-      // Save to localStorage
-      const dataToSave = {
+      // Deep clone form data to avoid reference issues
+      const dataToSave = JSON.parse(JSON.stringify({
         ...formData,
-        _lastSaved: new Date().toISOString()
-      };
+        _lastSaved: new Date().toISOString(),
+        _version: '1.0'
+      }));
+      
+      // Save to localStorage with error handling
       localStorage.setItem(storageKey, JSON.stringify(dataToSave));
+      
+      // Verify the save was successful
+      const savedData = localStorage.getItem(storageKey);
+      if (!savedData) {
+        throw new Error('Failed to save data to localStorage');
+      }
       
       // Optional: Save to backend
       if (onSave && typeof onSave === 'function') {
@@ -58,7 +96,11 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
       const saveTime = new Date();
       setLastSaveTime(saveTime);
       setSaveStatus('saved');
-      console.log(`✅ Form auto-saved at ${saveTime.toLocaleTimeString()}`);
+      console.log(`✅ Form auto-saved at ${saveTime.toLocaleTimeString()}`, {
+        fieldsCount: Object.keys(formData).length,
+        hasArrays: Object.values(formData).some(val => Array.isArray(val)),
+        storageSize: savedData.length
+      });
       
       setTimeout(() => setSaveStatus(null), 3000); // Clear status after 3 seconds
     } catch (error) {
@@ -90,7 +132,7 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [formData, delay, storageKey]);
+  }, [formData, delay, storageKey, saveFormData]);
 
   // Periodic auto-save effect (every 2 minutes)
   useEffect(() => {
@@ -129,6 +171,22 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     }
   }, [storageKey, initialData]);
 
+  // Force save function for immediate save
+  const forceSave = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    saveFormData();
+  }, [saveFormData]);
+
+  // Check if data has been saved recently
+  const hasRecentSave = useCallback(() => {
+    if (!lastSaveTime) return false;
+    const now = new Date();
+    const timeDiff = now.getTime() - lastSaveTime.getTime();
+    return timeDiff < 5000; // Less than 5 seconds ago
+  }, [lastSaveTime]);
+
   // Update form data function that supports both patterns
   const updateFormData = useCallback((updatesOrFunction) => {
     if (typeof updatesOrFunction === 'function') {
@@ -150,6 +208,8 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     saveStatus,
     lastSaveTime,
     manualSave,
+    forceSave,
+    hasRecentSave,
     clearSavedData
   };
 };

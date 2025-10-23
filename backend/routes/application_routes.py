@@ -888,3 +888,155 @@ def get_job_match_score(job_id):
         import traceback
         traceback.print_exc()
         return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@application_bp.route('/recruiter/interviews', methods=['GET'])
+@jwt_required()
+def get_scheduled_interviews():
+    """Get all scheduled interviews for recruiter"""
+    try:
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        current_user_id = get_jwt_identity()
+        print(f"🔍 Getting scheduled interviews for recruiter: {current_user_id}")
+        
+        # Get all jobs posted by this recruiter
+        recruiter_jobs = list(db.jobs.find({'recruiter_id': current_user_id}))
+        print(f"📋 Found {len(recruiter_jobs)} jobs for recruiter")
+        
+        if not recruiter_jobs:
+            return jsonify({'interviews': []}), 200
+        
+        # Get job IDs
+        job_ids = [job['_id'] for job in recruiter_jobs]
+        
+        # Get all applications with scheduled interviews
+        applications = list(db.applications.find({
+            'job_id': {'$in': job_ids},
+            'interview_date': {'$exists': True, '$ne': None}
+        }))
+        print(f"👥 Found {len(applications)} scheduled interviews")
+        
+        # Enrich with applicant and job details
+        enriched_interviews = []
+        for app in applications:
+            # Find the corresponding job
+            job = next((j for j in recruiter_jobs if j['_id'] == app['job_id']), None)
+            
+            # Get applicant details
+            applicant = db.users.find_one({'_id': app['applicant_id']})
+            
+            if job and applicant:
+                interview = {
+                    '_id': str(app['_id']),
+                    'job_id': str(app['job_id']),
+                    'applicant_id': str(app['applicant_id']),
+                    'applicant_name': f"{applicant.get('firstName', '')} {applicant.get('lastName', '')}".strip() or applicant.get('email', 'Unknown'),
+                    'applicant_email': applicant.get('email', ''),
+                    'applicant_phone': applicant.get('phone', ''),
+                    'job_title': job.get('job_title', 'Unknown Job'),
+                    'company_name': job.get('company_name', 'Unknown Company'),
+                    'interview_date': app.get('interview_date', ''),
+                    'interview_time': app.get('interview_time', ''),
+                    'interview_mode': app.get('interview_mode', 'online'),
+                    'interview_link': app.get('interview_link', ''),
+                    'interview_location': app.get('interview_location', ''),
+                    'interview_notes': app.get('interview_notes', ''),
+                    'status': app.get('status', 'interview_scheduled'),
+                    'created_at': app.get('created_at', ''),
+                    'updated_at': app.get('updated_at', '')
+                }
+                enriched_interviews.append(interview)
+        
+        # Sort by interview date
+        enriched_interviews.sort(key=lambda x: x.get('interview_date', ''), reverse=False)
+        
+        print(f"✅ Returning {len(enriched_interviews)} scheduled interviews")
+        return jsonify({'interviews': enriched_interviews, 'count': len(enriched_interviews)}), 200
+        
+    except Exception as e:
+        print(f"❌ Error in get_scheduled_interviews: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
+@application_bp.route('/schedule-interview', methods=['POST'])
+@jwt_required()
+def schedule_interview():
+    """Schedule an interview for an application"""
+    try:
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+        
+        applicant_id = data.get('applicant_id')
+        job_id = data.get('job_id')
+        interview_date = data.get('interview_date')
+        interview_time = data.get('interview_time')
+        interview_mode = data.get('interview_mode', 'online')
+        interview_link = data.get('interview_link', '')
+        interview_location = data.get('interview_location', '')
+        interview_notes = data.get('interview_notes', '')
+        
+        if not all([applicant_id, job_id, interview_date]):
+            return jsonify({'error': 'applicant_id, job_id, and interview_date are required'}), 400
+        
+        # Verify recruiter owns the job
+        job = db.jobs.find_one({'_id': ObjectId(job_id)})
+        if not job:
+            return jsonify({'error': 'Job not found'}), 404
+        
+        if str(job.get('recruiter_id')) != current_user_id:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Update application with interview details
+        update_data = {
+            'status': 'interview_scheduled',
+            'interview_date': interview_date,
+            'interview_time': interview_time,
+            'interview_mode': interview_mode,
+            'interview_link': interview_link,
+            'interview_location': interview_location,
+            'interview_notes': interview_notes,
+            'updated_at': datetime.now().isoformat()
+        }
+        
+        result = db.applications.update_one(
+            {'applicant_id': ObjectId(applicant_id), 'job_id': ObjectId(job_id)},
+            {'$set': update_data}
+        )
+        
+        if result.modified_count > 0:
+            # Send notification email to applicant
+            try:
+                from services.email_service import get_email_service
+                email_service = get_email_service()
+                
+                applicant = db.users.find_one({'_id': ObjectId(applicant_id)})
+                if applicant:
+                    email_service.send_application_status_notification(
+                        applicant_email=applicant.get('email'),
+                        applicant_name=f"{applicant.get('firstName', '')} {applicant.get('lastName', '')}".strip(),
+                        job_title=job.get('job_title'),
+                        company_name=job.get('company_name'),
+                        status='interview_scheduled'
+                    )
+            except Exception as email_error:
+                print(f"⚠️ Failed to send email notification: {email_error}")
+            
+            return jsonify({'message': 'Interview scheduled successfully'}), 200
+        else:
+            return jsonify({'error': 'Failed to schedule interview'}), 500
+        
+    except Exception as e:
+        print(f"❌ Error in schedule_interview: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500

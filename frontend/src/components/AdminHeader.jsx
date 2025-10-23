@@ -8,7 +8,6 @@ import {
   faExclamationTriangle,
   faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
-import '../styles/AdminHeader.css';
 
 const AdminHeader = () => {
   const [notifications, setNotifications] = useState([

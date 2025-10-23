@@ -369,33 +369,28 @@ const Signup = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.9 }}
             >
-              <div className="role-label-text">I am a:</div>
-              <div className="role-selection">
-                {roleOptions.map((role) => (
-                  <label 
-                    key={role.value} 
-                    className="role-option"
-                    onClick={() => {
-                      setFormData({...formData, role: role.value});
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role.value}
-                      checked={formData.role === role.value}
-                      onChange={handleChange}
-                      required
-                    />
-                    <div className="role-card">
-                      <FontAwesomeIcon icon={role.icon} className="role-icon" />
-                      <div className="role-info">
-                        <span className="role-label">{role.label}</span>
-                        <span className="role-description">{role.description}</span>
-                      </div>
-                    </div>
-                  </label>
-                ))}
+              <div className="label-group">
+                <FontAwesomeIcon icon={faUser} className="form-label-icon" />
+                <label htmlFor="role">I am a:</label>
+              </div>
+              <div className="input-wrapper">
+                <select
+                  id="role"
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  required
+                  className="role-dropdown"
+                >
+                  {roleOptions.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label} - {role.description}
+                    </option>
+                  ))}
+                </select>
+                <div className="dropdown-icon">
+                  <FontAwesomeIcon icon={faUser} />
+                </div>
               </div>
             </motion.div>
 

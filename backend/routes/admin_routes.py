@@ -399,37 +399,69 @@ def get_analytics():
             
             current_date = next_date
         
-        # Revenue data (simplified)
+        # Revenue data - REAL DATA ONLY from actual subscriptions/payments
         revenue_data = []
         for i in range(12):
             month_date = datetime.utcnow() - timedelta(days=30*i)
             month_name = month_date.strftime("%B %Y")
+            month_start = month_date.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            next_month = (month_start + timedelta(days=32)).replace(day=1)
             
-            # Mock revenue calculation
-            monthly_revenue = 5000 + (i * 1000)  # Replace with actual calculation
+            # Calculate actual revenue from payments/subscriptions in this month
+            monthly_revenue = 0
+            if 'payments' in db.list_collection_names():
+                payments = db.payments.find({
+                    "createdAt": {"$gte": month_start, "$lt": next_month},
+                    "status": "completed"
+                })
+                monthly_revenue = sum(payment.get("amount", 0) for payment in payments)
             
             revenue_data.append({
                 "month": month_name,
                 "revenue": monthly_revenue
             })
         
-        # Feature usage data
-        feature_usage = [
-            {"feature": "Resume Upload", "usageCount": 1250},
-            {"feature": "Job Search", "usageCount": 2100},
-            {"feature": "Match Score", "usageCount": 1800},
-            {"feature": "Cultural Fit", "usageCount": 950},
-            {"feature": "Interview Scheduling", "usageCount": 650}
-        ]
+        # Feature usage data - REAL DATA ONLY
+        feature_usage = []
+        if 'resumes' in db.list_collection_names():
+            resume_count = db.resumes.count_documents({"createdAt": {"$gte": start_date}})
+            feature_usage.append({"feature": "Resume Upload", "usageCount": resume_count})
         
-        # Application funnel data
-        application_funnel = [
-            {"stage": "Resume Uploaded", "count": 1250},
-            {"stage": "Job Applied", "count": 980},
-            {"stage": "Shortlisted", "count": 245},
-            {"stage": "Interviewed", "count": 120},
-            {"stage": "Hired", "count": 45}
-        ]
+        if 'applications' in db.list_collection_names():
+            app_count = db.applications.count_documents({"created_at": {"$gte": start_date}})
+            feature_usage.append({"feature": "Job Applications", "usageCount": app_count})
+        
+        if 'job_views' in db.list_collection_names():
+            view_count = db.job_views.count_documents({"viewedAt": {"$gte": start_date}})
+            feature_usage.append({"feature": "Job Views", "usageCount": view_count})
+        
+        # Application funnel data - REAL DATA ONLY
+        application_funnel = []
+        if 'resumes' in db.list_collection_names():
+            resumes_uploaded = db.resumes.count_documents({"createdAt": {"$gte": start_date}})
+            application_funnel.append({"stage": "Resume Uploaded", "count": resumes_uploaded})
+        
+        if 'applications' in db.list_collection_names():
+            jobs_applied = db.applications.count_documents({"created_at": {"$gte": start_date}})
+            application_funnel.append({"stage": "Job Applied", "count": jobs_applied})
+            
+            shortlisted = db.applications.count_documents({
+                "created_at": {"$gte": start_date},
+                "status": "shortlisted"
+            })
+            application_funnel.append({"stage": "Shortlisted", "count": shortlisted})
+            
+            interviewed = db.applications.count_documents({
+                "created_at": {"$gte": start_date},
+                "status": "interview_scheduled"
+            })
+            application_funnel.append({"stage": "Interviewed", "count": interviewed})
+            
+            hired = db.applications.count_documents({
+                "created_at": {"$gte": start_date},
+                "status": "accepted"
+            })
+            application_funnel.append({"stage": "Hired", "count": hired})
         
         # User distribution
         user_distribution = {
@@ -439,14 +471,26 @@ def get_analytics():
             "enterpriseUsers": db.users.count_documents({"subscription.plan": "Enterprise"})
         }
         
-        # Monthly stats
+        # Monthly stats - REAL DATA ONLY
+        total_users = db.users.count_documents({}) if 'users' in db.list_collection_names() else 0
+        active_jobs = db.jobs.count_documents({"status": "active"}) if 'jobs' in db.list_collection_names() else 0
+        resumes_uploaded = db.resumes.count_documents({"createdAt": {"$gte": start_date}}) if 'resumes' in db.list_collection_names() else 0
+        
+        # Calculate actual monthly revenue from payments
+        monthly_revenue = 0
+        if 'payments' in db.list_collection_names():
+            month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            payments = db.payments.find({
+                "createdAt": {"$gte": month_start},
+                "status": "completed"
+            })
+            monthly_revenue = sum(payment.get("amount", 0) for payment in payments)
+        
         monthly_stats = {
-            "totalUsers": db.users.count_documents({}),
-            "activeJobs": db.jobs.count_documents({"status": "active"}),
-            "resumesUploaded": db.resumes.count_documents({
-                "createdAt": {"$gte": start_date}
-            }),
-            "monthlyRevenue": 15000  # Replace with actual calculation
+            "totalUsers": total_users,
+            "activeJobs": active_jobs,
+            "resumesUploaded": resumes_uploaded,
+            "monthlyRevenue": monthly_revenue
         }
         
         return jsonify({

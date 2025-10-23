@@ -1,9 +1,7 @@
 import React, { useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import "./styles/DesignSystem.css"; // Unified design system
-import "./styles/Global.css";
-import "./styles/dashboard-unified.css"; // Unified orange-teal theme for all dashboards
-import ErrorBoundary from "./components/ErrorBoundary";
+import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import "./styles/unified-theme.css"; // Unified orange-teal theme for entire website
+import "./styles/page-specific.css"; // Page-specific customizations
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";

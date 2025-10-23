@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { buildApiUrl } from '../config/api';
 import JobApplicationModal from './JobApplicationModal';
-import '../styles/dashboard-unified.css';
 
 const JobDisplay = () => {
   const [jobs, setJobs] = useState([]);

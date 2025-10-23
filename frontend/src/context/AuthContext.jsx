@@ -56,6 +56,8 @@ export const AuthProvider = ({ children }) => {
     const lastName = localStorage.getItem('userLastName') || localStorage.getItem('lastName');
     const phone = localStorage.getItem('userPhone') || localStorage.getItem('phone');
     const userType = localStorage.getItem('userType');
+    const profileCompleted = localStorage.getItem('profileCompleted') === 'true';
+    const hasCompletedProfile = localStorage.getItem('hasCompletedProfile') === 'true';
 
     console.log('🔐 AuthContext - localStorage values:', {
       token: token ? 'EXISTS' : 'NULL',
@@ -65,7 +67,9 @@ export const AuthProvider = ({ children }) => {
       firstName: firstName || 'NULL',
       lastName: lastName || 'NULL',
       phone: phone || 'NULL',
-      userType: userType || 'NULL'
+      userType: userType || 'NULL',
+      profileCompleted: profileCompleted,
+      hasCompletedProfile: hasCompletedProfile
     });
 
     if (token && role && userId) {
@@ -85,15 +89,15 @@ export const AuthProvider = ({ children }) => {
         firstName: validFirstName,
         lastName: validLastName,
         phone: validPhone,
-        userType: userType || normalizedRole
+        userType: userType || normalizedRole,
+        profileCompleted: profileCompleted,
+        hasCompletedProfile: hasCompletedProfile
       });
       setIsAuthenticated(true);
       console.log('🔐 AuthContext - User logged in:', { role: normalizedRole, userId });
       
-      // Interns go directly to their dashboard (no separate registration form needed)
-      if (normalizedRole === 'intern') {
-        console.log('🔐 AuthContext - Intern user, will redirect to intern dashboard');
-      }
+      // Don't redirect on page refresh - let the user stay on their current page
+      console.log('🔐 AuthContext - User authenticated, staying on current page');
     } else {
       console.log('🔐 AuthContext - No valid tokens found, user not authenticated');
       // Ensure user state is cleared and isAuthenticated is false
@@ -243,6 +247,14 @@ export const AuthProvider = ({ children }) => {
     // Store userType if available
     if (otherData.userType) {
       localStorage.setItem('userType', otherData.userType);
+    }
+    
+    // Store profile completion status if available
+    if (otherData.profileCompleted !== undefined) {
+      localStorage.setItem('profileCompleted', otherData.profileCompleted.toString());
+    }
+    if (otherData.hasCompletedProfile !== undefined) {
+      localStorage.setItem('hasCompletedProfile', otherData.hasCompletedProfile.toString());
     }
     
     setUser({ token, role: normalizedRole, userId, email: validEmail, firstName: validFirstName, lastName: validLastName, ...otherData });

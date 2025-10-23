@@ -3,8 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import logoImage from '../assets/FINAL LOGO AK.png';
 import JobCard from '../components/JobCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faQuoteLeft, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
 import '../styles/HomePage.css';
-import '../styles/dashboard-unified.css';
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -12,6 +13,41 @@ const HomePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+
+  // Testimonials data moved from login/signup pages
+  const testimonials = [
+    {
+      id: 1,
+      quote: "AksharJobs helped me find my dream job in just 2 weeks. The platform is intuitive and the opportunities are amazing!",
+      author: "Sarah Johnson",
+      role: "Software Engineer at TechCorp"
+    },
+    {
+      id: 2,
+      quote: "The job matching algorithm is incredible. I got matched with 5 perfect opportunities within a week of signing up.",
+      author: "Michael Chen",
+      role: "Product Manager at InnovateLab"
+    },
+    {
+      id: 3,
+      quote: "As a recruiter, AksharJobs has given me access to top-tier talent. The quality of candidates is outstanding.",
+      author: "Emily Rodriguez",
+      role: "HR Director at GlobalTech"
+    },
+    {
+      id: 4,
+      quote: "The career resources and interview prep tools helped me land my current role. Highly recommend to anyone job hunting!",
+      author: "David Kim",
+      role: "Data Scientist at DataFlow"
+    },
+    {
+      id: 5,
+      quote: "The community features and networking opportunities are fantastic. I've made valuable professional connections here.",
+      author: "Lisa Thompson",
+      role: "Marketing Specialist at BrandCo"
+    }
+  ];
 
   // Toast management
   const showToast = (message, type = 'success') => {
@@ -45,6 +81,23 @@ const HomePage = () => {
     }
   };
 
+  // Auto-slide testimonials
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 4000); // Change every 4 seconds
+
+    return () => clearInterval(interval);
+  }, [testimonials.length]);
+
+  const nextTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+  };
+
+  const prevTestimonial = () => {
+    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
+  };
+
   return (
     <div className="homepage">
       {/* Header */}
@@ -54,7 +107,7 @@ const HomePage = () => {
             <img src={logoImage} alt="AksharJobs Logo" className="logo-image" />
             <div className="logo-text">
               <span className="logo-name">AksharJobs</span>
-              <span className="logo-tagline">CONNECT|DISCOVER|ELEVATE</span>
+              <span className="logo-tagline">CONNECT | DISCOVER | ELEVATE</span>
             </div>
           </div>
           <nav>
@@ -79,7 +132,7 @@ const HomePage = () => {
       {/* Hero Section */}
       <section className="hero">
         <div className="hero-content">
-          <h1>Find Your Dream Job With AksharJobs</h1>
+          <h1>Find Your Dream Job With <span style={{ color: 'white' }}>AksharJobs</span></h1>
           <p>CONNECT | DISCOVER | ELEVATE - Connect with thousands of employers and discover opportunities that match your skills and aspirations</p>
         </div>
         
@@ -102,7 +155,7 @@ const HomePage = () => {
                 onChange={(e) => setSearchLocation(e.target.value)}
                 onKeyPress={handleKeyPress}
               />
-              <button type="submit" className="btn btn-search">
+              <button type="submit" className="btn-search">
                 Search Jobs
               </button>
             </div>
@@ -178,83 +231,180 @@ const HomePage = () => {
           <p className="section-subtitle">Hand-picked opportunities from top companies</p>
 
           <div className="featured-jobs-grid">
-            <JobCard 
-              job={{
-                _id: '1',
-                job_title: 'Senior Software Engineer',
-                company_name: 'TechCorp Solutions',
-                location: 'San Francisco, CA',
-                job_type: 'Full-time',
-                experience_level: 'Senior',
-                salary_range: '$120K - $180K',
-                skills: ['React', 'Node.js', 'AWS'],
-                featured: true,
-                posted_date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-              }}
-              onApply={(job) => {
-                showToast(`🚀 Applying to ${job.job_title} at ${job.company_name}...`, 'success');
-                navigate('/jobseeker-dashboard');
-              }}
-              onSave={(jobId) => {
-                showToast(`💾 Job saved successfully!`, 'success');
-              }}
-              onViewDetails={(job) => {
-                showToast(`👀 Viewing details for ${job.job_title}...`, 'success');
-                navigate('/jobseeker-dashboard');
-              }}
-            />
+            <div className="job-card">
+              {true && <div className="featured-badge">Featured</div>}
+              <h3 className="job-title">Senior Software Engineer</h3>
+              <p className="company-name">TechCorp Solutions</p>
+              
+              <div className="job-details">
+                <div className="job-detail">
+                  <span className="icon">📍</span>
+                  <span>San Francisco, CA</span>
+                </div>
+                <div className="job-detail">
+                  <span className="icon">💼</span>
+                  <span>Full-time</span>
+                </div>
+                <div className="job-detail">
+                  <span className="icon">🎓</span>
+                  <span>Senior</span>
+                </div>
+                <div className="job-detail salary">
+                  <span className="icon">💰</span>
+                  <span>$120K - $180K</span>
+                </div>
+              </div>
+              
+              <div className="skills">
+                <span className="skill-tag">React</span>
+                <span className="skill-tag">Node.js</span>
+                <span className="skill-tag">AWS</span>
+              </div>
+              
+              <div className="job-actions">
+                <button 
+                  className="btn-apply"
+                  onClick={() => {
+                    showToast(`🚀 Applying to Senior Software Engineer at TechCorp Solutions...`, 'success');
+                    navigate('/jobseeker-dashboard');
+                  }}
+                >
+                  <span>🚀</span>
+                  Apply Now
+                </button>
+                <button 
+                  className="btn-view"
+                  onClick={() => {
+                    showToast(`👀 Viewing details for Senior Software Engineer...`, 'success');
+                    navigate('/jobseeker-dashboard');
+                  }}
+                >
+                  <span>👀</span>
+                  View Details
+                </button>
+              </div>
+              
+              <div className="posted-date">
+                <span>🕒</span>
+                <span>Posted 2 days ago</span>
+              </div>
+            </div>
 
-            <JobCard 
-              job={{
-                _id: '2',
-                job_title: 'Product Designer',
-                company_name: 'Design Innovations Inc.',
-                location: 'New York, NY',
-                job_type: 'Full-time',
-                experience_level: 'Mid Level',
-                salary_range: '$90K - $130K',
-                skills: ['Figma', 'UI/UX', 'Prototyping'],
-                featured: false,
-                posted_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-              }}
-              onApply={(job) => {
-                showToast(`🚀 Applying to ${job.job_title} at ${job.company_name}...`, 'success');
-                navigate('/jobseeker-dashboard');
-              }}
-              onSave={(jobId) => {
-                showToast(`💾 Job saved successfully!`, 'success');
-              }}
-              onViewDetails={(job) => {
-                showToast(`👀 Viewing details for ${job.job_title}...`, 'success');
-                navigate('/jobseeker-dashboard');
-              }}
-            />
+            <div className="job-card">
+              <h3 className="job-title">Product Designer</h3>
+              <p className="company-name">Design Innovations Inc.</p>
+              
+              <div className="job-details">
+                <div className="job-detail">
+                  <span className="icon">📍</span>
+                  <span>New York, NY</span>
+                </div>
+                <div className="job-detail">
+                  <span className="icon">💼</span>
+                  <span>Full-time</span>
+                </div>
+                <div className="job-detail">
+                  <span className="icon">🎓</span>
+                  <span>Mid Level</span>
+                </div>
+                <div className="job-detail salary">
+                  <span className="icon">💰</span>
+                  <span>$90K - $130K</span>
+                </div>
+              </div>
+              
+              <div className="skills">
+                <span className="skill-tag">Figma</span>
+                <span className="skill-tag">UI/UX</span>
+                <span className="skill-tag">Prototyping</span>
+              </div>
+              
+              <div className="job-actions">
+                <button 
+                  className="btn-apply"
+                  onClick={() => {
+                    showToast(`🚀 Applying to Product Designer at Design Innovations Inc....`, 'success');
+                    navigate('/jobseeker-dashboard');
+                  }}
+                >
+                  <span>🚀</span>
+                  Apply Now
+                </button>
+                <button 
+                  className="btn-view"
+                  onClick={() => {
+                    showToast(`👀 Viewing details for Product Designer...`, 'success');
+                    navigate('/jobseeker-dashboard');
+                  }}
+                >
+                  <span>👀</span>
+                  View Details
+                </button>
+              </div>
+              
+              <div className="posted-date">
+                <span>🕒</span>
+                <span>Posted 1 week ago</span>
+              </div>
+            </div>
 
-            <JobCard 
-              job={{
-                _id: '3',
-                job_title: 'Marketing Manager',
-                company_name: 'FutureMark Agency',
-                location: 'Austin, TX',
-                job_type: 'Full-time',
-                experience_level: 'Mid Level',
-                salary_range: '$80K - $110K',
-                skills: ['Digital Marketing', 'SEO', 'Content Strategy'],
-                featured: false,
-                posted_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
-              }}
-              onApply={(job) => {
-                showToast(`🚀 Applying to ${job.job_title} at ${job.company_name}...`, 'success');
-                navigate('/jobseeker-dashboard');
-              }}
-              onSave={(jobId) => {
-                showToast(`💾 Job saved successfully!`, 'success');
-              }}
-              onViewDetails={(job) => {
-                showToast(`👀 Viewing details for ${job.job_title}...`, 'success');
-                navigate('/jobseeker-dashboard');
-              }}
-            />
+            <div className="job-card">
+              <h3 className="job-title">Marketing Manager</h3>
+              <p className="company-name">FutureMark Agency</p>
+              
+              <div className="job-details">
+                <div className="job-detail">
+                  <span className="icon">📍</span>
+                  <span>Austin, TX</span>
+                </div>
+                <div className="job-detail">
+                  <span className="icon">💼</span>
+                  <span>Full-time</span>
+                </div>
+                <div className="job-detail">
+                  <span className="icon">🎓</span>
+                  <span>Mid Level</span>
+                </div>
+                <div className="job-detail salary">
+                  <span className="icon">💰</span>
+                  <span>$80K - $110K</span>
+                </div>
+              </div>
+              
+              <div className="skills">
+                <span className="skill-tag">Digital Marketing</span>
+                <span className="skill-tag">SEO</span>
+                <span className="skill-tag">Content Strategy</span>
+              </div>
+              
+              <div className="job-actions">
+                <button 
+                  className="btn-apply"
+                  onClick={() => {
+                    showToast(`🚀 Applying to Marketing Manager at FutureMark Agency...`, 'success');
+                    navigate('/jobseeker-dashboard');
+                  }}
+                >
+                  <span>🚀</span>
+                  Apply Now
+                </button>
+                <button 
+                  className="btn-view"
+                  onClick={() => {
+                    showToast(`👀 Viewing details for Marketing Manager...`, 'success');
+                    navigate('/jobseeker-dashboard');
+                  }}
+                >
+                  <span>👀</span>
+                  View Details
+                </button>
+              </div>
+              
+              <div className="posted-date">
+                <span>🕒</span>
+                <span>Posted 3 days ago</span>
+              </div>
+            </div>
           </div>
 
           <div style={{ textAlign: 'center', marginTop: '2rem' }}>
@@ -265,47 +415,73 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Testimonials Section */}
+      <section className="testimonials-section">
+        <div className="testimonials-container">
+          <h2 className="section-title">What Our Users Say</h2>
+          <p className="section-subtitle">Real stories from professionals who found success with AksharJobs</p>
+          
+          <div className="testimonial-slider">
+            <div className="testimonial-content">
+              <div className="quote-icon">
+                <FontAwesomeIcon icon={faQuoteLeft} />
+              </div>
+              <blockquote className="testimonial-quote">
+                {testimonials[currentTestimonial].quote}
+              </blockquote>
+              <div className="testimonial-author">
+                <div className="author-info">
+                  <span className="author-name">{testimonials[currentTestimonial].author}</span>
+                  <span className="author-role">{testimonials[currentTestimonial].role}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="testimonial-controls">
+              <button 
+                className="testimonial-btn prev-btn"
+                onClick={prevTestimonial}
+                aria-label="Previous testimonial"
+              >
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </button>
+              
+              <div className="testimonial-dots">
+                {testimonials.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`dot ${index === currentTestimonial ? 'active' : ''}`}
+                    onClick={() => setCurrentTestimonial(index)}
+                    aria-label={`Go to testimonial ${index + 1}`}
+                  />
+                ))}
+              </div>
+              
+              <button 
+                className="testimonial-btn next-btn"
+                onClick={nextTestimonial}
+                aria-label="Next testimonial"
+              >
+                <FontAwesomeIcon icon={faChevronRight} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
-      <section 
-        className="cta-section" 
-        style={{
-          background: 'var(--gradient-hero) !important',
-          color: 'white !important',
-          padding: '4rem 2rem !important',
-          textAlign: 'center !important'
-        }}
-      >
+      <section className="cta-section">
         <div className="cta-content">
-          <h2 style={{ color: 'white !important', fontSize: '2.5rem !important', marginBottom: '1rem !important' }}>
-            Ready to Take the Next Step?
-          </h2>
-          <p style={{ color: 'white !important', fontSize: '1.2rem !important' }}>
+          <h2>Ready to Take the Next Step?</h2>
+          <p>
             Join thousands of professionals who found their perfect job through AksharJobs. Create your profile today and get discovered by top employers.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link 
-              to="/signup"
-              className="btn btn-primary btn-large" 
-              style={{
-                background: 'var(--brand-primary) !important',
-                color: 'white !important',
-                border: 'none !important',
-                textDecoration: 'none !important'
-              }}
-            >
-              GET STARTED
+          <div className="cta-buttons">
+            <Link to="/signup" className="btn btn-primary">
+              🚀 GET STARTED
             </Link>
-            <Link 
-              to="/post-job"
-              className="btn btn-secondary btn-large" 
-              style={{
-                background: 'transparent !important',
-                color: 'white !important',
-                border: '2px solid white !important',
-                textDecoration: 'none !important'
-              }}
-            >
-              Post a Job Opening
+            <Link to="/post-job" className="btn btn-secondary">
+              💼 Post a Job Opening
             </Link>
           </div>
         </div>

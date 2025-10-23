@@ -2,6 +2,44 @@
 .legal_page_wrapper {
   min-height: 100vh;
   background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  position: relative;
+}
+
+/* Back Button */
+.back-button-container {
+  position: fixed;
+  top: 2rem;
+  left: 2rem;
+  z-index: 1000;
+}
+
+.back-to-signup-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  color: #374151;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.back-to-signup-button:hover {
+  background: rgba(255, 255, 255, 1);
+  border-color: #ff9a56;
+  color: #ff9a56;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(255, 154, 86, 0.2);
+}
+
+.back-to-signup-button svg {
+  font-size: 0.875rem;
 }
 
 /* Hero Section */
@@ -232,6 +270,16 @@
 }
 
 @media (max-width: 480px) {
+  .back-button-container {
+    top: 1rem;
+    left: 1rem;
+  }
+  
+  .back-to-signup-button {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+  
   .legal_hero {
     padding: 4rem 0 3rem;
   }

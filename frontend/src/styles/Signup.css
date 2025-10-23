@@ -402,65 +402,44 @@
   color: #ff9a56;
 }
 
-.role-label-text {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 0.9rem;
-  margin-bottom: 0.5rem;
-}
 
-.role-selection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  position: relative;
-  z-index: 100;
-  isolation: isolate;
-}
-
-.role-option {
-  cursor: pointer;
-  position: relative;
-  z-index: 101;
-  display: block;
+.role-dropdown {
   width: 100%;
-}
-
-.role-option input[type="radio"] {
-  display: none;
-}
-
-.role-card {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
+  padding: 1rem 1.25rem;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
+  font-size: 1rem;
+  background: #ffffff;
+  color: #1e293b;
+  cursor: pointer;
   transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.95);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: none;
   position: relative;
-  z-index: 102;
-  pointer-events: auto;
-  width: 100%;
+  z-index: 10;
 }
 
-.role-card:hover {
+.role-dropdown:focus {
+  outline: none;
   border-color: #ff9a56;
-  background: rgba(255, 154, 86, 0.05);
-}
-
-.role-option input[type="radio"]:checked + .role-card {
-  border-color: #ff9a56;
-  background: linear-gradient(135deg, rgba(255, 154, 86, 0.15), rgba(79, 195, 247, 0.15));
   box-shadow: 0 0 0 3px rgba(255, 154, 86, 0.2);
-  transform: scale(1.02);
 }
 
-.role-option input[type="radio"]:checked + .role-card .role-icon {
-  background: linear-gradient(135deg, #ff9a56, #4fc3f7);
-  box-shadow: 0 4px 12px rgba(255, 154, 86, 0.3);
+.role-dropdown:hover {
+  border-color: #ff9a56;
+  background: rgba(255, 154, 86, 0.02);
+}
+
+.dropdown-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* Clean form group styling */
@@ -475,34 +454,6 @@
   z-index: auto;
 }
 
-.role-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #ff9a56, #4fc3f7);
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 1.2rem;
-}
-
-.role-info {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.role-label {
-  font-weight: 600;
-  color: #2d3748;
-  font-size: 0.95rem;
-}
-
-.role-description {
-  color: #718096;
-  font-size: 0.85rem;
-}
 
 .password-strength {
   margin-top: 0.75rem;
