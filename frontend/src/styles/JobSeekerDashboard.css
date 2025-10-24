@@ -58,13 +58,14 @@
 .sidebar {
   width: 280px;
   background: var(--sidebar-bg);
-  padding: 1.5rem 1rem;
+  padding: 0;
   box-shadow: 4px 0 20px rgba(249, 115, 22, 0.15);
   position: fixed;
   left: 0;
   top: 0;
   height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   z-index: 1000;
   color: var(--sidebar-text);
   display: flex;
@@ -72,9 +73,11 @@
 }
 
 .sidebar-header {
-  margin-bottom: 1.5rem;
+  margin: 0;
+  padding: 1.5rem 1rem;
   text-align: center;
   flex-shrink: 0;
+  position: relative;
 }
 
 .sidebar-header h2 {
@@ -102,7 +105,25 @@
   gap: 0.25rem;
   flex: 1;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  padding: 0 1rem 1rem 1rem;
+}
+
+/* Sidebar scrollbar styling */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
 }
 
 /* Hide scrollbar for nav-menu */
@@ -199,7 +220,8 @@
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 1rem;
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
@@ -214,8 +236,10 @@
   border: 2px solid var(--border-color);
   border-radius: 12px;
   padding: 12px 16px;
-  min-width: 400px;
+  width: 400px;
+  max-width: 400px;
   transition: all 0.3s ease;
+  flex-shrink: 0;
 }
 
 .search-bar:focus-within {
@@ -240,6 +264,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  margin-left: auto;
 }
 
 .icon-btn {
@@ -649,10 +674,11 @@
   border-top: 4px solid;
   border-image: var(--gradient-main) 1;
   border-radius: 0;
-  padding: 2rem;
+  padding: 2rem 2.5rem;
   box-shadow: none;
   margin: 0 -2rem 0 -2rem;
   position: relative;
+  overflow: visible;
 }
 
 .jobseeker-dashboard-container .application-tracker-header {
@@ -708,6 +734,7 @@
   max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
+  overflow: visible;
 }
 
 /* Application Tracker specific stat card styling */
@@ -1534,18 +1561,20 @@
 
 table {
   width: 100%;
-  min-width: 1000px;
   border-collapse: collapse;
   background: var(--card-bg);
   border-radius: 8px;
   overflow: visible;
+  table-layout: fixed;
 }
 
 th, td {
   padding: 1rem;
   text-align: left;
   border-bottom: 1px solid var(--border-color);
-  white-space: nowrap;
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 th {
@@ -1558,13 +1587,40 @@ th {
 }
 
 /* Table column widths */
-th:nth-child(1), td:nth-child(1) { width: 25%; } /* JOB TITLE */
-th:nth-child(2), td:nth-child(2) { width: 20%; } /* COMPANY */
-th:nth-child(3), td:nth-child(3) { width: 15%; } /* LOCATION */
-th:nth-child(4), td:nth-child(4) { width: 12%; } /* APPLIED */
-th:nth-child(5), td:nth-child(5) { width: 10%; } /* STATUS */
-th:nth-child(6), td:nth-child(6) { width: 12%; } /* LAST UPDATED */
-th:nth-child(7), td:nth-child(7) { width: 6%; }  /* ACTIONS */
+th:nth-child(1), td:nth-child(1) { width: 18%; } /* JOB TITLE */
+th:nth-child(2), td:nth-child(2) { width: 15%; } /* COMPANY */
+th:nth-child(3), td:nth-child(3) { width: 10%; } /* LOCATION */
+th:nth-child(4), td:nth-child(4) { width: 11%; } /* APPLIED */
+th:nth-child(5), td:nth-child(5) { width: 11%; } /* STATUS */
+th:nth-child(6), td:nth-child(6) { width: 11%; } /* LAST UPDATED */
+th:nth-child(7), td:nth-child(7) { width: 24%; min-width: 160px; }  /* ACTIONS */
+
+/* Table actions column */
+td:nth-child(7) > div {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+/* Action buttons in table */
+table .btn-sm {
+  padding: 6px 8px;
+  min-width: 32px;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+table td:nth-child(7) {
+  padding-left: 0.5rem;
+  padding-right: 1rem;
+  overflow: visible;
+}
+
+table th:nth-child(7) {
+  padding-right: 1rem;
+}
 
 td {
   color: var(--text-secondary);
@@ -1672,7 +1728,8 @@ tr:hover {
   }
   
   .search-bar {
-    min-width: 300px;
+    width: 300px;
+    max-width: 300px;
   }
 }
 
@@ -1695,11 +1752,19 @@ tr:hover {
   .dashboard-header {
     padding: 1rem;
     flex-direction: column;
+    align-items: flex-start;
     gap: 1rem;
   }
   
   .search-bar {
-    min-width: 100%;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .top-bar-actions {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
   }
   
   .content-area {
@@ -1942,7 +2007,7 @@ tr:hover {
   }
   
   table {
-    min-width: 600px;
+    width: 100%;
   }
   
   th, td {

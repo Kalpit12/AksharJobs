@@ -9,6 +9,8 @@ import '../styles/JobSeekerDashboard.css';
 import notificationApi from '../api/notificationApi';
 import messageApi from '../api/messageApi';
 import JobCard from '../components/JobCard';
+import MessagingSystem from '../components/MessagingSystem';
+import SettingsPage from '../components/SettingsPage';
 import {
   faChartLine,
   faThLarge,
@@ -1315,13 +1317,8 @@ const JobSeekerDashboard = () => {
 
           {/* Messages Section */}
           {activeSection === 'messages' && (
-            <div className="card" ref={sectionRefs.current.messages}>
-              <div className="card-header">
-                <h3 className="card-title">Messages</h3>
-              </div>
-              <div className="card-content">
-                <p>Your inbox will be shown here.</p>
-              </div>
+            <div ref={sectionRefs.current.messages} style={{ width: '100%', marginTop: '1rem' }}>
+              <MessagingSystem />
             </div>
           )}
 
@@ -1701,13 +1698,8 @@ const JobSeekerDashboard = () => {
 
           {/* Settings Section */}
           {activeSection === 'settings' && (
-            <div className="card" ref={sectionRefs.current.settings}>
-              <div className="card-header">
-                <h3 className="card-title">Settings</h3>
-              </div>
-              <div className="card-content">
-                <p>Account settings and preferences will be available here.</p>
-              </div>
+            <div ref={sectionRefs.current.settings} style={{ width: '100%', marginTop: '1rem' }}>
+              <SettingsPage />
             </div>
           )}
         </div>

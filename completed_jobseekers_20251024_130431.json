@@ -1,0 +1,16 @@
+[
+  {
+    "_id": "68f5ec1f7440c8474f94427f",
+    "firstName": "Manan",
+    "lastName": "Patel",
+    "email": "manan.patel@example.com",
+    "phone": "+254712300001",
+    "userType": "job_seeker",
+    "password": "$2b$12$oR8xJJ4afKYmtgKrjjFUDOx1CIkvFL6ZjbShN6Y3JQePcZWKJq7ZG",
+    "profileCompleted": true,
+    "created_at": "2025-10-20T08:00:31.814000",
+    "password_is_test": true,
+    "password_reset_at": "2025-10-20T20:08:10.549000",
+    "all_db_fix": true
+  }
+]

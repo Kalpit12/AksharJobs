@@ -1,0 +1,32 @@
+# Copy this file to .env and fill in your values
+
+# MongoDB Atlas Connection
+MONGO_URI=mongodb+srv://YOUR_USERNAME:YOUR_PASSWORD@YOUR_CLUSTER.mongodb.net/?retryWrites=true&w=majority
+DB_NAME=TalentMatchDB
+
+# JWT Secrets (generate random 32+ character strings)
+SECRET_KEY=your-secret-key-minimum-32-characters-long-random-string
+JWT_SECRET_KEY=your-jwt-secret-minimum-32-characters-long-random-string
+
+# Application URLs
+FRONTEND_URL=http://localhost:3003
+BACKEND_URL=http://localhost:5000
+
+# ============================================
+# HOW TO USE:
+# ============================================
+# 1. Rename this file from env_template.txt to .env
+# 2. Replace YOUR_USERNAME, YOUR_PASSWORD, YOUR_CLUSTER with your MongoDB Atlas credentials
+# 3. Generate random strings for SECRET_KEY and JWT_SECRET_KEY
+# 4. Save the file
+# 5. Restart your backend
+# ============================================
+
+# Where to find your MongoDB Atlas connection string:
+# 1. Go to: https://cloud.mongodb.com
+# 2. Click on your cluster
+# 3. Click "Connect"
+# 4. Choose "Connect your application"
+# 5. Copy the connection string
+# 6. Replace <username>, <password>, and <cluster> in the URI above
+

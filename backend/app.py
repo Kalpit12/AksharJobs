@@ -85,6 +85,7 @@ from routes.promo_code_routes import promo_code_routes
 from routes.coin_routes import coin_routes
 from routes.notification_routes import notification_bp
 from routes.message_routes import message_bp
+from routes.user_routes import user_bp
 from routes.analytics_routes import analytics_bp
 from routes.admin_routes import admin_routes
 from routes.enhanced_application_routes import enhanced_application_bp
@@ -125,6 +126,7 @@ app.register_blueprint(promo_code_routes, url_prefix='/api/promo')
 app.register_blueprint(coin_routes, url_prefix='/api/coins')
 app.register_blueprint(notification_bp, url_prefix='/api/notifications')
 app.register_blueprint(message_bp, url_prefix='/api/messages')
+app.register_blueprint(user_bp, url_prefix='/api/users')
 app.register_blueprint(analytics_bp, url_prefix='/api/analytics')
 app.register_blueprint(admin_routes, url_prefix='/api/admin')
 app.register_blueprint(template_routes, url_prefix='/api/admin')
