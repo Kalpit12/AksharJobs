@@ -381,13 +381,12 @@
 
 /* ===== PROFILE COMPLETION ===== */
 .profile-completion {
-  background: var(--card-bg);
+  background: #ffffff;
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 0;
   box-shadow: var(--card-shadow);
-  border: 2px solid rgba(16, 185, 129, 0.2);
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(249, 115, 22, 0.05) 100%);
+  border: 2px solid rgba(0, 0, 0, 0.1);
 }
 
 .completion-header {
@@ -400,12 +399,12 @@
 .completion-header h3 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #000000;
   margin: 0 0 0.5rem 0;
 }
 
 .completion-header p {
-  color: var(--text-secondary);
+  color: #000000;
   margin: 0;
   font-size: 1rem;
 }
@@ -413,18 +412,18 @@
 .completion-percentage {
   font-size: 2rem;
   font-weight: 800;
-  color: var(--primary-orange);
-  text-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+  color: #000000;
+  text-shadow: none;
 }
 
 .completion-bar {
   position: relative;
   height: 12px;
-  background: var(--dashboard-bg);
+  background: #f5f5f5;
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 1.5rem;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .completion-fill {

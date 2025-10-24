@@ -185,7 +185,15 @@ const MyProfile = () => {
   const authHeaders = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
 
   // Section editing functions
-  const toggleSectionEdit = (section) => {
+  const toggleSectionEdit = async (section) => {
+    const isCurrentlyEditing = editingSections[section];
+    
+    // If canceling edit mode, refresh data to restore original values
+    if (isCurrentlyEditing) {
+      console.log(`🔄 Canceling edit for ${section}, restoring original data...`);
+      await refreshDataAfterEdit();
+    }
+    
     setEditingSections(prev => ({
       ...prev,
       [section]: !prev[section]
@@ -248,6 +256,7 @@ const MyProfile = () => {
         industry: p.industry || '',
         
         // Job Preferences
+        preferredJobTitles: p.preferredJobTitles || '',
         jobType: p.jobType || p.jobTypePreference || '',
         jobTypePreference: p.jobType || p.jobTypePreference || '',
         noticePeriod: p.noticePeriod || '',
@@ -426,6 +435,7 @@ const MyProfile = () => {
         industry: profileForm.industry || '',
         
         // Job Preferences
+        preferredJobTitles: profileForm.preferredJobTitles || '',
         jobType: profileForm.jobType || profileForm.jobTypePreference || '',
         jobTypePreference: profileForm.jobType || profileForm.jobTypePreference || '',
         noticePeriod: profileForm.noticePeriod || '',
@@ -516,23 +526,32 @@ const MyProfile = () => {
       
       console.log(`✅ ${section} section saved successfully:`, response.data);
       
-      setEditingSections(prev => ({ ...prev, [section]: false }));
-      
-      // Update cache with the saved data instead of clearing it
-      const updatedCache = {
-        ...JSON.parse(sessionStorage.getItem('myProfileData') || '{}'),
-        ...finalPayload
-      };
-      sessionStorage.setItem('myProfileData', JSON.stringify(updatedCache));
-      sessionStorage.setItem('myProfileTimestamp', Date.now().toString());
+      // IMPORTANT: Clear cache to force fresh data fetch on next load
+      sessionStorage.removeItem('myProfileData');
+      sessionStorage.removeItem('myProfileTimestamp');
       
       // Show success message
       alert(`${section.charAt(0).toUpperCase() + section.slice(1)} section saved successfully!`);
       
-      // Refresh data to ensure persistence
-      setTimeout(() => {
-        refreshDataAfterEdit();
-      }, 1000);
+      // Refresh data immediately to ensure we see the saved data
+      await refreshDataAfterEdit();
+      
+      // Update AuthContext user data if firstName or lastName changed
+      if (user && (finalPayload.firstName !== user.firstName || finalPayload.lastName !== user.lastName)) {
+        const updatedUser = {
+          ...user,
+          firstName: finalPayload.firstName,
+          lastName: finalPayload.lastName,
+          fullName: `${finalPayload.firstName || ''} ${finalPayload.middleName || ''} ${finalPayload.lastName || ''}`.trim()
+        };
+        // Store in localStorage to persist across page reloads
+        localStorage.setItem('userFirstName', finalPayload.firstName);
+        localStorage.setItem('userLastName', finalPayload.lastName);
+        console.log('📝 Updated user data in AuthContext and localStorage');
+      }
+      
+      // Close edit mode after successful save and refresh
+      setEditingSections(prev => ({ ...prev, [section]: false }));
       
     } catch (error) {
       console.error(`❌ Error saving ${section} section:`, error);
@@ -681,8 +700,16 @@ const MyProfile = () => {
           setLoading(false);
           console.log('✅ Cached data loaded successfully');
           
-          // Fetch fresh data in background to update cache
-          fetchFreshData();
+          // Check cache age - only fetch fresh if cache is older than 5 minutes
+          const cacheAge = Date.now() - parseInt(cacheTimestamp);
+          const FIVE_MINUTES = 5 * 60 * 1000;
+          
+          if (cacheAge > FIVE_MINUTES) {
+            console.log('🔄 Cache is old (>5 min), fetching fresh data in background...');
+            fetchFreshData();
+          } else {
+            console.log('✅ Cache is fresh (<5 min), skipping background fetch to preserve recent edits');
+          }
           return;
         }
         
@@ -699,8 +726,23 @@ const MyProfile = () => {
     
     const fetchFreshData = async () => {
       try {
+        console.log('🔄 Fetching fresh data from /api/jobseeker/profile...');
         const res = await axios.get(buildApiUrl('/api/jobseeker/profile'), { headers: authHeaders() });
         const p = res?.data || {};
+        
+        console.log('\n' + '='.repeat(80));
+        console.log('📊 RAW DATA RECEIVED FROM BACKEND');
+        console.log('='.repeat(80));
+        console.log('Full response:', p);
+        console.log(`✅ Received ${Object.keys(p).filter(k => p[k] && p[k] !== '').length} filled fields out of ${Object.keys(p).length} total fields`);
+        console.log('\n📋 Field-by-field breakdown:');
+        Object.keys(p).forEach(key => {
+          if (p[key] && p[key] !== '' && !['_id', 'userId', 'createdAt', 'updatedAt'].includes(key)) {
+            const value_preview = typeof p[key] === 'string' && p[key].length > 50 ? p[key].substring(0, 50) + '...' : JSON.stringify(p[key]);
+            console.log(`  ✓ ${key}: ${value_preview}`);
+          }
+        });
+        console.log('='.repeat(80) + '\n');
         
         if (!isMounted) return; // Don't update state if component unmounted
         
@@ -747,6 +789,7 @@ const MyProfile = () => {
           yearsExperience: p.yearsExperience || p.yearsOfExperience || '',
           careerLevel: p.careerLevel || '',
           industry: p.industry || '',
+          preferredJobTitles: p.preferredJobTitles || '',
           jobType: p.jobType || '',
           jobTypePreference: p.jobTypePreference || p.job_type || '',
           noticePeriod: p.noticePeriod || '',
@@ -782,16 +825,36 @@ const MyProfile = () => {
         });
         setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
         
-        console.log('✅ Profile data loaded successfully:', p);
-        console.log('🩸 Blood Group received from API:', p.bloodGroup);
-        console.log('👤 Demographics fields received:', {
-          bloodGroup: p.bloodGroup,
-          dateOfBirth: p.dateOfBirth,
-          gender: p.gender,
-          community: p.community,
-          nationality: p.nationality,
-          currentCity: p.currentCity
-        });
+        console.log('\n' + '='.repeat(80));
+        console.log('✅ PROFILE DATA SUCCESSFULLY LOADED AND STATE UPDATED');
+        console.log('='.repeat(80));
+        console.log('📊 ProfileForm state (after mapping):');
+        console.log(`  First Name: ${p.firstName || 'EMPTY'}`);
+        console.log(`  Middle Name: ${p.middleName || 'EMPTY'}`);
+        console.log(`  Last Name: ${p.lastName || 'EMPTY'}`);
+        console.log(`  Email: ${p.email || 'EMPTY'}`);
+        console.log(`  Phone: ${p.phone || 'EMPTY'}`);
+        console.log(`  Alt Phone: ${p.altPhone || 'EMPTY'}`);
+        console.log(`  Date of Birth: ${p.dateOfBirth || 'EMPTY'}`);
+        console.log(`  Gender: ${p.gender || 'EMPTY'}`);
+        console.log(`  Blood Group: ${p.bloodGroup || 'EMPTY'}`);
+        console.log(`  Community: ${p.community || 'EMPTY'}`);
+        console.log(`  Nationality: ${p.nationality || 'EMPTY'}`);
+        console.log(`  Resident Country: ${p.residentCountry || 'EMPTY'}`);
+        console.log(`  Current City: ${p.currentCity || 'EMPTY'}`);
+        console.log(`  Work Permit: ${p.workPermit || 'EMPTY'}`);
+        console.log(`  Professional Title: ${p.professionalTitle || 'EMPTY'}`);
+        console.log(`  Years Experience: ${p.yearsExperience || p.yearsOfExperience || 'EMPTY'}`);
+        console.log(`  Career Level: ${p.careerLevel || 'EMPTY'}`);
+        console.log(`  Industry: ${p.industry || 'EMPTY'}`);
+        console.log('📋 Array fields:');
+        console.log(`  Education Entries: ${Array.isArray(p.educationEntries) ? p.educationEntries.length : 0} items`);
+        console.log(`  Experience Entries: ${Array.isArray(p.experienceEntries) ? p.experienceEntries.length : 0} items`);
+        console.log(`  Languages: ${Array.isArray(p.languages) ? p.languages.length : 0} items`);
+        console.log(`  Certifications: ${Array.isArray(p.certificationEntries) ? p.certificationEntries.length : 0} items`);
+        console.log(`  Core Skills: ${Array.isArray(p.coreSkills) ? p.coreSkills.length : 0} items`);
+        console.log(`  Tools: ${Array.isArray(p.tools) ? p.tools.length : 0} items`);
+        console.log('='.repeat(80) + '\n');
         setLoading(false);
       } catch (error) {
         if (!isMounted) return;
@@ -858,6 +921,7 @@ const MyProfile = () => {
         industry: profileForm.industry || '',
         
         // Job Preferences
+        preferredJobTitles: profileForm.preferredJobTitles || '',
         jobType: profileForm.jobType || profileForm.jobTypePreference || '',
         jobTypePreference: profileForm.jobType || profileForm.jobTypePreference || '',
         noticePeriod: profileForm.noticePeriod || '',
@@ -1581,13 +1645,13 @@ const MyProfile = () => {
           </div>
         </div>
 
+        {/* Personal Information Section */}
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="personal">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Personal Information</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.personal ? (
                 <button 
-                  className="btn btn-outline-primary btn-sm" 
                   onClick={() => toggleSectionEdit('personal')}
                   style={{ 
                     background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
@@ -1596,7 +1660,8 @@ const MyProfile = () => {
                     padding: '8px 16px',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    cursor: 'pointer'
                   }}
                 >
                   <FontAwesomeIcon icon={faEdit} /> Edit
@@ -1604,7 +1669,6 @@ const MyProfile = () => {
               ) : (
                 <>
                   <button 
-                    className="btn btn-success btn-sm" 
                     onClick={() => saveSection('personal')} 
                     disabled={saving}
                     style={{ 
@@ -1614,105 +1678,24 @@ const MyProfile = () => {
                       padding: '8px 16px',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      cursor: saving ? 'not-allowed' : 'pointer'
                     }}
                   >
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button 
-                    className="cancel-btn-fixed" 
                     onClick={() => toggleSectionEdit('personal')}
-                  >
-                    <FontAwesomeIcon icon={faTimes} /> Cancel
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-          <div style={gridStyle}>
-            <div className="form-group">
-              <label className="form-label">Full Name</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={`${profileForm.firstName || ''} ${profileForm.lastName || ''}`.trim()} disabled={!editingSections.personal} onChange={(e) => {
-                const [f, ...r] = e.target.value.split(' ');
-                setProfileForm(p => ({ ...p, firstName: f || '', lastName: r.join(' ') || '' }));
-              }} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Middle Name</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.middleName || ''} disabled={!editingSections.personal} onChange={(e) => setProfileForm(p => ({ ...p, middleName: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.email || ''} disabled />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Phone Number</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.phoneNumber || ''} disabled={!editingSections.personal} onChange={(e) => setProfileForm(p => ({ ...p, phoneNumber: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Alternative Phone</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.altPhone || ''} disabled={!editingSections.personal} onChange={(e) => setProfileForm(p => ({ ...p, altPhone: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Location</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.location || ''} disabled={!editingSections.personal} onChange={(e) => setProfileForm(p => ({ ...p, location: e.target.value }))} />
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Professional Summary</label>
-            <textarea style={{ 
-              ...formInputBase, 
-              minHeight: '120px', 
-              maxHeight: '300px',
-              resize: 'vertical', 
-              ...viewModeField,
-              width: '100%',
-              boxSizing: 'border-box'
-            }} value={profileForm.professionalSummary || ''} disabled={!editingSections.personal} onChange={(e) => setProfileForm(p => ({ ...p, professionalSummary: e.target.value }))} />
-          </div>
-        </div>
-
-        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="demographics">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Demographics & Additional Details</h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {!editingSections.demographics ? (
-                <button 
-                  className="btn btn-outline-primary btn-sm" 
-                  onClick={() => toggleSectionEdit('demographics')}
-                  style={{ 
-                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
-                    color: 'white', 
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '600'
-                  }}
-                >
-                  <FontAwesomeIcon icon={faEdit} /> Edit
-                </button>
-              ) : (
-                <>
-                  <button 
-                    className="btn btn-success btn-sm" 
-                    onClick={() => saveSection('demographics')} 
-                    disabled={saving}
-                    style={{ 
-                      background: '#10b981', 
-                      color: 'white', 
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
                       border: 'none',
                       padding: '8px 16px',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      cursor: 'pointer'
                     }}
-                  >
-                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
-                  </button>
-                  <button 
-                    className="cancel-btn-fixed" 
-                    onClick={() => toggleSectionEdit('demographics')}
                   >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
@@ -1720,25 +1703,84 @@ const MyProfile = () => {
               )}
             </div>
           </div>
-          <div style={gridStyle}>
+
+          {/* Row 1: First Name, Middle Name, Last Name */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '15px' }}>
             <div className="form-group">
-              <label className="form-label">Date of Birth</label>
-              <input type="date" style={{ ...formInputBase, ...viewModeField }} value={profileForm.dateOfBirth || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, dateOfBirth: e.target.value }))} />
+              <label className="form-label">First Name <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.firstName || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, firstName: e.target.value }))} 
+                placeholder="Enter your first name"
+                required
+              />
             </div>
             <div className="form-group">
-              <label className="form-label">Gender</label>
-              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.gender || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, gender: e.target.value }))}>
-                <option value="">Select Gender</option>
+              <label className="form-label">Middle Name</label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.middleName || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, middleName: e.target.value }))} 
+                placeholder="Enter your middle name"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last Name <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.lastName || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, lastName: e.target.value }))} 
+                placeholder="Enter your last name"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Date of Birth, Gender, Blood Group */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Date of Birth <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="date" 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.dateOfBirth || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, dateOfBirth: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Gender <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.gender || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, gender: e.target.value }))}
+                required
+              >
+                <option value="">Select gender</option>
                 <option value="male">Male</option>
                 <option value="female">Female</option>
-                <option value="non-binary">Non-Binary</option>
-                <option value="prefer-not-to-say">Prefer Not to Say</option>
+                <option value="other">Other</option>
+                <option value="prefer-not-to-say">Prefer not to say</option>
               </select>
             </div>
             <div className="form-group">
               <label className="form-label">Blood Group</label>
-              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.bloodGroup || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, bloodGroup: e.target.value }))}>
-                <option value="">Select Blood Group</option>
+              <select 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.bloodGroup || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, bloodGroup: e.target.value }))}
+              >
+                <option value="">Select blood group</option>
                 <option value="A+">A+</option>
                 <option value="A-">A-</option>
                 <option value="B+">B+</option>
@@ -1749,20 +1791,68 @@ const MyProfile = () => {
                 <option value="O-">O-</option>
               </select>
             </div>
+          </div>
+
+          {/* Row 3: Email, Phone, Alt Phone */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '15px' }}>
+          <div className="form-group">
+              <label className="form-label">Email Address <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="email" 
+                style={{ ...formInputBase, ...viewModeField, backgroundColor: '#f3f4f6', cursor: 'not-allowed' }} 
+                value={profileForm.email || ''} 
+                disabled
+                placeholder="your.email@example.com"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Phone Number <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="tel" 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.phone || profileForm.phoneNumber || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, phone: e.target.value, phoneNumber: e.target.value }))} 
+                placeholder="+254 700 000 000"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Alternative Phone</label>
+              <input 
+                type="tel" 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.altPhone || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, altPhone: e.target.value }))} 
+                placeholder="+1 234 567 8900"
+              />
+          </div>
+        </div>
+
+          {/* Row 4: Community (full width) */}
+          <div style={{ marginBottom: '15px' }}>
             <div className="form-group">
               <label className="form-label">Community</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.community || ''} disabled={!editingSections.demographics} onChange={(e) => setProfileForm(p => ({ ...p, community: e.target.value }))} />
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.community || ''} 
+                disabled={!editingSections.personal} 
+                onChange={(e) => setProfileForm(p => ({ ...p, community: e.target.value }))} 
+                placeholder="Enter your community"
+              />
             </div>
           </div>
         </div>
 
+        {/* Nationality & Residency Section */}
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="residency">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faMapMarkerAlt} /> Nationality & Residency</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.residency ? (
                 <button 
-                  className="btn btn-outline-primary btn-sm" 
                   onClick={() => toggleSectionEdit('residency')}
                   style={{ 
                     background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
@@ -1771,7 +1861,8 @@ const MyProfile = () => {
                     padding: '8px 16px',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    cursor: 'pointer'
                   }}
                 >
                   <FontAwesomeIcon icon={faEdit} /> Edit
@@ -1779,7 +1870,6 @@ const MyProfile = () => {
               ) : (
                 <>
                   <button 
-                    className="btn btn-success btn-sm" 
                     onClick={() => saveSection('residency')} 
                     disabled={saving}
                     style={{ 
@@ -1789,14 +1879,24 @@ const MyProfile = () => {
                       padding: '8px 16px',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      cursor: saving ? 'not-allowed' : 'pointer'
                     }}
                   >
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button 
-                    className="cancel-btn-fixed" 
                     onClick={() => toggleSectionEdit('residency')}
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
                   >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
@@ -1804,48 +1904,142 @@ const MyProfile = () => {
               )}
             </div>
           </div>
-          <div style={gridStyle}>
+
+          {/* Row 1: Nationality, Resident Country */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '15px' }}>
             <div className="form-group">
-              <label className="form-label">Nationality</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.nationality || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, nationality: e.target.value }))} />
+              <label className="form-label">Nationality <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.nationality || ''} 
+                disabled={!editingSections.residency} 
+                onChange={(e) => setProfileForm(p => ({ ...p, nationality: e.target.value }))}
+                placeholder="Select your nationality"
+                required
+              />
             </div>
             <div className="form-group">
-              <label className="form-label">Resident Country</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.residentCountry || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, residentCountry: e.target.value }))} />
+              <label className="form-label">Resident Country <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.residentCountry || ''} 
+                disabled={!editingSections.residency} 
+                onChange={(e) => setProfileForm(p => ({ ...p, residentCountry: e.target.value }))}
+                placeholder="Select your current country of residence"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Current City, Postal Code */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Current City <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.currentCity || ''} 
+                disabled={!editingSections.residency} 
+                onChange={(e) => setProfileForm(p => ({ ...p, currentCity: e.target.value }))}
+                placeholder="e.g., Nairobi"
+                required
+              />
             </div>
             <div className="form-group">
-              <label className="form-label">Current City</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.currentCity || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, currentCity: e.target.value }))} />
+              <label className="form-label">Postal/ZIP Code</label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.postalCode || ''} 
+                disabled={!editingSections.residency} 
+                onChange={(e) => setProfileForm(p => ({ ...p, postalCode: e.target.value }))}
+                placeholder="Enter postal code"
+              />
             </div>
+          </div>
+
+          {/* Row 3: Full Address */}
+          <div style={{ marginBottom: '15px' }}>
             <div className="form-group">
-              <label className="form-label">Postal Code</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.postalCode || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, postalCode: e.target.value }))} />
-            </div>
-            <div className="form-group" style={{ gridColumn: '1 / -1' }}>
               <label className="form-label">Full Address</label>
-              <textarea style={{ ...formInputBase, ...viewModeField, minHeight: '80px' }} value={profileForm.address || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))} />
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.address || ''} 
+                disabled={!editingSections.residency} 
+                onChange={(e) => setProfileForm(p => ({ ...p, address: e.target.value }))}
+                placeholder="Street address, building, apartment number"
+              />
+          </div>
+        </div>
+
+          {/* Row 4: Coordinates (hidden but displayed) */}
+          {(profileForm.latitude || profileForm.longitude) && (
+            <div style={{ marginBottom: '15px', padding: '10px', background: '#f9fafb', borderRadius: '6px', fontSize: '13px', color: '#666' }}>
+              <strong>Location Coordinates:</strong> 
+              <span style={{ marginLeft: '8px' }}>
+                {profileForm.latitude && profileForm.longitude 
+                  ? `Lat: ${profileForm.latitude}, Lng: ${profileForm.longitude}`
+                  : 'Not set'}
+              </span>
             </div>
+          )}
+
+          {/* Row 5: Work Permit */}
+          <div style={{ marginBottom: '15px' }}>
             <div className="form-group">
-              <label className="form-label">Work Permit Status</label>
-              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.workPermit || ''} disabled={!editingSections.residency} onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}>
-                <option value="">Select Status</option>
-                <option value="citizen">Citizen</option>
-                <option value="permanent-resident">Permanent Resident</option>
-                <option value="work-visa">Work Visa</option>
-                <option value="student-visa">Student Visa</option>
-                <option value="requires-sponsorship">Requires Sponsorship</option>
-              </select>
+              <label className="form-label">Do you have a valid work permit for your resident country? <span style={{ color: '#dc2626' }}>*</span></label>
+              <div style={{ display: 'flex', gap: '15px', marginTop: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="workPermit" 
+                    value="yes" 
+                    checked={profileForm.workPermit === 'yes'}
+                    disabled={!editingSections.residency}
+                    onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}
+                    style={{ cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>Yes</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="workPermit" 
+                    value="no" 
+                    checked={profileForm.workPermit === 'no'}
+                    disabled={!editingSections.residency}
+                    onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}
+                    style={{ cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>No</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="workPermit" 
+                    value="citizen" 
+                    checked={profileForm.workPermit === 'citizen'}
+                    disabled={!editingSections.residency}
+                    onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}
+                    style={{ cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>Citizen/Not Required</span>
+                </label>
+              </div>
             </div>
           </div>
         </div>
 
+        {/* Preferred Working Locations Section */}
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="locations">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faMapMarkerAlt} /> Preferred Work Locations</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faMapMarkerAlt} /> Preferred Working Locations</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.locations ? (
                 <button 
-                  className="btn btn-outline-primary btn-sm" 
                   onClick={() => toggleSectionEdit('locations')}
                   style={{ 
                     background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
@@ -1854,7 +2048,8 @@ const MyProfile = () => {
                     padding: '8px 16px',
                     borderRadius: '6px',
                     fontSize: '14px',
-                    fontWeight: '600'
+                    fontWeight: '600',
+                    cursor: 'pointer'
                   }}
                 >
                   <FontAwesomeIcon icon={faEdit} /> Edit
@@ -1862,7 +2057,6 @@ const MyProfile = () => {
               ) : (
                 <>
                   <button 
-                    className="btn btn-success btn-sm" 
                     onClick={() => saveSection('locations')} 
                     disabled={saving}
                     style={{ 
@@ -1872,14 +2066,24 @@ const MyProfile = () => {
                       padding: '8px 16px',
                       borderRadius: '6px',
                       fontSize: '14px',
-                      fontWeight: '600'
+                      fontWeight: '600',
+                      cursor: saving ? 'not-allowed' : 'pointer'
                     }}
                   >
                     <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
                   </button>
                   <button 
-                    className="cancel-btn-fixed" 
                     onClick={() => toggleSectionEdit('locations')}
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
                   >
                     <FontAwesomeIcon icon={faTimes} /> Cancel
                   </button>
@@ -1887,34 +2091,124 @@ const MyProfile = () => {
               )}
             </div>
           </div>
-          <div style={gridStyle}>
+
+          {/* Info Badge */}
+          <div style={{ marginBottom: '20px' }}>
+            <label className="form-label">Select up to 3 countries where you'd prefer to work <span style={{ color: '#dc2626' }}>*</span></label>
+            <div style={{ padding: '12px', background: '#e0f2fe', border: '1px solid #7dd3fc', borderRadius: '6px', fontSize: '13px', color: '#0369a1', marginTop: '8px' }}>
+              <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '6px' }} />
+              This helps match you with opportunities in your preferred locations
+            </div>
+          </div>
+
+          {/* Row 1: Preferred Locations 1, 2, 3 */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: '15px' }}>
             <div className="form-group">
-              <label className="form-label">Preferred Location 1</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.preferredLocation1 || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation1: e.target.value }))} placeholder="e.g., New York, USA" />
+              <label className="form-label">Preferred Location 1 <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.preferredLocation1 || ''} 
+                disabled={!editingSections.locations} 
+                onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation1: e.target.value }))} 
+                placeholder="Select country"
+                required
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Preferred Location 2</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.preferredLocation2 || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation2: e.target.value }))} placeholder="e.g., London, UK" />
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.preferredLocation2 || ''} 
+                disabled={!editingSections.locations} 
+                onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation2: e.target.value }))} 
+                placeholder="Select country"
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Preferred Location 3</label>
-              <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.preferredLocation3 || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation3: e.target.value }))} placeholder="e.g., Toronto, Canada" />
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.preferredLocation3 || ''} 
+                disabled={!editingSections.locations} 
+                onChange={(e) => setProfileForm(p => ({ ...p, preferredLocation3: e.target.value }))} 
+                placeholder="Select country"
+              />
             </div>
+          </div>
+
+          {/* Row 2: Willing to Relocate (Radio buttons) */}
+          <div style={{ marginBottom: '15px' }}>
             <div className="form-group">
-              <label className="form-label">Willing to Relocate</label>
-              <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.willingToRelocate || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, willingToRelocate: e.target.value }))}>
-                <option value="">Select Option</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-                <option value="maybe">Maybe / Open to Discussion</option>
+              <label className="form-label">Willing to Relocate Internationally? <span style={{ color: '#dc2626' }}>*</span></label>
+              <div style={{ display: 'flex', gap: '20px', marginTop: '8px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.locations ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="willingToRelocate" 
+                    value="yes" 
+                    checked={profileForm.willingToRelocate === 'yes'}
+                    disabled={!editingSections.locations}
+                    onChange={(e) => setProfileForm(p => ({ ...p, willingToRelocate: e.target.value }))}
+                    style={{ cursor: editingSections.locations ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>Yes, immediately</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.locations ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="willingToRelocate" 
+                    value="conditional" 
+                    checked={profileForm.willingToRelocate === 'conditional'}
+                    disabled={!editingSections.locations}
+                    onChange={(e) => setProfileForm(p => ({ ...p, willingToRelocate: e.target.value }))}
+                    style={{ cursor: editingSections.locations ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>Yes, with conditions</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.locations ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="willingToRelocate" 
+                    value="no" 
+                    checked={profileForm.willingToRelocate === 'no'}
+                    disabled={!editingSections.locations}
+                    onChange={(e) => setProfileForm(p => ({ ...p, willingToRelocate: e.target.value }))}
+                    style={{ cursor: editingSections.locations ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>No</span>
+                </label>
+            </div>
+            </div>
+          </div>
+
+          {/* Row 3: Work Location Preference */}
+          <div style={{ marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Work Location Preference <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.workLocation || ''} 
+                disabled={!editingSections.locations} 
+                onChange={(e) => setProfileForm(p => ({ ...p, workLocation: e.target.value }))}
+                required
+              >
+                <option value="">Select preference</option>
+                <option value="onsite">On-site</option>
+                <option value="remote">Remote</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="flexible">Flexible/Open to all</option>
               </select>
             </div>
           </div>
         </div>
 
+        {/* Professional Profile Section */}
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="professional">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faBriefcase} /> Professional Details</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faBriefcase} /> Professional Profile</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.professional ? (
                 <button 
@@ -1960,33 +2254,315 @@ const MyProfile = () => {
               )}
             </div>
           </div>
-          <div style={gridStyle}>
-            {[
-              ['Current Job Title', 'professionalTitle'],
-              ['Years of Experience', 'yearsOfExperience'],
-              ['Industry', 'industry'],
-              ['Career Level', 'careerLevel'],
-              ['Job Type', 'jobType'],
-              ['Job Type Preference', 'jobTypePreference'],
-              ['Notice Period', 'noticePeriod'],
-              ['Current Salary', 'currentSalary'],
-              ['Expected Salary', 'expectedSalary'],
-              ['Currency Preference', 'currencyPreference'],
-              ['Availability', 'availability'],
-              ['Work Location Preference', 'workLocation'],
-              ['Travel Availability', 'travelAvailability']
-            ].map(([label, key]) => (
-              <div className="form-group" key={key}>
-                <label className="form-label">{label}</label>
-                <input style={{ ...formInputBase, ...viewModeField }} value={profileForm[key] || ''} disabled={!editingSections.professional} onChange={(e) => setProfileForm(p => ({ ...p, [key]: e.target.value }))} />
+          {/* Row 1: Professional Title (full width) */}
+          <div style={{ marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Professional Title/Headline <span style={{ color: '#dc2626' }}>*</span></label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.professionalTitle || ''} 
+                disabled={!editingSections.professional} 
+                onChange={(e) => setProfileForm(p => ({ ...p, professionalTitle: e.target.value }))} 
+                placeholder="e.g., Senior Software Engineer | Full Stack Developer"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Row 2: Years of Experience, Career Level */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Total Years of Experience <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.yearsExperience || profileForm.yearsOfExperience || ''} 
+                disabled={!editingSections.professional} 
+                onChange={(e) => setProfileForm(p => ({ ...p, yearsExperience: e.target.value, yearsOfExperience: e.target.value }))}
+                required
+              >
+                <option value="">Select experience</option>
+                <option value="0-1">0-1 years (Entry Level)</option>
+                <option value="1-3">1-3 years</option>
+                <option value="3-5">3-5 years</option>
+                <option value="5-7">5-7 years</option>
+                <option value="7-10">7-10 years</option>
+                <option value="10-15">10-15 years</option>
+                <option value="15+">15+ years</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Career Level <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.careerLevel || ''} 
+                disabled={!editingSections.professional} 
+                onChange={(e) => setProfileForm(p => ({ ...p, careerLevel: e.target.value }))}
+                required
+              >
+                <option value="">Select level</option>
+                <option value="entry">Entry Level</option>
+                <option value="mid">Mid-Level</option>
+                <option value="senior">Senior Level</option>
+                <option value="lead">Lead/Principal</option>
+                <option value="manager">Manager</option>
+                <option value="director">Director</option>
+                <option value="executive">Executive/C-Level</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 3: Industry (full width) */}
+          <div style={{ marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Industry/Sector <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.industry || ''} 
+                disabled={!editingSections.professional} 
+                onChange={(e) => setProfileForm(p => ({ ...p, industry: e.target.value }))}
+                required
+              >
+                <option value="">Select your primary industry</option>
+                <option value="technology">Technology & IT</option>
+                <option value="finance">Finance & Banking</option>
+                <option value="healthcare">Healthcare & Medical</option>
+                <option value="education">Education & Training</option>
+                <option value="manufacturing">Manufacturing</option>
+                <option value="retail">Retail & E-commerce</option>
+                <option value="hospitality">Hospitality & Tourism</option>
+                <option value="construction">Construction & Real Estate</option>
+                <option value="agriculture">Agriculture & Agribusiness</option>
+                <option value="energy">Energy & Utilities</option>
+                <option value="telecommunications">Telecommunications</option>
+                <option value="media">Media & Entertainment</option>
+                <option value="consulting">Consulting & Professional Services</option>
+                <option value="government">Government & Public Sector</option>
+                <option value="ngo">NGO & Non-Profit</option>
+                <option value="legal">Legal Services</option>
+                <option value="marketing">Marketing & Advertising</option>
+                <option value="logistics">Logistics & Transportation</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 4: Professional Summary (full width) */}
+          <div style={{ marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Professional Summary <span style={{ color: '#dc2626' }}>*</span></label>
+              <textarea 
+                style={{ 
+                  ...formInputBase, 
+                  minHeight: '120px', 
+                  maxHeight: '300px',
+                  resize: 'vertical', 
+                  ...viewModeField,
+                  width: '100%',
+                  boxSizing: 'border-box'
+                }} 
+                value={profileForm.professionalSummary || profileForm.summary || ''} 
+                disabled={!editingSections.professional} 
+                onChange={(e) => setProfileForm(p => ({ ...p, professionalSummary: e.target.value, summary: e.target.value }))} 
+                placeholder="Write a compelling summary about your professional background, key achievements, and career goals. Highlight what makes you unique and valuable to potential employers globally. (Minimum 150 characters)"
+                required
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Job Preferences & Availability Section */}
+        <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="jobPreferences">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
+            <h3 className="card-title"><FontAwesomeIcon icon={faBriefcase} /> Job Preferences & Availability</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.jobPreferences ? (
+                <button 
+                  onClick={() => toggleSectionEdit('jobPreferences')}
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    onClick={() => saveSection('jobPreferences')} 
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: saving ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    onClick={() => toggleSectionEdit('jobPreferences')}
+                    style={{
+                      background: '#dc2626',
+                      color: 'white',
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Preferred Job Titles (Full width) */}
+          <div className="form-group" style={{ marginBottom: '15px' }}>
+            <label className="form-label">Preferred Job Titles</label>
+            <input 
+              type="text" 
+              style={{ ...formInputBase, ...viewModeField }} 
+              value={profileForm.preferredJobTitles || ''} 
+              disabled={!editingSections.jobPreferences} 
+              onChange={(e) => setProfileForm(p => ({ ...p, preferredJobTitles: e.target.value }))}
+              placeholder="e.g., Software Engineer, Full Stack Developer, Backend Engineer"
+            />
+            <small style={{ color: '#666', fontSize: '13px', marginTop: '5px', display: 'block' }}>
+              Enter job titles you're interested in, separated by commas
+            </small>
               </div>
-            ))}
+
+          {/* Row 1: Job Type, Notice Period */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Desired Job Type <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.jobType || profileForm.jobTypePreference || ''} 
+                disabled={!editingSections.jobPreferences} 
+                onChange={(e) => setProfileForm(p => ({ ...p, jobType: e.target.value, jobTypePreference: e.target.value }))}
+                required
+              >
+                <option value="">Select job type</option>
+                <option value="full-time">Full-time</option>
+                <option value="part-time">Part-time</option>
+                <option value="contract">Contract</option>
+                <option value="freelance">Freelance</option>
+                <option value="internship">Internship</option>
+                <option value="temporary">Temporary</option>
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Notice Period <span style={{ color: '#dc2626' }}>*</span></label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.noticePeriod || ''} 
+                disabled={!editingSections.jobPreferences} 
+                onChange={(e) => setProfileForm(p => ({ ...p, noticePeriod: e.target.value }))}
+                required
+              >
+                <option value="">Select notice period</option>
+                <option value="immediate">Immediate/Available Now</option>
+                <option value="1-week">1 Week</option>
+                <option value="2-weeks">2 Weeks</option>
+                <option value="1-month">1 Month</option>
+                <option value="2-months">2 Months</option>
+                <option value="3-months">3 Months</option>
+                <option value="more">More than 3 Months</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 2: Current Salary, Expected Salary */}
+          <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)', marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Current Salary (Optional)</label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.currentSalary || ''} 
+                disabled={!editingSections.jobPreferences} 
+                onChange={(e) => setProfileForm(p => ({ ...p, currentSalary: e.target.value }))}
+                placeholder="e.g., USD 50,000 per year"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Expected Salary</label>
+              <input 
+                type="text"
+                style={{ ...formInputBase, ...viewModeField }} 
+                value={profileForm.expectedSalary || ''} 
+                disabled={!editingSections.jobPreferences} 
+                onChange={(e) => setProfileForm(p => ({ ...p, expectedSalary: e.target.value }))}
+                placeholder="e.g., USD 60,000 - 70,000 per year"
+              />
+            </div>
+          </div>
+
+          {/* Row 3: Currency Preference */}
+          <div style={{ marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Currency Preference</label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.currencyPreference || ''} 
+                disabled={!editingSections.jobPreferences} 
+                onChange={(e) => setProfileForm(p => ({ ...p, currencyPreference: e.target.value }))}
+              >
+                <option value="">Select currency</option>
+                <option value="USD">USD - US Dollar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="GBP">GBP - British Pound</option>
+                <option value="KES">KES - Kenyan Shilling</option>
+                <option value="ZAR">ZAR - South African Rand</option>
+                <option value="NGN">NGN - Nigerian Naira</option>
+                <option value="AED">AED - UAE Dirham</option>
+                <option value="CAD">CAD - Canadian Dollar</option>
+                <option value="AUD">AUD - Australian Dollar</option>
+                <option value="INR">INR - Indian Rupee</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Row 4: Travel Availability */}
+          <div style={{ marginBottom: '15px' }}>
+            <div className="form-group">
+              <label className="form-label">Travel Availability</label>
+              <select 
+                style={{ ...formInputBase, ...viewModeField, width: '100%' }} 
+                value={profileForm.travelAvailability || ''} 
+                disabled={!editingSections.jobPreferences} 
+                onChange={(e) => setProfileForm(p => ({ ...p, travelAvailability: e.target.value }))}
+              >
+                <option value="">Select availability</option>
+                <option value="no-travel">No Travel</option>
+                <option value="minimal">Minimal (Less than 25%)</option>
+                <option value="moderate">Moderate (25-50%)</option>
+                <option value="frequent">Frequent (50-75%)</option>
+                <option value="extensive">Extensive (More than 75%)</option>
+              </select>
+            </div>
           </div>
         </div>
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="memberships">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Professional Memberships</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Professional Memberships & Associations</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.memberships ? (
                 <button 
@@ -2112,7 +2688,7 @@ const MyProfile = () => {
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }} data-section="skills">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faCode} /> Skills & Expertise</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faCode} /> Skills & Competencies</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.skills ? (
                 <button 
@@ -2393,7 +2969,7 @@ const MyProfile = () => {
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> References</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Professional References</h3>
           </div>
           {(references || []).map((rf, idx) => (
             <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', marginBottom: '12px' }}>
@@ -2408,6 +2984,7 @@ const MyProfile = () => {
           {(references || []).length === 0 && <div style={{ color: '#999' }}>No references added</div>}
         </div>
 
+        {/* Work Experience Section */}
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faBuilding} /> Work Experience</h3>
@@ -2459,6 +3036,13 @@ const MyProfile = () => {
               )}
             </div>
           </div>
+
+          {/* Info Badge */}
+          <div style={{ padding: '12px', background: '#e0f2fe', border: '1px solid #7dd3fc', borderRadius: '6px', fontSize: '13px', color: '#0369a1', marginBottom: '20px' }}>
+            <FontAwesomeIcon icon={faCheckCircle} style={{ marginRight: '6px' }} />
+            List all relevant work experience starting with the most recent
+          </div>
+
           {(experience || []).map((ex, idx) => (
             <div key={idx} style={{ padding: '20px', background: '#f9fafb', borderRadius: '8px', marginBottom: '15px', borderLeft: '4px solid #3b82f6', position: 'relative' }}>
               {editingSections.experience && (
@@ -2485,9 +3069,10 @@ const MyProfile = () => {
                 </button>
               )}
               {editingSections.experience ? (
-                <div style={{ display: 'grid', gap: '15px' }}>
+                <div style={{ display: 'grid', gap: '15px', paddingRight: '40px' }}>
+                  {/* Job Title */}
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Job Title</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Job Title <span style={{ color: '#dc2626' }}>*</span></label>
                     <input
                       type="text"
                       value={ex.jobTitle || ex.title || ex.role || ''}
@@ -2497,11 +3082,15 @@ const MyProfile = () => {
                         setExperience(newExp);
                       }}
                       style={{ ...formInputBase, width: '100%' }}
-                      placeholder="e.g., Senior Software Engineer"
+                      placeholder="e.g., Senior Marketing Manager"
+                      required
                     />
                   </div>
+
+                  {/* Company Name, Company Location */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Company</label>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Company Name <span style={{ color: '#dc2626' }}>*</span></label>
                     <input
                       type="text"
                       value={ex.company || ''}
@@ -2512,11 +3101,65 @@ const MyProfile = () => {
                       }}
                       style={{ ...formInputBase, width: '100%' }}
                       placeholder="e.g., ABC Corporation"
+                        required
                     />
                   </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Company Location</label>
+                      <input
+                        type="text"
+                        value={ex.companyLocation || ex.location || ''}
+                        onChange={(e) => {
+                          const newExp = [...experience];
+                          newExp[idx] = { ...newExp[idx], companyLocation: e.target.value, location: e.target.value };
+                          setExperience(newExp);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="City, Country"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Employment Type, Industry */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Start Date</label>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Employment Type</label>
+                      <select
+                        value={ex.employmentType || 'full-time'}
+                        onChange={(e) => {
+                          const newExp = [...experience];
+                          newExp[idx] = { ...newExp[idx], employmentType: e.target.value };
+                          setExperience(newExp);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                      >
+                        <option value="full-time">Full-time</option>
+                        <option value="part-time">Part-time</option>
+                        <option value="contract">Contract</option>
+                        <option value="freelance">Freelance</option>
+                        <option value="internship">Internship</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Industry</label>
+                      <input
+                        type="text"
+                        value={ex.jobIndustry || ex.industry || ''}
+                        onChange={(e) => {
+                          const newExp = [...experience];
+                          newExp[idx] = { ...newExp[idx], jobIndustry: e.target.value, industry: e.target.value };
+                          setExperience(newExp);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="e.g., Technology, Finance"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Start Date, End Date */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Start Date <span style={{ color: '#dc2626' }}>*</span></label>
                       <input
                         type="month"
                         value={ex.startDate || ''}
@@ -2526,6 +3169,7 @@ const MyProfile = () => {
                           setExperience(newExp);
                         }}
                         style={{ ...formInputBase, width: '100%' }}
+                        required
                       />
                     </div>
                     <div>
@@ -2543,6 +3187,8 @@ const MyProfile = () => {
                       />
                     </div>
                   </div>
+
+                  {/* Current Job Checkbox */}
                   <div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
                       <input
@@ -2557,8 +3203,10 @@ const MyProfile = () => {
                       <span>I currently work here</span>
                     </label>
                   </div>
+
+                  {/* Key Responsibilities & Achievements */}
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Description</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Key Responsibilities & Achievements</label>
                     <textarea
                       value={ex.jobDescription || ex.description || ''}
                       onChange={(e) => {
@@ -2567,7 +3215,7 @@ const MyProfile = () => {
                         setExperience(newExp);
                       }}
                       style={{ ...formInputBase, width: '100%', minHeight: '100px' }}
-                      placeholder="Describe your key responsibilities and achievements..."
+                      placeholder="• Led team of 10 marketing professionals&#10;• Increased revenue by 45% through strategic campaigns&#10;• Managed $500K annual budget"
                     />
                   </div>
                 </div>
@@ -2614,6 +3262,7 @@ const MyProfile = () => {
           )}
         </div>
 
+        {/* Education Section */}
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education</h3>
@@ -2691,9 +3340,10 @@ const MyProfile = () => {
                 </button>
               )}
               {editingSections.education ? (
-                <div style={{ display: 'grid', gap: '15px' }}>
+                <div style={{ display: 'grid', gap: '15px', paddingRight: '40px' }}>
+                  {/* Degree/Certificate */}
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Degree Type</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Degree/Certificate <span style={{ color: '#dc2626' }}>*</span></label>
                     <select
                       value={ed.degreeType || ed.degree || ''}
                       onChange={(e) => {
@@ -2702,6 +3352,7 @@ const MyProfile = () => {
                         setEducation(newEd);
                       }}
                       style={{ ...formInputBase, width: '100%' }}
+                      required
                     >
                       <option value="">Select degree type</option>
                       <option value="high-school">High School Diploma</option>
@@ -2714,8 +3365,10 @@ const MyProfile = () => {
                       <option value="diploma">Diploma</option>
                     </select>
                   </div>
+
+                  {/* Field of Study */}
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Field of Study</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Field of Study <span style={{ color: '#dc2626' }}>*</span></label>
                     <input
                       type="text"
                       value={ed.fieldOfStudy || ed.field || ''}
@@ -2725,11 +3378,14 @@ const MyProfile = () => {
                         setEducation(newEd);
                       }}
                       style={{ ...formInputBase, width: '100%' }}
-                      placeholder="e.g., Computer Science"
+                      placeholder="e.g., Computer Science, Business Administration"
+                      required
                     />
                   </div>
+
+                  {/* Institution Name */}
                   <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Institution</label>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Institution Name <span style={{ color: '#dc2626' }}>*</span></label>
                     <input
                       type="text"
                       value={ed.institution || ed.school || ''}
@@ -2740,11 +3396,46 @@ const MyProfile = () => {
                       }}
                       style={{ ...formInputBase, width: '100%' }}
                       placeholder="e.g., University of Nairobi"
+                      required
                     />
                   </div>
+
+                  {/* Institution Location, Grade */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Start Year</label>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Institution Location</label>
+                      <input
+                        type="text"
+                        value={ed.institutionLocation || ed.location || ''}
+                        onChange={(e) => {
+                          const newEd = [...education];
+                          newEd[idx] = { ...newEd[idx], institutionLocation: e.target.value, location: e.target.value };
+                          setEducation(newEd);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="City, Country"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Grade/GPA</label>
+                      <input
+                        type="text"
+                        value={ed.grade || ed.gpa || ''}
+                        onChange={(e) => {
+                          const newEd = [...education];
+                          newEd[idx] = { ...newEd[idx], grade: e.target.value, gpa: e.target.value };
+                          setEducation(newEd);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="e.g., 3.8/4.0, First Class"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Start Year, End Year */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Start Year <span style={{ color: '#dc2626' }}>*</span></label>
                       <input
                         type="number"
                         value={ed.eduStartYear || ed.startYear || ''}
@@ -2757,10 +3448,11 @@ const MyProfile = () => {
                         placeholder="2018"
                         min="1950"
                         max="2030"
+                        required
                       />
                     </div>
                     <div>
-                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>End Year</label>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>End Year (or Expected)</label>
                       <input
                         type="number"
                         value={ed.eduEndYear || ed.endYear || ''}
@@ -2775,6 +3467,21 @@ const MyProfile = () => {
                         max="2035"
                       />
                     </div>
+                  </div>
+
+                  {/* Activities & Achievements */}
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Activities & Achievements</label>
+                    <textarea
+                      value={ed.eduActivities || ed.activities || ''}
+                      onChange={(e) => {
+                        const newEd = [...education];
+                        newEd[idx] = { ...newEd[idx], eduActivities: e.target.value, activities: e.target.value };
+                        setEducation(newEd);
+                      }}
+                      style={{ ...formInputBase, width: '100%', minHeight: '80px' }}
+                      placeholder="Academic honors, relevant coursework, extracurricular activities"
+                    />
                   </div>
                 </div>
               ) : (
@@ -2820,7 +3527,7 @@ const MyProfile = () => {
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Awards</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faCertificate} /> Certifications & Licenses</h3>
             <div style={{ display: 'flex', gap: '8px' }}>
               {!editingSections.certifications ? (
                 <button 
@@ -2925,7 +3632,7 @@ const MyProfile = () => {
                       placeholder="e.g., Project Management Institute"
                     />
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '15px' }}>
                     <div>
                       <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Issue Date</label>
                       <input
@@ -2950,6 +3657,20 @@ const MyProfile = () => {
                           setCertifications(newCert);
                         }}
                         style={{ ...formInputBase, width: '100%' }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Credential ID</label>
+                      <input
+                        type="text"
+                        value={ct.credentialId || ''}
+                        onChange={(e) => {
+                          const newCert = [...certifications];
+                          newCert[idx] = { ...newCert[idx], credentialId: e.target.value };
+                          setCertifications(newCert);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="Certificate number/ID"
                       />
                     </div>
                   </div>
@@ -3150,7 +3871,7 @@ const MyProfile = () => {
 
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
-            <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Social Links</h3>
+            <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Professional Online Presence</h3>
             {!editingSections.socialLinks && (
               <button 
                 onClick={() => setEditingSections(prev => ({ ...prev, socialLinks: true }))}

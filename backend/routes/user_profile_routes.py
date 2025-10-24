@@ -394,24 +394,24 @@ def update_user_profile():
             'professionalTitle', 'professionalSummary', 'currentJobTitle', 'currentCompany', 'yearsExperience', 'yearsOfExperience', 
             'careerLevel', 'industry', 'summary', 'expectedSalary', 'currency', 'availability',
             # Work Experience
-            'experience', 'workExperience',
+            'experience', 'workExperience', 'experienceEntries',
             # Education
-            'education',
+            'education', 'educationEntries',
             # Skills & Competencies
             'skills', 'tools', 'softwareTools', 'coreSkills',
             # Languages
             'languages', 'languageProficiency',
             # Certifications & Licenses
-            'certifications',
+            'certifications', 'certificationEntries',
             # Professional Memberships
             'professionalMemberships', 'memberships', 'membershipOrg', 'membershipType', 'membershipDate',
             # Professional References
-            'references',
+            'references', 'referenceEntries',
             # Professional Online Presence
             'professionalLinks', 'linkedinProfile', 'linkedinUrl', 'portfolio', 'portfolioUrl', 'githubProfile', 'githubUrl', 
             'personalWebsite', 'websiteUrl',
             # Job Preferences & Availability
-            'jobPreferences', 'jobType', 'jobTypes', 'jobTypePreference', 'workArrangements', 'industries', 'companySizes', 'noticePeriod', 
+            'preferredJobTitles', 'jobPreferences', 'jobType', 'jobTypes', 'jobTypePreference', 'workArrangements', 'industries', 'companySizes', 'noticePeriod', 
             'currentSalary', 'expectedSalary', 'salaryExpectations', 'currencyPreference', 'travelAvailability', 'availability',
             # Additional Information
             'askCommunity', 'hobbies', 'additionalComments', 'additionalInfo', 'achievements', 'agreeTerms', 'allowContact',
@@ -449,8 +449,18 @@ def update_user_profile():
                 update_data['profileImage'] = file_path
                 print(f"📸 Profile photo saved to: {file_path}")
         
-        print(f"📋 Updating profile with data: {update_data}")
-        print(f"📋 Company fields being saved: companyName={update_data.get('companyName')}, industry={update_data.get('industry')}, companySize={update_data.get('companySize')}")
+        print(f"\n{'='*80}")
+        print(f"💾 UPDATING PROFILE FOR USER: {current_user_id}")
+        print(f"{'='*80}")
+        print(f"📋 Fields being updated: {len(update_data)}")
+        print(f"📋 First Name: {update_data.get('firstName')}")
+        print(f"📋 Middle Name: {update_data.get('middleName')}")
+        print(f"📋 Last Name: {update_data.get('lastName')}")
+        print(f"📋 Email: {update_data.get('email')}")
+        print(f"📋 Preferred Job Titles: {update_data.get('preferredJobTitles')}")
+        print(f"📋 Professional Title: {update_data.get('professionalTitle')}")
+        print(f"📋 Years of Experience: {update_data.get('yearsOfExperience')} or {update_data.get('yearsExperience')}")
+        print(f"{'='*80}\n")
         
         # Convert string ID to ObjectId
         try:
@@ -464,15 +474,23 @@ def update_user_profile():
             {'$set': update_data}
         )
         
-        print(f"📋 Update result: matched={result.matched_count}, modified={result.modified_count}")
+        print(f"\n✅ UPDATE RESULT:")
+        print(f"   Matched: {result.matched_count}")
+        print(f"   Modified: {result.modified_count}\n")
         
         # Verify the update was persisted
         updated_user = users_collection.find_one({'_id': user_object_id})
         if updated_user:
-            print(f"✅ Verified in DB - Blood Group: {updated_user.get('bloodGroup')}")
-            print(f"✅ Verified in DB - Work Permit: {updated_user.get('workPermit')}")
-            print(f"✅ Verified in DB - Gender: {updated_user.get('gender')}, DOB: {updated_user.get('dateOfBirth')}")
-            print(f"✅ Verified in DB - Nationality: {updated_user.get('nationality')}, City: {updated_user.get('currentCity')}, Work Permit: {updated_user.get('workPermit')}")
+            print(f"\n🔍 VERIFICATION - Data persisted in database:")
+            print(f"   ✅ First Name: {updated_user.get('firstName')}")
+            print(f"   ✅ Middle Name: {updated_user.get('middleName')}")
+            print(f"   ✅ Last Name: {updated_user.get('lastName')}")
+            print(f"   ✅ Email: {updated_user.get('email')}")
+            print(f"   ✅ Blood Group: {updated_user.get('bloodGroup')}")
+            print(f"   ✅ Work Permit: {updated_user.get('workPermit')}")
+            print(f"   ✅ Gender: {updated_user.get('gender')}, DOB: {updated_user.get('dateOfBirth')}")
+            print(f"   ✅ Nationality: {updated_user.get('nationality')}, City: {updated_user.get('currentCity')}")
+            print(f"   ✅ Preferred Job Titles: {updated_user.get('preferredJobTitles')}")
         
         if result.matched_count > 0:
             # Also update resume profile for job seekers

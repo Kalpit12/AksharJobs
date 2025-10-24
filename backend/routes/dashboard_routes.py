@@ -49,17 +49,81 @@ def get_dashboard_data():
         if saved_job_ids:
             saved_jobs = list(jobs_collection.find({'_id': {'$in': [ObjectId(job_id) for job_id in saved_job_ids]}}))
         
-        # Get recommended jobs (jobs that match user's skills)
-        user_skills = user.get('technicalSkills', []) + user.get('softSkills', [])
+        # Get recommended jobs (jobs that match user's preferred job titles and skills)
+        user_skills = []
+        
+        # Safely extract skills - handle both list and string formats
+        for skill_field in ['technicalSkills', 'softSkills', 'coreSkills']:
+            skill_data = user.get(skill_field, [])
+            if isinstance(skill_data, list):
+                user_skills.extend(skill_data)
+            elif isinstance(skill_data, str) and skill_data:
+                # If it's a string, try to parse it or split by comma
+                try:
+                    import json
+                    parsed = json.loads(skill_data)
+                    if isinstance(parsed, list):
+                        user_skills.extend(parsed)
+                except:
+                    # If JSON parsing fails, split by comma
+                    user_skills.extend([s.strip() for s in skill_data.split(',') if s.strip()])
+        
+        # Get preferred job titles
+        preferred_titles = []
+        if user.get('preferredJobTitles'):
+            titles_str = user.get('preferredJobTitles', '')
+            preferred_titles = [title.strip() for title in titles_str.split(',') if title.strip()]
+        
         recommended_jobs = []
-        if user_skills:
-            # Find jobs that match user's skills
-            skill_query = {'$or': [
-                {'requiredSkills': {'$in': user_skills}},
-                {'preferredSkills': {'$in': user_skills}},
-                {'skills': {'$in': user_skills}}
-            ]}
-            recommended_jobs = list(jobs_collection.find(skill_query).limit(10))
+        all_jobs = list(jobs_collection.find({}))
+        
+        # Score and filter jobs based on preferred titles and skills
+        scored_jobs = []
+        for job in all_jobs:
+            try:
+                score = 0
+                job_title = job.get('title', '') or job.get('job_title', '')
+                if job_title:
+                    job_title = str(job_title).lower()
+                else:
+                    job_title = ''
+                
+                # Safely get job skills
+                job_skills = []
+                req_skills = job.get('requiredSkills', [])
+                if isinstance(req_skills, list):
+                    job_skills.extend(req_skills)
+                skills = job.get('skills', [])
+                if isinstance(skills, list):
+                    job_skills.extend(skills)
+            
+                # Match preferred job titles
+                if preferred_titles:
+                    for preferred in preferred_titles:
+                        if preferred.lower() in job_title:
+                            score += 40
+                            break
+                        elif any(word.lower() in job_title for word in preferred.split()):
+                            score += 20
+                            break
+                
+                # Match skills
+                if user_skills and job_skills:
+                    matching_skills = set(user_skills) & set(job_skills)
+                    if matching_skills:
+                        score += len(matching_skills) * 5
+                
+                if score > 0 or (not preferred_titles and len(scored_jobs) < 10):
+                    job['match_score'] = score
+                    scored_jobs.append(job)
+            except Exception as job_error:
+                # Skip jobs that cause errors
+                print(f"Error processing job: {job_error}")
+                continue
+        
+        # Sort by score and take top 10
+        scored_jobs.sort(key=lambda x: x.get('match_score', 0), reverse=True)
+        recommended_jobs = scored_jobs[:10]
         
         # Get profile views (mock for now - would need a separate collection)
         profile_views = []
@@ -71,6 +135,20 @@ def get_dashboard_data():
             'profileViews': len(profile_views),
             'savedJobs': len(saved_jobs)
         }
+        
+        # Calculate profile completion percentage
+        profile_completed = user.get('profileCompleted', False)
+        is_draft = user.get('isDraft', False)
+        
+        # Calculate completion percentage based on filled fields
+        required_fields = ['firstName', 'lastName', 'email', 'phone', 'professionalTitle', 
+                          'yearsOfExperience', 'careerLevel', 'industry']
+        filled_count = sum(1 for field in required_fields if user.get(field))
+        profile_completion = int((filled_count / len(required_fields)) * 100) if required_fields else 0
+        
+        # If profile is marked as completed, ensure it shows 100%
+        if profile_completed and not is_draft:
+            profile_completion = 100
         
         # Prepare dashboard data
         dashboard_data = {
@@ -89,8 +167,10 @@ def get_dashboard_data():
                 'softSkills': user.get('softSkills', []),
                 'education': user.get('education', []),
                 'experience': user.get('experience', []),
-                'profileCompleted': user.get('profileCompleted', False)
+                'profileCompleted': profile_completed
             },
+            'profileCompletion': profile_completion,
+            'isDraft': is_draft,
             'stats': stats,
             'applications': [
                 {

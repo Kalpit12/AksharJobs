@@ -340,8 +340,35 @@ const JobSeekerDashboard = () => {
         const interviewsScheduled = finalApplications.filter(a => (a.status || '').toLowerCase().includes('interview')).length;
         const savedJobs = initialSaved.size;
 
-        // Simple profile completion heuristic
-        const profileCompletion = profile ? 85 : 40;
+        // Calculate profile completion based on actual data
+        let profileCompletion = 0;
+        let isDraft = false;
+        
+        if (profile) {
+          // Check if profile is marked as draft
+          isDraft = profile.isDraft === true || profile.profileCompleted === false;
+          
+          // Calculate completion percentage based on filled fields
+          const requiredFields = [
+            'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender',
+            'nationality', 'currentCity', 'professionalTitle', 'yearsOfExperience',
+            'careerLevel', 'industry', 'professionalSummary'
+          ];
+          
+          const filledFields = requiredFields.filter(field => {
+            const value = profile[field];
+            return value && value.toString().trim() !== '';
+          }).length;
+          
+          profileCompletion = Math.round((filledFields / requiredFields.length) * 100);
+          
+          // If it's a draft, cap at 85% to show it's incomplete
+          if (isDraft && profileCompletion > 85) {
+            profileCompletion = 85;
+          }
+        } else {
+          profileCompletion = 0;
+        }
 
         setUnreadNotifications(Number(unreadNotifCount) || 0);
         setUnreadMessages(Number(unreadMsgCount) || 0);
@@ -356,6 +383,7 @@ const JobSeekerDashboard = () => {
             savedJobs
           },
           profileCompletion,
+          isDraft,
           recentApplications: finalApplications.slice(0, 5),
           recommendedJobs: finalRecommendedJobs.slice(0, 6),
           allJobs: finalAllJobs.slice(0, 50), // show more for saved matching
@@ -693,35 +721,49 @@ const JobSeekerDashboard = () => {
               <div className="profile-completion" ref={sectionRefs.current.profileCompletion}>
                 <div className="completion-header">
                   <div>
-                    <h3>Complete Your Profile</h3>
+                    <h3>
+                      {dashboardData.isDraft ? 'Incomplete Profile' : 
+                       dashboardData.profileCompletion === 100 ? 'Profile Complete!' : 'Complete Your Profile'}
+                    </h3>
                     <p>
-                      {dashboardData.profileCompletion === 100 ? 'Profile Complete!' : `${dashboardData.profileCompletion}% Complete - Almost there!`}
+                      {dashboardData.isDraft ? 'Your profile was saved as draft. Complete it to make it visible to employers.' :
+                       dashboardData.profileCompletion === 100 ? 'Your profile is complete and visible to employers!' : 
+                       `${dashboardData.profileCompletion}% Complete - Almost there!`}
                     </p>
                   </div>
-                  <div className="completion-percentage">{dashboardData.profileCompletion}%</div>
+                  <div className="completion-percentage">
+                    {dashboardData.isDraft ? 'Draft' : `${dashboardData.profileCompletion}%`}
+                  </div>
                 </div>
                 <div className="completion-bar">
                   <div 
                     className="completion-fill" 
-                    style={{ width: `${dashboardData.profileCompletion}%` }}
+                    style={{ 
+                      width: dashboardData.isDraft ? '0%' : `${dashboardData.profileCompletion}%`,
+                      background: dashboardData.isDraft ? '#f59e0b' : undefined
+                    }}
                   ></div>
                   <div 
                     className="progress-indicator"
                     style={{ 
-                      left: `${dashboardData.profileCompletion}%`,
+                      left: dashboardData.isDraft ? '0%' : `${dashboardData.profileCompletion}%`,
                       transition: 'left 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
                     }}
                   >
                     <div className="progress-indicator-line"></div>
                     <div className="progress-indicator-percentage">
-                      {dashboardData.profileCompletion}%
+                      {dashboardData.isDraft ? 'Draft' : `${dashboardData.profileCompletion}%`}
                     </div>
                   </div>
                 </div>
                 <div className="completion-actions">
-                  <button className="btn btn-complete">
-                    <FontAwesomeIcon icon={faCheckCircle} /> 
-                    {dashboardData.profileCompletion === 100 ? 'Edit Profile' : 'Complete Profile'}
+                  <button 
+                    className="btn btn-complete"
+                    onClick={() => window.location.href = '/jobseeker-registration-comprehensive'}
+                  >
+                    <FontAwesomeIcon icon={dashboardData.isDraft ? faEdit : faCheckCircle} /> 
+                    {dashboardData.isDraft ? 'Resume Profile' : 
+                     dashboardData.profileCompletion === 100 ? 'Edit Profile' : 'Complete Profile'}
                   </button>
                 </div>
               </div>
@@ -809,8 +851,27 @@ const JobSeekerDashboard = () => {
                         {dashboardData.recommendedJobs.slice(0, 4).map((job, idx) => (
                           <li key={idx} className="list-item" onClick={() => viewDetails(job)}>
                             <div className="job-info">
-                              <div className="list-title">{sanitizeJobTitle(job.job_title || job.title)}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
+                                <div className="list-title">{sanitizeJobTitle(job.job_title || job.title)}</div>
+                                {job.match_score > 0 && (
+                                  <span style={{
+                                    background: job.match_score >= 70 ? '#10b981' : job.match_score >= 40 ? '#f59e0b' : '#6b7280',
+                                    color: 'white',
+                                    padding: '2px 8px',
+                                    borderRadius: '12px',
+                                    fontSize: '11px',
+                                    fontWeight: '600'
+                                  }}>
+                                    {job.match_score}% Match
+                                  </span>
+                                )}
+                              </div>
                               <div className="list-subtitle">{job.company_name || job.company}</div>
+                              {job.match_reasons && job.match_reasons.length > 0 && (
+                                <div style={{ fontSize: '12px', color: '#10b981', marginTop: '4px' }}>
+                                  ✓ {job.match_reasons[0]}
+                                </div>
+                              )}
                               <div className="job-meta">
                                 <span className="job-location">
                                   <FontAwesomeIcon icon={faMapMarkerAlt} />

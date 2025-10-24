@@ -233,23 +233,35 @@ body {
 }
 
 .profile-completion {
-  background: var(--gradient-subtle-balanced) !important;
-  border: 2px solid var(--border-medium) !important;
+  background: #ffffff !important;
+  border: 2px solid rgba(0, 0, 0, 0.1) !important;
   border-radius: 16px !important;
   padding: 32px !important;
   margin-bottom: 32px !important;
-  box-shadow: var(--shadow-balanced) !important;
+  box-shadow: var(--shadow-md) !important;
   position: relative !important;
   overflow: hidden !important;
+}
+
+.profile-completion h1,
+.profile-completion h2,
+.profile-completion h3,
+.profile-completion h4,
+.profile-completion h5,
+.profile-completion h6,
+.profile-completion p,
+.profile-completion span,
+.profile-completion div {
+  color: #000000 !important;
 }
 
 .progress-bar {
   width: 100% !important;
   height: 20px !important;
-  background: var(--gradient-subtle-balanced) !important;
+  background: #f5f5f5 !important;
   border-radius: 10px !important;
   overflow: hidden !important;
-  border: 2px solid var(--border-light) !important;
+  border: 2px solid rgba(0, 0, 0, 0.1) !important;
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -259,6 +271,15 @@ body {
   border-radius: 8px !important;
   transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
   box-shadow: var(--shadow-orange) !important;
+}
+
+/* ===== REGISTRATION FORM SECTION TITLES ===== */
+.section-title-comprehensive {
+  border-bottom: 2px solid #000000 !important;
+}
+
+.section-title-comprehensive svg {
+  color: #000000 !important;
 }
 
 /* ===== STAT CARDS ===== */

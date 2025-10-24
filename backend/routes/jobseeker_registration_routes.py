@@ -55,6 +55,13 @@ def complete_jobseeker_profile():
         
         print(f"Processing comprehensive profile for job seeker: {user.get('email')}")
         
+        # Check if this is a draft save or final submission
+        is_draft = request.form.get('isDraft', 'false').lower() == 'true'
+        profile_completed = request.form.get('profileCompleted', 'false').lower() == 'true'
+        
+        print(f"📋 Submission mode: {'DRAFT' if is_draft else 'FINAL'}")
+        print(f"📋 Profile completed: {profile_completed}")
+        
         # Parse comprehensive form data
         try:
             # Section 1: Personal Information
@@ -67,6 +74,7 @@ def complete_jobseeker_profile():
                 'altPhone': request.form.get('altPhone'),
                 'dateOfBirth': request.form.get('dateOfBirth'),
                 'gender': request.form.get('gender'),
+                'bloodGroup': request.form.get('bloodGroup'),
                 'community': request.form.get('community')
             }
             
@@ -94,10 +102,10 @@ def complete_jobseeker_profile():
             # Section 4: Professional Profile
             professional_profile = {
                 'professionalTitle': request.form.get('professionalTitle'),
-                'yearsExperience': request.form.get('yearsExperience'),
+                'yearsExperience': request.form.get('yearsOfExperience') or request.form.get('yearsExperience'),
                 'careerLevel': request.form.get('careerLevel'),
                 'industry': request.form.get('industry'),
-                'summary': request.form.get('summary')
+                'summary': request.form.get('summary') or request.form.get('professionalSummary')
             }
             
             # Section 5: Work Experience (Array)
@@ -141,6 +149,7 @@ def complete_jobseeker_profile():
             
             # Section 13: Job Preferences & Availability
             job_preferences = {
+                'preferredJobTitles': request.form.get('preferredJobTitles'),
                 'jobType': request.form.get('jobType'),
                 'noticePeriod': request.form.get('noticePeriod'),
                 'currentSalary': request.form.get('currentSalary'),
@@ -151,7 +160,8 @@ def complete_jobseeker_profile():
             
             # Section 14: Additional Information
             additional_info = {
-                'askCommunity': request.form.get('askCommunity'),
+                'bloodGroup': request.form.get('bloodGroup'),  # Added for completeness
+                'careerObjectives': request.form.get('careerObjectives'),
                 'hobbies': request.form.get('hobbies'),
                 'additionalComments': request.form.get('additionalComments'),
                 'agreeTerms': request.form.get('agreeTerms'),
@@ -196,8 +206,9 @@ def complete_jobseeker_profile():
             # Continue even if file upload fails
         
         # Prepare comprehensive update data
+        # Save BOTH nested AND flat to ensure 100% data retrieval
         update_data = {
-            # Personal Information
+            # Personal Information - FLAT
             'firstName': personal_info['firstName'],
             'middleName': personal_info['middleName'],
             'lastName': personal_info['lastName'],
@@ -208,13 +219,17 @@ def complete_jobseeker_profile():
             'dateOfBirth': personal_info['dateOfBirth'],
             'gender': personal_info['gender'],
             'community': personal_info['community'],
+            'bloodGroup': personal_info.get('bloodGroup') or additional_info.get('bloodGroup', ''),
             
-            # Nationality & Residency
+            # Nationality & Residency - FLAT
             'nationality': nationality_residency['nationality'],
             'residentCountry': nationality_residency['residentCountry'],
             'currentCity': nationality_residency['currentCity'],
             'postalCode': nationality_residency['postalCode'],
             'address': nationality_residency['address'],
+            'latitude': nationality_residency['latitude'],
+            'longitude': nationality_residency['longitude'],
+            'workPermit': nationality_residency['workPermit'],
             'location': {
                 'latitude': nationality_residency['latitude'],
                 'longitude': nationality_residency['longitude'],
@@ -222,50 +237,83 @@ def complete_jobseeker_profile():
                 'city': nationality_residency['currentCity'],
                 'country': nationality_residency['residentCountry']
             },
-            'workPermit': nationality_residency['workPermit'],
             
-            # Preferred Working Locations
-            'preferredLocations': preferred_locations,
+            # Preferred Working Locations - FLAT
+            'preferredLocation1': preferred_locations['preferredLocation1'],
+            'preferredLocation2': preferred_locations['preferredLocation2'],
+            'preferredLocation3': preferred_locations['preferredLocation3'],
+            'willingToRelocate': preferred_locations['willingToRelocate'],
+            'workLocation': preferred_locations['workLocation'],
+            'preferredLocations': preferred_locations,  # Also keep nested for backward compatibility
             
-            # Professional Profile
-            'professionalProfile': professional_profile,
+            # Professional Profile - FLAT
+            'professionalTitle': professional_profile['professionalTitle'],
+            'yearsExperience': professional_profile['yearsExperience'],
+            'yearsOfExperience': professional_profile['yearsExperience'],  # Also save as yearsOfExperience
+            'careerLevel': professional_profile['careerLevel'],
+            'industry': professional_profile['industry'],
+            'summary': professional_profile['summary'],
+            'professionalSummary': professional_profile['summary'],
+            'professionalProfile': professional_profile,  # Also keep nested
             
-            # Work Experience (Array)
+            # Work Experience (Array) - FLAT
             'experienceEntries': experience_entries,
+            'experience': experience_entries,
+            'workExperience': experience_entries,
             
-            # Education (Array)
+            # Education (Array) - FLAT
             'educationEntries': education_entries,
+            'education': education_entries,
             
-            # Skills & Competencies
+            # Skills & Competencies - FLAT
             'coreSkills': skills_info['coreSkills'],
             'tools': skills_info['tools'],
             'skills': skills_info['coreSkills'] + skills_info['tools'],  # Combined for search
             
-            # Languages (Array)
+            # Languages (Array) - FLAT
             'languages': languages,
             
-            # Certifications (Array)
+            # Certifications (Array) - FLAT
+            'certificationEntries': certification_entries,
             'certifications': certification_entries,
             
-            # Professional Memberships
-            'memberships': memberships,
+            # Professional Memberships - FLAT
+            'membershipOrg': memberships.get('membershipOrg', ''),
+            'membershipType': memberships.get('membershipType', ''),
+            'membershipDate': memberships.get('membershipDate', ''),
+            'memberships': memberships,  # Also keep nested
             
-            # References (Array)
+            # References (Array) - FLAT
+            'referenceEntries': reference_entries,
             'references': reference_entries,
             
-            # Professional Online Presence (Array)
+            # Professional Online Presence (Array) - FLAT
             'professionalLinks': professional_links,
             
-            # Job Preferences & Availability
-            'jobPreferences': job_preferences,
+            # Job Preferences & Availability - FLAT
+            'preferredJobTitles': job_preferences.get('preferredJobTitles', ''),
+            'jobType': job_preferences.get('jobType', ''),
+            'noticePeriod': job_preferences.get('noticePeriod', ''),
+            'currentSalary': job_preferences.get('currentSalary', ''),
+            'expectedSalary': job_preferences.get('expectedSalary', ''),
+            'currencyPreference': job_preferences.get('currencyPreference', ''),
+            'travelAvailability': job_preferences.get('travelAvailability', ''),
+            'jobPreferences': job_preferences,  # Also keep nested
             
-            # Additional Information
-            'additionalInfo': additional_info,
+            # Additional Information - FLAT
+            'careerObjectives': additional_info.get('careerObjectives', ''),
+            'hobbies': additional_info.get('hobbies', ''),
+            'additionalComments': additional_info.get('additionalComments', ''),
+            'agreeTerms': additional_info.get('agreeTerms', False),
+            'allowContact': additional_info.get('allowContact', False),
+            'additionalInfo': additional_info,  # Also keep nested
             
             # Meta information
-            'profileCompleted': True,
-            'comprehensiveProfileCompleted': True,
-            'profileCompletedAt': datetime.utcnow(),
+            'profileCompleted': profile_completed,
+            'isDraft': is_draft,
+            'comprehensiveProfileCompleted': profile_completed,
+            'profileCompletedAt': datetime.utcnow() if profile_completed else None,
+            'draftSavedAt': datetime.utcnow() if is_draft else None,
             'updatedAt': datetime.utcnow()
         }
         
@@ -277,7 +325,23 @@ def complete_jobseeker_profile():
             update_data['resumePath'] = resume_file_path
             update_data['resumeUploadedAt'] = datetime.utcnow()
         
-        print(f"Updating job seeker profile with comprehensive data")
+        print(f"\n{'='*80}")
+        print(f"💾 SAVING TO USERS COLLECTION")
+        print(f"{'='*80}")
+        print(f"✅ Saving {len([v for v in update_data.values() if v])} filled fields")
+        print(f"📋 Sample fields being saved:")
+        sample_fields = ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender', 'bloodGroup', 
+                        'nationality', 'currentCity', 'workPermit', 'professionalTitle', 'yearsExperience',
+                        'careerLevel', 'industry', 'jobType', 'noticePeriod']
+        for field in sample_fields:
+            if field in update_data:
+                print(f"  ✓ {field}: {update_data[field]}")
+        print(f"📊 Array fields being saved:")
+        print(f"  ✓ experienceEntries: {len(update_data.get('experienceEntries', []))} items")
+        print(f"  ✓ educationEntries: {len(update_data.get('educationEntries', []))} items")
+        print(f"  ✓ coreSkills: {len(update_data.get('coreSkills', []))} items")
+        print(f"  ✓ languages: {len(update_data.get('languages', []))} items")
+        print(f"{'='*80}\n")
         
         # Update user in database
         result = users_collection.update_one(
@@ -285,7 +349,7 @@ def complete_jobseeker_profile():
             {'$set': update_data}
         )
         
-        print(f"Update result: {result.modified_count} documents modified")
+        print(f"✅ Users collection update result: {result.modified_count} documents modified")
         
         if result.matched_count > 0:
             # Create comprehensive job seeker profile entry
@@ -322,7 +386,17 @@ def complete_jobseeker_profile():
                 upsert=True
             )
             
-            print("Comprehensive job seeker profile completed successfully")
+            if is_draft:
+                print("✅ Job seeker profile saved as DRAFT")
+                return jsonify({
+                    "success": True,
+                    "message": "Profile saved as draft successfully",
+                    "profileCompleted": False,
+                    "isDraft": True,
+                    "draftSavedAt": datetime.utcnow().isoformat()
+                }), 200
+            else:
+                print("✅ Job seeker profile COMPLETED successfully")
             return jsonify({
                 "success": True,
                 "message": "Job seeker profile completed successfully",
@@ -425,6 +499,7 @@ def get_comprehensive_profile():
                 'referenceEntries': user_data.get('references', []),
                 'professionalLinks': user_data.get('professionalLinks', {}),
                 'jobPreferences': {
+                    'preferredJobTitles': user_data.get('preferredJobTitles', ''),
                     'jobType': user_data.get('jobType', ''),
                     'jobTypePreference': user_data.get('jobTypePreference', ''),
                     'noticePeriod': user_data.get('noticePeriod', ''),
@@ -612,128 +687,111 @@ def get_comprehensive_profile():
                     print(f"✅ No missing fields found - all data is in jobseeker_profiles")
         
         # Flatten the nested structure for frontend compatibility
-        # Handle both nested profile structure and direct user data
+        # Priority: user_data (users collection) > profile nested > profile direct
+        # This ensures we ALWAYS get the latest data from registration form
+        
         flattened_profile = {
-            # Personal Information
-            'firstName': profile.get('personalInfo', {}).get('firstName') or profile.get('firstName'),
-            'middleName': profile.get('personalInfo', {}).get('middleName') or profile.get('middleName'),
-            'lastName': profile.get('personalInfo', {}).get('lastName') or profile.get('lastName'),
-            'email': profile.get('personalInfo', {}).get('email') or profile.get('email'),
-            'phone': profile.get('personalInfo', {}).get('phone') or profile.get('phone'),
-            'altPhone': profile.get('personalInfo', {}).get('altPhone') or profile.get('altPhone'),
-            'dateOfBirth': profile.get('personalInfo', {}).get('dateOfBirth') or profile.get('dateOfBirth'),
-            'gender': profile.get('personalInfo', {}).get('gender') or profile.get('gender'),
-            'community': profile.get('personalInfo', {}).get('community') or profile.get('community'),
+            # Personal Information - Check ALL locations
+            'firstName': (user_data.get('firstName') if user_data else None) or profile.get('personalInfo', {}).get('firstName') or profile.get('firstName') or '',
+            'middleName': (user_data.get('middleName') if user_data else None) or profile.get('personalInfo', {}).get('middleName') or profile.get('middleName') or '',
+            'lastName': (user_data.get('lastName') if user_data else None) or profile.get('personalInfo', {}).get('lastName') or profile.get('lastName') or '',
+            'email': (user_data.get('email') if user_data else None) or profile.get('personalInfo', {}).get('email') or profile.get('email') or '',
+            'phone': (user_data.get('phone') if user_data else None) or profile.get('personalInfo', {}).get('phone') or profile.get('phone') or '',
+            'altPhone': (user_data.get('altPhone') if user_data else None) or profile.get('personalInfo', {}).get('altPhone') or profile.get('altPhone') or '',
+            'dateOfBirth': (user_data.get('dateOfBirth') if user_data else None) or profile.get('personalInfo', {}).get('dateOfBirth') or profile.get('dateOfBirth') or '',
+            'gender': (user_data.get('gender') if user_data else None) or profile.get('personalInfo', {}).get('gender') or profile.get('gender') or '',
+            'community': (user_data.get('community') if user_data else None) or profile.get('personalInfo', {}).get('community') or profile.get('community') or '',
+            'bloodGroup': (user_data.get('bloodGroup') if user_data else None) or profile.get('additionalInfo', {}).get('bloodGroup') or profile.get('bloodGroup') or '',
             
-            # Additional Info (including bloodGroup) - FIXED: Check both nested and direct
-            'bloodGroup': profile.get('additionalInfo', {}).get('bloodGroup') or profile.get('bloodGroup'),
-            'askCommunity': profile.get('additionalInfo', {}).get('askCommunity') or profile.get('askCommunity'),
-            'hobbies': profile.get('additionalInfo', {}).get('hobbies') or profile.get('hobbies'),
-            'additionalComments': profile.get('additionalInfo', {}).get('additionalComments') or profile.get('additionalComments'),
+            # Nationality & Residency - Check ALL locations
+            'nationality': (user_data.get('nationality') if user_data else None) or profile.get('nationalityResidency', {}).get('nationality') or profile.get('nationality') or '',
+            'residentCountry': (user_data.get('residentCountry') if user_data else None) or profile.get('nationalityResidency', {}).get('residentCountry') or profile.get('residentCountry') or '',
+            'currentCity': (user_data.get('currentCity') if user_data else None) or profile.get('nationalityResidency', {}).get('currentCity') or profile.get('currentCity') or '',
+            'postalCode': (user_data.get('postalCode') if user_data else None) or profile.get('nationalityResidency', {}).get('postalCode') or profile.get('postalCode') or '',
+            'address': (user_data.get('address') if user_data else None) or profile.get('nationalityResidency', {}).get('address') or profile.get('address') or '',
+            'latitude': (user_data.get('latitude') if user_data else None) or profile.get('nationalityResidency', {}).get('latitude') or profile.get('latitude') or '',
+            'longitude': (user_data.get('longitude') if user_data else None) or profile.get('nationalityResidency', {}).get('longitude') or profile.get('longitude') or '',
+            'workPermit': (user_data.get('workPermit') if user_data else None) or profile.get('nationalityResidency', {}).get('workPermit') or profile.get('workPermit') or '',
             
-            # Nationality & Residency - FIXED: Check both nested and direct
-            'nationality': profile.get('nationalityResidency', {}).get('nationality') or profile.get('nationality'),
-            'residentCountry': profile.get('nationalityResidency', {}).get('residentCountry') or profile.get('residentCountry'),
-            'currentCity': profile.get('nationalityResidency', {}).get('currentCity') or profile.get('currentCity'),
-            'postalCode': profile.get('nationalityResidency', {}).get('postalCode') or profile.get('postalCode'),
-            'address': profile.get('nationalityResidency', {}).get('address') or profile.get('address'),
-            'latitude': profile.get('nationalityResidency', {}).get('latitude') or profile.get('latitude'),
-            'longitude': profile.get('nationalityResidency', {}).get('longitude') or profile.get('longitude'),
-            'workPermit': profile.get('nationalityResidency', {}).get('workPermit') or profile.get('workPermit'),
+            # Preferred Locations - Check ALL locations
+            'preferredLocation1': (user_data.get('preferredLocation1') if user_data else None) or profile.get('preferredLocations', {}).get('preferredLocation1') or profile.get('preferredLocation1') or '',
+            'preferredLocation2': (user_data.get('preferredLocation2') if user_data else None) or profile.get('preferredLocations', {}).get('preferredLocation2') or profile.get('preferredLocation2') or '',
+            'preferredLocation3': (user_data.get('preferredLocation3') if user_data else None) or profile.get('preferredLocations', {}).get('preferredLocation3') or profile.get('preferredLocation3') or '',
+            'willingToRelocate': (user_data.get('willingToRelocate') if user_data else None) or profile.get('preferredLocations', {}).get('willingToRelocate') or profile.get('willingToRelocate') or '',
+            'workLocation': (user_data.get('workLocation') if user_data else None) or profile.get('preferredLocations', {}).get('workLocation') or profile.get('workLocation') or '',
             
-            # Preferred Locations - FIXED: Check both nested and direct
-            'preferredLocation1': profile.get('preferredLocations', {}).get('preferredLocation1') or profile.get('preferredLocation1'),
-            'preferredLocation2': profile.get('preferredLocations', {}).get('preferredLocation2') or profile.get('preferredLocation2'),
-            'preferredLocation3': profile.get('preferredLocations', {}).get('preferredLocation3') or profile.get('preferredLocation3'),
-            'willingToRelocate': profile.get('preferredLocations', {}).get('willingToRelocate') or profile.get('willingToRelocate'),
-            'workLocation': profile.get('preferredLocations', {}).get('workLocation') or profile.get('workLocation'),
-            
-            # Combined location field for dedicated MyProfile page compatibility
+            # Combined location field
             'location': ', '.join(filter(None, [
-                profile.get('nationalityResidency', {}).get('currentCity') or profile.get('currentCity'),
-                profile.get('nationalityResidency', {}).get('residentCountry') or profile.get('residentCountry')
+                (user_data.get('currentCity') if user_data else None) or profile.get('nationalityResidency', {}).get('currentCity') or profile.get('currentCity'),
+                (user_data.get('residentCountry') if user_data else None) or profile.get('nationalityResidency', {}).get('residentCountry') or profile.get('residentCountry')
             ])),
             
-            # Professional Profile - FIXED: Check both nested and direct
-            'professionalTitle': profile.get('professionalProfile', {}).get('professionalTitle') or profile.get('professionalTitle'),
-            'yearsOfExperience': profile.get('professionalProfile', {}).get('yearsExperience') or profile.get('yearsOfExperience'),
-            'careerLevel': profile.get('professionalProfile', {}).get('careerLevel') or profile.get('careerLevel'),
-            'industry': profile.get('professionalProfile', {}).get('industry') or profile.get('industry'),
-            'professionalSummary': profile.get('professionalProfile', {}).get('summary') or profile.get('professionalSummary'),
+            # Professional Profile - Check ALL locations
+            'professionalTitle': (user_data.get('professionalTitle') if user_data else None) or profile.get('professionalProfile', {}).get('professionalTitle') or profile.get('professionalTitle') or '',
+            'yearsOfExperience': (user_data.get('yearsExperience') if user_data else None) or profile.get('professionalProfile', {}).get('yearsExperience') or profile.get('yearsOfExperience') or profile.get('yearsExperience') or '',
+            'yearsExperience': (user_data.get('yearsExperience') if user_data else None) or profile.get('professionalProfile', {}).get('yearsExperience') or profile.get('yearsExperience') or '',
+            'careerLevel': (user_data.get('careerLevel') if user_data else None) or profile.get('professionalProfile', {}).get('careerLevel') or profile.get('careerLevel') or '',
+            'industry': (user_data.get('industry') if user_data else None) or profile.get('professionalProfile', {}).get('industry') or profile.get('industry') or '',
+            'professionalSummary': (user_data.get('summary') if user_data else None) or profile.get('professionalProfile', {}).get('summary') or profile.get('summary') or profile.get('professionalSummary') or '',
+            'summary': (user_data.get('summary') if user_data else None) or profile.get('professionalProfile', {}).get('summary') or profile.get('summary') or '',
             
-            # Skills - FIXED: Check both nested and direct
-            'coreSkills': profile.get('skillsInfo', {}).get('coreSkills', []) or profile.get('skills', []) or profile.get('coreSkills', []),
-            'tools': profile.get('skillsInfo', {}).get('tools', []) or profile.get('tools', []),
+            # Skills - Check ALL locations (arrays)
+            'coreSkills': (user_data.get('coreSkills', []) if user_data and user_data.get('coreSkills') else []) or profile.get('skillsInfo', {}).get('coreSkills', []) or profile.get('coreSkills', []) or profile.get('skills', []) or [],
+            'skills': (user_data.get('coreSkills', []) if user_data and user_data.get('coreSkills') else []) or profile.get('skillsInfo', {}).get('coreSkills', []) or profile.get('skills', []) or profile.get('coreSkills', []) or [],
+            'tools': (user_data.get('tools', []) if user_data and user_data.get('tools') else []) or profile.get('skillsInfo', {}).get('tools', []) or profile.get('tools', []) or [],
             
-            # Professional Memberships - FIXED: Check both nested and direct
-            'membershipOrg': profile.get('professionalMemberships', {}).get('membershipOrg') or profile.get('membershipOrg'),
-            'membershipType': profile.get('professionalMemberships', {}).get('membershipType') or profile.get('membershipType'),
-            'membershipDate': profile.get('professionalMemberships', {}).get('membershipDate') or profile.get('membershipDate'),
+            # Professional Memberships - Check ALL locations  
+            'membershipOrg': (user_data.get('membershipOrg') if user_data else None) or profile.get('professionalMemberships', {}).get('membershipOrg') or profile.get('memberships', {}).get('membershipOrg') or profile.get('membershipOrg') or '',
+            'membershipType': (user_data.get('membershipType') if user_data else None) or profile.get('professionalMemberships', {}).get('membershipType') or profile.get('memberships', {}).get('membershipType') or profile.get('membershipType') or '',
+            'membershipDate': (user_data.get('membershipDate') if user_data else None) or profile.get('professionalMemberships', {}).get('membershipDate') or profile.get('memberships', {}).get('membershipDate') or profile.get('membershipDate') or '',
             
-            # Arrays - FIXED: Check both nested and direct
-            'languages': profile.get('languages', []) or profile.get('languages', []),
-            'experienceEntries': profile.get('experienceEntries', []) or profile.get('experience', []) or profile.get('workExperience', []),
-            'educationEntries': profile.get('educationEntries', []) or profile.get('education', []),
-            'certificationEntries': profile.get('certificationEntries', []) or profile.get('certifications', []),
-            'referenceEntries': profile.get('referenceEntries', []) or profile.get('references', []),
-            'professionalLinks': profile.get('professionalLinks', {}) or profile.get('professionalLinks', {}),
+            # Arrays - Check ALL locations
+            'languages': (user_data.get('languages', []) if user_data and user_data.get('languages') else []) or profile.get('languages', []) or [],
+            'experienceEntries': (user_data.get('experienceEntries', []) if user_data and user_data.get('experienceEntries') else []) or profile.get('experienceEntries', []) or profile.get('experience', []) or profile.get('workExperience', []) or [],
+            'educationEntries': (user_data.get('educationEntries', []) if user_data and user_data.get('educationEntries') else []) or profile.get('educationEntries', []) or profile.get('education', []) or [],
+            'certificationEntries': (user_data.get('certificationEntries', []) if user_data and user_data.get('certificationEntries') else []) or profile.get('certificationEntries', []) or profile.get('certifications', []) or [],
+            'referenceEntries': (user_data.get('referenceEntries', []) if user_data and user_data.get('referenceEntries') else []) or profile.get('referenceEntries', []) or profile.get('references', []) or [],
+            'professionalLinks': (user_data.get('professionalLinks', []) if user_data and user_data.get('professionalLinks') else []) or profile.get('professionalLinks', []) or [],
             
-            # Job Preferences - FIXED: Check both nested and direct
-            'jobType': profile.get('jobPreferences', {}).get('jobType') or profile.get('jobType'),
-            'jobTypePreference': profile.get('jobPreferences', {}).get('jobTypePreference') or profile.get('jobTypePreference'),
-            'noticePeriod': profile.get('jobPreferences', {}).get('noticePeriod') or profile.get('noticePeriod'),
-            'availability': profile.get('jobPreferences', {}).get('availability') or profile.get('availability'),
-            'currentSalary': profile.get('jobPreferences', {}).get('currentSalary') or profile.get('currentSalary'),
-            'expectedSalary': profile.get('jobPreferences', {}).get('expectedSalary') or profile.get('expectedSalary'),
-            'salaryCurrency': profile.get('jobPreferences', {}).get('currencyPreference') or profile.get('currencyPreference'),
-            'currencyPreference': profile.get('jobPreferences', {}).get('currencyPreference') or profile.get('currencyPreference'),
-            'travelAvailability': profile.get('jobPreferences', {}).get('travelAvailability') or profile.get('travelAvailability'),
+            # Job Preferences - Check ALL locations
+            'preferredJobTitles': (user_data.get('preferredJobTitles') if user_data else None) or profile.get('jobPreferences', {}).get('preferredJobTitles') or profile.get('preferredJobTitles') or '',
+            'jobType': (user_data.get('jobType') if user_data else None) or profile.get('jobPreferences', {}).get('jobType') or profile.get('jobType') or '',
+            'noticePeriod': (user_data.get('noticePeriod') if user_data else None) or profile.get('jobPreferences', {}).get('noticePeriod') or profile.get('noticePeriod') or '',
+            'availability': (user_data.get('availability') if user_data else None) or profile.get('jobPreferences', {}).get('availability') or profile.get('availability') or '',
+            'currentSalary': (user_data.get('currentSalary') if user_data else None) or profile.get('jobPreferences', {}).get('currentSalary') or profile.get('currentSalary') or '',
+            'expectedSalary': (user_data.get('expectedSalary') if user_data else None) or profile.get('jobPreferences', {}).get('expectedSalary') or profile.get('expectedSalary') or '',
+            'currencyPreference': (user_data.get('currencyPreference') if user_data else None) or profile.get('jobPreferences', {}).get('currencyPreference') or profile.get('currencyPreference') or '',
+            'travelAvailability': (user_data.get('travelAvailability') if user_data else None) or profile.get('jobPreferences', {}).get('travelAvailability') or profile.get('travelAvailability') or '',
             
-            # Memberships - FIXED: Check both nested and direct
-            'membershipOrg': profile.get('memberships', {}).get('membershipOrg') or profile.get('membershipOrg'),
-            'membershipType': profile.get('memberships', {}).get('membershipType') or profile.get('membershipType'),
-            'membershipDate': profile.get('memberships', {}).get('membershipDate') or profile.get('membershipDate'),
-            
-            # Additional Info - FIXED: Check both nested and direct
-            'askCommunity': profile.get('additionalInfo', {}).get('askCommunity') or profile.get('askCommunity'),
-            'hobbies': profile.get('additionalInfo', {}).get('hobbies') or profile.get('hobbies'),
-            'additionalComments': profile.get('additionalInfo', {}).get('additionalComments') or profile.get('additionalComments'),
-            'agreeTerms': profile.get('additionalInfo', {}).get('agreeTerms') or profile.get('agreeTerms'),
-            'allowContact': profile.get('additionalInfo', {}).get('allowContact') or profile.get('allowContact'),
+            # Additional Info - Check ALL locations
+            'careerObjectives': (user_data.get('careerObjectives') if user_data else None) or profile.get('additionalInfo', {}).get('careerObjectives') or profile.get('careerObjectives') or '',
+            'hobbies': (user_data.get('hobbies') if user_data else None) or profile.get('additionalInfo', {}).get('hobbies') or profile.get('hobbies') or '',
+            'additionalComments': (user_data.get('additionalComments') if user_data else None) or profile.get('additionalInfo', {}).get('additionalComments') or profile.get('additionalComments') or '',
+            'agreeTerms': (user_data.get('agreeTerms') if user_data else None) or profile.get('additionalInfo', {}).get('agreeTerms') or profile.get('agreeTerms') or False,
+            'allowContact': (user_data.get('allowContact') if user_data else None) or profile.get('additionalInfo', {}).get('allowContact') or profile.get('allowContact') or False,
             
             # File paths
-            'profilePhotoPath': profile.get('profilePhotoPath'),
-            'resumePath': profile.get('resumePath'),
+            'profilePhotoPath': (user_data.get('profilePhotoPath') if user_data else None) or profile.get('profilePhotoPath'),
+            'resumePath': (user_data.get('resumePath') if user_data else None) or profile.get('resumePath'),
             
             # Metadata
-            '_id': str(profile.get('_id')),
-            'userId': str(profile.get('userId')),
+            '_id': str(profile.get('_id')) if profile.get('_id') else '',
+            'userId': str(profile.get('userId')) if profile.get('userId') else str(user_object_id),
             'createdAt': profile.get('createdAt'),
-            'updatedAt': profile.get('updatedAt')
+            'updatedAt': profile.get('updatedAt') or (user_data.get('updatedAt') if user_data else None)
         }
         
-        # Log what's being returned for debugging
-        print(f"🩸 Returning Blood Group: {flattened_profile.get('bloodGroup')}")
-        print(f"🛂 Returning Work Permit: {flattened_profile.get('workPermit')}")
-        print(f"👤 Returning Demographics: bloodGroup={flattened_profile.get('bloodGroup')}, gender={flattened_profile.get('gender')}, dateOfBirth={flattened_profile.get('dateOfBirth')}")
-        print(f"🌍 Returning Location: nationality={flattened_profile.get('nationality')}, currentCity={flattened_profile.get('currentCity')}, workPermit={flattened_profile.get('workPermit')}")
-        
-        # Debug: Check the actual profile structure
-        print(f"🔍 Profile structure debug:")
-        print(f"  - profile type: {type(profile)}")
-        print(f"  - profile keys: {list(profile.keys()) if isinstance(profile, dict) else 'Not a dict'}")
-        print(f"  - profile.bloodGroup direct: {profile.get('bloodGroup') if isinstance(profile, dict) else 'N/A'}")
-        print(f"  - profile.additionalInfo: {profile.get('additionalInfo') if isinstance(profile, dict) else 'N/A'}")
-        if isinstance(profile, dict) and 'additionalInfo' in profile:
-            print(f"  - profile.additionalInfo.bloodGroup: {profile.get('additionalInfo', {}).get('bloodGroup')}")
-        
-        # Debug: Check what the fallback logic is doing
-        nested_blood = profile.get('additionalInfo', {}).get('bloodGroup') if isinstance(profile, dict) else None
-        direct_blood = profile.get('bloodGroup') if isinstance(profile, dict) else None
-        print(f"🔍 Blood Group fallback debug:")
-        print(f"  - nested_blood: {nested_blood}")
-        print(f"  - direct_blood: {direct_blood}")
-        print(f"  - final result: {nested_blood or direct_blood}")
+        # Enhanced logging for debugging
+        print(f"\n{'='*80}")
+        print(f"📊 COMPLETE DATA RETURN DEBUG")
+        print(f"{'='*80}")
+        print(f"✅ Returning {len([v for v in flattened_profile.values() if v])} filled fields out of {len(flattened_profile)} total fields")
+        print(f"\n📋 Field-by-field breakdown:")
+        for key, value in flattened_profile.items():
+            if value and key not in ['_id', 'userId', 'createdAt', 'updatedAt']:
+                value_preview = str(value)[:50] + '...' if len(str(value)) > 50 else str(value)
+                print(f"  ✓ {key}: {value_preview}")
+        print(f"{'='*80}\n")
         
         return jsonify(flattened_profile), 200
         

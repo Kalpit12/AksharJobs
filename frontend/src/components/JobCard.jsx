@@ -64,9 +64,26 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
       </div>
       
       <div className="new-job-card-tags">
+        {job.match_score > 0 && (
+          <span 
+            className="new-job-card-tag" 
+            style={{
+              background: job.match_score >= 70 ? '#10b981' : job.match_score >= 40 ? '#f59e0b' : '#6b7280',
+              color: 'white',
+              fontWeight: '600'
+            }}
+          >
+            <FontAwesomeIcon icon={faStar} /> {job.match_score}% Match
+          </span>
+        )}
         {job.featured && (
           <span className="new-job-card-tag featured">
             <FontAwesomeIcon icon={faStar} /> Featured
+          </span>
+        )}
+        {job.match_reasons && job.match_reasons.length > 0 && (
+          <span className="new-job-card-tag" style={{ background: '#d1fae5', color: '#065f46' }}>
+            ✓ {job.match_reasons[0]}
           </span>
         )}
         {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (

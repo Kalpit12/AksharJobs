@@ -530,10 +530,44 @@ def get_saved_jobs():
 @job_routes.route("/recommended", methods=["GET"])
 @jwt_required()
 def get_recommended_jobs_for_user():
-    """Get recommended jobs for the current user"""
+    """Get recommended jobs for the current user based on preferred job titles"""
     try:
         current_user_id = get_jwt_identity()
-        print(f"Getting recommended jobs for user: {current_user_id}")
+        print(f"🎯 Getting recommended jobs for user: {current_user_id}")
+        
+        # Get database connection
+        db = get_db()
+        
+        # Get user's profile to extract preferred job titles
+        user = None
+        try:
+            user = db.users.find_one({'_id': ObjectId(current_user_id)})
+        except:
+            user = db.users.find_one({'_id': current_user_id})
+        
+        # Extract preferred job titles from user profile
+        preferred_titles = []
+        if user and user.get('preferredJobTitles'):
+            # Parse comma-separated job titles
+            titles_str = user.get('preferredJobTitles', '')
+            preferred_titles = [title.strip().lower() for title in titles_str.split(',') if title.strip()]
+            print(f"📋 User's preferred job titles: {preferred_titles}")
+        
+        # Get user's skills for additional matching
+        user_skills = []
+        if user:
+            core_skills = user.get('coreSkills', [])
+            skills = user.get('skills', [])
+            if isinstance(core_skills, list):
+                user_skills.extend([s.lower() for s in core_skills if s])
+            elif isinstance(core_skills, str):
+                user_skills.extend([s.strip().lower() for s in core_skills.split(',') if s.strip()])
+            if isinstance(skills, list):
+                user_skills.extend([s.lower() for s in skills if s])
+            elif isinstance(skills, str):
+                user_skills.extend([s.strip().lower() for s in skills.split(',') if s.strip()])
+            user_skills = list(set(user_skills))  # Remove duplicates
+            print(f"🔧 User's skills: {user_skills[:5]}...")  # Print first 5 skills
         
         # Get all jobs
         all_jobs = get_all_jobs()
@@ -542,17 +576,66 @@ def get_recommended_jobs_for_user():
         
         recommended_jobs = []
         
-        # For now, return a subset of jobs as recommendations
-        # In the future, this should implement proper recommendation logic
-        for job in all_jobs[:10]:  # Limit to 10 recommendations
+        # Calculate match score for each job
+        for job in all_jobs:
             try:
                 # Convert all ObjectId and datetime fields to strings for JSON serialization
                 job_serializable = convert_objectids_to_strings(job)
                 
-                # Add a simple match score (random for now)
-                job_serializable["match_score"] = round(random.uniform(60, 95), 1)
+                # Calculate match score based on preferred job titles and skills
+                match_score = 0
+                match_reasons = []
                 
-                recommended_jobs.append(job_serializable)
+                job_title = job.get('title', '').lower()
+                job_description = job.get('description', '').lower()
+                job_skills = []
+                
+                # Extract job skills
+                if 'requiredSkills' in job:
+                    if isinstance(job['requiredSkills'], list):
+                        job_skills.extend([s.lower() for s in job['requiredSkills'] if s])
+                if 'skills' in job:
+                    if isinstance(job['skills'], list):
+                        job_skills.extend([s.lower() for s in job['skills'] if s])
+                
+                # Match based on preferred job titles (highest weight)
+                if preferred_titles:
+                    for preferred in preferred_titles:
+                        if preferred in job_title:
+                            match_score += 40  # Exact title match
+                            match_reasons.append(f"Title matches: {preferred}")
+                            break
+                        elif any(word in job_title for word in preferred.split()):
+                            match_score += 25  # Partial title match
+                            match_reasons.append(f"Partial title match: {preferred}")
+                            break
+                        elif preferred in job_description:
+                            match_score += 15  # Title mentioned in description
+                            match_reasons.append(f"Mentioned in description: {preferred}")
+                            break
+                
+                # Match based on skills (medium weight)
+                if user_skills and job_skills:
+                    matching_skills = set(user_skills) & set(job_skills)
+                    if matching_skills:
+                        skill_match_percentage = (len(matching_skills) / len(job_skills)) * 100
+                        skill_score = min(30, skill_match_percentage * 0.3)  # Up to 30 points
+                        match_score += skill_score
+                        match_reasons.append(f"{len(matching_skills)} matching skills")
+                
+                # Base score for active jobs (low weight)
+                if job.get('status') == 'active':
+                    match_score += 10
+                
+                # Bonus for recent postings
+                if 'postedDate' in job or 'postedAt' in job:
+                    match_score += 5
+                
+                # Only include jobs with some relevance
+                if match_score >= 15 or not preferred_titles:
+                    job_serializable["match_score"] = round(min(match_score, 100), 1)
+                    job_serializable["match_reasons"] = match_reasons
+                    recommended_jobs.append(job_serializable)
                 
             except Exception as e:
                 print(f"Error processing job {job.get('_id', 'unknown')}: {str(e)}")
@@ -561,10 +644,17 @@ def get_recommended_jobs_for_user():
         # Sort jobs by match score in descending order (highest match first)
         recommended_jobs.sort(key=lambda x: x.get("match_score", 0), reverse=True)
         
-        return jsonify(recommended_jobs), 200
+        # Limit to top 20 recommendations
+        top_recommendations = recommended_jobs[:20]
+        
+        print(f"✅ Returning {len(top_recommendations)} recommended jobs")
+        if top_recommendations:
+            print(f"🏆 Top match: {top_recommendations[0].get('title')} (Score: {top_recommendations[0].get('match_score')})")
+        
+        return jsonify(top_recommendations), 200
         
     except Exception as e:
-        print(f"Error in get_recommended_jobs_for_user: {str(e)}")
+        print(f"❌ Error in get_recommended_jobs_for_user: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({"error": "Failed to get recommended jobs"}), 500
