@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash, faUser, faLock, faArrowRight, faCheck, faUsers, faBriefcase, faChartLine, faShieldAlt, faQuoteLeft, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash, faUser, faLock, faArrowRight, faUsers, faBriefcase, faChartLine, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import logoImage from '../assets/FINAL LOGO AK.png';
 import '../styles/Login.css';
@@ -15,7 +15,6 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -114,56 +113,6 @@ const Login = () => {
     }
   ];
 
-  const testimonials = [
-    {
-      id: 1,
-      quote: "AksharJobs helped me find my dream job in just 2 weeks. The platform is intuitive and the opportunities are amazing!",
-      author: "Sarah Johnson",
-      role: "Software Engineer at TechCorp"
-    },
-    {
-      id: 2,
-      quote: "The job matching algorithm is incredible. I got matched with 5 perfect opportunities within a week of signing up.",
-      author: "Michael Chen",
-      role: "Product Manager at InnovateLab"
-    },
-    {
-      id: 3,
-      quote: "As a recruiter, AksharJobs has given me access to top-tier talent. The quality of candidates is outstanding.",
-      author: "Emily Rodriguez",
-      role: "HR Director at GlobalTech"
-    },
-    {
-      id: 4,
-      quote: "The career resources and interview prep tools helped me land my current role. Highly recommend to anyone job hunting!",
-      author: "David Kim",
-      role: "Data Scientist at DataFlow"
-    },
-    {
-      id: 5,
-      quote: "The community features and networking opportunities are fantastic. I've made valuable professional connections here.",
-      author: "Lisa Thompson",
-      role: "Marketing Specialist at BrandCo"
-    }
-  ];
-
-  // Auto-slide testimonials
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 4000); // Change every 4 seconds
-
-    return () => clearInterval(interval);
-  }, [testimonials.length]);
-
-  const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  };
-
-  const prevTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev - 1 + testimonials.length) % testimonials.length);
-  };
-
   return (
     <div className="login-container">
       <motion.div 
@@ -204,63 +153,6 @@ const Login = () => {
                     </div>
                   </motion.div>
                 ))}
-              </div>
-            </div>
-
-            <div className="testimonials-container">
-              <div className="testimonials-header">
-                <h3>What Our Users Say</h3>
-              </div>
-              
-              <div className="testimonial-slider">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentTestimonial}
-                    className="testimonial"
-                    initial={{ opacity: 0, x: 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -50 }}
-                    transition={{ duration: 0.5, ease: "easeInOut" }}
-                  >
-                    <div className="quote">
-                      <FontAwesomeIcon icon={faQuoteLeft} className="quote-icon" />
-                      <p>{testimonials[currentTestimonial].quote}</p>
-                      <div className="author">
-                        <span className="name">{testimonials[currentTestimonial].author}</span>
-                        <span className="role">{testimonials[currentTestimonial].role}</span>
-                      </div>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-                
-                <div className="testimonial-controls">
-                  <button 
-                    className="testimonial-btn prev-btn"
-                    onClick={prevTestimonial}
-                    aria-label="Previous testimonial"
-                  >
-                    <FontAwesomeIcon icon={faChevronLeft} />
-                  </button>
-                  
-                  <div className="testimonial-dots">
-                    {testimonials.map((_, index) => (
-                      <button
-                        key={index}
-                        className={`dot ${index === currentTestimonial ? 'active' : ''}`}
-                        onClick={() => setCurrentTestimonial(index)}
-                        aria-label={`Go to testimonial ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                  
-                  <button 
-                    className="testimonial-btn next-btn"
-                    onClick={nextTestimonial}
-                    aria-label="Next testimonial"
-                  >
-                    <FontAwesomeIcon icon={faChevronRight} />
-                  </button>
-                </div>
               </div>
             </div>
           </div>
