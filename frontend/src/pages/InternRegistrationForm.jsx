@@ -353,6 +353,35 @@ const InternRegistrationForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Age verification - User must be 18 or older
+    if (formData.dateOfBirth) {
+      const birthDate = new Date(formData.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      // Adjust age if birthday hasn't occurred this year yet
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      if (age < 18) {
+        alert('You must be at least 18 years old to create an account. You will be redirected to the homepage.');
+        // Clear user session and redirect to homepage
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userFirstName');
+        localStorage.removeItem('userLastName');
+        sessionStorage.clear();
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+        return;
+      }
+    }
+    
     if (formData.coreSkills.length === 0) {
       alert('Please add at least one skill');
       return;
@@ -393,14 +422,31 @@ const InternRegistrationForm = () => {
         body: formDataToSend
       });
 
+      const responseData = await response.json();
+
       if (response.ok) {
         setSubmitError('✓ Profile created successfully! Redirecting to dashboard...');
         setTimeout(() => {
           navigate('/intern-dashboard');
         }, 2000);
       } else {
-        const errorData = await response.json();
-        setSubmitError(errorData.message || 'Error creating profile. Please try again.');
+        // Check if this is an age restriction error
+        if (responseData.age_restriction) {
+          alert('You must be at least 18 years old to create an account. You will be redirected to the homepage.');
+          // Clear user session and redirect to homepage
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userFirstName');
+          localStorage.removeItem('userLastName');
+          sessionStorage.clear();
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        } else {
+          setSubmitError(responseData.message || responseData.error || 'Error creating profile. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error submitting form:', error);

@@ -125,6 +125,29 @@ def submit_intern_details():
             'submittedAt': intern_service.get_current_timestamp()
         }
         
+        # Age verification - User must be 18 or older
+        date_of_birth = intern_data.get('dateOfBirth')
+        if date_of_birth:
+            try:
+                from datetime import datetime
+                birth_date = datetime.strptime(date_of_birth, '%Y-%m-%d')
+                today = datetime.now()
+                age = today.year - birth_date.year
+                
+                # Adjust age if birthday hasn't occurred this year yet
+                if (today.month, today.day) < (birth_date.month, birth_date.day):
+                    age -= 1
+                
+                if age < 18:
+                    print(f"Age verification failed: Intern is {age} years old (under 18)")
+                    return jsonify({
+                        "error": "You must be at least 18 years old to create an account.",
+                        "age_restriction": True
+                    }), 400
+            except ValueError as e:
+                print(f"Invalid date format for dateOfBirth: {date_of_birth}, error: {e}")
+                return jsonify({"error": "Invalid date of birth format"}), 400
+        
         # Handle profile photo upload (50KB limit)
         profile_photo_path = None
         if 'profilePhoto' in request.files:

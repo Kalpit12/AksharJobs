@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime
 from utils.db import get_db
 from bson import ObjectId
+from utils.profile_progress import calculate_profile_completion, get_profile_status, get_completion_message
 
 jobseeker_registration_routes = Blueprint('jobseeker_registration_routes', __name__)
 
@@ -59,8 +60,23 @@ def complete_jobseeker_profile():
         is_draft = request.form.get('isDraft', 'false').lower() == 'true'
         profile_completed = request.form.get('profileCompleted', 'false').lower() == 'true'
         
+        print(f"\n{'='*80}")
+        print(f"📥 RECEIVED DATA FROM FRONTEND")
+        print(f"{'='*80}")
         print(f"📋 Submission mode: {'DRAFT' if is_draft else 'FINAL'}")
         print(f"📋 Profile completed: {profile_completed}")
+        print(f"📋 Total form fields received: {len(request.form)}")
+        print(f"📋 Total files received: {len(request.files)}")
+        
+        # Log first 20 form fields to verify data is being sent
+        print(f"\n📝 Sample of received form fields:")
+        for idx, (key, value) in enumerate(list(request.form.items())[:20]):
+            value_preview = str(value)[:100] if value else "EMPTY"
+            print(f"  {idx+1}. {key}: {value_preview}")
+        
+        if len(request.form) > 20:
+            print(f"  ... and {len(request.form) - 20} more fields")
+        print(f"{'='*80}\n")
         
         # Parse comprehensive form data
         try:
@@ -110,27 +126,53 @@ def complete_jobseeker_profile():
             
             # Section 5: Work Experience (Array)
             experience_entries_str = request.form.get('experienceEntries')
-            experience_entries = json.loads(experience_entries_str) if experience_entries_str else []
+            try:
+                experience_entries = json.loads(experience_entries_str) if experience_entries_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing experienceEntries: {e}, value: {experience_entries_str[:100]}")
+                experience_entries = []
             
             # Section 6: Education (Array)
             education_entries_str = request.form.get('educationEntries')
-            education_entries = json.loads(education_entries_str) if education_entries_str else []
+            try:
+                education_entries = json.loads(education_entries_str) if education_entries_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing educationEntries: {e}, value: {education_entries_str[:100]}")
+                education_entries = []
             
             # Section 7: Skills & Competencies
             core_skills_str = request.form.get('coreSkills')
             tools_str = request.form.get('tools')
+            try:
+                core_skills = json.loads(core_skills_str) if core_skills_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing coreSkills: {e}, value: {core_skills_str[:100] if core_skills_str else 'None'}")
+                core_skills = []
+            try:
+                tools = json.loads(tools_str) if tools_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing tools: {e}, value: {tools_str[:100] if tools_str else 'None'}")
+                tools = []
             skills_info = {
-                'coreSkills': json.loads(core_skills_str) if core_skills_str else [],
-                'tools': json.loads(tools_str) if tools_str else []
+                'coreSkills': core_skills,
+                'tools': tools
             }
             
             # Section 8: Languages (Array)
             languages_str = request.form.get('languages')
-            languages = json.loads(languages_str) if languages_str else []
+            try:
+                languages = json.loads(languages_str) if languages_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing languages: {e}, value: {languages_str[:100] if languages_str else 'None'}")
+                languages = []
             
             # Section 9: Certifications (Array)
             certification_entries_str = request.form.get('certificationEntries')
-            certification_entries = json.loads(certification_entries_str) if certification_entries_str else []
+            try:
+                certification_entries = json.loads(certification_entries_str) if certification_entries_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing certificationEntries: {e}, value: {certification_entries_str[:100] if certification_entries_str else 'None'}")
+                certification_entries = []
             
             # Section 10: Professional Memberships
             memberships = {
@@ -141,11 +183,19 @@ def complete_jobseeker_profile():
             
             # Section 11: References (Array)
             reference_entries_str = request.form.get('referenceEntries')
-            reference_entries = json.loads(reference_entries_str) if reference_entries_str else []
+            try:
+                reference_entries = json.loads(reference_entries_str) if reference_entries_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing referenceEntries: {e}, value: {reference_entries_str[:100] if reference_entries_str else 'None'}")
+                reference_entries = []
             
             # Section 12: Professional Online Presence (Array)
             professional_links_str = request.form.get('professionalLinks')
-            professional_links = json.loads(professional_links_str) if professional_links_str else []
+            try:
+                professional_links = json.loads(professional_links_str) if professional_links_str else []
+            except json.JSONDecodeError as e:
+                print(f"Error parsing professionalLinks: {e}, value: {professional_links_str[:100] if professional_links_str else 'None'}")
+                professional_links = []
             
             # Section 13: Job Preferences & Availability
             job_preferences = {
@@ -169,8 +219,41 @@ def complete_jobseeker_profile():
             }
             
         except Exception as e:
-            print(f"Error parsing form data: {e}")
-            return jsonify({"error": f"Error parsing form data: {str(e)}"}), 400
+            print(f"Unexpected error parsing form data: {e}")
+            import traceback
+            traceback.print_exc()
+            # For draft saves, continue even if there are parsing errors
+            if is_draft:
+                print(f"⚠️  Continuing with draft save despite parsing error")
+            else:
+                return jsonify({"error": f"Error parsing form data: {str(e)}"}), 400
+        
+        # Age verification - User must be 18 or older
+        # Skip age verification for draft saves
+        if not is_draft:
+            date_of_birth = personal_info.get('dateOfBirth')
+            if date_of_birth:
+                try:
+                    # datetime is already imported at the top of the file
+                    birth_date = datetime.strptime(date_of_birth, '%Y-%m-%d')
+                    today = datetime.now()
+                    age = today.year - birth_date.year
+                    
+                    # Adjust age if birthday hasn't occurred this year yet
+                    if (today.month, today.day) < (birth_date.month, birth_date.day):
+                        age -= 1
+                    
+                    if age < 18:
+                        print(f"Age verification failed: User is {age} years old (under 18)")
+                        return jsonify({
+                            "error": "You must be at least 18 years old to create an account.",
+                            "age_restriction": True
+                        }), 400
+                except ValueError as e:
+                    print(f"Invalid date format for dateOfBirth: {date_of_birth}, error: {e}")
+                    return jsonify({"error": "Invalid date of birth format"}), 400
+        else:
+            print(f"⚠️  Skipping age verification for draft save")
         
         # Handle file uploads
         profile_photo_path = None
@@ -207,53 +290,69 @@ def complete_jobseeker_profile():
         
         # Prepare comprehensive update data
         # Save BOTH nested AND flat to ensure 100% data retrieval
+        # Initialize with defaults to prevent any None issues
+        personal_info = personal_info or {}
+        nationality_residency = nationality_residency or {}
+        preferred_locations = preferred_locations or {}
+        professional_profile = professional_profile or {}
+        experience_entries = experience_entries or []
+        education_entries = education_entries or []
+        skills_info = skills_info or {}
+        languages = languages or []
+        certification_entries = certification_entries or []
+        memberships = memberships or {}
+        reference_entries = reference_entries or []
+        professional_links = professional_links or []
+        job_preferences = job_preferences or {}
+        additional_info = additional_info or {}
+        
         update_data = {
-            # Personal Information - FLAT
-            'firstName': personal_info['firstName'],
-            'middleName': personal_info['middleName'],
-            'lastName': personal_info['lastName'],
-            'fullName': f"{personal_info['firstName']} {personal_info.get('middleName', '')} {personal_info['lastName']}".replace('  ', ' ').strip(),
-            'email': personal_info['email'],
-            'phone': personal_info['phone'],
-            'altPhone': personal_info['altPhone'],
-            'dateOfBirth': personal_info['dateOfBirth'],
-            'gender': personal_info['gender'],
-            'community': personal_info['community'],
-            'bloodGroup': personal_info.get('bloodGroup') or additional_info.get('bloodGroup', ''),
+            # Personal Information - FLAT (use .get() for safety)
+            'firstName': personal_info.get('firstName', ''),
+            'middleName': personal_info.get('middleName', ''),
+            'lastName': personal_info.get('lastName', ''),
+            'fullName': f"{personal_info.get('firstName', '')} {personal_info.get('middleName', '')} {personal_info.get('lastName', '')}".replace('  ', ' ').strip(),
+            'email': personal_info.get('email', ''),
+            'phone': personal_info.get('phone', ''),
+            'altPhone': personal_info.get('altPhone', ''),
+            'dateOfBirth': personal_info.get('dateOfBirth', ''),
+            'gender': personal_info.get('gender', ''),
+            'community': personal_info.get('community', ''),
+            'bloodGroup': personal_info.get('bloodGroup', '') or additional_info.get('bloodGroup', ''),
             
-            # Nationality & Residency - FLAT
-            'nationality': nationality_residency['nationality'],
-            'residentCountry': nationality_residency['residentCountry'],
-            'currentCity': nationality_residency['currentCity'],
-            'postalCode': nationality_residency['postalCode'],
-            'address': nationality_residency['address'],
-            'latitude': nationality_residency['latitude'],
-            'longitude': nationality_residency['longitude'],
-            'workPermit': nationality_residency['workPermit'],
+            # Nationality & Residency - FLAT (use .get() for safety)
+            'nationality': nationality_residency.get('nationality', ''),
+            'residentCountry': nationality_residency.get('residentCountry', ''),
+            'currentCity': nationality_residency.get('currentCity', ''),
+            'postalCode': nationality_residency.get('postalCode', ''),
+            'address': nationality_residency.get('address', ''),
+            'latitude': nationality_residency.get('latitude', ''),
+            'longitude': nationality_residency.get('longitude', ''),
+            'workPermit': nationality_residency.get('workPermit', ''),
             'location': {
-                'latitude': nationality_residency['latitude'],
-                'longitude': nationality_residency['longitude'],
-                'address': nationality_residency['address'],
-                'city': nationality_residency['currentCity'],
-                'country': nationality_residency['residentCountry']
+                'latitude': nationality_residency.get('latitude', ''),
+                'longitude': nationality_residency.get('longitude', ''),
+                'address': nationality_residency.get('address', ''),
+                'city': nationality_residency.get('currentCity', ''),
+                'country': nationality_residency.get('residentCountry', '')
             },
             
-            # Preferred Working Locations - FLAT
-            'preferredLocation1': preferred_locations['preferredLocation1'],
-            'preferredLocation2': preferred_locations['preferredLocation2'],
-            'preferredLocation3': preferred_locations['preferredLocation3'],
-            'willingToRelocate': preferred_locations['willingToRelocate'],
-            'workLocation': preferred_locations['workLocation'],
+            # Preferred Working Locations - FLAT (use .get() for safety)
+            'preferredLocation1': preferred_locations.get('preferredLocation1', ''),
+            'preferredLocation2': preferred_locations.get('preferredLocation2', ''),
+            'preferredLocation3': preferred_locations.get('preferredLocation3', ''),
+            'willingToRelocate': preferred_locations.get('willingToRelocate', ''),
+            'workLocation': preferred_locations.get('workLocation', ''),
             'preferredLocations': preferred_locations,  # Also keep nested for backward compatibility
             
-            # Professional Profile - FLAT
-            'professionalTitle': professional_profile['professionalTitle'],
-            'yearsExperience': professional_profile['yearsExperience'],
-            'yearsOfExperience': professional_profile['yearsExperience'],  # Also save as yearsOfExperience
-            'careerLevel': professional_profile['careerLevel'],
-            'industry': professional_profile['industry'],
-            'summary': professional_profile['summary'],
-            'professionalSummary': professional_profile['summary'],
+            # Professional Profile - FLAT (use .get() for safety)
+            'professionalTitle': professional_profile.get('professionalTitle', ''),
+            'yearsExperience': professional_profile.get('yearsExperience', ''),
+            'yearsOfExperience': professional_profile.get('yearsExperience', ''),  # Also save as yearsOfExperience
+            'careerLevel': professional_profile.get('careerLevel', ''),
+            'industry': professional_profile.get('industry', ''),
+            'summary': professional_profile.get('summary', ''),
+            'professionalSummary': professional_profile.get('summary', ''),
             'professionalProfile': professional_profile,  # Also keep nested
             
             # Work Experience (Array) - FLAT
@@ -265,10 +364,10 @@ def complete_jobseeker_profile():
             'educationEntries': education_entries,
             'education': education_entries,
             
-            # Skills & Competencies - FLAT
-            'coreSkills': skills_info['coreSkills'],
-            'tools': skills_info['tools'],
-            'skills': skills_info['coreSkills'] + skills_info['tools'],  # Combined for search
+            # Skills & Competencies - FLAT (use .get() for safety)
+            'coreSkills': skills_info.get('coreSkills', []),
+            'tools': skills_info.get('tools', []),
+            'skills': skills_info.get('coreSkills', []) + skills_info.get('tools', []),  # Combined for search
             
             # Languages (Array) - FLAT
             'languages': languages,
@@ -309,11 +408,14 @@ def complete_jobseeker_profile():
             'additionalInfo': additional_info,  # Also keep nested
             
             # Meta information
-            'profileCompleted': profile_completed,
+            # CRITICAL: If draft, set profileCompleted to False regardless of form value
+            'profileCompleted': False if is_draft else profile_completed,
+            'hasCompletedProfile': False if is_draft else profile_completed,
             'isDraft': is_draft,
-            'comprehensiveProfileCompleted': profile_completed,
-            'profileCompletedAt': datetime.utcnow() if profile_completed else None,
+            'comprehensiveProfileCompleted': False if is_draft else profile_completed,
+            'profileCompletedAt': datetime.utcnow() if (profile_completed and not is_draft) else None,
             'draftSavedAt': datetime.utcnow() if is_draft else None,
+            'lastUpdatedAt': datetime.utcnow(),
             'updatedAt': datetime.utcnow()
         }
         
@@ -343,13 +445,57 @@ def complete_jobseeker_profile():
         print(f"  ✓ languages: {len(update_data.get('languages', []))} items")
         print(f"{'='*80}\n")
         
-        # Update user in database
-        result = users_collection.update_one(
-            {'_id': user_object_id},
-            {'$set': update_data}
-        )
+        # Update user in database with error handling
+        try:
+            result = users_collection.update_one(
+                {'_id': user_object_id},
+                {'$set': update_data}
+            )
+        except Exception as db_error:
+            print(f"❌ DATABASE UPDATE ERROR: {db_error}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                "error": f"Database error: {str(db_error)}",
+                "details": "Failed to save profile data to database"
+            }), 500
         
-        print(f"✅ Users collection update result: {result.modified_count} documents modified")
+        print(f"\n{'='*80}")
+        print(f"💾 DATABASE UPDATE RESULTS")
+        print(f"{'='*80}")
+        print(f"✅ Matched documents: {result.matched_count}")
+        print(f"✅ Modified documents: {result.modified_count}")
+        
+        if result.modified_count == 0 and result.matched_count > 0:
+            print(f"⚠️  WARNING: Document matched but not modified (data might be identical)")
+        elif result.modified_count > 0:
+            print(f"✅ SUCCESS: Data saved to users collection")
+        else:
+            print(f"❌ ERROR: No documents matched or modified!")
+        print(f"{'='*80}\n")
+        
+        # VERIFICATION: Read back the data to confirm it was saved
+        print(f"🔍 VERIFYING SAVED DATA...")
+        saved_user = users_collection.find_one({'_id': user_object_id})
+        if saved_user:
+            verification_fields = ['dateOfBirth', 'gender', 'professionalTitle', 'yearsExperience', 'currentCity']
+            print(f"✅ Verification - checking key fields:")
+            for field in verification_fields:
+                value = saved_user.get(field)
+                if value:
+                    print(f"  ✓ {field}: {value}")
+                else:
+                    print(f"  ❌ {field}: MISSING!")
+            
+            # Check arrays
+            print(f"\n✅ Verification - checking arrays:")
+            print(f"  ✓ coreSkills: {len(saved_user.get('coreSkills', []))} items")
+            print(f"  ✓ experienceEntries: {len(saved_user.get('experienceEntries', []))} items")
+            print(f"  ✓ educationEntries: {len(saved_user.get('educationEntries', []))} items")
+            print(f"  ✓ languages: {len(saved_user.get('languages', []))} items")
+        else:
+            print(f"❌ ERROR: Could not read back saved data!")
+        print(f"\n")
         
         if result.matched_count > 0:
             # Create comprehensive job seeker profile entry
@@ -379,29 +525,46 @@ def complete_jobseeker_profile():
                 'updatedAt': datetime.utcnow()
             }
             
-            # Insert or update job seeker profile
-            jobseeker_profiles_collection.update_one(
-                {'userId': user_object_id},
-                {'$set': profile_entry},
-                upsert=True
-            )
+            # Insert or update job seeker profile with error handling
+            try:
+                jobseeker_profiles_collection.update_one(
+                    {'userId': user_object_id},
+                    {'$set': profile_entry},
+                    upsert=True
+                )
+            except Exception as profile_db_error:
+                print(f"⚠️  WARNING: Failed to update jobseeker_profiles collection: {profile_db_error}")
+                # Don't fail the whole request - users collection was already updated
+                import traceback
+                traceback.print_exc()
             
             if is_draft:
                 print("✅ Job seeker profile saved as DRAFT")
+                print(f"📊 Draft Progress: Data saved but profile marked as incomplete")
+                print(f"   - profileCompleted: False")
+                print(f"   - isDraft: True")
+                print(f"   - Data will be available for editing")
                 return jsonify({
                     "success": True,
                     "message": "Profile saved as draft successfully",
                     "profileCompleted": False,
+                    "hasCompletedProfile": False,
                     "isDraft": True,
-                    "draftSavedAt": datetime.utcnow().isoformat()
+                    "draftSavedAt": datetime.utcnow().isoformat(),
+                    "needsCompletion": True
                 }), 200
             else:
                 print("✅ Job seeker profile COMPLETED successfully")
+                print(f"📊 Profile Complete: All data saved and profile marked as complete")
+                print(f"   - profileCompleted: True")
+                print(f"   - isDraft: False")
             return jsonify({
                 "success": True,
                 "message": "Job seeker profile completed successfully",
                 "profileCompleted": True,
-                "comprehensiveProfileCompleted": True
+                "hasCompletedProfile": True,
+                "comprehensiveProfileCompleted": True,
+                "isDraft": False
             }), 200
         else:
             print("Failed to update user profile")
@@ -778,19 +941,40 @@ def get_comprehensive_profile():
             '_id': str(profile.get('_id')) if profile.get('_id') else '',
             'userId': str(profile.get('userId')) if profile.get('userId') else str(user_object_id),
             'createdAt': profile.get('createdAt'),
-            'updatedAt': profile.get('updatedAt') or (user_data.get('updatedAt') if user_data else None)
+            'updatedAt': profile.get('updatedAt') or (user_data.get('updatedAt') if user_data else None),
+            
+            # Profile completion status
+            'profileCompleted': (user_data.get('profileCompleted') if user_data else None) or profile.get('profileCompleted') or False,
+            'hasCompletedProfile': (user_data.get('hasCompletedProfile') if user_data else None) or profile.get('hasCompletedProfile') or False,
+            'isDraft': (user_data.get('isDraft') if user_data else None) or profile.get('isDraft') or False,
+            'draftSavedAt': (user_data.get('draftSavedAt') if user_data else None) or profile.get('draftSavedAt'),
+            'comprehensiveProfileCompleted': (user_data.get('comprehensiveProfileCompleted') if user_data else None) or profile.get('comprehensiveProfileCompleted') or False
         }
+        
+        # Calculate profile completion percentage
+        profile_status = get_profile_status(flattened_profile)
+        completion_percentage = profile_status['completionPercentage']
+        completion_message = get_completion_message(
+            completion_percentage, 
+            flattened_profile.get('isDraft', False)
+        )
+        
+        # Add profile status to response
+        flattened_profile['profileCompletion'] = completion_percentage
+        flattened_profile['profileStatus'] = profile_status
+        flattened_profile['completionMessage'] = completion_message
         
         # Enhanced logging for debugging
         print(f"\n{'='*80}")
         print(f"📊 COMPLETE DATA RETURN DEBUG")
         print(f"{'='*80}")
         print(f"✅ Returning {len([v for v in flattened_profile.values() if v])} filled fields out of {len(flattened_profile)} total fields")
-        print(f"\n📋 Field-by-field breakdown:")
-        for key, value in flattened_profile.items():
-            if value and key not in ['_id', 'userId', 'createdAt', 'updatedAt']:
-                value_preview = str(value)[:50] + '...' if len(str(value)) > 50 else str(value)
-                print(f"  ✓ {key}: {value_preview}")
+        print(f"📊 Profile Completion: {completion_percentage}%")
+        print(f"📋 Profile Status: {profile_status['status']}")
+        print(f"📝 Is Draft: {flattened_profile.get('isDraft', False)}")
+        print(f"✅ Profile Completed: {flattened_profile.get('profileCompleted', False)}")
+        if profile_status['missingFieldsCount'] > 0:
+            print(f"⚠️  Missing Fields ({profile_status['missingFieldsCount']}): {', '.join(profile_status['missingFields'][:5])}")
         print(f"{'='*80}\n")
         
         return jsonify(flattened_profile), 200

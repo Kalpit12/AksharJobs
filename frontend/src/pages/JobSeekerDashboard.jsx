@@ -340,7 +340,9 @@ const JobSeekerDashboard = () => {
         const interviewsScheduled = finalApplications.filter(a => (a.status || '').toLowerCase().includes('interview')).length;
         const savedJobs = initialSaved.size;
 
-        // Calculate profile completion based on actual data
+        // Use backend's unified profile completion calculation
+        // Backend returns profileCompletion from utils/profile_progress.py
+        // This ensures Dashboard and MyProfile show the SAME percentage
         let profileCompletion = 0;
         let isDraft = false;
         
@@ -348,23 +350,29 @@ const JobSeekerDashboard = () => {
           // Check if profile is marked as draft
           isDraft = profile.isDraft === true || profile.profileCompleted === false;
           
-          // Calculate completion percentage based on filled fields
-          const requiredFields = [
-            'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender',
-            'nationality', 'currentCity', 'professionalTitle', 'yearsOfExperience',
-            'careerLevel', 'industry', 'professionalSummary'
-          ];
+          // IMPORTANT: Use backend's calculation for consistency across all pages
+          // Backend uses weighted calculation: Personal (20%), Professional (25%), Skills (15%), etc.
+          profileCompletion = profile.profileCompletion || profile.profileStatus?.completionPercentage || 0;
           
-          const filledFields = requiredFields.filter(field => {
-            const value = profile[field];
-            return value && value.toString().trim() !== '';
-          }).length;
+          console.log('📊 Dashboard - Profile Completion from backend:', profileCompletion);
+          console.log('📝 Dashboard - Is Draft:', isDraft);
+          console.log('✅ Dashboard - Profile Completed:', profile.profileCompleted);
           
-          profileCompletion = Math.round((filledFields / requiredFields.length) * 100);
-          
-          // If it's a draft, cap at 85% to show it's incomplete
-          if (isDraft && profileCompletion > 85) {
-            profileCompletion = 85;
+          // Fallback: If backend didn't return profileCompletion, calculate it
+          if (profileCompletion === 0) {
+            const requiredFields = [
+              'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender',
+              'nationality', 'currentCity', 'professionalTitle', 'yearsOfExperience',
+              'careerLevel', 'industry', 'professionalSummary'
+            ];
+            
+            const filledFields = requiredFields.filter(field => {
+              const value = profile[field];
+              return value && value.toString().trim() !== '';
+            }).length;
+            
+            profileCompletion = Math.round((filledFields / requiredFields.length) * 100);
+            console.log('⚠️  Dashboard - Using fallback calculation:', profileCompletion);
           }
         } else {
           profileCompletion = 0;
@@ -759,7 +767,7 @@ const JobSeekerDashboard = () => {
                 <div className="completion-actions">
                   <button 
                     className="btn btn-complete"
-                    onClick={() => window.location.href = '/jobseeker-registration-comprehensive'}
+                    onClick={() => navigate('/jobseeker-registration')}
                   >
                     <FontAwesomeIcon icon={dashboardData.isDraft ? faEdit : faCheckCircle} /> 
                     {dashboardData.isDraft ? 'Resume Profile' : 

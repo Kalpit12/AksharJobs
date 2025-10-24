@@ -303,6 +303,16 @@ const JobSeekerRegistrationFormComprehensive = () => {
   // Calculate progress - 100% accurate calculation
   useEffect(() => {
     const calculateProgress = () => {
+      // IMPORTANT: Use backend's progress calculation for consistency with dashboard
+      // Backend uses weighted calculation from utils/profile_progress.py
+      if (userProfileData && userProfileData.profileCompletion !== undefined) {
+        const backendProgress = userProfileData.profileCompletion || userProfileData.profileStatus?.completionPercentage || 0;
+        console.log('📊 Using backend progress calculation:', backendProgress, '%');
+        setProgressPercentage(backendProgress);
+        // Still calculate section progress for UI
+        // Continue with local section calculations below for the progress bars per section
+      }
+      
       let filledFields = 0;
       let totalFields = 0;
       let sectionProgress = {};
@@ -516,20 +526,29 @@ const JobSeekerRegistrationFormComprehensive = () => {
       const progress = Math.min((filledFields / totalFields) * 100, 100);
       const roundedProgress = Math.round(progress);
       
-      setProgressPercentage(roundedProgress);
+      // Only use local calculation if backend value is not available
+      if (!userProfileData || userProfileData.profileCompletion === undefined) {
+        setProgressPercentage(roundedProgress);
+      }
       setSectionProgress(sectionProgress);
       
       // Debug logging
+      const finalProgress = (userProfileData && userProfileData.profileCompletion !== undefined) 
+        ? userProfileData.profileCompletion 
+        : roundedProgress;
+      
       console.log('📊 Progress Calculation:', {
         filledFields,
         totalFields,
-        progress: roundedProgress,
+        localProgress: roundedProgress,
+        backendProgress: userProfileData?.profileCompletion,
+        usingProgress: finalProgress,
         sectionProgress
       });
     };
 
     calculateProgress();
-  }, [formData]);
+  }, [formData, userProfileData]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -810,6 +829,17 @@ const JobSeekerRegistrationFormComprehensive = () => {
       formDataToSend.append('draftSavedAt', new Date().toISOString());
       
       console.log('💾 Saving as draft...');
+      console.log('📦 Form data being sent:', {
+        totalFields: Object.keys(formData).length,
+        hasDateOfBirth: !!formData.dateOfBirth,
+        dateOfBirth: formData.dateOfBirth,
+        sampleFields: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone
+        }
+      });
 
       const response = await fetch(buildApiUrl('/api/jobseeker/complete-profile'), {
         method: 'POST',
@@ -819,7 +849,24 @@ const JobSeekerRegistrationFormComprehensive = () => {
         body: formDataToSend
       });
 
-      const data = await response.json();
+      // Clone response so we can read it multiple times if needed
+      const responseClone = response.clone();
+      let data;
+      
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error('❌ Failed to parse response as JSON:', jsonError);
+        console.error('Response status:', response.status, response.statusText);
+        try {
+          const textResponse = await responseClone.text();
+          console.error('Response text:', textResponse);
+        } catch (e) {
+          console.error('Could not read response text');
+        }
+        setSubmitError('Server error occurred. Please check the console and try again.');
+        return;
+      }
 
       if (response.ok) {
         // Keep saved form data for later resumption
@@ -832,7 +879,30 @@ const JobSeekerRegistrationFormComprehensive = () => {
           window.location.href = '/jobseeker-dashboard';
         }, 1500);
       } else {
-        setSubmitError(data.error || 'Failed to save draft. Please try again.');
+        console.error('❌ Draft save failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: data.error,
+          fullResponse: data
+        });
+        
+        // Check if this is an age restriction error
+        if (data.age_restriction) {
+          alert('You must be at least 18 years old to create an account. You will be redirected to the homepage.');
+          // Clear user session and redirect to homepage
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userFirstName');
+          localStorage.removeItem('userLastName');
+          sessionStorage.clear();
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        } else {
+          setSubmitError(data.error || 'Failed to save draft. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Save draft error:', error);
@@ -862,6 +932,35 @@ const JobSeekerRegistrationFormComprehensive = () => {
     const hasEmptyRequiredFields = Array.from(requiredFields).some(field => !field.value);
     if (hasEmptyRequiredFields) {
       return; // Stop submission if there are empty required fields
+    }
+    
+    // Age verification - User must be 18 or older
+    if (formData.dateOfBirth) {
+      const birthDate = new Date(formData.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      // Adjust age if birthday hasn't occurred this year yet
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      if (age < 18) {
+        alert('You must be at least 18 years old to create an account. You will be redirected to the homepage.');
+        // Clear user session and redirect to homepage
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userFirstName');
+        localStorage.removeItem('userLastName');
+        sessionStorage.clear();
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 1500);
+        return;
+      }
     }
     
     // Validation
@@ -954,7 +1053,23 @@ const JobSeekerRegistrationFormComprehensive = () => {
           window.location.href = '/jobseeker-dashboard';
         }, 1000);
       } else {
-        setSubmitError(data.error || 'Failed to submit profile. Please try again.');
+        // Check if this is an age restriction error
+        if (data.age_restriction) {
+          alert('You must be at least 18 years old to create an account. You will be redirected to the homepage.');
+          // Clear user session and redirect to homepage
+          localStorage.removeItem('token');
+          localStorage.removeItem('userRole');
+          localStorage.removeItem('userId');
+          localStorage.removeItem('userEmail');
+          localStorage.removeItem('userFirstName');
+          localStorage.removeItem('userLastName');
+          sessionStorage.clear();
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        } else {
+          setSubmitError(data.error || 'Failed to submit profile. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Submit error:', error);
@@ -976,11 +1091,27 @@ const JobSeekerRegistrationFormComprehensive = () => {
         }
       `}</style>
       <style>{`
+        /* Style for required/mandatory fields - reddish border */
+        .form-group-comprehensive input[required],
+        .form-group-comprehensive select[required],
+        .form-group-comprehensive textarea[required] {
+          border-color: #e74c3c !important;
+          border-width: 2px;
+        }
+        
+        /* Style for optional fields - normal orange border */
+        .form-group-comprehensive input:not([required]),
+        .form-group-comprehensive select:not([required]),
+        .form-group-comprehensive textarea:not([required]) {
+          border-color: #f39c12;
+          border-width: 2px;
+        }
+        
         /* Custom validation styling to show errors above fields */
         .form-group-comprehensive input:invalid,
         .form-group-comprehensive select:invalid,
         .form-group-comprehensive textarea:invalid {
-          border-color: #dc3545;
+          border-color: #dc3545 !important;
           box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.2);
         }
         
@@ -1048,29 +1179,40 @@ const JobSeekerRegistrationFormComprehensive = () => {
           border: 2px solid #dc3545;
         }
         
+        /* Style for required radio buttons */
+        .radio-group-comprehensive input[type="radio"][required] {
+          outline: 2px solid #e74c3c;
+          outline-offset: 2px;
+        }
+        
         /* Ensure validation messages appear above all form elements */
         .form-group-comprehensive input:focus:invalid + .validation-message,
         .form-group-comprehensive select:focus:invalid + .validation-message,
         .form-group-comprehensive textarea:focus:invalid + .validation-message {
           display: block;
         }
+        
+        /* Better visibility for required field labels */
+        .required-comprehensive {
+          color: #e74c3c;
+          font-weight: bold;
+          margin-left: 3px;
+        }
       `}</style>
       {/* Header */}
       <header className="jobseeker-header">
-        <div className="header-container">
-          <div className="header-left">
-            <div className="logo-section" onClick={() => navigate('/jobseeker-dashboard')} style={{ cursor: 'pointer' }}>
-              <div className="logo-icon">
-                <img src="/AK_logo.png" alt="AksharJobs Logo" />
-              </div>
-              <div className="logo-text">
-                <h3 className="logo-title">AksharJobs</h3>
-                <p className="logo-subtitle">Job Seeker Profile</p>
-              </div>
+        <div className="header-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 30px 12px 5px' }}>
+          <div className="header-left" onClick={() => navigate('/jobseeker-dashboard')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div className="logo-icon">
+              <img src="/AK_logo.png" alt="AksharJobs Logo" style={{ width: '50px', height: '50px', objectFit: 'contain' }} />
+            </div>
+            <div className="logo-text">
+              <h3 className="logo-title" style={{ margin: 0, fontSize: '20px', fontWeight: 'bold' }}>AksharJobs</h3>
+              <p className="logo-subtitle" style={{ margin: 0, fontSize: '13px', color: '#6c757d' }}>Job Seeker Profile</p>
             </div>
           </div>
           <div className="header-right">
-            <div className="header-controls">
+            <div className="header-controls" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div className="auto-save-status" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#f8f9fa', borderRadius: '6px', border: '1px solid #e9ecef' }}>
                 {isSaving && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#f39c12' }}>
@@ -1854,7 +1996,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
           <h2 className="section-title-comprehensive" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <span style={{ display: 'flex', alignItems: 'center' }}>
               <FontAwesomeIcon icon={faBriefcase} />
-              Professional Profile
+              Professional Profile (Current Profession)
             </span>
             <span style={{
               background: '#000000',
@@ -2035,12 +2177,38 @@ const JobSeekerRegistrationFormComprehensive = () => {
                   </div>
                   <div className="form-group-comprehensive">
                     <label>Industry</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g., Technology, Finance"
+                    <select 
                       value={experience.jobIndustry}
                       onChange={(e) => handleExperienceChange(index, 'jobIndustry', e.target.value)}
-                    />
+                    >
+                      <option value="">Select Industry</option>
+                      <option value="technology">Technology & IT</option>
+                      <option value="finance">Finance & Banking</option>
+                      <option value="healthcare">Healthcare & Medical</option>
+                      <option value="education">Education & Training</option>
+                      <option value="retail">Retail & E-commerce</option>
+                      <option value="manufacturing">Manufacturing & Production</option>
+                      <option value="construction">Construction & Real Estate</option>
+                      <option value="hospitality">Hospitality & Tourism</option>
+                      <option value="transportation">Transportation & Logistics</option>
+                      <option value="media">Media & Entertainment</option>
+                      <option value="telecommunications">Telecommunications</option>
+                      <option value="agriculture">Agriculture & Farming</option>
+                      <option value="energy">Energy & Utilities</option>
+                      <option value="legal">Legal Services</option>
+                      <option value="consulting">Consulting & Professional Services</option>
+                      <option value="government">Government & Public Sector</option>
+                      <option value="nonprofit">Non-Profit & NGO</option>
+                      <option value="automotive">Automotive</option>
+                      <option value="aerospace">Aerospace & Defense</option>
+                      <option value="pharmaceutical">Pharmaceutical & Biotech</option>
+                      <option value="insurance">Insurance</option>
+                      <option value="marketing">Marketing & Advertising</option>
+                      <option value="hr">Human Resources</option>
+                      <option value="sales">Sales & Business Development</option>
+                      <option value="customerservice">Customer Service & Support</option>
+                      <option value="other">Other</option>
+                    </select>
                   </div>
                 </div>
                 
@@ -2237,7 +2405,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 value={skillInput}
                 onChange={(e) => setSkillInput(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                placeholder="Enter a skill (e.g., Python, Project Management)"
+                placeholder="Enter a skill (e.g., Sales, Project Management)"
               />
               <datalist id="globalSkillsList">
                 {Array.isArray(globalSkills?.skills) && globalSkills.skills.slice(0, 1000).map((s, idx) => (
@@ -2248,11 +2416,58 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <FontAwesomeIcon icon={faPlus} /> Add
               </button>
             </div>
-            <div className="tags-container-comprehensive">
+            <div className="tags-container-comprehensive" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
               {formData.coreSkills.map((skill, index) => (
-                <div key={index} className="tag-comprehensive">
+                <div 
+                  key={index} 
+                  className="tag-comprehensive"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    backgroundColor: '#e7f3ff',
+                    color: '#0a66c2',
+                    borderRadius: '16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    border: '1px solid #d0e8ff',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#d0e8ff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e7f3ff';
+                  }}
+                >
                   {skill}
-                  <span className="remove-comprehensive" onClick={() => removeSkill(index)}>×</span>
+                  <span 
+                    className="remove-comprehensive" 
+                    onClick={() => removeSkill(index)}
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: '#0a66c2',
+                      lineHeight: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0a66c2';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#0a66c2';
+                    }}
+                  >×</span>
                 </div>
               ))}
             </div>
@@ -2272,11 +2487,58 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <FontAwesomeIcon icon={faPlus} /> Add
               </button>
             </div>
-            <div className="tags-container-comprehensive">
+            <div className="tags-container-comprehensive" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '12px' }}>
               {formData.tools.map((tool, index) => (
-                <div key={index} className="tag-comprehensive">
+                <div 
+                  key={index} 
+                  className="tag-comprehensive"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    backgroundColor: '#e7f3ff',
+                    color: '#0a66c2',
+                    borderRadius: '16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    border: '1px solid #d0e8ff',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#d0e8ff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e7f3ff';
+                  }}
+                >
                   {tool}
-                  <span className="remove-comprehensive" onClick={() => removeTool(index)}>×</span>
+                  <span 
+                    className="remove-comprehensive" 
+                    onClick={() => removeTool(index)}
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: '#0a66c2',
+                      lineHeight: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0a66c2';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#0a66c2';
+                    }}
+                  >×</span>
                 </div>
               ))}
             </div>
@@ -2285,26 +2547,62 @@ const JobSeekerRegistrationFormComprehensive = () => {
 
         {/* Languages Section */}
         <div className="section-comprehensive">
-          <h2 className="section-title-comprehensive">
-            <FontAwesomeIcon icon={faLanguage} />
-            Languages
+          <h2 className="section-title-comprehensive" style={{ fontSize: '24px', fontWeight: 'bold', color: '#333', marginBottom: '8px' }}>
+            Languages & Proficiency Levels <span className="required-comprehensive" style={{ color: '#e74c3c' }}>*</span>
           </h2>
           
           <div className="form-group-comprehensive">
-            <label>Languages & Proficiency Levels <span className="required-comprehensive">*</span></label>
-            <div className="info-badge-comprehensive">
-              <FontAwesomeIcon icon={faInfoCircle} /> Language skills are crucial for international opportunities
+            <div className="info-badge-comprehensive" style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              padding: '12px 16px', 
+              backgroundColor: '#e7f3ff', 
+              border: '1px solid #d0e8ff', 
+              borderRadius: '8px', 
+              marginBottom: '20px',
+              color: '#0a66c2',
+              fontSize: '14px'
+            }}>
+              <FontAwesomeIcon icon={faInfoCircle} /> 
+              Language skills are crucial for international opportunities
             </div>
-            <div className="language-proficiency-comprehensive">
+            
+            <div className="language-proficiency-comprehensive" style={{ 
+              display: 'flex', 
+              gap: '12px', 
+              marginBottom: '16px' 
+            }}>
               <input 
                 type="text" 
                 value={languageInput.language}
                 onChange={(e) => setLanguageInput(prev => ({ ...prev, language: e.target.value }))}
                 placeholder="Enter language (e.g., English)"
+                style={{
+                  flex: '2',
+                  padding: '12px 16px',
+                  border: '2px solid #3498db',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  outline: 'none',
+                  transition: 'border-color 0.3s ease'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#2980b9'}
+                onBlur={(e) => e.target.style.borderColor = '#3498db'}
               />
               <select
                 value={languageInput.proficiency}
                 onChange={(e) => setLanguageInput(prev => ({ ...prev, proficiency: e.target.value }))}
+                style={{
+                  flex: '1',
+                  padding: '12px 16px',
+                  border: '2px solid #bdc3c7',
+                  borderRadius: '8px',
+                  fontSize: '16px',
+                  outline: 'none',
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
               >
                 <option value="">Select Level</option>
                 <option value="native">Native/Bilingual</option>
@@ -2314,14 +2612,89 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <option value="basic">Basic</option>
               </select>
             </div>
-            <button type="button" className="add-btn-comprehensive" onClick={addLanguage} style={{ marginTop: '10px' }}>
+            
+            <button 
+              type="button" 
+              className="add-btn-comprehensive" 
+              onClick={addLanguage} 
+              style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '12px 24px',
+                backgroundColor: '#3498db',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+                width: 'auto'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#2980b9'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#3498db'}
+            >
               <FontAwesomeIcon icon={faPlus} /> Add Language
             </button>
-            <div className="tags-container-comprehensive" style={{ marginTop: '15px' }}>
+            
+            <div className="tags-container-comprehensive" style={{ 
+              display: 'flex', 
+              flexWrap: 'wrap', 
+              gap: '8px', 
+              marginTop: '20px' 
+            }}>
               {formData.languages.map((lang, index) => (
-                <div key={index} className="tag-comprehensive">
+                <div 
+                  key={index} 
+                  className="tag-comprehensive"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    backgroundColor: '#e7f3ff',
+                    color: '#0a66c2',
+                    borderRadius: '16px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    border: '1px solid #d0e8ff',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#d0e8ff';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#e7f3ff';
+                  }}
+                >
                   {lang.language} - {lang.proficiency}
-                  <span className="remove-comprehensive" onClick={() => removeLanguage(index)}>×</span>
+                  <span 
+                    className="remove-comprehensive" 
+                    onClick={() => removeLanguage(index)}
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: '#0a66c2',
+                      lineHeight: '1',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: '18px',
+                      height: '18px',
+                      borderRadius: '50%',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0a66c2';
+                      e.currentTarget.style.color = 'white';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = '#0a66c2';
+                    }}
+                  >×</span>
                 </div>
               ))}
             </div>

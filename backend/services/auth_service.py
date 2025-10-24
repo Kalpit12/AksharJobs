@@ -51,6 +51,25 @@ class AuthService:
                     # Allow signup to continue but store empty phone number
                     phone_number = ""
             
+            # Age verification - User must be 18 or older (for job seekers)
+            date_of_birth = data.get("dateOfBirth") or data.get("date_of_birth")
+            if date_of_birth and data.get("userType") == "jobSeeker":
+                try:
+                    birth_date = datetime.strptime(date_of_birth, '%Y-%m-%d')
+                    today = datetime.now()
+                    age = today.year - birth_date.year
+                    
+                    # Adjust age if birthday hasn't occurred this year yet
+                    if (today.month, today.day) < (birth_date.month, birth_date.day):
+                        age -= 1
+                    
+                    if age < 18:
+                        print(f"[ERROR] Age verification failed: User is {age} years old (under 18)")
+                        return {"error": "You must be at least 18 years old to create an account.", "age_restriction": True}, 400
+                except ValueError as e:
+                    print(f"[WARNING] Invalid date format for dateOfBirth: {date_of_birth}, error: {e}")
+                    # Allow signup to continue if date format is invalid
+            
             user_data = {
                 "userType": user_type_mapping.get(data["userType"], data["userType"]),
                 "firstName": data["firstName"],
