@@ -105,6 +105,56 @@ const JobSeekerRegistrationFormComprehensive = () => {
 
   const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
+  // Backend save callback for auto-save hook
+  const backendSaveCallback = React.useCallback(async (data) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('⚠️  No token found, skipping backend auto-save');
+        return;
+      }
+
+      const formDataToSend = new FormData();
+      
+      // Append all fields
+      Object.keys(data).forEach(key => {
+        if (Array.isArray(data[key])) {
+          formDataToSend.append(key, JSON.stringify(data[key]));
+        } else if (data[key] instanceof File) {
+          formDataToSend.append(key, data[key]);
+        } else {
+          formDataToSend.append(key, data[key]);
+        }
+      });
+      
+      // Mark as draft
+      formDataToSend.append('profileCompleted', 'false');
+      formDataToSend.append('isDraft', 'true');
+      formDataToSend.append('draftSavedAt', new Date().toISOString());
+      
+      console.log('💾 Auto-saving to backend...');
+
+      const response = await fetch(buildApiUrl('/api/jobseeker/complete-profile'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formDataToSend
+      });
+
+      if (response.ok) {
+        console.log('✅ Auto-saved to backend successfully');
+        return true;
+      } else {
+        console.error('❌ Backend auto-save failed');
+        return false;
+      }
+    } catch (error) {
+      console.error('Backend auto-save error:', error);
+      return false;
+    }
+  }, []);
+
   // Initialize form data with auto-save (2-minute periodic save)
   const {
     formData,
@@ -112,6 +162,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
     isSaving,
     saveStatus,
     lastSaveTime,
+    lastBackendSaveTime,
     forceSave,
     hasRecentSave,
     clearSavedData
@@ -231,8 +282,8 @@ const JobSeekerRegistrationFormComprehensive = () => {
     },
     AUTOSAVE_KEY,
     1000, // Debounce delay (1 second)
-    null, // No backend save callback
-    true // Enable periodic 2-minute auto-save
+    backendSaveCallback, // Backend save callback for periodic saves
+    true // Enable periodic 2-minute localStorage + 5-minute backend auto-save
   );
 
   const [skillInput, setSkillInput] = useState('');
@@ -804,15 +855,18 @@ const JobSeekerRegistrationFormComprehensive = () => {
     }));
   };
 
-  const handleSaveAsDraft = async () => {
-    setIsLoading(true);
-    setSubmitError('');
-
+  // New function to save to backend (for both manual "Save Now" and auto-save)
+  const saveToBackend = async (showSuccessMessage = false, redirectAfterSave = false) => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.warn('⚠️  No token found, skipping backend save');
+        return false;
+      }
+
       const formDataToSend = new FormData();
       
-      // Append all fields (same as submit but without validation)
+      // Append all fields
       Object.keys(formData).forEach(key => {
         if (Array.isArray(formData[key])) {
           formDataToSend.append(key, JSON.stringify(formData[key]));
@@ -828,17 +882,9 @@ const JobSeekerRegistrationFormComprehensive = () => {
       formDataToSend.append('isDraft', 'true');
       formDataToSend.append('draftSavedAt', new Date().toISOString());
       
-      console.log('💾 Saving as draft...');
-      console.log('📦 Form data being sent:', {
+      console.log('💾 Saving to backend...', {
         totalFields: Object.keys(formData).length,
-        hasDateOfBirth: !!formData.dateOfBirth,
-        dateOfBirth: formData.dateOfBirth,
-        sampleFields: {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          phone: formData.phone
-        }
+        timestamp: new Date().toISOString()
       });
 
       const response = await fetch(buildApiUrl('/api/jobseeker/complete-profile'), {
@@ -849,7 +895,6 @@ const JobSeekerRegistrationFormComprehensive = () => {
         body: formDataToSend
       });
 
-      // Clone response so we can read it multiple times if needed
       const responseClone = response.clone();
       let data;
       
@@ -857,15 +902,12 @@ const JobSeekerRegistrationFormComprehensive = () => {
         data = await response.json();
       } catch (jsonError) {
         console.error('❌ Failed to parse response as JSON:', jsonError);
-        console.error('Response status:', response.status, response.statusText);
-        try {
-          const textResponse = await responseClone.text();
-          console.error('Response text:', textResponse);
-        } catch (e) {
-          console.error('Could not read response text');
+        const textResponse = await responseClone.text();
+        console.error('Response text:', textResponse);
+        if (showSuccessMessage) {
+          setSubmitError('Server error occurred. Please try again.');
         }
-        setSubmitError('Server error occurred. Please check the console and try again.');
-        return;
+        return false;
       }
 
       if (response.ok) {
@@ -873,23 +915,25 @@ const JobSeekerRegistrationFormComprehensive = () => {
         localStorage.setItem('profileCompleted', 'false');
         localStorage.setItem('isDraft', 'true');
         
-        setSubmitError('✓ Draft saved successfully! Redirecting to dashboard...');
+        console.log('✅ Successfully saved to backend');
         
-        setTimeout(() => {
-          window.location.href = '/jobseeker-dashboard';
-        }, 1500);
+        if (showSuccessMessage) {
+          setSubmitError('✓ Data saved successfully!' + (redirectAfterSave ? ' Redirecting to dashboard...' : ''));
+        }
+        
+        if (redirectAfterSave) {
+          setTimeout(() => {
+            window.location.href = '/jobseeker-dashboard';
+          }, 1500);
+        }
+        
+        return true;
       } else {
-        console.error('❌ Draft save failed:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: data.error,
-          fullResponse: data
-        });
+        console.error('❌ Backend save failed:', data);
         
         // Check if this is an age restriction error
         if (data.age_restriction) {
           alert('You must be at least 18 years old to create an account. You will be redirected to the homepage.');
-          // Clear user session and redirect to homepage
           localStorage.removeItem('token');
           localStorage.removeItem('userRole');
           localStorage.removeItem('userId');
@@ -900,10 +944,47 @@ const JobSeekerRegistrationFormComprehensive = () => {
           setTimeout(() => {
             window.location.href = '/';
           }, 1500);
-        } else {
-          setSubmitError(data.error || 'Failed to save draft. Please try again.');
+        } else if (showSuccessMessage) {
+          setSubmitError(data.error || 'Failed to save. Please try again.');
         }
+        
+        return false;
       }
+    } catch (error) {
+      console.error('Backend save error:', error);
+      if (showSuccessMessage) {
+        setSubmitError('Network error. Please try again.');
+      }
+      return false;
+    }
+  };
+
+  // Manual save function (for "Save Now" button)
+  const handleManualSave = async () => {
+    setIsLoading(true);
+    setSubmitError('');
+    
+    try {
+      // First save to localStorage (instant feedback)
+      forceSave();
+      
+      // Then save to backend
+      await saveToBackend(true, false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSaveAsDraft = async () => {
+    setIsLoading(true);
+    setSubmitError('');
+
+    try {
+      // Save to localStorage first
+      forceSave();
+      
+      // Then save to backend and redirect
+      await saveToBackend(true, true);
     } catch (error) {
       console.error('Save draft error:', error);
       setSubmitError('Network error. Please try again.');
@@ -1248,32 +1329,32 @@ const JobSeekerRegistrationFormComprehensive = () => {
               <button
                 className="manual-save-btn"
                 type="button"
-                onClick={forceSave}
-                disabled={isSaving}
+                onClick={handleManualSave}
+                disabled={isSaving || isLoading}
                 style={{
-                  background: isSaving ? '#bdc3c7' : '#3498db',
+                  background: (isSaving || isLoading) ? '#bdc3c7' : '#3498db',
                   color: 'white',
                   border: 'none',
                   padding: '8px 15px',
                   borderRadius: '6px',
-                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  cursor: (isSaving || isLoading) ? 'not-allowed' : 'pointer',
                   fontSize: '13px',
                   fontWeight: '600',
                   marginRight: '10px',
                   transition: 'all 0.3s ease'
                 }}
                 onMouseOver={(e) => {
-                  if (!isSaving) {
+                  if (!isSaving && !isLoading) {
                     e.target.style.background = '#2980b9';
                   }
                 }}
                 onMouseOut={(e) => {
-                  if (!isSaving) {
+                  if (!isSaving && !isLoading) {
                     e.target.style.background = '#3498db';
                   }
                 }}
               >
-                <FontAwesomeIcon icon={faSave} /> {isSaving ? 'Saving...' : 'Save Now'}
+                <FontAwesomeIcon icon={faSave} /> {(isSaving || isLoading) ? 'Saving...' : 'Save Now'}
               </button>
               <button
                 className="draft-save-btn"

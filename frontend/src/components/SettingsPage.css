@@ -1,14 +1,18 @@
 /* Settings Page Container */
 .settings-page-container {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #f9fafb;
 }
 
 .settings-header {
-  margin-bottom: 2rem;
+  margin-bottom: 0;
+  padding: 2rem 3rem;
   text-align: center;
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .settings-header h1 {
@@ -33,8 +37,8 @@
 /* Save Message */
 .save-message {
   padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
+  border-radius: 0;
+  margin: 0 0 2rem 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -68,22 +72,22 @@
 /* Settings Layout */
 .settings-layout {
   display: flex;
-  gap: 2rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  gap: 0;
+  background: transparent;
+  min-height: calc(100vh - 200px);
   overflow: hidden;
 }
 
 /* Tabs Navigation */
 .settings-tabs {
-  width: 280px;
-  min-width: 280px;
+  width: 320px;
+  min-width: 320px;
   background: linear-gradient(180deg, #f97316 0%, #0d9488 100%);
-  padding: 2rem 0;
+  padding: 3rem 0;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-height: 100%;
 }
 
 .settings-tab {
@@ -121,9 +125,10 @@
 /* Settings Content */
 .settings-content {
   flex: 1;
-  padding: 2rem;
+  padding: 3rem 4rem;
   overflow-y: auto;
-  max-height: calc(100vh - 250px);
+  background: white;
+  min-height: calc(100vh - 200px);
 }
 
 .settings-content::-webkit-scrollbar {
@@ -427,6 +432,10 @@ textarea {
     flex-direction: column;
   }
 
+  .settings-header {
+    padding: 1.5rem 2rem;
+  }
+
   .settings-tabs {
     width: 100%;
     min-width: unset;
@@ -434,6 +443,7 @@ textarea {
     overflow-x: auto;
     padding: 1rem 0;
     background: linear-gradient(90deg, #f97316 0%, #0d9488 100%);
+    min-height: auto;
   }
 
   .settings-tab {
@@ -456,7 +466,8 @@ textarea {
   }
 
   .settings-content {
-    max-height: unset;
+    padding: 2rem 3rem;
+    min-height: auto;
   }
 
   .form-row {
@@ -466,7 +477,11 @@ textarea {
 
 @media (max-width: 768px) {
   .settings-page-container {
-    padding: 1rem;
+    padding: 0;
+  }
+
+  .settings-header {
+    padding: 1.5rem 1.5rem;
   }
 
   .settings-header h1 {
@@ -474,11 +489,11 @@ textarea {
   }
 
   .settings-layout {
-    border-radius: 12px;
+    border-radius: 0;
   }
 
   .settings-content {
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
   }
 
   .section-header h2 {
@@ -509,6 +524,10 @@ textarea {
 }
 
 @media (max-width: 480px) {
+  .settings-header {
+    padding: 1rem 1rem;
+  }
+
   .settings-header h1 {
     font-size: 1.75rem;
   }
@@ -528,6 +547,10 @@ textarea {
 
   .settings-tab span {
     font-size: 0.75rem;
+  }
+
+  .settings-content {
+    padding: 1.5rem 1rem;
   }
 
   .section-header h2 {

@@ -683,6 +683,7 @@ const JobSeekerDashboard = () => {
       {/* Main Content */}
       <div className="main-content">
         {/* Top Bar */}
+        {activeSection !== 'settings' && (
         <div className="dashboard-header">
           <div className="search-bar">
             <FontAwesomeIcon icon={faSearch} />
@@ -716,9 +717,10 @@ const JobSeekerDashboard = () => {
             </button>
           </div>
         </div>
+        )}
 
         {/* Content Area */}
-        <div className="content-area" ref={sectionRefs.current.dashboardTop}>
+        <div className={`content-area ${activeSection === 'settings' ? 'settings-active' : ''}`} ref={sectionRefs.current.dashboardTop}>
           {/* Show different content based on active section */}
           {activeSection === 'dashboard' && (
             <>
@@ -1698,7 +1700,7 @@ const JobSeekerDashboard = () => {
 
           {/* Settings Section */}
           {activeSection === 'settings' && (
-            <div ref={sectionRefs.current.settings} style={{ width: '100%', marginTop: '1rem' }}>
+            <div ref={sectionRefs.current.settings} style={{ width: '100%', margin: 0, padding: 0 }}>
               <SettingsPage />
             </div>
           )}

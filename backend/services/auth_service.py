@@ -126,6 +126,7 @@ class AuthService:
                         role_mapping = {
                             "job_seeker": "jobSeeker",
                             "recruiter": "recruiter",
+                            "intern": "intern",
                             "admin": "admin"
                         }
                         
@@ -141,6 +142,8 @@ class AuthService:
                             "email": created_user.get("email", ""),
                             "phoneNumber": created_user.get("phoneNumber", ""),
                             "phone": created_user.get("phoneNumber", ""),
+                            "profileCompleted": False,
+                            "hasCompletedProfile": False,
                             "requiresVerification": False
                         }, 201
                     else:

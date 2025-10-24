@@ -371,6 +371,13 @@
   box-sizing: border-box;
 }
 
+.content-area.settings-active {
+  padding: 0;
+  max-width: none;
+  margin: 0;
+  gap: 0;
+}
+
 /* ===== WELCOME SECTION ===== */
 .welcome-section {
   margin-bottom: 0;

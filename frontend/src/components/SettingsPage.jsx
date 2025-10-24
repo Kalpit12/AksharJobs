@@ -277,13 +277,6 @@ const SettingsPage = () => {
         <p>Manage your account settings and preferences</p>
       </div>
 
-      {saveMessage.text && (
-        <div className={`save-message ${saveMessage.type}`}>
-          <FontAwesomeIcon icon={saveMessage.type === 'success' ? faCheckCircle : faExclamationCircle} />
-          {saveMessage.text}
-        </div>
-      )}
-
       <div className="settings-layout">
         {/* Tabs Navigation */}
         <div className="settings-tabs">
@@ -301,6 +294,12 @@ const SettingsPage = () => {
 
         {/* Tab Content */}
         <div className="settings-content">
+          {saveMessage.text && (
+            <div className={`save-message ${saveMessage.type}`}>
+              <FontAwesomeIcon icon={saveMessage.type === 'success' ? faCheckCircle : faExclamationCircle} />
+              {saveMessage.text}
+            </div>
+          )}
           {/* Profile Settings */}
           {activeTab === 'profile' && (
             <div className="settings-section">

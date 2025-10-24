@@ -457,7 +457,6 @@ const Signup = () => {
                     )}
                     {passwordStrength.score >= 3 && (
                       <div className="strength-success">
-                        <FontAwesomeIcon icon={faCheck} className="success-icon" />
                         Great! Your password is strong enough.
                       </div>
                     )}

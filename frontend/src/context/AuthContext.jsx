@@ -180,13 +180,6 @@ export const AuthProvider = ({ children }) => {
           return;
         }
         
-        // Interns go directly to their dashboard (no separate registration form needed)
-        if (normalizedRole === 'intern') {
-          console.log('🔐 AuthContext - Intern user, redirecting to intern dashboard');
-          navigate('/intern-dashboard');
-          return;
-        }
-        
         // Default dashboard redirect - check profile completion first
         console.log('🔐 AuthContext - Navigating to dashboard for role:', normalizedRole);
         console.log('🔐 AuthContext - Profile completed status:', otherData.profileCompleted);
@@ -208,6 +201,15 @@ export const AuthProvider = ({ children }) => {
             navigate('/jobseeker-registration');
           } else {
             navigate('/jobseeker-dashboard');
+          }
+        } else if (normalizedRole === 'intern') {
+          // Check if intern has completed profile
+          if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
+            console.log('🔐 AuthContext - Intern profile incomplete, redirecting to registration');
+            navigate('/intern-registration');
+          } else {
+            console.log('🔐 AuthContext - Intern profile complete, redirecting to dashboard');
+            navigate('/intern-dashboard');
           }
         } else {
           // Default to job seeker dashboard
@@ -286,13 +288,6 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       
-      // Interns go directly to their dashboard (no separate registration form needed)
-      if (normalizedRole === 'intern') {
-        console.log('🔐 AuthContext - Intern user, redirecting to intern dashboard');
-        navigate('/intern-dashboard');
-        return;
-      }
-      
       // Default dashboard redirect - check profile completion first
       console.log('🔐 AuthContext - Navigating to dashboard for role:', normalizedRole);
       console.log('🔐 AuthContext - Profile completed status:', otherData.profileCompleted);
@@ -314,6 +309,15 @@ export const AuthProvider = ({ children }) => {
           navigate('/jobseeker-registration');
         } else {
           navigate('/jobseeker-dashboard');
+        }
+      } else if (normalizedRole === 'intern') {
+        // Check if intern has completed profile
+        if (!otherData.profileCompleted && !otherData.hasCompletedProfile) {
+          console.log('🔐 AuthContext - Intern profile incomplete, redirecting to registration');
+          navigate('/intern-registration');
+        } else {
+          console.log('🔐 AuthContext - Intern profile complete, redirecting to dashboard');
+          navigate('/intern-dashboard');
         }
       } else {
         // Default to job seeker dashboard

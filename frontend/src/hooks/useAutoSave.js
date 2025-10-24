@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param {Object} initialData - Initial form data
  * @param {string} storageKey - Local storage key for saving data
  * @param {number} delay - Delay in milliseconds before saving (default: 1000)
- * @param {Function} onSave - Optional callback when data is saved
+ * @param {Function} onSave - Optional callback when data is saved (e.g., backend save function)
  * @param {boolean} enablePeriodicSave - Enable periodic auto-save every 2 minutes (default: false)
  * @returns {Object} - { formData, setFormData, isSaving, saveStatus, clearSavedData }
  */
@@ -14,8 +14,10 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
   const [isSaving, setIsSaving] = useState(false);
   const [saveStatus, setSaveStatus] = useState(null);
   const [lastSaveTime, setLastSaveTime] = useState(null);
+  const [lastBackendSaveTime, setLastBackendSaveTime] = useState(null);
   const timeoutRef = useRef(null);
   const periodicIntervalRef = useRef(null);
+  const backendSaveIntervalRef = useRef(null);
   const isInitialLoad = useRef(true);
 
   // Load saved data on mount
@@ -134,13 +136,13 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     };
   }, [formData, delay, storageKey, saveFormData]);
 
-  // Periodic auto-save effect (every 2 minutes)
+  // Periodic auto-save effect (every 2 minutes) - localStorage only
   useEffect(() => {
     if (!enablePeriodicSave || !storageKey || isInitialLoad.current) return;
 
     // Set up periodic save interval (2 minutes = 120000ms)
     periodicIntervalRef.current = setInterval(() => {
-      console.log('🔄 Auto-saving form data (2-minute interval)...');
+      console.log('🔄 Auto-saving form data to localStorage (2-minute interval)...');
       saveFormData();
     }, 120000); // 2 minutes
 
@@ -151,6 +153,39 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
       }
     };
   }, [enablePeriodicSave, storageKey, saveFormData]);
+
+  // Periodic backend save effect (every 5 minutes) - calls onSave if provided
+  useEffect(() => {
+    if (!enablePeriodicSave || !onSave || typeof onSave !== 'function' || isInitialLoad.current) return;
+
+    // Set up periodic backend save interval (5 minutes = 300000ms)
+    backendSaveIntervalRef.current = setInterval(async () => {
+      console.log('🔄 Auto-saving form data to backend (5-minute interval)...');
+      setIsSaving(true);
+      setSaveStatus('saving-backend');
+      try {
+        await onSave(formData);
+        const saveTime = new Date();
+        setLastBackendSaveTime(saveTime);
+        setSaveStatus('saved-backend');
+        console.log(`✅ Form auto-saved to backend at ${saveTime.toLocaleTimeString()}`);
+        setTimeout(() => setSaveStatus(null), 3000);
+      } catch (error) {
+        console.error('Error in periodic backend save:', error);
+        setSaveStatus('error-backend');
+        setTimeout(() => setSaveStatus(null), 4000);
+      } finally {
+        setIsSaving(false);
+      }
+    }, 300000); // 5 minutes
+
+    // Cleanup interval on unmount
+    return () => {
+      if (backendSaveIntervalRef.current) {
+        clearInterval(backendSaveIntervalRef.current);
+      }
+    };
+  }, [enablePeriodicSave, onSave, formData]);
 
 
   // Manual save function
@@ -207,6 +242,7 @@ export const useAutoSave = (initialData = {}, storageKey, delay = 1000, onSave =
     isSaving,
     saveStatus,
     lastSaveTime,
+    lastBackendSaveTime,
     manualSave,
     forceSave,
     hasRecentSave,
