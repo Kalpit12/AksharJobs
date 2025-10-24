@@ -31,7 +31,7 @@ def clear_database():
     
     print("🔌 Connecting to MongoDB...")
     client = MongoClient(mongo_uri)
-    db = client['AksharJobs']  # Your database name
+    db = client['TalentMatchDB']  # Your actual database name in Atlas
     
     print("\n⚠️  WARNING: This will delete ALL user data from the database!")
     print("Collections to be cleared:")
@@ -115,7 +115,7 @@ def clear_users_only():
     
     print("🔌 Connecting to MongoDB...")
     client = MongoClient(mongo_uri)
-    db = client['AksharJobs']
+    db = client['TalentMatchDB']
     
     print("\n⚠️  WARNING: This will delete ALL users!")
     print("Other data (jobs, etc.) will remain.")
