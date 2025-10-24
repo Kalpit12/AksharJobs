@@ -86,7 +86,7 @@ class InternService:
     
     def get_intern_profile(self, user_id):
         """
-        Retrieve comprehensive intern profile data
+        Retrieve comprehensive intern profile data with all fields
         """
         try:
             user = self.users_collection.find_one(
@@ -96,35 +96,103 @@ class InternService:
             
             if user:
                 # Check for comprehensive profile first, then fallback to basic intern details
-                if 'comprehensiveInternProfile' in user:
-                    # Merge user basic info with comprehensive intern details
-                    profile = {
-                        'userId': str(user['_id']),
-                        'email': user.get('email'),
-                        'firstName': user.get('firstName'),
-                        'lastName': user.get('lastName'),
-                        'profileType': 'comprehensive',
-                        **user.get('comprehensiveInternProfile', {})
-                    }
-                    return profile
-                elif 'internDetails' in user:
-                    # Merge user basic info with basic intern details
-                    profile = {
-                        'userId': str(user['_id']),
-                        'email': user.get('email'),
-                        'firstName': user.get('firstName'),
-                        'lastName': user.get('lastName'),
-                        'profileType': 'basic',
-                        **user.get('internDetails', {})
-                    }
-                    return profile
-                else:
-                    return None
+                comp_profile = user.get('comprehensiveInternProfile', {})
+                intern_details = user.get('internDetails', {})
+                
+                # Build comprehensive profile with all possible fields
+                profile = {
+                    'userId': str(user['_id']),
+                    'email': user.get('email') or comp_profile.get('email'),
+                    
+                    # Personal Information
+                    'firstName': user.get('firstName') or comp_profile.get('firstName'),
+                    'lastName': user.get('lastName') or comp_profile.get('lastName'),
+                    'middleName': user.get('middleName') or comp_profile.get('middleName'),
+                    'phone': user.get('phone') or comp_profile.get('phone'),
+                    'altPhone': user.get('altPhone') or comp_profile.get('altPhone'),
+                    'dateOfBirth': user.get('dateOfBirth') or comp_profile.get('dateOfBirth'),
+                    'gender': user.get('gender') or comp_profile.get('gender'),
+                    
+                    # Nationality & Residency
+                    'nationality': comp_profile.get('nationality') or user.get('nationality'),
+                    'residentCountry': comp_profile.get('residentCountry') or user.get('residentCountry'),
+                    'currentCity': comp_profile.get('currentCity') or user.get('currentCity'),
+                    'postalCode': comp_profile.get('postalCode') or user.get('postalCode'),
+                    'address': comp_profile.get('address') or user.get('address'),
+                    'latitude': comp_profile.get('latitude') or user.get('latitude'),
+                    'longitude': comp_profile.get('longitude') or user.get('longitude'),
+                    'validDocs': comp_profile.get('validDocs'),
+                    
+                    # Preferred Locations
+                    'preferredLocation1': comp_profile.get('preferredLocation1'),
+                    'preferredLocation2': comp_profile.get('preferredLocation2'),
+                    'preferredLocation3': comp_profile.get('preferredLocation3'),
+                    'willingToRelocate': comp_profile.get('willingToRelocate'),
+                    'internshipMode': comp_profile.get('internshipMode'),
+                    
+                    # Education
+                    'academicLevel': comp_profile.get('academicLevel'),
+                    'educationEntries': comp_profile.get('educationEntries', []),
+                    
+                    # Career Objective
+                    'objective': comp_profile.get('objective'),
+                    'industryInterest': comp_profile.get('industryInterest'),
+                    'preferredRole': comp_profile.get('preferredRole'),
+                    'careerInterests': comp_profile.get('careerInterests', []),
+                    
+                    # Experience
+                    'experienceEntries': comp_profile.get('experienceEntries', []),
+                    
+                    # Skills
+                    'technicalSkills': comp_profile.get('technicalSkills', []),
+                    'softSkills': comp_profile.get('softSkills', []),
+                    
+                    # Languages
+                    'languages': comp_profile.get('languages', []),
+                    
+                    # Projects
+                    'projectEntries': comp_profile.get('projectEntries', []),
+                    
+                    # Activities
+                    'activityEntries': comp_profile.get('activityEntries', []),
+                    
+                    # Certifications
+                    'certificationEntries': comp_profile.get('certificationEntries', []),
+                    
+                    # References
+                    'referenceEntries': comp_profile.get('referenceEntries', []),
+                    
+                    # Professional Links
+                    'professionalLinks': comp_profile.get('professionalLinks', []),
+                    
+                    # Internship Preferences
+                    'internshipDuration': comp_profile.get('internshipDuration'),
+                    'availability': comp_profile.get('availability'),
+                    'internshipTiming': comp_profile.get('internshipTiming'),
+                    'expectedStipend': comp_profile.get('expectedStipend'),
+                    'currencyPreference': comp_profile.get('currencyPreference', 'USD'),
+                    'unpaidWilling': comp_profile.get('unpaidWilling'),
+                    'academicCredit': comp_profile.get('academicCredit'),
+                    
+                    # Additional Information
+                    'hobbies': comp_profile.get('hobbies'),
+                    'whyInternship': comp_profile.get('whyInternship'),
+                    'additionalComments': comp_profile.get('additionalComments'),
+                    
+                    # Metadata
+                    'profileCompleted': comp_profile.get('profileCompleted', False),
+                    'isDraft': comp_profile.get('isDraft', False),
+                    'profileType': 'comprehensive' if comp_profile else 'basic'
+                }
+                
+                return profile
             else:
                 return None
                 
         except Exception as e:
             print(f"Error fetching intern profile: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def generate_recommendations(self, user_id):

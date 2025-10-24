@@ -14,6 +14,7 @@ import JobSeekerDashboard from "./pages/JobSeekerDashboard";
 import MyProfile from "./pages/MyProfile";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
 import InternDashboard from "./pages/InternDashboardComplete";
+import InternMyProfile from "./pages/InternMyProfile";
 import ModernJobDetails from "./pages/ModernJobDetails";
 import HomePage from "./pages/HomePage";
 
@@ -330,6 +331,11 @@ function App() {
              <Route path="/intern-dashboard" element={
                <ProtectedRoute requiredRole="intern">
                  <InternDashboard />
+               </ProtectedRoute>
+             } />
+             <Route path="/intern-profile" element={
+               <ProtectedRoute requiredRole="intern">
+                 <InternMyProfile />
                </ProtectedRoute>
              } />
             

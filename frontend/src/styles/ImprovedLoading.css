@@ -39,13 +39,13 @@
   }
 }
 
-/* Modern Loading Spinner - Minimal & Fast */
+/* Modern Loading Spinner - Minimal & Fast - Orange-Teal Theme */
 .modern-loading-spinner {
   display: inline-block;
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
+  border: 3px solid rgba(249, 115, 22, 0.2);
+  border-top-color: #f97316;
   border-radius: 50%;
   animation: fastSpin 0.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
@@ -80,7 +80,7 @@
   animation: smoothPulse 2s ease-in-out infinite;
 }
 
-/* Smooth Dot Animation */
+/* Smooth Dot Animation - Orange-Teal Theme */
 .modern-loading-dots {
   display: flex;
   gap: 8px;
@@ -91,7 +91,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #667eea;
+  background: #f97316;
   animation: dotBounce 1.2s ease-in-out infinite;
 }
 
@@ -118,12 +118,12 @@
   }
 }
 
-/* Minimal Progress Bar */
+/* Minimal Progress Bar - Orange-Teal Theme */
 .modern-progress-bar {
   width: 100%;
   max-width: 300px;
   height: 4px;
-  background: rgba(102, 126, 234, 0.1);
+  background: rgba(249, 115, 22, 0.1);
   border-radius: 10px;
   overflow: hidden;
   position: relative;
@@ -131,7 +131,7 @@
 
 .modern-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: linear-gradient(90deg, #f97316, #0d9488);
   border-radius: 10px;
   animation: progressSlide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }

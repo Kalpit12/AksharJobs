@@ -198,25 +198,102 @@ def submit_intern_details():
         print(f"Error submitting intern details: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@intern_bp.route('/profile', methods=['GET'])
+@intern_bp.route('/profile', methods=['GET', 'POST'])
 @jwt_required()
-def get_intern_profile():
+def intern_profile():
     """
-    Get intern profile data
+    GET: Get intern profile data
+    POST: Create or update comprehensive intern profile
     """
-    try:
-        current_user_id = get_jwt_identity()
-        user_id = ObjectId(current_user_id)
-        profile = intern_service.get_intern_profile(user_id)
-        
-        if profile:
-            return jsonify(profile), 200
-        else:
-            return jsonify({'error': 'Profile not found'}), 404
+    if request.method == 'GET':
+        try:
+            current_user_id = get_jwt_identity()
+            user_id = ObjectId(current_user_id)
+            profile = intern_service.get_intern_profile(user_id)
             
-    except Exception as e:
-        print(f"Error fetching intern profile: {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
+            if profile:
+                return jsonify(profile), 200
+            else:
+                return jsonify({'error': 'Profile not found'}), 404
+                
+        except Exception as e:
+            print(f"Error fetching intern profile: {str(e)}")
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    elif request.method == 'POST':
+        try:
+            current_user_id = get_jwt_identity()
+            user_id = ObjectId(current_user_id)
+            
+            # Extract comprehensive form data (from FormData or JSON)
+            import json
+            
+            intern_data = {}
+            
+            # Check if data is FormData (multipart/form-data) or JSON
+            if request.content_type and 'multipart/form-data' in request.content_type:
+                # Handle FormData submission (with files)
+                for key in request.form:
+                    value = request.form.get(key)
+                    # Try to parse JSON strings
+                    if value and value.startswith('[') or value.startswith('{'):
+                        try:
+                            intern_data[key] = json.loads(value)
+                        except:
+                            intern_data[key] = value
+                    else:
+                        intern_data[key] = value
+                
+                # Handle profile photo upload
+                if 'profilePhoto' in request.files:
+                    file = request.files['profilePhoto']
+                    if file and file.filename:
+                        photo_folder = 'uploads/intern_photos'
+                        os.makedirs(photo_folder, exist_ok=True)
+                        filename = secure_filename(f"{user_id}_profile.jpg")
+                        filepath = os.path.join(photo_folder, filename)
+                        file.save(filepath)
+                        intern_data['profilePhotoPath'] = filepath
+            else:
+                # Handle JSON submission
+                intern_data = request.get_json()
+            
+            # Age verification
+            date_of_birth = intern_data.get('dateOfBirth')
+            if date_of_birth:
+                try:
+                    from datetime import datetime
+                    birth_date = datetime.strptime(date_of_birth, '%Y-%m-%d')
+                    today = datetime.now()
+                    age = today.year - birth_date.year
+                    
+                    if (today.month, today.day) < (birth_date.month, birth_date.day):
+                        age -= 1
+                    
+                    if age < 18:
+                        return jsonify({
+                            "error": "You must be at least 18 years old to create an account.",
+                            "age_restriction": True
+                        }), 400
+                except Exception as e:
+                    print(f"Date parsing error: {e}")
+            
+            # Save to database
+            result = intern_service.save_comprehensive_intern_details(user_id, intern_data)
+            
+            if result['success']:
+                return jsonify({
+                    'message': 'Intern profile saved successfully',
+                    'success': True
+                }), 200
+            else:
+                return jsonify({'error': result.get('error', 'Failed to save profile')}), 400
+                
+        except Exception as e:
+            print(f"Error saving intern profile: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'error': 'Internal server error'}), 500
 
 @intern_bp.route('/recommendations', methods=['GET'])
 @jwt_required()

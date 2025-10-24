@@ -16,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
-// import '../styles/InternDashboard.css'; // Replaced by unified CSS
+import '../styles/JobSeekerDashboard.css'; // Using same styles as JobSeeker for consistency
 
 const InternDashboardComplete = () => {
   const { user, logout } = useAuth();
@@ -55,6 +55,12 @@ const InternDashboardComplete = () => {
 
   // Handle section change
   const handleSectionChange = (section) => {
+    // Navigate to dedicated profile page
+    if (section === 'profile') {
+      navigate('/intern-profile');
+      return;
+    }
+    
     setActiveSection(section);
     localStorage.setItem('internDashboardActiveSection', section);
     // Update URL hash without causing a page reload
@@ -71,6 +77,45 @@ const InternDashboardComplete = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
+
+      // Fetch intern profile to get actual completion percentage
+      const profileRes = await axios.get(buildApiUrl('/api/intern/profile'), { headers }).catch(() => null);
+      const profile = profileRes?.data || {};
+
+      // Calculate profile completion
+      let profileCompletion = 0;
+      if (profile) {
+        // Required fields for intern profile
+        const requiredFields = [
+          'firstName', 'lastName', 'email', 'phone', 'dateOfBirth', 'gender',
+          'nationality', 'currentCity', 'academicLevel', 'objective', 'preferredRole'
+        ];
+        
+        const arrayFields = [
+          'educationEntries', 'technicalSkills', 'softSkills', 'languages'
+        ];
+        
+        // Count filled simple fields
+        const filledSimpleFields = requiredFields.filter(field => {
+          const value = profile[field];
+          return value && value.toString().trim() !== '';
+        }).length;
+        
+        // Count filled array fields
+        const filledArrayFields = arrayFields.filter(field => {
+          const value = profile[field];
+          return Array.isArray(value) && value.length > 0;
+        }).length;
+        
+        // Calculate percentage (simple fields 60%, arrays 40%)
+        const simplePercentage = (filledSimpleFields / requiredFields.length) * 60;
+        const arrayPercentage = (filledArrayFields / arrayFields.length) * 40;
+        profileCompletion = Math.round(simplePercentage + arrayPercentage);
+        
+        console.log('📊 Profile Completion:', profileCompletion, '%');
+        console.log('📝 Simple fields filled:', filledSimpleFields, '/', requiredFields.length);
+        console.log('📋 Array fields filled:', filledArrayFields, '/', arrayFields.length);
+      }
 
       // Fetch data
       const [applicationsRes, jobsRes] = await Promise.all([
@@ -121,20 +166,20 @@ const InternDashboardComplete = () => {
           profileViews: 0,
           savedInternships: 0
         },
-        profileCompletion: 65,
+        profileCompletion: profileCompletion,
         applications: applicationsRes?.data?.applications || [],
         interviews: [],
         internships: internshipJobs,
         savedInternships: [],
         academicInfo: {
-          currentYear: user?.currentYear || '3rd Year',
-          gpa: user?.gpa || '3.8/4.0',
-          graduation: user?.expectedGraduation || 'May 2025',
-          university: user?.university || 'University of Nairobi',
-          major: user?.major || 'Computer Science'
+          currentYear: profile?.academicLevel || '3rd Year',
+          gpa: profile?.educationEntries?.[0]?.gpa || '3.8/4.0',
+          graduation: profile?.educationEntries?.[0]?.endDate || 'May 2025',
+          university: profile?.educationEntries?.[0]?.institution || 'University',
+          major: profile?.educationEntries?.[0]?.fieldOfStudy || 'Computer Science'
         },
         portfolio: [],
-        projects: []
+        projects: profile?.projectEntries || []
       });
 
       setLoading(false);
@@ -172,12 +217,11 @@ const InternDashboardComplete = () => {
   }
 
   return (
-    <div className="dashboard-container intern-dashboard">
+    <div className="dashboard-container jobseeker-dashboard-container">
       {/* Sidebar */}
       <div className="sidebar" id="sidebar" style={{
-        background: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
-        backgroundColor: '#ff6b35',
-        backgroundImage: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+        background: 'linear-gradient(180deg, #f97316 0%, #0d9488 100%)',
+        backgroundColor: '#f97316',
         color: '#ffffff',
         position: 'fixed',
         left: '0',
@@ -188,9 +232,9 @@ const InternDashboardComplete = () => {
       }}>
         <div className="sidebar-header">
           <h2>
-            <FontAwesomeIcon icon={faUserGraduate} /> JOBSEEKER HUB
+            <FontAwesomeIcon icon={faUserGraduate} /> INTERN HUB
           </h2>
-          <p>Launch Your Career</p>
+          <p>Your Internship Journey</p>
         </div>
         <div className="nav-menu">
           <div 
@@ -288,10 +332,7 @@ const InternDashboardComplete = () => {
       {/* Main Content */}
       <div className="main-content">
         {/* Top Bar */}
-        <div className="top-bar">
-          <button className="mobile-menu-btn">
-            <FontAwesomeIcon icon={faBars} />
-          </button>
+        <div className="dashboard-header">
           <div className="search-bar">
             <FontAwesomeIcon icon={faSearch} />
             <input type="text" placeholder="Search internships, companies, or skills..." />
@@ -304,11 +345,11 @@ const InternDashboardComplete = () => {
             <button className="icon-btn">
               <FontAwesomeIcon icon={faQuestionCircle} />
             </button>
-            <div className="user-profile" onClick={() => handleSectionChange('profile')}>
+            <div className="user-info">
               <div className="user-avatar">{getUserInitials()}</div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: '14px' }}>{getUserName()}</div>
-                <div style={{ fontSize: '12px', color: '#666' }}>{dashboardData.academicInfo.major}</div>
+                <div className="user-name">{getUserName()}</div>
+                <div className="user-role">{dashboardData.academicInfo.major}</div>
               </div>
             </div>
           </div>
@@ -337,18 +378,19 @@ const InternDashboardComplete = () => {
 // Dashboard Section
 const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }) => (
   <div>
-    <h1 style={{ marginBottom: '25px' }}>Welcome back, {user?.firstName || 'there'}! 🎓</h1>
+    {/* Welcome Message - Match JobSeeker exactly */}
+    <div className="welcome-section">
+      <h1>Welcome back, {user?.firstName || 'there'}! <FontAwesomeIcon icon={faGraduationCap} className="waving-hand" /></h1>
+    </div>
 
-    {/* Profile Completion */}
+    {/* Profile Completion - Match JobSeeker exactly */}
     <div className="profile-completion">
       <div className="completion-header">
         <div>
-          <h3 style={{ marginBottom: '5px' }}>Complete Your Profile</h3>
-          <p style={{ opacity: 0.9, fontSize: '14px' }}>
-            {dashboardData.profileCompletion}% Complete - Stand out to recruiters!
-          </p>
+          <h3>Complete Your Profile</h3>
+          <p>{dashboardData.profileCompletion}% Complete - Stand out to recruiters!</p>
         </div>
-        <div style={{ fontSize: '32px', fontWeight: 700 }}>
+        <div className="completion-percentage">
           {dashboardData.profileCompletion}%
         </div>
       </div>
@@ -357,29 +399,35 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
           className="completion-fill" 
           style={{ width: `${dashboardData.profileCompletion}%` }}
         ></div>
+        <div 
+          className="progress-indicator"
+          style={{ 
+            left: `${dashboardData.profileCompletion}%`,
+            transition: 'left 2s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+          }}
+        >
+          <div className="progress-indicator-line"></div>
+          <div className="progress-indicator-percentage">
+            {dashboardData.profileCompletion}%
+          </div>
+        </div>
       </div>
       <div className="completion-actions">
-        <button className="btn" onClick={() => navigate('/intern-registration')}>
-          <FontAwesomeIcon icon={faUserEdit} /> Complete Profile
-        </button>
-        <button className="btn" onClick={() => handleSectionChange('portfolio')}>
-          <FontAwesomeIcon icon={faUpload} /> Add Projects
-        </button>
-        <button className="btn" onClick={() => handleSectionChange('academic')}>
-          <FontAwesomeIcon icon={faAward} /> Add Coursework
+        <button className="btn btn-complete" onClick={() => navigate('/intern-registration')}>
+          <FontAwesomeIcon icon={faCheckCircle} /> Complete Profile
         </button>
       </div>
     </div>
 
-    {/* Stats Grid */}
+    {/* Stats Grid - Match JobSeeker exactly */}
     <div className="stats-grid">
       <div className="stat-card">
         <div className="stat-header">
           <div>
             <div className="stat-number">{dashboardData.stats.applications}</div>
-            <div className="stat-label">Applications Sent</div>
+            <div className="stat-label">APPLICATIONS SENT</div>
           </div>
-          <div className="stat-icon blue">
+          <div className="stat-icon orange">
             <FontAwesomeIcon icon={faPaperPlane} />
           </div>
         </div>
@@ -392,7 +440,7 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
         <div className="stat-header">
           <div>
             <div className="stat-number">{dashboardData.stats.interviews}</div>
-            <div className="stat-label">Interviews Scheduled</div>
+            <div className="stat-label">INTERVIEWS SCHEDULED</div>
           </div>
           <div className="stat-icon green">
             <FontAwesomeIcon icon={faCalendarCheck} />
@@ -407,9 +455,9 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
         <div className="stat-header">
           <div>
             <div className="stat-number">{dashboardData.stats.profileViews}</div>
-            <div className="stat-label">Profile Views</div>
+            <div className="stat-label">PROFILE VIEWS</div>
           </div>
-          <div className="stat-icon purple">
+          <div className="stat-icon teal">
             <FontAwesomeIcon icon={faEye} />
           </div>
         </div>
@@ -422,7 +470,7 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
         <div className="stat-header">
           <div>
             <div className="stat-number">{dashboardData.stats.savedInternships}</div>
-            <div className="stat-label">Saved Opportunities</div>
+            <div className="stat-label">SAVED OPPORTUNITIES</div>
           </div>
           <div className="stat-icon orange">
             <FontAwesomeIcon icon={faBookmark} />

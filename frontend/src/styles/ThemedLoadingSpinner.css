@@ -2,10 +2,10 @@
 
 /* CSS Variables for theming */
 :root {
-  --loading-primary: #22c55e;
-  --loading-secondary: #16a34a;
-  --loading-accent: #15803d;
-  --loading-light: #f0fdf4;
+  --loading-primary: #f97316;
+  --loading-secondary: #0d9488;
+  --loading-accent: #ea580c;
+  --loading-light: #fef7ed;
   --loading-text: #1f2937;
   --loading-bg: #ffffff;
 }
@@ -20,10 +20,10 @@ div.themed-loading-container * {
 
 /* Theme-specific color overrides */
 .themed-loading-container.intern {
-  --loading-primary: #22c55e;
-  --loading-secondary: #16a34a;
-  --loading-accent: #15803d;
-  --loading-light: #f0fdf4;
+  --loading-primary: #f97316;
+  --loading-secondary: #0d9488;
+  --loading-accent: #ea580c;
+  --loading-light: #fef7ed;
 }
 
 .themed-loading-container.jobseeker {

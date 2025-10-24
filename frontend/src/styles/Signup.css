@@ -603,8 +603,8 @@
 }
 
 .checkbox-wrapper input[type="checkbox"]:checked + .checkmark {
-  background: linear-gradient(135deg, #ff9a56, #4fc3f7);
-  border-color: #ff9a56;
+  background: linear-gradient(135deg, #f97316, #0d9488);
+  border-color: #f97316;
 }
 
 .checkbox-wrapper input[type="checkbox"]:checked + .checkmark::after {
@@ -619,19 +619,19 @@
 }
 
 .terms-link {
-  color: #ff9a56;
+  color: #f97316;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 .terms-link:hover {
-  color: #ff7a3d;
+  color: #ea580c;
   text-decoration: underline;
 }
 
 .signup-button {
-  background: linear-gradient(135deg, #ff9a56 0%, #4fc3f7 100%);
+  background: linear-gradient(135deg, #f97316 0%, #0d9488 100%);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -644,7 +644,7 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 154, 86, 0.3);
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);
   margin-top: 0.5rem;
   width: 100%;
   min-height: 44px;
@@ -653,7 +653,7 @@
 }
 
 .signup-button:hover:not(:disabled) {
-  box-shadow: 0 8px 25px rgba(255, 154, 86, 0.4);
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.4);
   transform: translateY(-2px);
 }
 

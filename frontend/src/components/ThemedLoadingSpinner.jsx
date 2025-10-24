@@ -11,10 +11,10 @@ import '../styles/ThemedLoadingSpinner.css';
 // Theme configuration outside component to avoid recreation
 const THEME_CONFIGS = {
   intern: {
-    primaryColor: '#22c55e',
-    secondaryColor: '#16a34a',
-    accentColor: '#15803d',
-    lightColor: '#f0fdf4',
+    primaryColor: '#f97316',
+    secondaryColor: '#0d9488',
+    accentColor: '#ea580c',
+    lightColor: '#fef7ed',
     icon: faGraduationCap,
     name: 'Intern'
   },

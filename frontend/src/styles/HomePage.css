@@ -17,13 +17,14 @@
 }
 
 .nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
-  padding: 1rem 2rem;
+    max-width: 100%;
+    margin: 0;
+  padding: 12px 30px 12px 5px;
     display: flex;
     align-items: center;
   justify-content: space-between;
   gap: 2rem;
+  min-height: 80px;
 }
 
 .logo {
@@ -31,6 +32,8 @@
     align-items: center;
   gap: 1rem;
   flex-shrink: 0;
+  margin-left: 0;
+  padding-left: 0;
 }
 
 .logo-image {
@@ -44,6 +47,8 @@
     display: flex;
     flex-direction: column;
   gap: 0.25rem;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .logo-name {
@@ -51,6 +56,7 @@
   font-weight: 800;
   color: var(--text-primary);
   line-height: 1;
+  text-align: left;
 }
 
 .logo-tagline {
@@ -58,6 +64,13 @@
   color: var(--text-secondary);
   font-weight: 500;
     letter-spacing: 0.5px;
+  text-align: left;
+}
+
+.homepage nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 
 .homepage nav ul {
@@ -66,6 +79,7 @@
   margin: 0;
   padding: 0;
   gap: 2rem;
+  align-items: center;
 }
 
 .homepage nav a {
@@ -76,6 +90,7 @@
   transition: all 0.3s ease;
   padding: 0.5rem 0;
   position: relative;
+  display: inline-block;
 }
 
 .homepage nav a:hover {
@@ -103,6 +118,7 @@
   display: flex;
   gap: 1rem;
   align-items: center;
+  height: 100%;
 }
 
 .cta-buttons .btn {
@@ -812,13 +828,13 @@
   .nav-container {
     flex-direction: column;
     gap: 1.5rem;
-    padding: 1rem;
-    align-items: center;
+    padding: 12px 15px 12px 5px;
+    align-items: flex-start;
   }
   
   .logo {
-    flex-direction: column;
-    text-align: center;
+    flex-direction: row;
+    text-align: left;
     gap: 0.5rem;
   }
   
@@ -1038,7 +1054,7 @@
 
 @media (max-width: 480px) {
   .nav-container {
-    padding: 0.75rem;
+    padding: 12px 10px 12px 5px;
     gap: 1rem;
   }
   
