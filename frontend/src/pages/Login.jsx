@@ -142,7 +142,7 @@ const Login = () => {
                     className="benefit-item"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 + (index * 0.1) }}
+                    transition={{ delay: 0.7 + (index * 0.15), duration: 0.5 }}
                   >
                     <div className="benefit-icon">
                       <FontAwesomeIcon icon={benefit.icon} />

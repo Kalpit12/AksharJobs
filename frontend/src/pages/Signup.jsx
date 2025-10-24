@@ -528,7 +528,7 @@ const Signup = () => {
                   required
                 />
                 <span className="checkmark"></span>
-                I agree to the <Link to="/terms" className="terms-link">Terms & Conditions</Link> and <Link to="/privacy" className="terms-link">Privacy Policy</Link>
+                I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" className="terms-link">Terms & Conditions</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" className="terms-link">Privacy Policy</a>
               </label>
             </motion.div>
 
