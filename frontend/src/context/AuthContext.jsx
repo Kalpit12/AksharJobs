@@ -226,13 +226,14 @@ export const AuthProvider = ({ children }) => {
     console.log('🔐 AuthContext login() called with:', { userData, shouldNavigate, intendedDestination });
     console.trace('🔐 Login function call stack:');
     
-    const { token, role, userId, email, firstName, lastName, ...otherData } = userData;
+    const { token, role, userId, email, firstName, lastName, phone, phoneNumber, ...otherData } = userData;
     const normalizedRole = normalizeRole(role);
     
     // Validate and clean user data before storing
     const validEmail = email && email !== 'undefined' ? email : '';
     const validFirstName = firstName && firstName !== 'undefined' ? firstName : '';
     const validLastName = lastName && lastName !== 'undefined' ? lastName : '';
+    const validPhone = (phone && phone !== 'undefined' ? phone : '') || (phoneNumber && phoneNumber !== 'undefined' ? phoneNumber : '');
     
     localStorage.setItem('token', token);
     localStorage.setItem('role', normalizedRole);
@@ -240,9 +241,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('userEmail', validEmail);
     localStorage.setItem('userFirstName', validFirstName);
     localStorage.setItem('userLastName', validLastName);
+    localStorage.setItem('userPhone', validPhone);
     localStorage.setItem('email', validEmail);
     localStorage.setItem('firstName', validFirstName);
     localStorage.setItem('lastName', validLastName);
+    localStorage.setItem('phone', validPhone);
     
     // Store userType if available
     if (otherData.userType) {
@@ -257,7 +260,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('hasCompletedProfile', otherData.hasCompletedProfile.toString());
     }
     
-    setUser({ token, role: normalizedRole, userId, email: validEmail, firstName: validFirstName, lastName: validLastName, ...otherData });
+    setUser({ token, role: normalizedRole, userId, email: validEmail, firstName: validFirstName, lastName: validLastName, phone: validPhone, phoneNumber: validPhone, ...otherData });
     setIsAuthenticated(true);
     
     console.log('🔐 AuthContext - User logged in via login() function:', { 

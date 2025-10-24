@@ -118,11 +118,11 @@ const JobSeekerRegistrationFormComprehensive = () => {
   } = useAutoSave(
     {
       // Personal Information
-      firstName: existingData?.firstName || userData.firstName || userProfileData?.firstName || user?.firstName || '',
+      firstName: existingData?.firstName || userData.firstName || userProfileData?.firstName || user?.firstName || localStorage.getItem('userFirstName') || '',
       middleName: existingData?.middleName || userProfileData?.middleName || '',
-      lastName: existingData?.lastName || userData.lastName || userProfileData?.lastName || user?.lastName || '',
-      email: existingData?.email || userData.email || userProfileData?.email || user?.email || '',
-      phone: existingData?.phone || userProfileData?.phone || user?.phone || '',
+      lastName: existingData?.lastName || userData.lastName || userProfileData?.lastName || user?.lastName || localStorage.getItem('userLastName') || '',
+      email: existingData?.email || userData.email || userProfileData?.email || user?.email || localStorage.getItem('userEmail') || '',
+      phone: existingData?.phone || userData.phone || userProfileData?.phone || user?.phone || user?.phoneNumber || localStorage.getItem('userPhone') || localStorage.getItem('phone') || '',
       altPhone: existingData?.altPhone || userProfileData?.altPhone || '',
       dateOfBirth: existingData?.dateOfBirth || '',
       gender: existingData?.gender || '',

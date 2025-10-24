@@ -120,6 +120,8 @@ class AuthService:
                             "firstName": created_user.get("firstName", ""),
                             "lastName": created_user.get("lastName", ""),
                             "email": created_user.get("email", ""),
+                            "phoneNumber": created_user.get("phoneNumber", ""),
+                            "phone": created_user.get("phoneNumber", ""),
                             "requiresVerification": False
                         }, 201
                     else:
