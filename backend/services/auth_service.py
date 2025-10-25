@@ -249,6 +249,36 @@ class AuthService:
             
             print(f"[AUTH] Password verification SUCCESS for {user['email']}")
             
+            # AUTOMATIC PASSWORD MIGRATION: Upgrade Werkzeug hashes to bcrypt
+            if isinstance(stored_password, str) and (stored_password.startswith('scrypt:') or stored_password.startswith('pbkdf2:')):
+                print(f"[MIGRATION] Upgrading {user['email']} from Werkzeug to bcrypt...")
+                try:
+                    # Generate new bcrypt hash from the plaintext password
+                    password_bytes = provided_password.encode('utf-8')
+                    salt = bcrypt.gensalt()
+                    new_bcrypt_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+                    
+                    # Update user's password in database
+                    from bson import ObjectId
+                    users, _ = User._get_collections() if hasattr(User, '_get_collections') else (None, None)
+                    if users is None:
+                        from utils.db import get_db
+                        db = get_db()
+                        users = db['users']
+                    
+                    result = users.update_one(
+                        {"_id": user["_id"]},
+                        {"$set": {"password": new_bcrypt_hash}}
+                    )
+                    
+                    if result.modified_count > 0:
+                        print(f"[MIGRATION] ✓ Successfully migrated {user['email']} to bcrypt")
+                    else:
+                        print(f"[MIGRATION] ⚠️  Failed to update password for {user['email']}")
+                except Exception as migration_error:
+                    print(f"[MIGRATION] ⚠️  Migration failed for {user['email']}: {migration_error}")
+                    # Don't fail the login if migration fails - user can still login
+            
             token = generate_jwt_token(str(user["_id"]))  # Pass user ID for JWT  
             print(f"[AUTH] Login successful for user: {user['_id']}")
             
