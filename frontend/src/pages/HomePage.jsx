@@ -136,26 +136,32 @@ const HomePage = () => {
           <p>CONNECT | DISCOVER | ELEVATE - Connect with thousands of employers and discover opportunities that match your skills and aspirations</p>
         </div>
         
-        <div className="search-container">
-          <form onSubmit={handleSearch}>
-            <div className="search-box">
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="Job title, keywords, or company"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <input 
-                type="text" 
-                className="search-input" 
-                placeholder="City, state, or remote"
-                value={searchLocation}
-                onChange={(e) => setSearchLocation(e.target.value)}
-                onKeyPress={handleKeyPress}
-              />
-              <button type="submit" className="btn-search">
+        <div className="hero-search-container">
+          <form onSubmit={handleSearch} className="hero-search-form">
+            <div className="hero-search-wrapper">
+              <div className="search-field-group">
+                <div className="search-field">
+                  <input 
+                    type="text" 
+                    className="search-field-input" 
+                    placeholder="Job title"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                </div>
+                <div className="search-field">
+                  <input 
+                    type="text" 
+                    className="search-field-input" 
+                    placeholder="City, state"
+                    value={searchLocation}
+                    onChange={(e) => setSearchLocation(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                  />
+                </div>
+              </div>
+              <button type="submit" className="hero-search-button">
                 Search Jobs
               </button>
             </div>
