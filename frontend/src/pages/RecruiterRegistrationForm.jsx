@@ -132,9 +132,10 @@ const RecruiterRegistrationForm = () => {
   const [recruitCountryInput, setRecruitCountryInput] = useState('');
   const [linkTypeInput, setLinkTypeInput] = useState('');
   const [linkUrlInput, setLinkUrlInput] = useState('');
+  const [useMapAddress, setUseMapAddress] = useState(false);
 
   // Define setMarker function before useEffect that uses it
-  const setMarker = useCallback((lat, lng) => {
+  const setMarker = useCallback((lat, lng, forceUpdateAddress = false) => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
@@ -162,8 +163,27 @@ const RecruiterRegistrationForm = () => {
         longitude: position.lng
       }));
       
-      // Reverse geocode for the new position
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`)
+      // Only reverse geocode if user wants to use map address
+      if (useMapAddress) {
+        fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.display_name) {
+              setFormData(prev => ({
+                ...prev,
+                address: data.display_name
+              }));
+            }
+          })
+          .catch(error => {
+            console.log('Reverse geocoding failed:', error);
+          });
+      }
+    });
+
+    // Only reverse geocode if user wants to use map address or it's forced (initial load)
+    if (useMapAddress || forceUpdateAddress) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
         .then(response => response.json())
         .then(data => {
           if (data.display_name) {
@@ -176,23 +196,8 @@ const RecruiterRegistrationForm = () => {
         .catch(error => {
           console.log('Reverse geocoding failed:', error);
         });
-    });
-
-    // Reverse geocode
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.display_name) {
-          setFormData(prev => ({
-            ...prev,
-            address: data.display_name
-          }));
-        }
-      })
-      .catch(error => {
-        console.log('Reverse geocoding failed:', error);
-      });
-  }, []);
+    }
+  }, [useMapAddress]);
 
   // Initialize map (same simple approach as job seeker form)
   useEffect(() => {
@@ -210,7 +215,7 @@ const RecruiterRegistrationForm = () => {
 
         // Add click event to map
         map.on('click', function(e) {
-          setMarker(e.latlng.lat, e.latlng.lng);
+          setMarker(e.latlng.lat, e.latlng.lng, false);
         });
 
         // Try to get user's current location
@@ -219,7 +224,8 @@ const RecruiterRegistrationForm = () => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
             map.setView([lat, lng], 13);
-            setMarker(lat, lng);
+            // Don't force update address on initial geolocation
+            setMarker(lat, lng, false);
           });
         }
 
@@ -276,6 +282,8 @@ const RecruiterRegistrationForm = () => {
           ? [...additionalServices, value]
           : additionalServices.filter(s => s !== value);
         setAdditionalServices(updatedServices);
+      } else if (name === 'useMapAddress') {
+        setUseMapAddress(checked);
       } else {
         setFormData(prev => ({
           ...prev,
@@ -725,6 +733,27 @@ const RecruiterRegistrationForm = () => {
                     <div className="info-badge">
                       <FontAwesomeIcon icon={faMapMarkerAlt} /> Click on the map to mark your office location
                     </div>
+                    
+                    <div style={{ margin: '10px 0', padding: '8px', backgroundColor: '#f0f8ff', borderRadius: '6px', border: '1px solid #b3d9ff' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+                        <input 
+                          type="checkbox" 
+                          name="useMapAddress"
+                          checked={useMapAddress}
+                          onChange={handleInputChange}
+                          style={{ marginRight: '8px', cursor: 'pointer' }}
+                        />
+                        <span style={{ fontWeight: '500' }}>
+                          📍 Automatically update address field when clicking on map
+                        </span>
+                      </label>
+                      <p style={{ margin: '5px 0 0 28px', fontSize: '12px', color: '#666' }}>
+                        {useMapAddress 
+                          ? '✓ Address will be updated based on map location' 
+                          : '✗ Your manual address will be preserved'}
+                      </p>
+                    </div>
+
                     <div ref={mapRef} className="map-container" style={{ height: '300px', width: '100%' }}>
                       {!mapLoaded && (
                         <div style={{ 

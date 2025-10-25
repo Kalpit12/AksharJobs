@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -10,11 +10,12 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
-const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddressChange }) => {
+const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddressChange, autoUpdateAddress: autoUpdateAddressProp = false }) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const [autoUpdateAddress, setAutoUpdateAddress] = useState(autoUpdateAddressProp);
 
   useEffect(() => {
     // Initialize map only once
@@ -44,7 +45,7 @@ const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddress
           setMarker(lat, lng);
         });
       } else if (latitude && longitude) {
-        setMarker(latitude, longitude);
+        setMarker(latitude, longitude, false); // Don't update address on initialization
       }
     }
 
@@ -53,13 +54,13 @@ const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddress
       if (markerRef.current) {
         markerRef.current.setLatLng([latitude, longitude]);
       } else {
-        setMarker(latitude, longitude);
+        setMarker(latitude, longitude, false); // Don't update address on external change
       }
       mapInstanceRef.current.setView([latitude, longitude], 13);
     }
   }, [latitude, longitude]);
 
-  const setMarker = (lat, lng) => {
+  const setMarker = (lat, lng, shouldUpdateAddress = true) => {
     if (!mapInstanceRef.current) return;
 
     // Remove existing marker
@@ -83,15 +84,17 @@ const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddress
       onLocationChange(lat, lng);
     }
 
-    // Reverse geocode to get address
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
-      .then(response => response.json())
-      .then(data => {
-        if (data.display_name && onAddressChange) {
-          onAddressChange(data.display_name);
-        }
-      })
-      .catch(error => console.log('Geocoding error:', error));
+    // Only reverse geocode if autoUpdateAddress is enabled and shouldUpdateAddress is true
+    if (autoUpdateAddress && shouldUpdateAddress) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.display_name && onAddressChange) {
+            onAddressChange(data.display_name);
+          }
+        })
+        .catch(error => console.log('Geocoding error:', error));
+    }
   };
 
   const searchLocation = (query) => {
@@ -139,6 +142,25 @@ const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddress
         >
           Search
         </button>
+      </div>
+      
+      <div style={{ margin: '10px 0', padding: '8px', backgroundColor: '#f0f8ff', borderRadius: '6px', border: '1px solid #b3d9ff' }}>
+        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+          <input 
+            type="checkbox" 
+            checked={autoUpdateAddress}
+            onChange={(e) => setAutoUpdateAddress(e.target.checked)}
+            style={{ marginRight: '8px', cursor: 'pointer' }}
+          />
+          <span style={{ fontWeight: '500' }}>
+            📍 Automatically update address field when clicking on map
+          </span>
+        </label>
+        <p style={{ margin: '5px 0 0 28px', fontSize: '12px', color: '#666' }}>
+          {autoUpdateAddress 
+            ? '✓ Address will be updated based on map location' 
+            : '✗ Your manual address will be preserved'}
+        </p>
       </div>
       
       <div 
