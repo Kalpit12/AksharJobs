@@ -46,35 +46,13 @@ def add_job():
     print(f"📝 Job posting request from recruiter: {recruiter_id}")
     print(f"📋 Request data: {data}")
     
-    # Get database connection
+    # Get fresh database connection
     db = get_db()
+    if db is None:
+        return jsonify({"error": "Database connection failed"}), 500
     
-    # Initialize variables
-    free_job_posts = 0
-    subscription_plan = 'Basic'
-    
-    # Check if recruiter has free job posts or is premium
-    if recruiter_id:
-        try:
-            from bson import ObjectId
-            user = db.users.find_one({'_id': ObjectId(recruiter_id)})
-            if user:
-                user_type = user.get('userType', '')
-                if user_type == 'recruiter':
-                    # Check for free job posts
-                    free_job_posts = user.get('free_job_posts', 0)
-                    subscription_plan = user.get('subscription', {}).get('plan', 'Basic')
-                    
-                    print(f"💳 Recruiter has {free_job_posts} free job posts, plan: {subscription_plan}")
-                    
-                    if free_job_posts <= 0 and subscription_plan == 'Basic':
-                        return jsonify({
-                            'error': 'No free job posts remaining',
-                            'message': 'Use a promo code to get free job posts or upgrade to premium!',
-                            'requires_promo': True
-                        }), 402  # Payment Required
-        except Exception as e:
-            print(f"Error checking recruiter credits: {e}")
+    # FREE JOB POSTS DISABLED - Recruiters can post unlimited jobs
+    print(f"✅ Unlimited job posting enabled for all recruiters")
 
     # Support both old format (camelCase) and new format (snake_case)
     # Extract job data with fallbacks for both formats
@@ -95,15 +73,36 @@ def add_job():
     
     experience_required = data.get("experience") or data.get("experience_level") or ""
     
-    # Handle skills - support both formats
-    required_skills = data.get("skills") or data.get("required_skills") or ""
-    if isinstance(required_skills, list):
-        required_skills = ", ".join(required_skills)
+    # Handle skills - keep as array for frontend compatibility
+    required_skills = data.get("skills") or data.get("required_skills") or []
+    if isinstance(required_skills, str):
+        # If it's a string, convert to array by splitting on comma
+        required_skills = [skill.strip() for skill in required_skills.split(",") if skill.strip()]
+    elif not isinstance(required_skills, list):
+        required_skills = []
     
     responsibilities = data.get("responsibilities") or ""
     requirements = data.get("requirements") or ""
     education_required = data.get("education") or data.get("education_required") or ""
-    benefits = data.get("benefits") or ""
+    
+    # Handle benefits - keep as array for frontend compatibility
+    benefits = data.get("benefits") or []
+    if isinstance(benefits, str):
+        # If it's a string, convert to array by splitting on comma
+        benefits = [benefit.strip() for benefit in benefits.split(",") if benefit.strip()]
+    elif not isinstance(benefits, list):
+        benefits = []
+    
+    # Handle perks - keep as array
+    perks = data.get("perks") or []
+    if isinstance(perks, str):
+        perks = [perk.strip() for perk in perks.split(",") if perk.strip()]
+    elif not isinstance(perks, list):
+        perks = []
+    
+    # Handle tools - keep as array or string
+    tools = data.get("tools") or ""
+    
     application_deadline = data.get("deadline") or data.get("application_deadline") or ""
     description = data.get("description") or ""
 
@@ -118,11 +117,13 @@ def add_job():
         "job_type": job_type,  
         "salary_range": salary_range,
         "experience_required": experience_required,
-        "required_skills": required_skills,
+        "required_skills": required_skills,  # Array
         "responsibilities": responsibilities,
         "requirements": requirements,
         "education_required": education_required,
-        "benefits": benefits,
+        "benefits": benefits,  # Array
+        "perks": perks,  # Array
+        "tools": tools,  # String
         # Community-related fields
         "target_communities": data.get("target_communities", []),
         "all_communities": data.get("all_communities", False),
@@ -137,36 +138,37 @@ def add_job():
         "salary_max": data.get("salary_max", ""),
         "salary_currency": data.get("salary_currency", "USD"),
         "salary_period": data.get("salary_period", "yearly"),
+        "salary_type": data.get("salary_type", ""),
         "work_mode": data.get("work_mode", remote_option),
         "experience_level": data.get("experience_level", experience_required),
+        "department": data.get("department", ""),
+        "vacancies": data.get("vacancies", 1),
+        "country": data.get("country", ""),
+        "state": data.get("state", ""),
+        "city": data.get("city", ""),
+        "office_address": data.get("office_address", ""),
+        "postal_code": data.get("postal_code", ""),
+        "preferred_joining_date": data.get("preferred_joining_date", ""),
+        "apply_method": data.get("apply_method", "Apply through AksharJobs portal"),
+        "contact_email": data.get("contact_email", ""),
+        "hr_name": data.get("hr_name", ""),
+        "visibility": data.get("visibility", "public"),
+        "company_overview": data.get("company_overview", ""),
     }
     
     print(f"✅ Creating job posting: {job_title} at {company_name}")
-    result = jobs_collection.insert_one(job)
     
-    # Consume free job post credit if recruiter
-    if recruiter_id and result.inserted_id:
-        try:
-            from bson import ObjectId
-            user = db.users.find_one({'_id': ObjectId(recruiter_id)})
-            if user and user.get('userType') == 'recruiter':
-                free_job_posts = user.get('free_job_posts', 0)
-                subscription_plan = user.get('subscription', {}).get('plan', 'Basic')
-                
-                if free_job_posts > 0 and subscription_plan == 'Basic':
-                    # Consume one free job post
-                    db.users.update_one(
-                        {'_id': ObjectId(recruiter_id)},
-                        {'$inc': {'free_job_posts': -1}}
-                    )
-                    print(f"✅ Consumed free job post credit for recruiter {recruiter_id}")
-        except Exception as e:
-            print(f"Error consuming job post credit: {e}")
+    # Insert the job using the database connection
+    result = db.jobs.insert_one(job)
+    
+    if not result.inserted_id:
+        return jsonify({"error": "Failed to create job posting"}), 500
+    
+    print(f"✅ Job posted successfully with ID: {result.inserted_id}")
     
     return jsonify({
         "message": "Job posted successfully",
-        "job_id": str(result.inserted_id),
-        "free_job_posts_remaining": max(0, free_job_posts - 1) if recruiter_id else None
+        "job_id": str(result.inserted_id)
     }), 201
 
 
@@ -181,9 +183,25 @@ def update_job_route(job_id):
     Returns:
         JSON response with success message and HTTP status code 200.
     """
-    data = request.json
-    update_job(job_id, data)
-    return jsonify({"message": "Job updated successfully"}), 200
+    try:
+        if not job_id:
+            return jsonify({"error": "Job ID is required"}), 400
+        
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Validate ObjectId format
+        try:
+            ObjectId(job_id)
+        except Exception as e:
+            return jsonify({"error": "Invalid job ID format"}), 400
+        
+        update_job(job_id, data)
+        return jsonify({"message": "Job updated successfully"}), 200
+    except Exception as e:
+        print(f"Error updating job {job_id}: {str(e)}")
+        return jsonify({"error": "Failed to update job", "details": str(e)}), 500
 
 @job_routes.route("/get_job/<job_id>", methods=["GET"])
 def get_job(job_id):
@@ -373,11 +391,26 @@ def increase_views(job_id):
         JSON response confirming the view count update.
     """
     try:
+        if not job_id:
+            return jsonify({"error": "Job ID is required"}), 400
+        
         print("Updating view...")
-        jobs_collection.update_one({"_id": ObjectId(job_id)}, {"$inc": {"views": 1}})
+        # Validate ObjectId format
+        try:
+            job_object_id = ObjectId(job_id)
+        except Exception as e:
+            print(f"Invalid job ID format: {job_id}")
+            return jsonify({"error": "Invalid job ID format"}), 400
+        
+        result = jobs_collection.update_one({"_id": job_object_id}, {"$inc": {"views": 1}})
+        
+        if result.matched_count == 0:
+            return jsonify({"error": "Job not found"}), 404
+        
         return jsonify({"message": "View count updated successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error updating view count: {str(e)}")
+        return jsonify({"error": "Failed to update view count"}), 500
     
 
 @job_routes.route("/apply/<job_id>", methods=["POST"])
@@ -392,20 +425,38 @@ def apply_to_job(job_id):
         JSON response confirming the application or an error message.
     """
     try:
+        if not job_id:
+            return jsonify({"error": "Job ID is required"}), 400
+        
         data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+        
         applicant_id = data.get("applicant_id")
 
         print("Adding applicants...")
         if not applicant_id:
             return jsonify({"error": "Applicant ID required"}), 400
 
-        jobs_collection.update_one(
-            {"_id": ObjectId(job_id)},
+        # Validate ObjectId format
+        try:
+            job_object_id = ObjectId(job_id)
+        except Exception as e:
+            print(f"Invalid job ID format: {job_id}")
+            return jsonify({"error": "Invalid job ID format"}), 400
+
+        result = jobs_collection.update_one(
+            {"_id": job_object_id},
             {"$addToSet": {"applicants": applicant_id}, "$inc": {"applicants_count": 1}}
         )
+        
+        if result.matched_count == 0:
+            return jsonify({"error": "Job not found"}), 404
+        
         return jsonify({"message": "Application successful"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error applying to job: {str(e)}")
+        return jsonify({"error": "Failed to apply to job", "details": str(e)}), 500
 
 @job_routes.route("/recommended/<user_id>", methods=["GET"])
 def get_recommended_jobs(user_id):

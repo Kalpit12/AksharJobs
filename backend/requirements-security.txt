@@ -1,0 +1,27 @@
+# Security-related Python packages for AksharJobs
+# Install with: pip install -r requirements-security.txt
+
+# Input Validation & Sanitization
+email-validator>=2.0.0      # Email validation
+bleach>=6.0.0               # HTML sanitization
+
+# Rate Limiting
+Flask-Limiter>=3.5.0        # API rate limiting
+redis>=5.0.0                # Redis for rate limiting storage (optional, better than memory)
+
+# Security Headers & HTTPS
+Flask-Talisman>=1.1.0       # Force HTTPS and security headers
+
+# Environment Variables
+python-decouple>=3.8        # Environment variable management
+
+# Monitoring & Logging
+python-json-logger>=2.0.7   # JSON logging for better parsing
+
+# Additional Security
+cryptography>=41.0.0        # Cryptographic operations
+pyotp>=2.9.0                # Two-factor authentication (2FA) support
+
+# Password Security (werkzeug is already in Flask)
+argon2-cffi>=23.1.0         # Alternative to werkzeug for password hashing (optional)
+

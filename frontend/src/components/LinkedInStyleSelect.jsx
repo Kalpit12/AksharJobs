@@ -8,7 +8,9 @@ const LinkedInStyleSelect = ({
   placeholder = "Select...",
   required = false,
   searchable = true,
-  multiple = false
+  multiple = false,
+  disabled = false,
+  allowCustom = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,6 +55,30 @@ const LinkedInStyleSelect = ({
     }
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && allowCustom && searchTerm.trim()) {
+      e.preventDefault();
+      
+      // Check if the search term already exists in options
+      const exactMatch = options.find(opt => {
+        const optText = typeof opt === 'string' ? opt : (opt.label || opt.name || opt.value);
+        return optText.toLowerCase() === searchTerm.trim().toLowerCase();
+      });
+
+      // If no exact match and it's a multiple select, add as custom skill
+      if (!exactMatch && multiple) {
+        const valueArray = Array.isArray(value) ? value : [];
+        const customSkill = searchTerm.trim();
+        
+        // Check if already added
+        if (!valueArray.includes(customSkill)) {
+          onChange([...valueArray, customSkill]);
+          setSearchTerm('');
+        }
+      }
+    }
+  };
+
   const getDisplayValue = () => {
     if (multiple) {
       const valueArray = Array.isArray(value) ? value : [];
@@ -91,9 +117,14 @@ const LinkedInStyleSelect = ({
         {/* Dropdown trigger */}
         <button
           type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-full px-4 py-2.5 text-left bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all ${
-            isOpen ? 'border-blue-500 ring-2 ring-blue-500' : 'border-gray-300 hover:border-gray-400'
+          onClick={() => !disabled && setIsOpen(!isOpen)}
+          disabled={disabled}
+          className={`w-full px-4 py-2.5 text-left bg-white border rounded-lg focus:outline-none transition-all ${
+            disabled 
+              ? 'bg-gray-100 border-gray-300 cursor-not-allowed opacity-60' 
+              : isOpen 
+                ? 'border-blue-500 ring-2 ring-blue-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent' 
+                : 'border-gray-300 hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent'
           }`}
         >
           <div className="flex items-center justify-between">
@@ -120,7 +151,8 @@ const LinkedInStyleSelect = ({
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search..."
+                  onKeyDown={handleKeyDown}
+                  placeholder={allowCustom ? "Search or type to add custom..." : "Search..."}
                   className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   autoFocus
                 />
@@ -129,8 +161,13 @@ const LinkedInStyleSelect = ({
             
             <div className="overflow-y-auto max-h-64">
               {filteredOptions.length === 0 ? (
-                <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                  No options found
+                <div className="px-4 py-3 text-sm text-center">
+                  <div className="text-gray-500">No options found</div>
+                  {allowCustom && searchTerm.trim() && (
+                    <div className="text-blue-600 mt-1 text-xs">
+                      Press Enter to add "{searchTerm.trim()}" as custom skill
+                    </div>
+                  )}
                 </div>
               ) : (
                 filteredOptions.map((option, index) => {

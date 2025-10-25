@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChevronDown, faUser, faCog, faSignOutAlt, faBuilding, faClipboardList, faGift, faCrown, faShieldAlt, faHome, faSearch, faChartLine, faFileAlt, faUsers, faCoins, faBriefcase } from '@fortawesome/free-solid-svg-icons';
+import { faChevronDown, faUser, faSignOutAlt, faBuilding, faClipboardList, faGift, faCrown, faShieldAlt, faHome, faSearch, faChartLine, faFileAlt, faUsers, faCoins, faBriefcase } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import { useProfilePhoto } from '../context/ProfilePhotoContext';
 import axios from 'axios';
@@ -198,11 +198,6 @@ const ModernProfileDropdown = () => {
             )}
             
             {/* Common Items for Both */}
-            <Link to="/profile" className="modern-dropdown-item" onClick={() => setIsOpen(false)}>
-              <FontAwesomeIcon icon={faUser} className="modern-item-icon" />
-              <span className="modern-item-text">Profile</span>
-            </Link>
-            
             <Link to="/community" className="modern-dropdown-item" onClick={() => setIsOpen(false)}>
               <FontAwesomeIcon icon={faUsers} className="modern-item-icon" />
               <span className="modern-item-text">Community</span>
@@ -211,15 +206,6 @@ const ModernProfileDropdown = () => {
             <Link to="/reference-verification" className="modern-dropdown-item" onClick={() => setIsOpen(false)}>
               <FontAwesomeIcon icon={faUser} className="modern-item-icon" />
               <span className="modern-item-text">Reference Verification</span>
-            </Link>
-            
-            <Link 
-              to={isJobSeeker() ? "/jobseeker-settings" : isRecruiter() ? "/recruiter-settings" : "/settings"} 
-              className="modern-dropdown-item" 
-              onClick={() => setIsOpen(false)}
-            >
-              <FontAwesomeIcon icon={faCog} className="modern-item-icon" />
-              <span className="modern-item-text">Settings</span>
             </Link>
             
             <div className="modern-dropdown-divider"></div>

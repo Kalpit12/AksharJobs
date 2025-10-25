@@ -27,6 +27,8 @@ const ApplicationTrackerTable = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [openActionMenu, setOpenActionMenu] = useState(null);
   const [openStatusDropdown, setOpenStatusDropdown] = useState(null);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const [celebrationJobTitle, setCelebrationJobTitle] = useState('');
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -38,6 +40,17 @@ const ApplicationTrackerTable = () => {
   useEffect(() => {
     filterApplications();
   }, [applications, searchTerm, statusFilter]);
+
+  useEffect(() => {
+    // Check for newly hired applications
+    applications.forEach(app => {
+      if (app.status && app.status.toLowerCase() === 'hired' && !sessionStorage.getItem(`celebrated_${app._id}`)) {
+        setCelebrationJobTitle(app.jobTitle || app.job_title || 'this position');
+        setShowCelebration(true);
+        sessionStorage.setItem(`celebrated_${app._id}`, 'true');
+      }
+    });
+  }, [applications]);
 
   const fetchApplications = async () => {
     try {
@@ -358,11 +371,8 @@ const ApplicationTrackerTable = () => {
                         className="status-dropdown"
                         onClick={() => setOpenStatusDropdown(openStatusDropdown === app._id ? null : app._id)}
                       >
-                        <div className="status-display">
-                          <span
-                            className="status-dot"
-                            style={{ backgroundColor: getStatusColor(app.status) }}
-                          />
+                        <div className="status-display" data-status={app.status}>
+                          <span className="status-dot" />
                           <span className="status-text">{app.status}</span>
                           <FontAwesomeIcon icon={faChevronDown} className="dropdown-icon" />
                         </div>
@@ -494,6 +504,29 @@ const ApplicationTrackerTable = () => {
             </div>
           )}
         </>
+      )}
+
+      {/* Hired Celebration Modal */}
+      {showCelebration && (
+        <div className="hired-celebration-overlay" onClick={() => setShowCelebration(false)}>
+          <div className="hired-celebration-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="confetti-container">
+              {[...Array(9)].map((_, i) => (
+                <div key={i} className="confetti"></div>
+              ))}
+            </div>
+            <div className="celebration-icon">🎉</div>
+            <h2 className="celebration-title">Congratulations!</h2>
+            <p className="celebration-message">
+              You've been hired for <strong>{celebrationJobTitle}</strong>!<br/>
+              Your hard work and preparation have paid off.<br/>
+              Best wishes on your new journey!
+            </p>
+            <button className="celebration-close-btn" onClick={() => setShowCelebration(false)}>
+              Awesome! 🚀
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

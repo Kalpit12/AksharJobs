@@ -1016,7 +1016,7 @@ def get_recruiter_stats():
 @recruiter_bp.route('/profile', methods=['PUT'])
 @jwt_required()
 def update_recruiter_profile():
-    """Update recruiter profile information"""
+    """Update comprehensive recruiter profile information"""
     try:
         recruiter_id = get_jwt_identity()
         data = request.get_json()
@@ -1024,44 +1024,138 @@ def update_recruiter_profile():
         if not recruiter_id:
             return jsonify({'error': 'Authentication required'}), 401
         
+        print(f"\n💾 Updating recruiter profile for ID: {recruiter_id}")
+        print(f"📦 Received data keys: {list(data.keys())}")
+        
+        # Ensure arrays stay as arrays
+        def ensure_array(value):
+            if value is None:
+                return []
+            if isinstance(value, list):
+                return value
+            if isinstance(value, str):
+                try:
+                    import json
+                    parsed = json.loads(value)
+                    return parsed if isinstance(parsed, list) else []
+                except:
+                    return [item.strip() for item in value.split(',') if item.strip()]
+            return []
+        
         # Update user profile
         from utils.db import get_db
         db = get_db()
         
         update_data = {
+            # Company Information
+            'companyName': data.get('companyName'),
+            'companyEmail': data.get('companyEmail'),
+            'companyPhone': data.get('companyPhone'),
+            'companyWebsite': data.get('companyWebsite'),
+            'companySize': data.get('companySize'),
+            'yearFounded': data.get('yearFounded'),
+            'industry': data.get('industry'),
+            'companyDescription': data.get('companyDescription'),
+            'companyLogo': data.get('companyLogo'),
+            
+            # Company Location
+            'country': data.get('country'),
+            'state': data.get('state'),
+            'city': data.get('city'),
+            'postalCode': data.get('postalCode'),
+            'address': data.get('address'),
+            'latitude': data.get('latitude'),
+            'longitude': data.get('longitude'),
+            
+            # Recruiter Personal Details
             'firstName': data.get('firstName'),
             'lastName': data.get('lastName'),
-            'email': data.get('email'),
-            'phone': data.get('phone'),
             'jobTitle': data.get('jobTitle'),
+            'recruiterPhone': data.get('recruiterPhone'),
+            'recruiterEmail': data.get('recruiterEmail'),
             'linkedinProfile': data.get('linkedinProfile'),
-            'bio': data.get('bio'),
+            'phoneNumber': data.get('recruiterPhone') or data.get('phoneNumber'),
+            'email': data.get('recruiterEmail') or data.get('email'),
+            
+            # Recruitment Specialization - Ensure arrays
+            'industries': ensure_array(data.get('industries')),
+            'functions': ensure_array(data.get('functions')),
+            'careerLevels': ensure_array(data.get('careerLevels')),
+            'hiringVolume': data.get('hiringVolume'),
+            'timeToHire': data.get('timeToHire'),
+            
+            # Geographic Coverage
+            'recruitCountries': ensure_array(data.get('recruitCountries')),
+            'offersRemote': data.get('offersRemote'),
+            
+            # Services & Offerings - Ensure arrays
+            'employmentTypes': ensure_array(data.get('employmentTypes')),
+            'additionalServices': ensure_array(data.get('additionalServices')),
+            
+            # Social Media
+            'linkedinCompany': data.get('linkedinCompany'),
+            'facebook': data.get('facebook'),
+            'twitter': data.get('twitter'),
+            'instagram': data.get('instagram'),
+            'additionalLinks': ensure_array(data.get('additionalLinks')),
+            
+            # Additional
+            'taxId': data.get('taxId'),
+            'referralSource': data.get('referralSource'),
+            'additionalComments': data.get('additionalComments'),
+            
+            # Metadata
             'updatedAt': datetime.utcnow()
         }
         
-        # Remove None values
+        # Remove None values but keep empty arrays
         update_data = {k: v for k, v in update_data.items() if v is not None}
+        
+        print(f"📝 Array fields being saved:")
+        print(f"   - industries: {update_data.get('industries', [])} (type: {type(update_data.get('industries', []))})")
+        print(f"   - functions: {update_data.get('functions', [])} (type: {type(update_data.get('functions', []))})")
+        print(f"   - careerLevels: {update_data.get('careerLevels', [])} (type: {type(update_data.get('careerLevels', []))})")
+        print(f"   - recruitCountries: {update_data.get('recruitCountries', [])} (type: {type(update_data.get('recruitCountries', []))})")
+        print(f"   - employmentTypes: {update_data.get('employmentTypes', [])} (type: {type(update_data.get('employmentTypes', []))})")
         
         result = db.users.update_one(
             {"_id": ObjectId(recruiter_id)},
             {"$set": update_data}
         )
         
-        if result.modified_count > 0:
+        if result.matched_count > 0:
             # Get updated user data
             updated_user = db.users.find_one({"_id": ObjectId(recruiter_id)})
-            updated_user['_id'] = str(updated_user['_id'])
-            
-            return jsonify({
-                'message': 'Profile updated successfully',
-                'user': updated_user
-            }), 200
+            if updated_user:
+                updated_user['_id'] = str(updated_user['_id'])
+                
+                print(f"✅ Profile updated successfully!")
+                print(f"📊 Saved industries: {updated_user.get('industries', [])} (type: {type(updated_user.get('industries', []))})")
+                
+                return jsonify({
+                    'message': 'Profile updated successfully',
+                    'user': updated_user
+                }), 200
+            else:
+                return jsonify({'error': 'Failed to retrieve updated user'}), 500
         else:
-            return jsonify({'error': 'No changes made'}), 400
+            # Even if nothing was modified, return success if user exists
+            user = db.users.find_one({"_id": ObjectId(recruiter_id)})
+            if user:
+                user['_id'] = str(user['_id'])
+                print(f"ℹ️ Profile already up to date (no changes detected)")
+                return jsonify({
+                    'message': 'Profile is already up to date',
+                    'user': user
+                }), 200
+            else:
+                return jsonify({'error': 'User not found'}), 404
             
     except Exception as e:
-        print(f"Error updating recruiter profile: {e}")
-        return jsonify({'error': 'Failed to update profile'}), 500
+        print(f"❌ Error updating recruiter profile: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Failed to update profile', 'details': str(e)}), 500
 
 @recruiter_bp.route('/company', methods=['PUT'])
 @jwt_required()

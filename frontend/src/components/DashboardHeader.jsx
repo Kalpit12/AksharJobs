@@ -6,7 +6,6 @@ import {
   faEnvelope,
   faBars,
   faUser,
-  faCog,
   faSignOutAlt,
   faGraduationCap,
   faBriefcase,
@@ -308,21 +307,6 @@ const DashboardHeader = ({
               </div>
               <div className="dropdown-divider"></div>
               <div className="dropdown-content">
-                <div className="dropdown-item" onClick={() => {
-                  navigate('/profile');
-                  setShowUserMenu(false);
-                }}>
-                  <FontAwesomeIcon icon={faUser} />
-                  <span>My Profile</span>
-                </div>
-                <div className="dropdown-item" onClick={() => {
-                  navigate('/settings');
-                  setShowUserMenu(false);
-                }}>
-                  <FontAwesomeIcon icon={faCog} />
-                  <span>Settings</span>
-                </div>
-                <div className="dropdown-divider"></div>
                 <div className="dropdown-item logout-item" onClick={handleLogout}>
                   <FontAwesomeIcon icon={faSignOutAlt} />
                   <span>Logout</span>

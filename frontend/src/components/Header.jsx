@@ -5,7 +5,6 @@ import {
   faHome,
   faBriefcase,
   faUser,
-  faCog,
   faSignOutAlt,
   faChartLine,
   faBell,
@@ -385,14 +384,6 @@ const Header = () => {
             <div className="mobile-menu-section">
               <div className="mobile-menu-title">Account</div>
               <div className="mobile-menu-links">
-                <Link to="/profile" className="mobile-menu-link" onClick={closeMobileMenu}>
-                  <FontAwesomeIcon icon={faUser} />
-                  Profile
-                </Link>
-                <Link to="/settings" className="mobile-menu-link" onClick={closeMobileMenu}>
-                  <FontAwesomeIcon icon={faCog} />
-                  Settings
-                </Link>
                 {getUserRole() === 'recruiter' && (
                   <Link to="/post-job" className="mobile-menu-link" onClick={closeMobileMenu}>
                     <FontAwesomeIcon icon={faUpload} />

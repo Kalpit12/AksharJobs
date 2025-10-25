@@ -114,6 +114,7 @@ from routes.jobseeker_registration_routes import jobseeker_registration_routes
 from routes.ai_features_routes import ai_features_bp
 from routes.interviews_routes import interviews_routes
 from routes.template_routes import template_routes
+from routes.companies_routes import companies_bp
 
 # Register blueprints
 app.register_blueprint(auth_routes, url_prefix='/api/auth')
@@ -162,6 +163,7 @@ app.register_blueprint(ai_features_bp, url_prefix='/api/ai')
 app.register_blueprint(ai_prediction_bp, url_prefix='/api/ai')
 app.register_blueprint(debug_bp, url_prefix='/api/debug')
 app.register_blueprint(bulk_import_bp)
+app.register_blueprint(companies_bp, url_prefix='/api/companies')
 
 # Additional CORS handling for OPTIONS requests
 @app.before_request

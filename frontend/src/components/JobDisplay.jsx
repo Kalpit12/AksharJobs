@@ -123,12 +123,23 @@ const JobDisplay = () => {
             <div className="job-skills-preview">
               <h4>Key Skills:</h4>
               <div className="skills-tags">
-                {job.required_skills?.slice(0, 4).map((skill, index) => (
-                  <span key={index} className="skill-tag">{skill}</span>
-                ))}
-                {job.required_skills?.length > 4 && (
-                  <span className="more-skills">+{job.required_skills.length - 4} more</span>
-                )}
+                {(() => {
+                  // Parse required_skills safely - handle both string and array
+                  let skills = job.required_skills || [];
+                  if (typeof skills === 'string') {
+                    skills = skills.split(',').map(s => s.trim()).filter(s => s);
+                  }
+                  return Array.isArray(skills) && (
+                    <>
+                      {skills.slice(0, 4).map((skill, index) => (
+                        <span key={index} className="skill-tag">{skill}</span>
+                      ))}
+                      {skills.length > 4 && (
+                        <span className="more-skills">+{skills.length - 4} more</span>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
             </div>
 

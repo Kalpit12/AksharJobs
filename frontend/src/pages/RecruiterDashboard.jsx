@@ -115,29 +115,42 @@ const RecruiterDashboard = () => {
   const fetchJobs = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('❌ No authentication token found');
+        return;
+      }
+      
       const response = await fetch(buildApiUrl('/api/jobs/get_jobs_for_user'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
       if (response.ok) {
         const data = await response.json();
-        const transformedJobs = (data || []).map(job => ({
+        const jobsArray = Array.isArray(data) ? data : [];
+        const transformedJobs = jobsArray.map(job => ({
           ...job,
-          jobTitle: job.job_title || job.jobTitle,
-          companyName: job.company_name || job.companyName,
-          salary: job.salary_range || job.salary,
-          salaryRange: job.salary_range || job.salaryRange,
-          remoteOption: job.remote_option || job.remoteOption,
-          jobType: job.job_type || job.jobType,
-          experienceRequired: job.experience_required || job.experienceRequired,
-          requiredSkills: job.required_skills || job.requiredSkills,
-          educationRequired: job.education_required || job.educationRequired,
-          applicationDeadline: job.application_deadline || job.applicationDeadline,
-          companyWebsite: job.company_website || job.companyWebsite
+          jobTitle: job.job_title || job.jobTitle || '',
+          companyName: job.company_name || job.companyName || '',
+          salary: job.salary_range || job.salary || '',
+          salaryRange: job.salary_range || job.salaryRange || '',
+          remoteOption: job.remote_option || job.remoteOption || '',
+          jobType: job.job_type || job.jobType || '',
+          experienceRequired: job.experience_required || job.experienceRequired || '',
+          requiredSkills: job.required_skills || job.requiredSkills || [],
+          educationRequired: job.education_required || job.educationRequired || '',
+          applicationDeadline: job.application_deadline || job.applicationDeadline || '',
+          companyWebsite: job.company_website || job.companyWebsite || ''
         }));
         setJobs(transformedJobs);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Failed to fetch jobs:', response.status, errorData);
       }
     } catch (error) {
-      console.error('Error fetching jobs:', error);
+      console.error('❌ Error fetching jobs:', error);
+      if (error.message) {
+        console.error('Error message:', error.message);
+      }
     }
   };
 
@@ -188,15 +201,30 @@ const RecruiterDashboard = () => {
   const fetchApplications = async () => {
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('❌ No authentication token found');
+        return;
+      }
+      
       const response = await fetch(buildApiUrl('/api/recruiters/applications'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      
       if (response.ok) {
         const data = await response.json();
-        setApplications(data);
+        const applicationsArray = Array.isArray(data) ? data : [];
+        setApplications(applicationsArray);
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Failed to fetch applications:', response.status, errorData);
+        setApplications([]);
       }
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      console.error('❌ Error fetching applications:', error);
+      if (error.message) {
+        console.error('Error message:', error.message);
+      }
+      setApplications([]);
     }
   };
 
@@ -426,6 +454,10 @@ const RecruiterDashboard = () => {
           <div className={`nav-item ${activeSection === 'settings' ? 'active' : ''}`} onClick={() => setActiveSection('settings')}>
             <i className="fas fa-cog"></i>
             <span>Settings</span>
+          </div>
+          <div className="nav-item" onClick={() => navigate('/recruiter-my-profile')}>
+            <i className="fas fa-user-circle"></i>
+            <span>My Profile</span>
           </div>
         </div>
       </div>

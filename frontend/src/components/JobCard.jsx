@@ -172,16 +172,18 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false, isAlrea
             ✓ {job.match_reasons[0]}
           </span>
         )}
-        {job.required_skills && job.required_skills.slice(0, 3).map((skill, skillIdx) => (
-          <span key={skillIdx} className="new-job-card-tag">
-            {skill}
-          </span>
-        ))}
-        {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (
-          <span key={skillIdx} className="new-job-card-tag">
-            {skill}
-          </span>
-        ))}
+        {(() => {
+          // Parse required_skills safely - handle both string and array
+          let skills = job.required_skills || job.skills || [];
+          if (typeof skills === 'string') {
+            skills = skills.split(',').map(s => s.trim()).filter(s => s);
+          }
+          return Array.isArray(skills) && skills.slice(0, 3).map((skill, skillIdx) => (
+            <span key={skillIdx} className="new-job-card-tag">
+              {skill}
+            </span>
+          ));
+        })()}
         <span className="new-job-card-tag meta">
           <FontAwesomeIcon icon={faClock} /> 
           {job.posted_date ? new Date(job.posted_date).toLocaleDateString() : 'Recently'}

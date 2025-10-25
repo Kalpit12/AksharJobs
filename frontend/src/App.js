@@ -13,6 +13,7 @@ import Community from "./pages/Community";
 import JobSeekerDashboard from "./pages/JobSeekerDashboard";
 import MyProfile from "./pages/MyProfile";
 import RecruiterDashboard from "./pages/RecruiterDashboard";
+import RecruiterMyProfile from "./pages/RecruiterMyProfile";
 import InternDashboard from "./pages/InternDashboardComplete";
 import InternMyProfile from "./pages/InternMyProfile";
 import ModernJobDetails from "./pages/ModernJobDetails";
@@ -30,6 +31,7 @@ import OAuthSuccess from "./pages/OAuthSuccess";
 import OAuthRoleSelection from "./pages/OAuthRoleSelection";
 import RecruiterRegistrationForm from "./pages/RecruiterRegistrationForm";
 import Company from "./pages/Company";
+import Companies from "./pages/Companies";
 import JobSeekerRegistrationForm from "./pages/JobSeekerRegistrationFormComprehensive";
 import InternRegistrationForm from "./pages/InternRegistrationForm";
 import PromoCodePage from "./pages/PromoCodePage";
@@ -181,6 +183,7 @@ function App() {
                 <Footer />
               </>
             }/>
+            <Route path="/companies" element={<Companies />} />
             <Route path="/salary-guide" element={<SalaryGuide />} />
             <Route path="/career-advice" element={<CareerAdvice />} />
             <Route path="/recruitment-solutions" element={<RecruitmentSolutions />} />
@@ -290,6 +293,11 @@ function App() {
              <Route path="/recruiter-dashboard" element={
                <ProtectedRoute requiredRole="recruiter">
                  <RecruiterDashboard />
+               </ProtectedRoute>
+             } />
+             <Route path="/recruiter-my-profile" element={
+               <ProtectedRoute requiredRole="recruiter">
+                 <RecruiterMyProfile />
                </ProtectedRoute>
              } />
              

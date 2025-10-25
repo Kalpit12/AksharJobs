@@ -235,60 +235,89 @@ const RecruiterCandidateTracker = ({ onViewCandidate }) => {
         </button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="tracker-stats">
-        <div className="stat-card total">
-          <div className="stat-icon">
+      {/* Stats Cards - New Design */}
+      <div className="tracker-stats-grid">
+        <div className="tracker-stat-card">
+          <div className="tracker-stat-info">
+            <p className="tracker-stat-title">Total Applications</p>
+            <h3 className="tracker-stat-value">{stats.total}</h3>
+            <div className="tracker-stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>0%</span>
+            </div>
+          </div>
+          <div className="tracker-stat-icon-box tracker-stat-icon-blue">
             <i className="fas fa-users"></i>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{stats.total}</div>
-            <div className="stat-label">Total Applications</div>
-          </div>
         </div>
-        <div className="stat-card pending">
-          <div className="stat-icon">
+
+        <div className="tracker-stat-card">
+          <div className="tracker-stat-info">
+            <p className="tracker-stat-title">Pending Review</p>
+            <h3 className="tracker-stat-value">{stats.pending}</h3>
+            <div className="tracker-stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>0%</span>
+            </div>
+          </div>
+          <div className="tracker-stat-icon-box tracker-stat-icon-blue">
             <i className="fas fa-clock"></i>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{stats.pending}</div>
-            <div className="stat-label">Pending Review</div>
-          </div>
         </div>
-        <div className="stat-card reviewing">
-          <div className="stat-icon">
+
+        <div className="tracker-stat-card">
+          <div className="tracker-stat-info">
+            <p className="tracker-stat-title">Under Review</p>
+            <h3 className="tracker-stat-value">{stats.reviewing}</h3>
+            <div className="tracker-stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>0%</span>
+            </div>
+          </div>
+          <div className="tracker-stat-icon-box tracker-stat-icon-blue">
             <i className="fas fa-eye"></i>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{stats.reviewing}</div>
-            <div className="stat-label">Under Review</div>
-          </div>
         </div>
-        <div className="stat-card interview">
-          <div className="stat-icon">
+
+        <div className="tracker-stat-card">
+          <div className="tracker-stat-info">
+            <p className="tracker-stat-title">Interview Stage</p>
+            <h3 className="tracker-stat-value">{stats.interview}</h3>
+            <div className="tracker-stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>0%</span>
+            </div>
+          </div>
+          <div className="tracker-stat-icon-box tracker-stat-icon-blue">
             <i className="fas fa-comments"></i>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{stats.interview}</div>
-            <div className="stat-label">Interview Stage</div>
-          </div>
         </div>
-        <div className="stat-card offered">
-          <div className="stat-icon">
+
+        <div className="tracker-stat-card">
+          <div className="tracker-stat-info">
+            <p className="tracker-stat-title">Offers Extended</p>
+            <h3 className="tracker-stat-value">{stats.offered}</h3>
+            <div className="tracker-stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>0%</span>
+            </div>
+          </div>
+          <div className="tracker-stat-icon-box tracker-stat-icon-blue">
             <i className="fas fa-handshake"></i>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{stats.offered}</div>
-            <div className="stat-label">Offers Extended</div>
-          </div>
         </div>
-        <div className="stat-card hired">
-          <div className="stat-icon">
-            <i className="fas fa-check-circle"></i>
+
+        <div className="tracker-stat-card">
+          <div className="tracker-stat-info">
+            <p className="tracker-stat-title">Hired</p>
+            <h3 className="tracker-stat-value">{stats.hired}</h3>
+            <div className="tracker-stat-trend">
+              <i className="fas fa-arrow-up"></i>
+              <span>0%</span>
+            </div>
           </div>
-          <div className="stat-content">
-            <div className="stat-number">{stats.hired}</div>
-            <div className="stat-label">Hired</div>
+          <div className="tracker-stat-icon-box tracker-stat-icon-blue">
+            <i className="fas fa-check-circle"></i>
           </div>
         </div>
       </div>
