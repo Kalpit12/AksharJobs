@@ -77,8 +77,13 @@ class User:
         users, _ = _get_collections()
         if users is None:
             return None
-            
-        hashed_password = generate_password_hash(data["password"])
+        
+        # Use bcrypt for password hashing (more secure and consistent)
+        import bcrypt
+        password_bytes = data["password"].encode('utf-8')
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+        
         user = {
             "userType": data["userType"],
             "firstName": data["firstName"],

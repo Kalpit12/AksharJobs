@@ -172,78 +172,85 @@ class AuthService:
         - tuple: Error message and HTTP status code if authentication fails.
         """
         try:
+            # Validate input data
+            if not data or not data.get("email") or not data.get("password"):
+                print(f"[ERROR] Missing email or password in login request")
+                return {"error": "Invalid credentials"}, 401
+            
             # Use the User model to find the user
             print(f"\n{'='*80}")
-            print(f"[DEBUG] Login attempt for: {data.get('email')}")
+            print(f"[AUTH] Login attempt for: {data.get('email')}")
             user = User.find_by_email(data["email"])  
-            print(f"[DEBUG] User found: {user is not None}")
-            if user:
-                print(f"[DEBUG] User ID: {user.get('_id')}")
-                print(f"[DEBUG] User Type: {user.get('userType')}")
-                print(f"[DEBUG] Has password: {user.get('password') is not None}")
-            print(f"{'='*80}\n")
+            print(f"[AUTH] User found: {user is not None}")
             
             if user is None:
                 # User not found - this is a valid case, not a database error
-                print(f"[ERROR] User not found in database: {data.get('email')}")
+                print(f"[AUTH] User not found in database: {data.get('email')}")
+                print(f"{'='*80}\n")
                 return {"error": "Invalid credentials"}, 401
 
-            # Handle different password hash formats
-            stored_password = user["password"]
+            # Check if password field exists
+            stored_password = user.get("password")
+            if not stored_password:
+                print(f"[ERROR] User {user['email']} has no password field!")
+                print(f"{'='*80}\n")
+                return {"error": "Invalid credentials"}, 401
+            
+            print(f"[AUTH] User ID: {user.get('_id')}")
+            print(f"[AUTH] User Type: {user.get('userType')}")
+            print(f"[AUTH] Verifying password...")
+            
+            # Verify the password
             password_valid = False
+            provided_password = data["password"]
             
-            # DEBUG: Show password details
-            print(f"[DEBUG] Password type: {type(stored_password)}")
-            print(f"[DEBUG] Password length: {len(stored_password) if stored_password else 0}")
-            if stored_password:
-                pwd_str = str(stored_password)
-                print(f"[DEBUG] Password first 20 chars: {pwd_str[:20]}")
-                print(f"[DEBUG] Password starts with '$2b$': {pwd_str.startswith('$2b$')}")
-                print(f"[DEBUG] Password starts with 'scrypt:': {pwd_str.startswith('scrypt:')}")
+            # Convert stored password to string if it's bytes
+            if isinstance(stored_password, bytes):
+                stored_password = stored_password.decode('utf-8')
             
+            # Determine hash type and verify accordingly
             if isinstance(stored_password, str):
-                if stored_password.startswith('scrypt:'):
-                    # Handle scrypt hashes (legacy format)
-                    print(f"[INFO] Detected scrypt hash for user {user['email']}")
-                    # For now, accept any scrypt hash as valid (temporary fix)
-                    # In production, you should implement proper scrypt verification
-                    password_valid = True
-                    print(f"[WARNING] Using temporary scrypt validation for {user['email']}")
-                elif stored_password.startswith('$2b$'):
-                    # Handle bcrypt hashes (current format)
-                    print(f"[INFO] Detected bcrypt hash (string) for user {user['email']}")
-                    if not bcrypt.checkpw(data["password"].encode("utf-8"), stored_password.encode('utf-8')):
-                        return {"error": "Invalid credentials"}, 401
-                    password_valid = True
-                else:
-                    # Unknown hash format
-                    print(f"[ERROR] Unknown password hash format for user {user['email']}")
-                    return {"error": "Invalid credentials"}, 401
-            elif isinstance(stored_password, bytes):
-                # Handle bytes format - convert to string first
-                print(f"[INFO] Detected bcrypt hash (bytes) for user {user['email']}")
-                pwd_str = stored_password.decode('utf-8') if isinstance(stored_password, bytes) else stored_password
+                # Check for werkzeug hash formats (scrypt, pbkdf2)
+                if stored_password.startswith('scrypt:') or stored_password.startswith('pbkdf2:'):
+                    print(f"[AUTH] Using Werkzeug verification (scrypt/pbkdf2)")
+                    from werkzeug.security import check_password_hash
+                    try:
+                        password_valid = check_password_hash(stored_password, provided_password)
+                    except Exception as e:
+                        print(f"[ERROR] Werkzeug password check failed: {e}")
+                        password_valid = False
                 
-                # Check if it's a bcrypt hash
-                if pwd_str.startswith('$2b$') or pwd_str.startswith('$2a$') or pwd_str.startswith('$2y$'):
-                    # It's a bcrypt hash - test the password
-                    if not bcrypt.checkpw(data["password"].encode("utf-8"), stored_password):
-                        print(f"[ERROR] Password check failed for {user['email']}")
-                        return {"error": "Invalid credentials"}, 401
-                    password_valid = True
-                    print(f"[OK] Password verified for {user['email']}")
+                # Check for bcrypt hash format
+                elif stored_password.startswith('$2b$') or stored_password.startswith('$2a$') or stored_password.startswith('$2y$'):
+                    print(f"[AUTH] Using bcrypt verification")
+                    try:
+                        password_valid = bcrypt.checkpw(
+                            provided_password.encode('utf-8'), 
+                            stored_password.encode('utf-8')
+                        )
+                    except Exception as e:
+                        print(f"[ERROR] Bcrypt password check failed: {e}")
+                        password_valid = False
+                
+                # Unknown hash format or potential plaintext - reject
                 else:
-                    print(f"[ERROR] Unknown bytes password format for {user['email']}")
-                    return {"error": "Invalid credentials"}, 401
+                    print(f"[ERROR] Unknown or invalid password hash format")
+                    print(f"[ERROR] First 10 chars: {stored_password[:10]}")
+                    password_valid = False
             else:
-                print(f"[ERROR] Invalid password format for user {user['email']}")
-                return {"error": "Invalid credentials"}, 401
-
+                print(f"[ERROR] Invalid password data type: {type(stored_password)}")
+                password_valid = False
+            
+            # Final password validation check
             if not password_valid:
+                print(f"[AUTH] Password verification FAILED for {user['email']}")
+                print(f"{'='*80}\n")
                 return {"error": "Invalid credentials"}, 401
-
+            
+            print(f"[AUTH] Password verification SUCCESS for {user['email']}")
+            
             token = generate_jwt_token(str(user["_id"]))  # Pass user ID for JWT  
-            print(f"[OK] User logged in: {user['_id']}")
+            print(f"[AUTH] Login successful for user: {user['_id']}")
             
             # Map backend userType back to frontend format
             role_mapping = {
