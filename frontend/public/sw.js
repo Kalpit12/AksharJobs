@@ -1,7 +1,7 @@
 // Service Worker for Performance Optimization
-const CACHE_NAME = 'aksharjobs-v1';
-const STATIC_CACHE = 'aksharjobs-static-v1';
-const DYNAMIC_CACHE = 'aksharjobs-dynamic-v1';
+const CACHE_NAME = 'aksharjobs-v2'; // BUMPED VERSION TO CLEAR OLD CACHE
+const STATIC_CACHE = 'aksharjobs-static-v2';
+const DYNAMIC_CACHE = 'aksharjobs-dynamic-v2';
 
 // Files to cache immediately
 const STATIC_FILES = [
@@ -61,6 +61,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // NETWORK-FIRST strategy for API requests (always get fresh data)
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          // Return cached version only if network fails
+          return caches.match(request);
+        })
+    );
+    return;
+  }
+
+  // CACHE-FIRST strategy for static assets
   event.respondWith(
     caches.match(request)
       .then((cachedResponse) => {

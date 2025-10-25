@@ -4,7 +4,7 @@ A comprehensive live application tracking system for both job seekers and recrui
 
 ## ✨ Features
 
-### For Job Seekers
+### For Jobseekers
 - **Real-time Application Tracking**: Monitor all your job applications with live status updates
 - **Progress Visualization**: See application progress with animated progress bars
 - **Status Timeline**: View detailed timeline of application status changes

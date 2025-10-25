@@ -12,7 +12,7 @@ class InternService:
     def __init__(self):
         self.db = get_db()
         self.users_collection = self.db['users']
-        self.internships_collection = self.db['internships']
+        self.internships_collection = self.db['jobs']  # Internships are stored in jobs collection
         self.applications_collection = self.db['intern_applications']
         self.saved_internships_collection = self.db['saved_internships']
     

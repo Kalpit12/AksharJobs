@@ -629,6 +629,55 @@ def get_applications():
         print(f"Error in get_applications: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@application_bp.route('/application/<job_id>/<user_id>', methods=['GET'])
+@jwt_required()
+def get_single_application(job_id, user_id):
+    """
+    Get a specific application by job_id and user_id
+    Handles both job seeker and intern applications
+    """
+    try:
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        current_user_id = get_jwt_identity()
+        
+        # Try to find application in regular applications collection
+        application = db.applications.find_one({
+            'job_id': ObjectId(job_id),
+            'applicant_id': ObjectId(user_id)
+        })
+        
+        # If not found, try intern_applications collection
+        if not application:
+            application = db.intern_applications.find_one({
+                'internshipId': job_id,  # Might be stored as string
+                'userId': ObjectId(user_id)
+            })
+        
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
+        
+        # Convert ObjectIds to strings
+        application['_id'] = str(application['_id'])
+        if 'job_id' in application:
+            application['job_id'] = str(application['job_id'])
+        if 'applicant_id' in application:
+            application['applicant_id'] = str(application['applicant_id'])
+        if 'userId' in application:
+            application['userId'] = str(application['userId'])
+        if 'internshipId' in application:
+            application['internshipId'] = str(application['internshipId'])
+        
+        return jsonify(application), 200
+        
+    except Exception as e:
+        print(f"Error fetching single application: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
 @application_bp.route('/all', methods=['GET'])
 def get_all_applications():
     """Get all applications with user and job details (for testing purposes)"""
@@ -753,6 +802,83 @@ def get_recruiter_applications():
     except Exception as e:
         print(f"❌ Error in get_recruiter_applications: {e}")
         return jsonify({'error': 'Internal server error'}), 500
+
+@application_bp.route('/application/<job_id>/<user_id>', methods=['PUT'])
+@jwt_required()
+def update_single_application(job_id, user_id):
+    """
+    Update a specific application by job_id and user_id
+    Handles both job seeker and intern applications
+    """
+    try:
+        db = get_db()
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        current_user_id = get_jwt_identity()
+        data = request.get_json()
+        
+        if not data or 'status' not in data:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        # Try to find application in regular applications collection
+        application = db.applications.find_one({
+            'job_id': ObjectId(job_id),
+            'applicant_id': ObjectId(user_id)
+        })
+        is_intern_app = False
+        
+        # If not found, try intern_applications collection
+        if not application:
+            application = db.intern_applications.find_one({
+                'internshipId': job_id,
+                'userId': ObjectId(user_id)
+            })
+            is_intern_app = True
+        
+        if not application:
+            return jsonify({'error': 'Application not found'}), 404
+        
+        # Update the application in the correct collection
+        update_data = {
+            'status': data['status'],
+            'last_updated': datetime.utcnow()
+        }
+        
+        if 'notes' in data:
+            update_data['notes'] = data['notes']
+        if 'interview_date' in data:
+            update_data['interviewDate'] = data['interview_date']
+        if 'interview_mode' in data:
+            update_data['interviewType'] = data['interview_mode']
+        
+        if is_intern_app:
+            result = db.intern_applications.update_one(
+                {
+                    'internshipId': job_id,
+                    'userId': ObjectId(user_id)
+                },
+                {'$set': update_data}
+            )
+        else:
+            result = db.applications.update_one(
+                {
+                    'job_id': ObjectId(job_id),
+                    'applicant_id': ObjectId(user_id)
+                },
+                {'$set': update_data}
+            )
+        
+        if result.modified_count > 0:
+            return jsonify({'message': 'Application updated successfully'}), 200
+        else:
+            return jsonify({'error': 'No changes made'}), 400
+            
+    except Exception as e:
+        print(f"Error updating single application: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
 
 @application_bp.route('/update_status', methods=['PUT'])
 @jwt_required()

@@ -11,6 +11,10 @@ import messageApi from '../api/messageApi';
 import JobCard from '../components/JobCard';
 import MessagingSystem from '../components/MessagingSystem';
 import SettingsPage from '../components/SettingsPage';
+import ApplicationTrackerTable from '../components/ApplicationTrackerTable';
+import StatCard from '../components/StatCard';
+import ProfessionalMessaging from '../components/ProfessionalMessaging';
+import DashboardHeader from '../components/DashboardHeader';
 import {
   faChartLine,
   faThLarge,
@@ -616,29 +620,24 @@ const JobSeekerDashboard = () => {
     }
   };
 
-  // New Stat Card Component
-  const StatCard = ({ title, value, icon, color = 'orange', change, changeType = 'neutral' }) => (
-    <div className="stat-card">
-      <div className="stat-header">
-        <div className="stat-title">{title}</div>
-      </div>
-      <div className="stat-content">
-        <div className="stat-number-container">
-          <div className="stat-number">{value}</div>
-          <div className="stat-icon">
-            <FontAwesomeIcon icon={icon} />
-          </div>
-        </div>
-        <div className="stat-label">{title}</div>
-      </div>
-      <div className="stat-footer">
-        <div className={`stat-change ${changeType}`}>
-          {changeType === 'positive' && <FontAwesomeIcon icon={faArrowUp} />}
-          {change}
-        </div>
-      </div>
-    </div>
-  );
+  // Using imported StatCard component from components folder
+
+  const getSectionTitle = () => {
+    const titleMap = {
+      'dashboard': 'Dashboard',
+      'jobs': 'Browse Jobs',
+      'applications': 'Application Tracker',
+      'saved': 'Saved Jobs',
+      'interviews': 'Interviews',
+      'recommended': 'Recommended',
+      'messages': 'Messages',
+      'profile': 'My Profile',
+      'resume': 'Resume/CV',
+      'resources': 'Career Resources',
+      'settings': 'Settings'
+    };
+    return titleMap[activeSection] || 'Dashboard';
+  };
 
   if (loading) {
     return (
@@ -652,13 +651,18 @@ const JobSeekerDashboard = () => {
   }
 
   return (
-    <div className="dashboard-container jobseeker-dashboard-container">
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div className="sidebar-header">
-          <h2><FontAwesomeIcon icon={faBriefcase} /> JOBSEEKER HUB</h2>
-          <p>Your Career Journey</p>
-        </div>
+    <>
+      {/* Modern Header */}
+      <DashboardHeader 
+        currentPage={getSectionTitle()}
+        onSearch={(term) => console.log('Search:', term)}
+        onMenuToggle={() => console.log('Menu toggle')}
+        userType="jobSeeker"
+      />
+
+      <div className="dashboard-container jobseeker-dashboard-container" style={{ marginTop: '0' }}>
+        {/* Sidebar */}
+        <div className="sidebar" style={{ top: '80px', height: 'calc(100vh - 80px)', paddingTop: '20px' }}>
         <div className="nav-menu">
           {navigationItems.map((item, index) => (
             <div key={item.id}>
@@ -682,43 +686,6 @@ const JobSeekerDashboard = () => {
 
       {/* Main Content */}
       <div className="main-content">
-        {/* Top Bar */}
-        {activeSection !== 'settings' && (
-        <div className="dashboard-header">
-          <div className="search-bar">
-            <FontAwesomeIcon icon={faSearch} />
-            <input 
-              type="text" 
-              placeholder="Search jobs, companies, or skills..." 
-            />
-          </div>
-          <div className="top-bar-actions">
-            <button className="icon-btn">
-              <FontAwesomeIcon icon={faBell} />
-              {unreadNotifications > 0 && <span className="notification-dot"></span>}
-            </button>
-            <button className="icon-btn">
-              <FontAwesomeIcon icon={faQuestionCircle} />
-            </button>
-            <div className="user-info">
-              <div className="user-avatar">
-                {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-              </div>
-              <div>
-                <div className="user-name">{user?.firstName} {user?.lastName}</div>
-                <div className="user-role">
-                  {dashboardData.user?.professionalTitle || dashboardData.user?.currentJobTitle || user?.professionalTitle || user?.currentJobTitle || 'Job Seeker'}
-                </div>
-              </div>
-            </div>
-            <button className="btn-logout" onClick={handleLogout}>
-              <FontAwesomeIcon icon={faSignOutAlt} />
-              Logout
-            </button>
-          </div>
-        </div>
-        )}
-
         {/* Content Area */}
         <div className={`content-area ${activeSection === 'settings' ? 'settings-active' : ''}`} ref={sectionRefs.current.dashboardTop}>
           {/* Show different content based on active section */}
@@ -780,35 +747,43 @@ const JobSeekerDashboard = () => {
                 </div>
               </div>
 
-              {/* Stats Grid */}
+              {/* Stats Grid - Modern Design */}
               <div className="stats-grid" ref={sectionRefs.current.statsGrid}>
                 <StatCard
                   title="Applications Sent"
                   value={dashboardData.stats.applicationsSent}
+                  trend={dashboardData.stats.applicationsSent > 0 ? 23 : 0}
+                  trendValue={dashboardData.stats.applicationsSent > 0 ? "2" : ""}
+                  trendLabel="this week"
                   icon={faPaperPlane}
-                  change={dashboardData.stats.applicationsSent > 0 ? "↑ recent activity" : "No applications yet"}
-                  changeType={dashboardData.stats.applicationsSent > 0 ? "positive" : "neutral"}
+                  iconColor="#f97316"
                 />
                 <StatCard
                   title="Interviews Scheduled"
                   value={dashboardData.stats.interviewsScheduled}
+                  trend={dashboardData.stats.interviewsScheduled > 0 ? 18 : 0}
+                  trendValue=""
+                  trendLabel={dashboardData.stats.interviewsScheduled > 0 ? "this month" : "No interviews yet"}
                   icon={faCalendarCheck}
-                  change={dashboardData.stats.interviewsScheduled > 0 ? "Agenda updated" : "No interviews scheduled"}
-                  changeType={dashboardData.stats.interviewsScheduled > 0 ? "positive" : "neutral"}
+                  iconColor="#10b981"
                 />
                 <StatCard
                   title="Profile Views"
                   value={dashboardData.stats.profileViews}
+                  trend={dashboardData.stats.profileViews > 0 ? 25 : 0}
+                  trendValue=""
+                  trendLabel="this month"
                   icon={faEye}
-                  change={dashboardData.stats.profileViews > 0 ? "↑ trending" : "No views yet"}
-                  changeType={dashboardData.stats.profileViews > 0 ? "positive" : "neutral"}
+                  iconColor="#3b82f6"
                 />
                 <StatCard
                   title="Saved Jobs"
                   value={dashboardData.stats.savedJobs}
+                  trend={dashboardData.stats.savedJobs > 0 ? 15 : 0}
+                  trendValue=""
+                  trendLabel="new matches"
                   icon={faBookmark}
-                  change={dashboardData.stats.savedJobs > 0 ? "New matches" : "No saved jobs yet"}
-                  changeType={dashboardData.stats.savedJobs > 0 ? "positive" : "neutral"}
+                  iconColor="#8b5cf6"
                 />
               </div>
 
@@ -1056,110 +1031,8 @@ const JobSeekerDashboard = () => {
 
           {/* Application Tracker Section */}
           {activeSection === 'applications' && (
-            <div className="application-tracker-section" ref={sectionRefs.current.applications}>
-              <div className="application-tracker-header">
-                <h3 className="application-tracker-title">Application Tracker</h3>
-                <div className="application-tracker-filters">
-                  <select className="filter-select">
-                    <option>All Applications ({dashboardData.recentApplications.length})</option>
-                    <option>Under Review</option>
-                    <option>Interview</option>
-                    <option>Offered</option>
-                    <option>Rejected</option>
-                  </select>
-                  <select className="filter-select">
-                    <option>Sort By: Most Recent</option>
-                    <option>Company Name</option>
-                    <option>Application Date</option>
-                    <option>Status</option>
-                  </select>
-                  <button className="btn btn-primary btn-sm">
-                    <FontAwesomeIcon icon={faPlus} /> Track New Application
-                  </button>
-                </div>
-              </div>
-              <div className="application-tracker-content">
-                {/* Application Statistics */}
-                <div className="stats-grid">
-                  <div className="stat-card">
-                    <div className="stat-value">{dashboardData.recentApplications.length}</div>
-                    <div className="stat-label">Total Applications</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('interview')).length}</div>
-                    <div className="stat-label">Interviews</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('offer')).length}</div>
-                    <div className="stat-label">Offers</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-value">{dashboardData.recentApplications.filter(app => (app.status || '').toLowerCase().includes('review')).length}</div>
-                    <div className="stat-label">Under Review</div>
-                  </div>
-                </div>
-
-                {dashboardData.recentApplications && dashboardData.recentApplications.length > 0 ? (
-                  <div className="table-container">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Job Title</th>
-                          <th>Company</th>
-                          <th>Location</th>
-                          <th>Applied</th>
-                          <th>Status</th>
-                          <th>Last Updated</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {dashboardData.recentApplications.map((app, idx) => (
-                          <tr key={idx}>
-                            <td><strong>{sanitizeJobTitle(app.job_title)}</strong></td>
-                            <td>{app.company_name}</td>
-                            <td>{app.location || 'Not specified'}</td>
-                            <td>{new Date(app.applied_date || Date.now()).toLocaleDateString()}</td>
-                            <td>
-                              <span className={`status-badge status-${(app.status || 'applied').toLowerCase().replace(' ', '-')}`}>
-                                {app.status || 'Applied'}
-                              </span>
-                            </td>
-                            <td>{new Date(app.updated_at || app.applied_date || Date.now()).toLocaleDateString()}</td>
-                            <td>
-                              <div style={{display: 'flex', gap: '5px'}}>
-                                <button className="btn btn-secondary btn-sm" title="View Details">
-                                  <FontAwesomeIcon icon={faEye} />
-                                </button>
-                                <button className="btn btn-primary btn-sm" title="Update Status">
-                                  <FontAwesomeIcon icon={faEdit} />
-                                </button>
-                                <button className="btn btn-danger btn-sm" title="Remove">
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="empty-state">
-                    <FontAwesomeIcon icon={faFileAlt} className="empty-icon" />
-                    <h3>No Applications Tracked Yet</h3>
-                    <p>Start applying to jobs or manually add applications to track your progress here.</p>
-                    <div style={{display: 'flex', gap: '10px', justifyContent: 'center'}}>
-                      <button className="btn btn-primary" onClick={() => setActiveSection('jobs')}>
-                        <FontAwesomeIcon icon={faSearch} /> Browse Jobs
-                      </button>
-                      <button className="btn btn-secondary">
-                        <FontAwesomeIcon icon={faPlus} /> Add Application Manually
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+            <div ref={sectionRefs.current.applications}>
+              <ApplicationTrackerTable />
             </div>
           )}
 
@@ -1319,8 +1192,8 @@ const JobSeekerDashboard = () => {
 
           {/* Messages Section */}
           {activeSection === 'messages' && (
-            <div ref={sectionRefs.current.messages} style={{ width: '100%', marginTop: '1rem' }}>
-              <MessagingSystem />
+            <div ref={sectionRefs.current.messages} style={{ width: '100%', marginLeft: '-20px', marginRight: '-20px', marginTop: '-20px' }}>
+              <ProfessionalMessaging />
             </div>
           )}
 
@@ -1706,7 +1579,8 @@ const JobSeekerDashboard = () => {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 };
 

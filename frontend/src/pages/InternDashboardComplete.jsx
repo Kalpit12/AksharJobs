@@ -10,12 +10,17 @@ import {
   faBars, faExclamationTriangle, faUserEdit, faCode, faBuilding,
   faLanguage, faProjectDiagram, faTrophy, faChartLine, faInfoCircle,
   faPassport, faBullseye, faLightbulb, faSlidersH, faSave, faTimes,
-  faCertificate
+  faCertificate, faExternalLinkAlt
 } from '@fortawesome/free-solid-svg-icons';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
 import ThemedLoadingSpinner from '../components/ThemedLoadingSpinner';
+import JobCard from '../components/JobCard';
+import ApplicationTrackerTable from '../components/ApplicationTrackerTable';
+import StatCard from '../components/StatCard';
+import ProfessionalMessaging from '../components/ProfessionalMessaging';
+import DashboardHeader from '../components/DashboardHeader';
 import '../styles/JobSeekerDashboard.css'; // Using same styles as JobSeeker for consistency
 
 const InternDashboardComplete = () => {
@@ -52,6 +57,7 @@ const InternDashboardComplete = () => {
     portfolio: [],
     projects: []
   });
+  const [appliedInternshipIds, setAppliedInternshipIds] = useState([]);
 
   // Handle section change
   const handleSectionChange = (section) => {
@@ -71,6 +77,11 @@ const InternDashboardComplete = () => {
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // Function to refresh dashboard data (can be called from child components)
+  const refreshDashboardData = () => {
+    fetchDashboardData();
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -118,13 +129,13 @@ const InternDashboardComplete = () => {
       }
 
       // Fetch data
-      const [applicationsRes, jobsRes] = await Promise.all([
-        axios.get(buildApiUrl('/api/application-tracker/tracker/job-seeker/applications'), { headers }).catch(() => null),
-        axios.get(buildApiUrl('/api/jobs/get_jobs')).catch(() => null)
+      const [applicationsRes, internshipsRes] = await Promise.all([
+        axios.get(buildApiUrl('/api/intern/applications'), { headers }).catch(() => null),
+        axios.get(buildApiUrl('/api/jobs/get_internships')).catch(() => null)
       ]);
 
-      // Transform jobs data from snake_case to camelCase for frontend compatibility
-      const transformedJobs = (jobsRes?.data || []).map(job => ({
+      // Transform internships data from snake_case to camelCase for frontend compatibility
+      const transformedJobs = (internshipsRes?.data || []).map(job => ({
         ...job,
         jobTitle: job.job_title || job.jobTitle,
         companyName: job.company_name || job.companyName,
@@ -159,15 +170,22 @@ const InternDashboardComplete = () => {
         console.log('Sample internship data:', internshipJobs[0]);
       }
 
+      // Extract applied internship IDs
+      const applications = applicationsRes?.data?.applications || [];
+      const appliedIds = applications.map(app => String(app.internshipId));
+      
+      console.log('📋 Applications fetched:', applications.length);
+      console.log('✅ Applied Internship IDs:', appliedIds);
+      
       setDashboardData({
         stats: {
-          applications: applicationsRes?.data?.applications?.length || 0,
+          applications: applications.length,
           interviews: 0,
           profileViews: 0,
           savedInternships: 0
         },
         profileCompletion: profileCompletion,
-        applications: applicationsRes?.data?.applications || [],
+        applications: applications,
         interviews: [],
         internships: internshipJobs,
         savedInternships: [],
@@ -181,6 +199,8 @@ const InternDashboardComplete = () => {
         portfolio: [],
         projects: profile?.projectEntries || []
       });
+      
+      setAppliedInternshipIds(appliedIds);
 
       setLoading(false);
     } catch (error) {
@@ -216,26 +236,48 @@ const InternDashboardComplete = () => {
     );
   }
 
+  const getSectionTitle = () => {
+    const titleMap = {
+      'dashboard': 'Dashboard',
+      'internships': 'Browse Internships',
+      'applications': 'My Applications',
+      'saved': 'Saved Internships',
+      'interviews': 'Interviews',
+      'matches': 'Recommended',
+      'messages': 'Messages',
+      'profile': 'My Profile',
+      'academic': 'Academic Info',
+      'portfolio': 'Portfolio',
+      'learning': 'Learning Resources',
+      'settings': 'Settings'
+    };
+    return titleMap[activeSection] || 'Dashboard';
+  };
+
   return (
-    <div className="dashboard-container jobseeker-dashboard-container">
-      {/* Sidebar */}
-      <div className="sidebar" id="sidebar" style={{
-        background: 'linear-gradient(180deg, #f97316 0%, #0d9488 100%)',
-        backgroundColor: '#f97316',
-        color: '#ffffff',
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '320px',
-        height: '100vh',
-        zIndex: 1000
-      }}>
-        <div className="sidebar-header">
-          <h2>
-            <FontAwesomeIcon icon={faUserGraduate} /> INTERN HUB
-          </h2>
-          <p>Your Internship Journey</p>
-        </div>
+    <>
+      {/* Modern Header */}
+      <DashboardHeader 
+        currentPage={getSectionTitle()}
+        onSearch={(term) => console.log('Search:', term)}
+        onMenuToggle={() => console.log('Menu toggle')}
+        userType="intern"
+      />
+
+      <div className="dashboard-container jobseeker-dashboard-container" style={{ marginTop: '0' }}>
+        {/* Sidebar */}
+        <div className="sidebar" id="sidebar" style={{
+          background: 'linear-gradient(180deg, #f97316 0%, #0d9488 100%)',
+          backgroundColor: '#f97316',
+          color: '#ffffff',
+          position: 'fixed',
+          left: '0',
+          top: '80px',
+          width: '320px',
+          height: 'calc(100vh - 80px)',
+          zIndex: 1000,
+          paddingTop: '20px'
+        }}>
         <div className="nav-menu">
           <div 
             className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`}
@@ -329,54 +371,31 @@ const InternDashboardComplete = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="main-content">
-        {/* Top Bar */}
-        <div className="dashboard-header">
-          <div className="search-bar">
-            <FontAwesomeIcon icon={faSearch} />
-            <input type="text" placeholder="Search internships, companies, or skills..." />
-          </div>
-          <div className="top-bar-actions">
-            <button className="icon-btn">
-              <FontAwesomeIcon icon={faBell} />
-              <span className="notification-dot"></span>
-            </button>
-            <button className="icon-btn">
-              <FontAwesomeIcon icon={faQuestionCircle} />
-            </button>
-            <div className="user-info">
-              <div className="user-avatar">{getUserInitials()}</div>
-              <div>
-                <div className="user-name">{getUserName()}</div>
-                <div className="user-role">{dashboardData.academicInfo.major}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="content-area">
-          {activeSection === 'dashboard' && <DashboardSection dashboardData={dashboardData} user={user} handleSectionChange={handleSectionChange} navigate={navigate} />}
-          {activeSection === 'internships' && <InternshipsSection internships={dashboardData.internships} />}
+        {/* Main Content */}
+        <div className="main-content">
+          {/* Content Area */}
+          <div className="content-area">
+          {activeSection === 'dashboard' && <DashboardSection dashboardData={dashboardData} user={user} handleSectionChange={handleSectionChange} navigate={navigate} onRefresh={fetchDashboardData} appliedInternshipIds={appliedInternshipIds} setAppliedInternshipIds={setAppliedInternshipIds} />}
+          {activeSection === 'internships' && <InternshipsSection internships={dashboardData.internships} onRefresh={fetchDashboardData} appliedInternshipIds={appliedInternshipIds} setAppliedInternshipIds={setAppliedInternshipIds} />}
           {activeSection === 'applications' && <ApplicationsSection applications={dashboardData.applications} />}
-          {activeSection === 'saved' && <SavedInternshipsSection savedInternships={dashboardData.savedInternships} />}
+          {activeSection === 'saved' && <SavedInternshipsSection savedInternships={dashboardData.savedInternships} onRefresh={fetchDashboardData} appliedInternshipIds={appliedInternshipIds} setAppliedInternshipIds={setAppliedInternshipIds} />}
           {activeSection === 'interviews' && <InterviewsSection interviews={dashboardData.interviews} />}
-          {activeSection === 'matches' && <RecommendedSection internships={dashboardData.internships} />}
+          {activeSection === 'matches' && <RecommendedSection internships={dashboardData.internships} onRefresh={fetchDashboardData} appliedInternshipIds={appliedInternshipIds} setAppliedInternshipIds={setAppliedInternshipIds} />}
           {activeSection === 'messages' && <MessagesSection />}
           {activeSection === 'profile' && <ProfileSection profile={user} />}
-          {activeSection === 'academic' && <AcademicSection academicInfo={dashboardData.academicInfo} />}
+          {activeSection === 'academic' && <AcademicSection academicInfo={dashboardData.academicInfo} refreshDashboard={refreshDashboardData} />}
           {activeSection === 'portfolio' && <PortfolioSection portfolio={dashboardData.portfolio} projects={dashboardData.projects} />}
           {activeSection === 'learning' && <LearningResourcesSection />}
           {activeSection === 'settings' && <SettingsSection logout={logout} navigate={navigate} />}
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
 // Dashboard Section
-const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }) => (
+const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate, onRefresh, appliedInternshipIds = [], setAppliedInternshipIds }) => (
   <div>
     {/* Welcome Message - Match JobSeeker exactly */}
     <div className="welcome-section">
@@ -419,67 +438,47 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
       </div>
     </div>
 
-    {/* Stats Grid - Match JobSeeker exactly */}
+    {/* Stats Grid - Modern Design */}
     <div className="stats-grid">
-      <div className="stat-card">
-        <div className="stat-header">
-          <div>
-            <div className="stat-number">{dashboardData.stats.applications}</div>
-            <div className="stat-label">APPLICATIONS SENT</div>
-          </div>
-          <div className="stat-icon orange">
-            <FontAwesomeIcon icon={faPaperPlane} />
-          </div>
-        </div>
-        <div className="stat-change positive">
-          <FontAwesomeIcon icon={faArrowUp} /> 2 this week
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-header">
-          <div>
-            <div className="stat-number">{dashboardData.stats.interviews}</div>
-            <div className="stat-label">INTERVIEWS SCHEDULED</div>
-          </div>
-          <div className="stat-icon green">
-            <FontAwesomeIcon icon={faCalendarCheck} />
-          </div>
-        </div>
-        <div className="stat-change">
-          Next: Tomorrow at 10:00 AM
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-header">
-          <div>
-            <div className="stat-number">{dashboardData.stats.profileViews}</div>
-            <div className="stat-label">PROFILE VIEWS</div>
-          </div>
-          <div className="stat-icon teal">
-            <FontAwesomeIcon icon={faEye} />
-          </div>
-        </div>
-        <div className="stat-change positive">
-          <FontAwesomeIcon icon={faArrowUp} /> +25% this month
-        </div>
-      </div>
-
-      <div className="stat-card">
-        <div className="stat-header">
-          <div>
-            <div className="stat-number">{dashboardData.stats.savedInternships}</div>
-            <div className="stat-label">SAVED OPPORTUNITIES</div>
-          </div>
-          <div className="stat-icon orange">
-            <FontAwesomeIcon icon={faBookmark} />
-          </div>
-        </div>
-        <div className="stat-change">
-          3 new matches today
-        </div>
-      </div>
+      <StatCard
+        title="Applications Sent"
+        value={dashboardData.stats.applications}
+        trend={23}
+        trendValue="2"
+        trendLabel="this week"
+        icon={faPaperPlane}
+        iconColor="#f97316"
+      />
+      
+      <StatCard
+        title="Interviews Scheduled"
+        value={dashboardData.stats.interviews}
+        trend={0}
+        trendValue=""
+        trendLabel="Next: Tomorrow at 10:00 AM"
+        icon={faCalendarCheck}
+        iconColor="#10b981"
+      />
+      
+      <StatCard
+        title="Profile Views"
+        value={dashboardData.stats.profileViews}
+        trend={25}
+        trendValue=""
+        trendLabel="this month"
+        icon={faEye}
+        iconColor="#0d9488"
+      />
+      
+      <StatCard
+        title="Saved Opportunities"
+        value={dashboardData.stats.savedInternships}
+        trend={15}
+        trendValue="3"
+        trendLabel="new matches today"
+        icon={faBookmark}
+        iconColor="#f59e0b"
+      />
     </div>
 
     {/* Alerts */}
@@ -506,10 +505,51 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
             View All
           </button>
         </div>
-        <div>
+        <div style={{ display: 'grid', gap: '15px' }}>
           {dashboardData.internships && dashboardData.internships.length > 0 ? (
             dashboardData.internships.slice(0, 3).map((internship, index) => (
-              <InternshipCard key={internship._id || index} internship={internship} />
+              <JobCard 
+                key={internship._id || index} 
+                job={internship} 
+                onApply={async () => {
+                  try {
+                    const token = localStorage.getItem('token');
+                    const internshipId = String(internship._id || internship.id);
+                    
+                    if (!internshipId || internshipId === 'undefined') {
+                      alert('Error: Invalid internship ID');
+                      return;
+                    }
+                    
+                    const response = await axios.post(
+                      buildApiUrl(`/api/intern/apply/${internshipId}`),
+                      {},
+                      {
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          'Content-Type': 'application/json'
+                        }
+                      }
+                    );
+
+                    if (response.status === 200) {
+                      alert('Application submitted successfully! 🎉');
+                      // Immediately add to applied list
+                      if (setAppliedInternshipIds) {
+                        setAppliedInternshipIds(prev => [...prev, internshipId]);
+                      }
+                      if (onRefresh) onRefresh();
+                    }
+                  } catch (error) {
+                    console.error('Error applying:', error);
+                    alert(error.response?.data?.error || 'Failed to submit application');
+                  }
+                }}
+                onSave={() => console.log('Save:', internship._id)}
+                onViewDetails={() => console.log('View:', internship)}
+                isSaved={false}
+                isAlreadyApplied={appliedInternshipIds.includes(String(internship._id || internship.id))}
+              />
             ))
           ) : (
             <div className="empty-state">
@@ -567,108 +607,308 @@ const DashboardSection = ({ dashboardData, user, handleSectionChange, navigate }
 );
 
 // Internships Section
-const InternshipsSection = ({ internships }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>Browse Internships</h1>
+const InternshipsSection = ({ internships, onRefresh, appliedInternshipIds = [], setAppliedInternshipIds }) => {
+  const [filteredInternships, setFilteredInternships] = useState(internships);
+  const [filters, setFilters] = useState({
+    type: 'all',
+    location: 'all',
+    duration: 'all',
+    sort: 'recent'
+  });
 
-    <div className="filters">
-      <select className="filter-select">
-        <option>All Types</option>
-        <option>Software Engineering</option>
-        <option>Marketing</option>
-        <option>Design</option>
-        <option>Data Science</option>
-      </select>
-      <select className="filter-select">
-        <option>All Locations</option>
-        <option>Nairobi, Kenya</option>
-        <option>Remote</option>
-        <option>United States</option>
-      </select>
-      <select className="filter-select">
-        <option>All Durations</option>
-        <option>1-3 months</option>
-        <option>3-6 months</option>
-        <option>6-12 months</option>
-      </select>
-      <select className="filter-select">
-        <option>Sort By: Most Recent</option>
-        <option>Relevance</option>
-        <option>Stipend: High to Low</option>
-      </select>
-    </div>
+  useEffect(() => {
+    let filtered = [...internships];
 
-    <div className="card">
-      {internships && internships.length > 0 ? (
-        internships.map((internship, index) => (
-          <InternshipCard key={internship._id || index} internship={internship} showApplyButton />
-        ))
+    // Apply filters
+    if (filters.type !== 'all') {
+      filtered = filtered.filter(job => 
+        (job.job_title || job.jobTitle || '').toLowerCase().includes(filters.type.toLowerCase())
+      );
+    }
+
+    if (filters.location !== 'all') {
+      if (filters.location === 'remote') {
+        filtered = filtered.filter(job => 
+          (job.remote_option || job.remoteOption || '').toLowerCase() === 'remote'
+        );
+      } else {
+        filtered = filtered.filter(job => 
+          (job.location || '').toLowerCase().includes(filters.location.toLowerCase())
+        );
+      }
+    }
+
+    // Apply sorting
+    if (filters.sort === 'stipend-high') {
+      filtered.sort((a, b) => {
+        const aMax = a.salary_range?.max || 0;
+        const bMax = b.salary_range?.max || 0;
+        return bMax - aMax;
+      });
+    } else if (filters.sort === 'recent') {
+      filtered.sort((a, b) => {
+        const aDate = new Date(a.posted_date || 0);
+        const bDate = new Date(b.posted_date || 0);
+        return bDate - aDate;
+      });
+    }
+
+    setFilteredInternships(filtered);
+  }, [filters, internships]);
+
+  const handleApply = async (job) => {
+    try {
+      const token = localStorage.getItem('token');
+      const internshipId = String(job._id || job.id);
+      
+      if (!internshipId || internshipId === 'undefined') {
+        alert('Error: Invalid internship ID');
+        return;
+      }
+
+      const response = await axios.post(
+        buildApiUrl(`/api/intern/apply/${internshipId}`),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Application submitted successfully! 🎉');
+        // Immediately add to applied list
+        if (setAppliedInternshipIds) {
+          setAppliedInternshipIds(prev => [...prev, internshipId]);
+        }
+        // Optionally refresh dashboard data
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error applying to internship:', error);
+      if (error.response?.data?.error) {
+        alert(`Error: ${error.response.data.error}`);
+      } else {
+        alert('Failed to submit application. Please try again.');
+      }
+    }
+  };
+
+  const handleSave = async (jobId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const internshipId = jobId._id || jobId;
+
+      const response = await axios.post(
+        buildApiUrl(`/api/intern/save/${internshipId}`),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Internship saved! ⭐');
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error saving internship:', error);
+      alert('Failed to save internship. Please try again.');
+    }
+  };
+
+  const handleViewDetails = (job) => {
+    console.log('View details:', job);
+    // TODO: Implement view details modal
+  };
+
+  return (
+    <div>
+      <h1 style={{ marginBottom: '25px' }}>Browse Internships</h1>
+
+      <div className="filters" style={{ marginBottom: '20px' }}>
+        <select 
+          className="filter-select"
+          value={filters.type}
+          onChange={(e) => setFilters({...filters, type: e.target.value})}
+        >
+          <option value="all">All Types</option>
+          <option value="software">Software Engineering</option>
+          <option value="frontend">Frontend Development</option>
+          <option value="backend">Backend Development</option>
+          <option value="data">Data Science</option>
+          <option value="mobile">Mobile Development</option>
+          <option value="design">UI/UX Design</option>
+          <option value="devops">DevOps</option>
+        </select>
+        <select 
+          className="filter-select"
+          value={filters.location}
+          onChange={(e) => setFilters({...filters, location: e.target.value})}
+        >
+          <option value="all">All Locations</option>
+          <option value="nairobi">Nairobi, Kenya</option>
+          <option value="mombasa">Mombasa, Kenya</option>
+          <option value="remote">Remote</option>
+        </select>
+        <select 
+          className="filter-select"
+          value={filters.duration}
+          onChange={(e) => setFilters({...filters, duration: e.target.value})}
+        >
+          <option value="all">All Durations</option>
+          <option value="1-3">1-3 months</option>
+          <option value="3-6">3-6 months</option>
+          <option value="6-12">6-12 months</option>
+        </select>
+        <select 
+          className="filter-select"
+          value={filters.sort}
+          onChange={(e) => setFilters({...filters, sort: e.target.value})}
+        >
+          <option value="recent">Sort By: Most Recent</option>
+          <option value="relevance">Relevance</option>
+          <option value="stipend-high">Stipend: High to Low</option>
+        </select>
+      </div>
+
+      {filteredInternships && filteredInternships.length > 0 ? (
+        <div className="jobs-grid" style={{ display: 'grid', gap: '20px', gridTemplateColumns: '1fr' }}>
+          {filteredInternships.map((internship, index) => (
+            <JobCard 
+              key={internship._id || index} 
+              job={internship} 
+              onApply={handleApply}
+              onSave={handleSave}
+              onViewDetails={handleViewDetails}
+              isSaved={false}
+              isAlreadyApplied={appliedInternshipIds.includes(String(internship._id || internship.id))}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="empty-state">
-          <FontAwesomeIcon icon={faSearch} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
-          <h3>No Internships Available</h3>
-          <p style={{ marginBottom: '10px' }}>There are currently no internship listings available.</p>
-          <p style={{ color: '#999', fontSize: '14px' }}>Check back later for new opportunities!</p>
+        <div className="card">
+          <div className="empty-state">
+            <FontAwesomeIcon icon={faSearch} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
+            <h3>No Internships Found</h3>
+            <p style={{ marginBottom: '10px' }}>Try adjusting your filters to see more results.</p>
+            <p style={{ color: '#999', fontSize: '14px' }}>Check back later for new opportunities!</p>
+          </div>
         </div>
       )}
     </div>
-  </div>
-);
+  );
+};
 
 // Applications Section
 const ApplicationsSection = ({ applications }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>My Applications</h1>
-    <div className="card">
-      <div style={{ overflowX: 'auto' }}>
-        <table>
-          <thead>
-            <tr>
-              <th>Internship Title</th>
-              <th>Company</th>
-              <th>Duration</th>
-              <th>Applied</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {applications.map((app, index) => (
-              <ApplicationRow key={index} application={app} />
-            ))}
-            {applications.length === 0 && (
-              <tr>
-                <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>
-                  No applications yet
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+  <ApplicationTrackerTable />
 );
 
 // Saved Internships Section
-const SavedInternshipsSection = ({ savedInternships }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>Saved Internships</h1>
-    <div className="card">
+const SavedInternshipsSection = ({ savedInternships, onRefresh, appliedInternshipIds = [], setAppliedInternshipIds }) => {
+  const handleApply = async (job) => {
+    try {
+      const token = localStorage.getItem('token');
+      const internshipId = String(job._id || job.id);
+      
+      if (!internshipId || internshipId === 'undefined') {
+        alert('Error: Invalid internship ID');
+        return;
+      }
+
+      const response = await axios.post(
+        buildApiUrl(`/api/intern/apply/${internshipId}`),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Application submitted successfully! 🎉');
+        // Immediately add to applied list
+        if (setAppliedInternshipIds) {
+          setAppliedInternshipIds(prev => [...prev, internshipId]);
+        }
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error applying to internship:', error);
+      if (error.response?.data?.error) {
+        alert(`Error: ${error.response.data.error}`);
+      } else {
+        alert('Failed to submit application. Please try again.');
+      }
+    }
+  };
+
+  const handleUnsave = async (jobId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const internshipId = jobId._id || jobId;
+
+      const response = await axios.delete(
+        buildApiUrl(`/api/intern/unsave/${internshipId}`),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Internship removed from saved! ❌');
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error unsaving internship:', error);
+      alert('Failed to remove internship. Please try again.');
+    }
+  };
+
+  const handleViewDetails = (job) => {
+    console.log('View details:', job);
+  };
+
+  return (
+    <div>
+      <h1 style={{ marginBottom: '25px' }}>Saved Internships</h1>
       {savedInternships.length > 0 ? (
-        savedInternships.map((internship, index) => (
-          <InternshipCard key={index} internship={internship} showUnsaveBtn />
-        ))
+        <div className="jobs-grid" style={{ display: 'grid', gap: '20px', gridTemplateColumns: '1fr' }}>
+          {savedInternships.map((internship, index) => (
+            <JobCard 
+              key={index} 
+              job={internship} 
+              onApply={handleApply}
+              onSave={handleUnsave}
+              onViewDetails={handleViewDetails}
+              isSaved={true}
+              isAlreadyApplied={appliedInternshipIds.includes(String(internship._id || internship.id))}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="empty-state">
-          <FontAwesomeIcon icon={faBookmark} style={{ fontSize: '64px', color: '#ccc' }} />
-          <h3>No Saved Internships</h3>
-          <p>Bookmark internships you're interested in to view them later</p>
+        <div className="card">
+          <div className="empty-state">
+            <FontAwesomeIcon icon={faBookmark} style={{ fontSize: '64px', color: '#ccc' }} />
+            <h3>No Saved Internships</h3>
+            <p>Bookmark internships you're interested in to view them later</p>
+          </div>
         </div>
       )}
     </div>
-  </div>
-);
+  );
+};
 
 // Interviews Section
 const InterviewsSection = ({ interviews }) => (
@@ -699,45 +939,119 @@ const InterviewsSection = ({ interviews }) => (
 );
 
 // Recommended Section
-const RecommendedSection = ({ internships }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>Recommended Internships</h1>
-    {internships && internships.length > 0 && (
-      <div className="alert success">
-        <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
-        <div>
-          Based on your profile, we found <strong>{internships.length} internships</strong> matching your skills!
+const RecommendedSection = ({ internships, onRefresh, appliedInternshipIds = [], setAppliedInternshipIds }) => {
+  const handleApply = async (job) => {
+    try {
+      const token = localStorage.getItem('token');
+      const internshipId = String(job._id || job.id);
+      
+      if (!internshipId || internshipId === 'undefined') {
+        alert('Error: Invalid internship ID');
+        return;
+      }
+
+      const response = await axios.post(
+        buildApiUrl(`/api/intern/apply/${internshipId}`),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Application submitted successfully! 🎉');
+        // Immediately add to applied list
+        if (setAppliedInternshipIds) {
+          setAppliedInternshipIds(prev => [...prev, internshipId]);
+        }
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error applying to internship:', error);
+      if (error.response?.data?.error) {
+        alert(`Error: ${error.response.data.error}`);
+      } else {
+        alert('Failed to submit application. Please try again.');
+      }
+    }
+  };
+
+  const handleSave = async (jobId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const internshipId = jobId._id || jobId;
+
+      const response = await axios.post(
+        buildApiUrl(`/api/intern/save/${internshipId}`),
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.status === 200) {
+        alert('Internship saved! ⭐');
+        if (onRefresh) onRefresh();
+      }
+    } catch (error) {
+      console.error('Error saving internship:', error);
+      alert('Failed to save internship. Please try again.');
+    }
+  };
+
+  const handleViewDetails = (job) => {
+    console.log('View details:', job);
+  };
+
+  return (
+    <div>
+      <h1 style={{ marginBottom: '25px' }}>Recommended Internships</h1>
+      {internships && internships.length > 0 && (
+        <div className="alert success">
+          <FontAwesomeIcon icon={faStar} style={{ fontSize: '24px' }} />
+          <div>
+            Based on your profile, we found <strong>{internships.length} internships</strong> matching your skills!
+          </div>
         </div>
-      </div>
-    )}
-    <div className="card">
+      )}
       {internships && internships.length > 0 ? (
-        internships.map((internship, index) => (
-          <InternshipCard key={internship._id || index} internship={internship} showApplyButton />
-        ))
+        <div className="jobs-grid" style={{ display: 'grid', gap: '20px', gridTemplateColumns: '1fr' }}>
+          {internships.map((internship, index) => (
+            <JobCard 
+              key={internship._id || index} 
+              job={internship} 
+              onApply={handleApply}
+              onSave={handleSave}
+              onViewDetails={handleViewDetails}
+              isSaved={false}
+              isAlreadyApplied={appliedInternshipIds.includes(String(internship._id || internship.id))}
+            />
+          ))}
+        </div>
       ) : (
-        <div className="empty-state">
-          <FontAwesomeIcon icon={faStar} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
-          <h3>No Recommendations Yet</h3>
-          <p style={{ marginBottom: '10px' }}>We're working on finding the perfect internships for you!</p>
-          <p style={{ color: '#999', fontSize: '14px' }}>Complete your profile to get better matches</p>
+        <div className="card">
+          <div className="empty-state">
+            <FontAwesomeIcon icon={faStar} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
+            <h3>No Recommendations Yet</h3>
+            <p style={{ marginBottom: '10px' }}>We're working on finding the perfect internships for you!</p>
+            <p style={{ color: '#999', fontSize: '14px' }}>Complete your profile to get better matches</p>
+          </div>
         </div>
       )}
     </div>
-  </div>
-);
+  );
+};
 
 // Messages Section
 const MessagesSection = () => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>Messages</h1>
-    <div className="card">
-      <div className="empty-state">
-        <FontAwesomeIcon icon={faEnvelope} style={{ fontSize: '64px', color: '#ccc' }} />
-        <h3>No Messages</h3>
-        <p>Your messages from companies will appear here</p>
-      </div>
-    </div>
+  <div style={{ marginLeft: '-20px', marginRight: '-20px', marginTop: '-20px' }}>
+    <ProfessionalMessaging />
   </div>
 );
 
@@ -1564,85 +1878,565 @@ const ProfileSection = ({ profile }) => {
 };
 
 // Academic Section
-const AcademicSection = ({ academicInfo }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>Academic Information</h1>
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title"><FontAwesomeIcon icon={faGraduationCap} /> Education Details</h3>
-        <button className="btn btn-primary btn-sm">
-          <FontAwesomeIcon icon={faEdit} /> Edit
-        </button>
-      </div>
-      <div className="profile-info-grid">
-        <div>
-          <label>University</label>
-          <p>{academicInfo.university}</p>
-        </div>
-        <div>
-          <label>Major</label>
-          <p>{academicInfo.major}</p>
-        </div>
-        <div>
-          <label>Current Year</label>
-          <p>{academicInfo.currentYear}</p>
-        </div>
-        <div>
-          <label>GPA</label>
-          <p>{academicInfo.gpa}</p>
-        </div>
-        <div>
-          <label>Expected Graduation</label>
-          <p>{academicInfo.graduation}</p>
-        </div>
-      </div>
-    </div>
+const AcademicSection = ({ academicInfo: initialAcademicInfo, refreshDashboard }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [academicData, setAcademicData] = useState({
+    university: initialAcademicInfo?.university || '',
+    major: initialAcademicInfo?.major || '',
+    currentYear: initialAcademicInfo?.currentYear || '',
+    gpa: initialAcademicInfo?.gpa || '',
+    graduation: initialAcademicInfo?.graduation || '',
+    fieldOfStudy: initialAcademicInfo?.fieldOfStudy || '',
+    degree: initialAcademicInfo?.degree || '',
+    startDate: initialAcademicInfo?.startDate || '',
+    endDate: initialAcademicInfo?.endDate || ''
+  });
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState('');
 
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title"><FontAwesomeIcon icon={faBook} /> Relevant Coursework</h3>
-        <button className="btn btn-primary btn-sm">
-          <FontAwesomeIcon icon={faPlus} /> Add Course
-        </button>
-      </div>
-      <div>
-        <p style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', margin: '20px 0' }}>No coursework added yet</p>
-      </div>
-    </div>
-  </div>
-);
+  // Update local state when academicInfo prop changes
+  useEffect(() => {
+    if (initialAcademicInfo) {
+      setAcademicData({
+        university: initialAcademicInfo?.university || '',
+        major: initialAcademicInfo?.major || '',
+        currentYear: initialAcademicInfo?.currentYear || '',
+        gpa: initialAcademicInfo?.gpa || '',
+        graduation: initialAcademicInfo?.graduation || '',
+        fieldOfStudy: initialAcademicInfo?.fieldOfStudy || '',
+        degree: initialAcademicInfo?.degree || '',
+        startDate: initialAcademicInfo?.startDate || '',
+        endDate: initialAcademicInfo?.endDate || ''
+      });
+    }
+  }, [initialAcademicInfo]);
 
-// Portfolio Section
-const PortfolioSection = ({ portfolio, projects }) => (
-  <div>
-    <h1 style={{ marginBottom: '25px' }}>Portfolio</h1>
+  const handleInputChange = (field, value) => {
+    setAcademicData(prev => ({ ...prev, [field]: value }));
+  };
 
-    <div className="card">
-      <div className="card-header">
-        <h3 className="card-title"><FontAwesomeIcon icon={faProjectDiagram} /> Projects</h3>
-        <button className="btn btn-primary btn-sm">
-          <FontAwesomeIcon icon={faPlus} /> Add Project
-        </button>
-      </div>
-      {projects.length > 0 ? (
-        projects.map((project, index) => (
-          <div key={index} className="project-card">
-            {project.title}
-          </div>
-        ))
-      ) : (
-        <div className="empty-state">
-          <FontAwesomeIcon icon={faProjectDiagram} style={{ fontSize: '64px', color: '#ccc' }} />
-          <h3>No Projects Yet</h3>
-          <p>Showcase your work by adding projects to your portfolio</p>
-          <button className="btn btn-primary">
-            <FontAwesomeIcon icon={faPlus} /> Add Your First Project
-          </button>
+  const handleEdit = () => {
+    setIsEditMode(true);
+    setSaveMessage('');
+  };
+
+  const handleCancel = () => {
+    setIsEditMode(false);
+    // Reset to original data
+    setAcademicData({
+      university: initialAcademicInfo?.university || '',
+      major: initialAcademicInfo?.major || '',
+      currentYear: initialAcademicInfo?.currentYear || '',
+      gpa: initialAcademicInfo?.gpa || '',
+      graduation: initialAcademicInfo?.graduation || '',
+      fieldOfStudy: initialAcademicInfo?.fieldOfStudy || '',
+      degree: initialAcademicInfo?.degree || '',
+      startDate: initialAcademicInfo?.startDate || '',
+      endDate: initialAcademicInfo?.endDate || ''
+    });
+    setSaveMessage('');
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setSaveMessage('');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setSaveMessage('Please login to save changes');
+        return;
+      }
+
+      const response = await axios.post(
+        buildApiUrl('/api/intern/profile'),
+        {
+          educationEntries: [{
+            institution: academicData.university,
+            degree: academicData.degree || 'Bachelor of Science',
+            fieldOfStudy: academicData.major,
+            currentYear: academicData.currentYear,
+            gpa: academicData.gpa,
+            startDate: academicData.startDate,
+            endDate: academicData.graduation
+          }]
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        setSaveMessage('Academic information saved successfully! ✓');
+        setIsEditMode(false);
+        
+        // Refresh dashboard data to show updated info
+        if (refreshDashboard) {
+          refreshDashboard();
+        }
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSaveMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error saving academic info:', error);
+      setSaveMessage('Error saving data. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div>
+      <h1 style={{ marginBottom: '25px' }}>Academic Information</h1>
+      
+      {saveMessage && (
+        <div className={`alert ${saveMessage.includes('Error') ? 'warning' : 'success'}`} style={{ marginBottom: '20px' }}>
+          {saveMessage}
         </div>
       )}
+      
+      <div className="card">
+        <div className="card-header" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          padding: '20px'
+        }}>
+          <h3 className="card-title" style={{ margin: 0 }}>
+            <FontAwesomeIcon icon={faGraduationCap} style={{ color: '#f97316', marginRight: '10px' }} /> 
+            <span style={{ color: '#0d9488' }}>Education Details</span>
+          </h3>
+          {!isEditMode ? (
+            <button className="btn btn-primary btn-sm" onClick={handleEdit}>
+              <FontAwesomeIcon icon={faEdit} /> Edit
+            </button>
+          ) : (
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <button 
+                className="btn btn-primary btn-sm" 
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                <FontAwesomeIcon icon={faSave} /> {isSaving ? 'Saving...' : 'Save'}
+              </button>
+              <button 
+                className="btn btn-secondary btn-sm" 
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
+                <FontAwesomeIcon icon={faTimes} /> Cancel
+              </button>
+            </div>
+          )}
+        </div>
+        
+        <div className="profile-info-grid" style={{ padding: '20px' }}>
+          <div>
+            <label style={{ fontWeight: '600', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+              University
+            </label>
+            {!isEditMode ? (
+              <p style={{ color: '#1e293b', fontSize: '15px', margin: 0 }}>
+                {academicData.university || 'Not provided'}
+              </p>
+            ) : (
+              <input
+                type="text"
+                value={academicData.university}
+                onChange={(e) => handleInputChange('university', e.target.value)}
+                placeholder="Enter university name"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none',
+                  transition: 'border-color 0.3s'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#f97316'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              />
+            )}
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: '600', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+              Major / Field of Study
+            </label>
+            {!isEditMode ? (
+              <p style={{ color: '#1e293b', fontSize: '15px', margin: 0 }}>
+                {academicData.major || 'Not provided'}
+              </p>
+            ) : (
+              <input
+                type="text"
+                value={academicData.major}
+                onChange={(e) => handleInputChange('major', e.target.value)}
+                placeholder="Enter your major"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#f97316'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              />
+            )}
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: '600', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+              Current Year
+            </label>
+            {!isEditMode ? (
+              <p style={{ color: '#1e293b', fontSize: '15px', margin: 0 }}>
+                {academicData.currentYear || 'Not provided'}
+              </p>
+            ) : (
+              <select
+                value={academicData.currentYear}
+                onChange={(e) => handleInputChange('currentYear', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#f97316'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              >
+                <option value="">Select Year</option>
+                <option value="1st Year (Freshman)">1st Year (Freshman)</option>
+                <option value="2nd Year (Sophomore)">2nd Year (Sophomore)</option>
+                <option value="3rd Year (Junior)">3rd Year (Junior)</option>
+                <option value="4th Year (Senior)">4th Year (Senior)</option>
+                <option value="Graduate Student">Graduate Student</option>
+                <option value="Recent Graduate">Recent Graduate</option>
+              </select>
+            )}
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: '600', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+              GPA
+            </label>
+            {!isEditMode ? (
+              <p style={{ color: '#1e293b', fontSize: '15px', margin: 0 }}>
+                {academicData.gpa || 'Not provided'}
+              </p>
+            ) : (
+              <input
+                type="text"
+                value={academicData.gpa}
+                onChange={(e) => handleInputChange('gpa', e.target.value)}
+                placeholder="e.g., 3.8/4.0"
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#f97316'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              />
+            )}
+          </div>
+          
+          <div>
+            <label style={{ fontWeight: '600', color: '#64748b', marginBottom: '8px', display: 'block' }}>
+              Expected Graduation
+            </label>
+            {!isEditMode ? (
+              <p style={{ color: '#1e293b', fontSize: '15px', margin: 0 }}>
+                {academicData.graduation || 'Not provided'}
+              </p>
+            ) : (
+              <input
+                type="month"
+                value={academicData.graduation ? academicData.graduation.substring(0, 7) : ''}
+                onChange={(e) => handleInputChange('graduation', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  outline: 'none'
+                }}
+                onFocus={(e) => e.target.style.borderColor = '#f97316'}
+                onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: '20px' }}>
+        <div className="card-header">
+          <h3 className="card-title"><FontAwesomeIcon icon={faBook} /> Relevant Coursework</h3>
+          <button className="btn btn-primary btn-sm">
+            <FontAwesomeIcon icon={faPlus} /> Add Course
+          </button>
+        </div>
+        <div>
+          <p style={{ color: '#666', fontStyle: 'italic', textAlign: 'center', margin: '20px 0' }}>
+            No coursework added yet
+          </p>
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
+// Portfolio Section  
+const PortfolioSection = ({ portfolio, projects }) => {
+  const navigate = useNavigate();
+  
+  console.log('📊 Portfolio Section - Projects:', projects);
+  
+  const handleAddProject = () => {
+    navigate('/intern-registration');
+  };
+
+  const getProjectTypeLabel = (type) => {
+    const typeMap = {
+      'course': 'Course Project',
+      'capstone': 'Capstone/Final Year Project',
+      'research': 'Research Project',
+      'personal': 'Personal Project',
+      'freelance': 'Freelance Work',
+      'hackathon': 'Hackathon Project'
+    };
+    return typeMap[type] || type;
+  };
+
+  return (
+    <div>
+      <h1 style={{ marginBottom: '25px' }}>Portfolio</h1>
+
+      <div className="card">
+        <div className="card-header" style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '20px'
+        }}>
+          <h3 className="card-title" style={{ margin: 0 }}>
+            <FontAwesomeIcon icon={faProjectDiagram} style={{ color: '#0d9488', marginRight: '10px' }} /> 
+            <span>Projects</span>
+          </h3>
+          <button className="btn btn-primary btn-sm" onClick={handleAddProject}>
+            <FontAwesomeIcon icon={faPlus} /> Add Project
+          </button>
+        </div>
+        
+        <div style={{ padding: '20px' }}>
+          {projects && projects.length > 0 ? (
+            <div style={{ display: 'grid', gap: '20px' }}>
+              {projects.map((project, index) => (
+                <div key={index} className="project-card-detailed" style={{
+                  background: 'linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(13, 148, 136, 0.05) 100%)',
+                  border: '2px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '20px',
+                  transition: 'all 0.3s ease'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ 
+                        fontSize: '18px', 
+                        fontWeight: '700', 
+                        color: '#1e293b',
+                        marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px'
+                      }}>
+                        <FontAwesomeIcon icon={faCode} style={{ color: '#f97316' }} />
+                        {project.title || project.projectTitle || 'Untitled Project'}
+                      </h4>
+                      <div style={{ 
+                        display: 'flex', 
+                        gap: '10px', 
+                        flexWrap: 'wrap',
+                        marginBottom: '12px'
+                      }}>
+                        {project.projectType && (
+                          <span style={{
+                            padding: '4px 12px',
+                            background: '#f0fdf4',
+                            color: '#166534',
+                            border: '1px solid #86efac',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>
+                            {getProjectTypeLabel(project.projectType)}
+                          </span>
+                        )}
+                        {(project.role || project.projectRole) && (
+                          <span style={{
+                            padding: '4px 12px',
+                            background: '#eff6ff',
+                            color: '#1e40af',
+                            border: '1px solid #93c5fd',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '600'
+                          }}>
+                            {project.role || project.projectRole}
+                          </span>
+                        )}
+                        {(project.startDate || project.projectDate) && (
+                          <span style={{
+                            padding: '4px 12px',
+                            background: '#fef3c7',
+                            color: '#92400e',
+                            border: '1px solid #fcd34d',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <FontAwesomeIcon icon={faCalendar} style={{ fontSize: '10px' }} />
+                            {new Date(project.startDate || project.projectDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                            {project.endDate && ` - ${new Date(project.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {(project.url || project.projectUrl) && (
+                      <a 
+                        href={project.url || project.projectUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        style={{
+                          padding: '8px 16px',
+                          background: 'white',
+                          color: '#0d9488',
+                          border: '2px solid #0d9488',
+                          borderRadius: '8px',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          textDecoration: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.background = '#0d9488';
+                          e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.background = 'white';
+                          e.target.style.color = '#0d9488';
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faExternalLinkAlt} />
+                        View Project
+                      </a>
+                    )}
+                  </div>
+                  
+                  {(project.description || project.projectDescription) && (
+                    <p style={{
+                      fontSize: '14px',
+                      color: '#475569',
+                      lineHeight: '1.6',
+                      marginBottom: '12px'
+                    }}>
+                      {project.description || project.projectDescription}
+                    </p>
+                  )}
+                  
+                  {project.technologies && project.technologies.length > 0 && (
+                    <div style={{ marginTop: '15px' }}>
+                      <div style={{ 
+                        fontSize: '12px', 
+                        fontWeight: '600', 
+                        color: '#64748b',
+                        marginBottom: '8px'
+                      }}>
+                        Technologies Used:
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        {project.technologies.map((tech, techIdx) => (
+                          <span key={techIdx} style={{
+                            padding: '4px 10px',
+                            background: 'white',
+                            color: '#f97316',
+                            border: '1px solid #fed7aa',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '500'
+                          }}>
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {project.highlights && project.highlights.length > 0 && (
+                    <div style={{ marginTop: '15px' }}>
+                      <div style={{ 
+                        fontSize: '12px', 
+                        fontWeight: '600', 
+                        color: '#64748b',
+                        marginBottom: '8px'
+                      }}>
+                        Key Highlights:
+                      </div>
+                      <ul style={{
+                        margin: 0,
+                        paddingLeft: '20px',
+                        fontSize: '13px',
+                        color: '#475569',
+                        lineHeight: '1.8'
+                      }}>
+                        {project.highlights.map((highlight, hIdx) => (
+                          <li key={hIdx}>{highlight}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state" style={{ padding: '60px 40px' }}>
+              <FontAwesomeIcon icon={faProjectDiagram} style={{ fontSize: '64px', color: '#ccc', marginBottom: '20px' }} />
+              <h3 style={{ fontSize: '20px', fontWeight: '600', color: '#1e293b', marginBottom: '10px' }}>
+                No Projects Yet
+              </h3>
+              <p style={{ fontSize: '14px', color: '#64748b', marginBottom: '20px' }}>
+                Showcase your work by adding projects to your portfolio
+              </p>
+              <button className="btn btn-primary" onClick={handleAddProject}>
+                <FontAwesomeIcon icon={faPlus} /> Add Your First Project
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Learning Resources Section
 const LearningResourcesSection = () => (
@@ -1703,116 +2497,6 @@ const SettingsSection = ({ logout, navigate }) => (
 );
 
 // Helper Components
-const InternshipCard = ({ internship, showApplyButton = false, showUnsaveBtn = false }) => {
-  const getCompanyInitials = (company) => {
-    if (!company) return 'CO';
-    return company.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase();
-  };
-
-  // Format salary display
-  const formatSalary = (salary) => {
-    if (!salary) return 'Negotiable';
-    if (typeof salary === 'string') return salary;
-    if (salary.min && salary.max) return `$${salary.min} - $${salary.max}`;
-    return 'Negotiable';
-  };
-
-  // Get job type display
-  const getJobType = () => {
-    const jobType = internship.jobType || internship.job_type;
-    const remoteOption = internship.remoteOption || internship.remote_option;
-    
-    if (remoteOption === 'Remote') return 'Remote';
-    if (remoteOption === 'Hybrid') return 'Hybrid';
-    return jobType || 'Full-time';
-  };
-
-  return (
-    <div className="internship-card">
-      <div className="internship-header">
-        <div style={{ display: 'flex', flex: 1 }}>
-          <div className="company-logo">
-            {getCompanyInitials(internship.companyName || internship.company_name || internship.company)}
-          </div>
-          <div className="internship-info">
-            <h3>{internship.jobTitle || internship.job_title || internship.title || 'Internship Position'}</h3>
-            <div className="internship-company">
-              {internship.companyName || internship.company_name || internship.company || 'Company'}
-            </div>
-            <div className="internship-meta">
-              <span>
-                <FontAwesomeIcon icon={faMapMarkerAlt} /> {internship.location || 'Not specified'}
-              </span>
-              <span>
-                <FontAwesomeIcon icon={faClock} /> {getJobType()}
-              </span>
-              <span>
-                <FontAwesomeIcon icon={faDollarSign} /> {formatSalary(internship.salary || internship.salary_range)}
-              </span>
-            </div>
-            {/* Show tags for job attributes */}
-            <div style={{ marginTop: '10px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-              {(internship.remoteOption === 'Remote' || internship.remote_option === 'Remote') && (
-                <span className="tag remote">Remote</span>
-              )}
-              {(internship.remoteOption === 'Hybrid' || internship.remote_option === 'Hybrid') && (
-                <span className="tag remote">Hybrid</span>
-              )}
-              {internship.salary_range && (
-                <span className="tag paid">Paid</span>
-              )}
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary btn-sm">
-            <FontAwesomeIcon icon={faBookmark} />
-          </button>
-        </div>
-      </div>
-      {showApplyButton && (
-        <div style={{ marginTop: '15px', display: 'flex', gap: '10px' }}>
-          <button className="btn btn-primary btn-sm">
-            <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
-          </button>
-          <button className="btn btn-secondary btn-sm">
-            <FontAwesomeIcon icon={faEye} /> View Details
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ApplicationRow = ({ application }) => {
-  const getStatusClass = (status) => {
-    const statusMap = {
-      'applied': 'status-applied',
-      'reviewing': 'status-reviewing',
-      'interview': 'status-interview',
-      'accepted': 'status-accepted',
-      'rejected': 'status-rejected'
-    };
-    return statusMap[status] || 'status-applied';
-  };
-
-  return (
-    <tr>
-      <td><strong>{application.jobTitle || application.job?.jobTitle || 'Internship Position'}</strong></td>
-      <td>{application.company || application.job?.companyName || 'Company'}</td>
-      <td>3 months</td>
-      <td>{application.appliedDate || 'Recently'}</td>
-      <td>
-        <span className={`status-badge ${getStatusClass(application.status || 'applied')}`}>
-          {application.status || 'applied'}
-        </span>
-      </td>
-      <td>
-        <button className="btn btn-secondary btn-sm">View</button>
-      </td>
-    </tr>
-  );
-};
 
 const SettingItem = ({ title, description }) => (
   <div className="settings-item">

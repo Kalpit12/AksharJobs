@@ -12,6 +12,10 @@ import RecruiterCandidateTracker from '../components/RecruiterCandidateTracker';
 import InterviewCalendar from '../components/InterviewCalendar';
 import AnalyticsDashboard from '../components/AnalyticsDashboard';
 import RecruiterSettings from '../components/RecruiterSettings';
+import StatCard from '../components/StatCard';
+import ProfessionalMessaging from '../components/ProfessionalMessaging';
+import DashboardHeader from '../components/DashboardHeader';
+import { faBriefcase, faUsers, faUserClock, faHandshake } from '@fortawesome/free-solid-svg-icons';
 
 const RecruiterDashboard = () => {
   const navigate = useNavigate();
@@ -344,29 +348,45 @@ const RecruiterDashboard = () => {
     );
   }
 
+  const getSectionTitle = () => {
+    const titleMap = {
+      'dashboard': 'Dashboard',
+      'post-job': 'Post Job',
+      'my-jobs': 'My Jobs',
+      'candidate-tracker': 'Candidate Tracker',
+      'messages': 'Messages',
+      'calendar': 'Interview Calendar',
+      'analytics': 'Analytics',
+      'settings': 'Settings'
+    };
+    return titleMap[activeSection] || 'Dashboard';
+  };
+
   return (
-    <div className="dashboard-container recruiter-dashboard">
-      {/* Sidebar */}
-      <div className="sidebar" id="sidebar" style={{
-        background: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
-        backgroundColor: '#ff6b35',
-        backgroundImage: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
-        color: '#ffffff',
-        position: 'fixed',
-        left: '0',
-        top: '0',
-        width: '320px',
-        height: '100vh',
-        zIndex: 1000
-      }}>
-        <div className="sidebar-header">
-          <h2>
-            <i className="fas fa-briefcase"></i> RECRUITER HUB
-          </h2>
-          <p>
-            {user?.companyName || 'Acme Corporation'}
-          </p>
-        </div>
+    <>
+      {/* Modern Header */}
+      <DashboardHeader 
+        currentPage={getSectionTitle()}
+        onSearch={(term) => console.log('Search:', term)}
+        onMenuToggle={() => console.log('Menu toggle')}
+        userType="recruiter"
+      />
+
+      <div className="dashboard-container recruiter-dashboard" style={{ marginTop: '0' }}>
+        {/* Sidebar */}
+        <div className="sidebar" id="sidebar" style={{
+          background: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+          backgroundColor: '#ff6b35',
+          backgroundImage: 'linear-gradient(180deg, #ff6b35 0%, #10b981 50%, #14b8a6 100%)',
+          color: '#ffffff',
+          position: 'fixed',
+          left: '0',
+          top: '80px',
+          width: '320px',
+          height: 'calc(100vh - 80px)',
+          zIndex: 1000,
+          paddingTop: '20px'
+        }}>
         <div className="nav-menu">
           <div className={`nav-item ${activeSection === 'dashboard' ? 'active' : ''}`} 
                onClick={() => setActiveSection('dashboard')}>
@@ -412,45 +432,6 @@ const RecruiterDashboard = () => {
 
       {/* Main Content */}
       <div className="main-content">
-        {/* Top Bar */}
-        <div className="dashboard-header">
-          <div className="search-bar">
-            <i className="fas fa-search"></i>
-            <input 
-              type="text" 
-              placeholder="Search candidates, jobs, or internships..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <div className="top-bar-actions">
-            <button className="icon-btn">
-              <i className="fas fa-bell"></i>
-              <span className="notification-dot"></span>
-            </button>
-            <button className="icon-btn">
-              <i className="fas fa-plus"></i>
-            </button>
-            <div className="user-info">
-              <div className="user-avatar">
-                {user?.firstName ? user.firstName.charAt(0) : 'U'}
-                {user?.lastName ? user.lastName.charAt(0) : ''}
-              </div>
-              <div>
-                <div className="user-name">
-                  {user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : user?.email || 'User'}
-                </div>
-                <div className="user-role">
-                  {user?.role || 'Recruiter'}
-                </div>
-              </div>
-            </div>
-            <button className="btn-logout" onClick={logout}>
-              <i className="fas fa-sign-out-alt"></i>
-              Logout
-            </button>
-          </div>
-        </div>
 
         {/* Content Area */}
         <div className="content-area">
@@ -476,67 +457,47 @@ const RecruiterDashboard = () => {
                 </div>
               </div>
               
-              {/* Stats Grid */}
+              {/* Stats Grid - Modern Design */}
               <div className="stats-grid">
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{stats.activeJobs}</div>
-                      <div className="stat-label">Active Postings</div>
-                    </div>
-                    <div className="stat-icon blue">
-                      <i className="fas fa-briefcase"></i>
-                    </div>
-                  </div>
-                  <div className="stat-change positive">
-                    <i className="fas fa-arrow-up"></i> {stats.newJobsThisWeek} new this week
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{stats.totalApplications}</div>
-                      <div className="stat-label">Total Applications</div>
-                    </div>
-                    <div className="stat-icon green">
-                      <i className="fas fa-users"></i>
-                    </div>
-                  </div>
-                  <div className="stat-change positive">
-                    <i className="fas fa-arrow-up"></i> +{stats.applicationsIncrease}% from last month
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{stats.inInterview}</div>
-                      <div className="stat-label">In Interview Stage</div>
-                    </div>
-                    <div className="stat-icon purple">
-                      <i className="fas fa-user-clock"></i>
-                    </div>
-                  </div>
-                  <div className="stat-change">
-                    {stats.interviewsThisWeek} scheduled this week
-                  </div>
-                </div>
-
-                <div className="stat-card">
-                  <div className="stat-header">
-                    <div>
-                      <div className="stat-number">{stats.offersExtended}</div>
-                      <div className="stat-label">Offers Extended</div>
-                    </div>
-                    <div className="stat-icon orange">
-                      <i className="fas fa-handshake"></i>
-                    </div>
-                  </div>
-                  <div className="stat-change positive">
-                    <i className="fas fa-arrow-up"></i> {stats.offersAccepted} accepted
-                  </div>
-                </div>
+                <StatCard
+                  title="Active Postings"
+                  value={stats.activeJobs}
+                  trend={stats.newJobsThisWeek > 0 ? 20 : 0}
+                  trendValue={stats.newJobsThisWeek.toString()}
+                  trendLabel="new this week"
+                  icon={faBriefcase}
+                  iconColor="#3b82f6"
+                />
+                
+                <StatCard
+                  title="Total Applications"
+                  value={stats.totalApplications}
+                  trend={stats.applicationsIncrease || 0}
+                  trendValue=""
+                  trendLabel="from last month"
+                  icon={faUsers}
+                  iconColor="#10b981"
+                />
+                
+                <StatCard
+                  title="In Interview Stage"
+                  value={stats.inInterview}
+                  trend={stats.interviewsThisWeek > 0 ? 12 : 0}
+                  trendValue={stats.interviewsThisWeek.toString()}
+                  trendLabel="scheduled this week"
+                  icon={faUserClock}
+                  iconColor="#8b5cf6"
+                />
+                
+                <StatCard
+                  title="Offers Extended"
+                  value={stats.offersExtended}
+                  trend={stats.offersAccepted > 0 ? 18 : 0}
+                  trendValue={stats.offersAccepted.toString()}
+                  trendLabel="accepted"
+                  icon={faHandshake}
+                  iconColor="#f97316"
+                />
               </div>
 
               <div className="dashboard-content">
@@ -938,15 +899,8 @@ const RecruiterDashboard = () => {
 
           {/* Other sections */}
           {activeSection === 'messages' && (
-            <div className="page-section active">
-              <h1 style={{ marginBottom: '25px' }}>Messages</h1>
-              <div className="card">
-                <div className="empty-state">
-                  <i className="fas fa-envelope"></i>
-                  <h3>Messages</h3>
-                  <p>This section is coming soon...</p>
-                </div>
-              </div>
+            <div className="page-section active" style={{ marginLeft: '-20px', marginRight: '-20px', marginTop: '-20px' }}>
+              <ProfessionalMessaging />
             </div>
           )}
 
@@ -1115,7 +1069,8 @@ const RecruiterDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   );
 };
 

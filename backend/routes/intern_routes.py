@@ -375,6 +375,53 @@ def apply_to_internship(internship_id):
         print(f"Error applying to internship: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@intern_bp.route('/applications', methods=['GET'])
+@jwt_required()
+def get_intern_applications():
+    """
+    Get all applications for the current intern
+    """
+    try:
+        current_user_id = get_jwt_identity()
+        user_id = ObjectId(current_user_id)
+        
+        # Get applications from intern_applications collection
+        applications = list(intern_service.applications_collection.find({
+            'userId': user_id
+        }))
+        
+        # Enrich with internship details
+        enriched_applications = []
+        for app in applications:
+            internship = intern_service.internships_collection.find_one({
+                '_id': ObjectId(app['internshipId'])
+            })
+            
+            if internship:
+                enriched_applications.append({
+                    '_id': str(app['_id']),
+                    'internshipId': str(app['internshipId']),
+                    'jobTitle': internship.get('title', 'N/A'),
+                    'company': internship.get('company', 'N/A'),
+                    'location': internship.get('location', 'N/A'),
+                    'status': app.get('status', 'pending'),
+                    'appliedAt': app.get('appliedAt'),
+                    'interviewDate': app.get('interviewDate'),
+                    'interviewType': app.get('interviewType', 'Virtual'),
+                    'internshipDetails': {
+                        'duration': internship.get('duration'),
+                        'stipend': internship.get('salary_range'),
+                        'type': internship.get('type'),
+                        'remote_option': internship.get('remote_option')
+                    }
+                })
+        
+        return jsonify({'applications': enriched_applications}), 200
+            
+    except Exception as e:
+        print(f"Error fetching intern applications: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 @intern_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_intern_stats():

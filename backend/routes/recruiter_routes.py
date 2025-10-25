@@ -683,7 +683,22 @@ def get_recruiter_applications():
             ]
         }))
         
-        print(f"👥 Found {len(applications)} applications")
+        # Also get intern applications (stored in separate collection)
+        intern_applications = list(db.intern_applications.find({
+            '$or': [
+                {'internshipId': {'$in': job_ids_objects}},
+                {'internshipId': {'$in': job_ids_strings}}
+            ]
+        }))
+        
+        # Convert intern applications to match regular application format
+        for intern_app in intern_applications:
+            intern_app['job_id'] = intern_app.get('internshipId')
+            intern_app['applicant_id'] = intern_app.get('userId')
+            intern_app['applied_at'] = intern_app.get('appliedAt')
+            applications.append(intern_app)
+        
+        print(f"👥 Found {len(applications)} total applications ({len(intern_applications)} from interns)")
         
         # Create a job lookup dictionary for faster access
         job_lookup = {str(job['_id']): job for job in recruiter_jobs}
@@ -820,13 +835,20 @@ def update_application_status(application_id):
         if db is None:
             return jsonify({'error': 'Database connection failed'}), 500
         
-        # Find the application
+        # Find the application - check both collections
         application = db.applications.find_one({'_id': ObjectId(application_id)})
+        is_intern_application = False
+        
+        if not application:
+            # Try intern applications collection
+            application = db.intern_applications.find_one({'_id': ObjectId(application_id)})
+            is_intern_application = True
+        
         if not application:
             return jsonify({'error': 'Application not found'}), 404
         
-        # Verify this application belongs to one of the recruiter's jobs
-        job_id = application.get('job_id')
+        # Get job/internship ID
+        job_id = application.get('internshipId') if is_intern_application else application.get('job_id')
         job = db.jobs.find_one({'_id': job_id if isinstance(job_id, ObjectId) else ObjectId(job_id)})
         
         if not job:
@@ -851,10 +873,17 @@ def update_application_status(application_id):
         if interview_mode:
             update_data['interview_mode'] = interview_mode
         
-        result = db.applications.update_one(
-            {'_id': ObjectId(application_id)},
-            {'$set': update_data}
-        )
+        # Update the correct collection based on application type
+        if is_intern_application:
+            result = db.intern_applications.update_one(
+                {'_id': ObjectId(application_id)},
+                {'$set': update_data}
+            )
+        else:
+            result = db.applications.update_one(
+                {'_id': ObjectId(application_id)},
+                {'$set': update_data}
+            )
         
         if result.modified_count == 0:
             return jsonify({'error': 'Failed to update application'}), 500

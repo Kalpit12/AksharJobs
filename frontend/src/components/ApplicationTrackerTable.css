@@ -1,0 +1,694 @@
+/* Application Tracker Table Styles */
+
+.application-tracker-container {
+  padding: 20px;
+  background: #f8f9fa;
+  min-height: 100vh;
+}
+
+/* Ensure text selection is visible */
+.application-tracker-container ::selection {
+  background: #667eea;
+  color: white;
+}
+
+.application-tracker-container ::-moz-selection {
+  background: #667eea;
+  color: white;
+}
+
+.tracker-header {
+  margin-bottom: 25px;
+}
+
+.tracker-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* Stats Card */
+.stats-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+}
+
+.stats-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 5px 0;
+}
+
+.stats-count {
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0;
+}
+
+/* Search and Filters */
+.tracker-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  flex: 1;
+  min-width: 280px;
+  max-width: 380px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-box svg {
+  color: #94a3b8;
+  margin-right: 12px;
+  font-size: 16px;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.search-box input::placeholder {
+  color: #94a3b8;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-buttons button {
+  padding: 10px 20px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-buttons button:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.filter-buttons button.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+/* Table Wrapper */
+.tracker-table-wrapper {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+/* Table Styles - High Specificity to Override Global Styles */
+.application-tracker-container .tracker-table-wrapper .tracker-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+}
+
+.application-tracker-container .tracker-table-wrapper .tracker-table thead {
+  background: linear-gradient(90deg, #fff5f0 0%, #f0fdf4 100%) !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.application-tracker-container .tracker-table-wrapper .tracker-table th {
+  padding: 16px 12px !important;
+  text-align: left !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  vertical-align: middle !important;
+  background: transparent !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  box-sizing: border-box !important;
+}
+
+.application-tracker-container .tracker-table-wrapper .tracker-table tbody tr {
+  border-bottom: 1px solid #f1f5f9 !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.application-tracker-container .tracker-table-wrapper .tracker-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+.application-tracker-container .tracker-table-wrapper .tracker-table tbody tr:last-child {
+  border-bottom: none !important;
+}
+
+.application-tracker-container .tracker-table-wrapper .tracker-table td {
+  padding: 14px 12px !important;
+  font-size: 14px !important;
+  color: #334155 !important;
+  vertical-align: middle !important;
+  border-bottom: none !important;
+}
+
+/* Checkbox Cell */
+.application-tracker-container .tracker-table .checkbox-cell {
+  width: 50px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 14px 8px !important;
+}
+
+.application-tracker-container .tracker-table .checkbox-cell input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer !important;
+  accent-color: #667eea !important;
+  margin: 0 !important;
+  vertical-align: middle !important;
+}
+
+/* Company Cell */
+.application-tracker-container .tracker-table .company-cell {
+  width: 24% !important;
+  vertical-align: middle !important;
+  padding: 14px 12px !important;
+  max-width: 24%;
+  overflow: visible;
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.company-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.company-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.company-initial {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.company-details {
+  display: flex !important;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
+/* Force company name to be black and visible */
+.application-tracker-container .tracker-table .company-cell .company-info .company-details .company-name {
+  color: #000000 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+.application-tracker-container .tracker-table .company-cell .company-info .company-details .company-location {
+  color: #475569 !important;
+  font-size: 13px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+}
+
+.company-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #000000 !important;
+  line-height: 1.4;
+  margin: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.company-location {
+  font-size: 13px;
+  color: #475569 !important;
+  line-height: 1.4;
+  margin: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Job Title Cell */
+.application-tracker-container .tracker-table .job-title-cell {
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  font-size: 14px !important;
+  width: 15% !important;
+  vertical-align: middle !important;
+  line-height: 1.5 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  padding: 14px 12px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Salary Cell */
+.application-tracker-container .tracker-table .salary-cell {
+  color: #1e293b !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  width: 14% !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  padding: 14px 12px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Date Cell */
+.application-tracker-container .tracker-table .date-cell {
+  color: #1e293b !important;
+  font-size: 14px !important;
+  width: 13% !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  padding: 14px 12px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Interview Type Cell */
+.application-tracker-container .tracker-table .interview-type-cell {
+  width: 13% !important;
+  vertical-align: middle !important;
+  text-align: center !important;
+  padding: 14px 12px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.interview-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.interview-badge.virtual {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.interview-badge.hybrid {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.interview-badge.remote {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.interview-badge.in-person,
+.interview-badge.in\ person {
+  background: #fce7f3;
+  color: #9f1239;
+}
+
+/* Status Cell */
+.application-tracker-container .tracker-table .status-cell {
+  width: 15% !important;
+  vertical-align: middle !important;
+  padding: 14px 12px !important;
+}
+
+.status-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.status-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s ease;
+  min-width: 140px;
+}
+
+.status-display:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  text-transform: capitalize;
+  line-height: 1;
+}
+
+.dropdown-icon {
+  font-size: 11px;
+  color: #94a3b8;
+  margin-left: auto;
+}
+
+.status-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 220px;
+  overflow: hidden;
+}
+
+.status-option {
+  padding: 10px 16px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.status-option:hover {
+  background: #f8fafc;
+}
+
+/* Action Cell */
+.application-tracker-container .tracker-table .action-cell {
+  width: 6% !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  padding: 14px 8px !important;
+  overflow: visible !important;
+}
+
+.action-menu-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-menu-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-menu-btn:hover {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.action-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 200px;
+  overflow: hidden;
+}
+
+.action-option {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.action-option:hover {
+  background: #f8fafc;
+}
+
+.action-option.danger {
+  color: #ef4444;
+}
+
+.action-option.danger:hover {
+  background: #fef2f2;
+}
+
+/* Empty State */
+.empty-state {
+  background: white;
+  border-radius: 12px;
+  padding: 60px 40px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.empty-state h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 20px 0 10px;
+}
+
+.empty-state p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.pagination-btn {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f8fafc;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pagination-page {
+  width: 40px;
+  height: 40px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination-page:hover {
+  border-color: #667eea;
+  color: #667eea;
+  background: #f8fafc;
+}
+
+.pagination-page.active {
+  background: #667eea;
+  border-color: #667eea;
+  color: white;
+}
+
+.pagination-ellipsis {
+  padding: 0 8px;
+  color: #94a3b8;
+}
+
+/* Responsive Design */
+@media (max-width: 1400px) {
+  .application-tracker-container .tracker-table-wrapper .tracker-table {
+    font-size: 13px !important;
+  }
+
+  .application-tracker-container .tracker-table-wrapper .tracker-table th,
+  .application-tracker-container .tracker-table-wrapper .tracker-table td {
+    padding: 12px 10px !important;
+  }
+}
+
+@media (max-width: 1200px) {
+  .application-tracker-container {
+    padding: 16px;
+  }
+
+  .tracker-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-box {
+    max-width: 100%;
+  }
+
+  .filter-buttons {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .application-tracker-container .tracker-table-wrapper {
+    overflow-x: auto !important;
+  }
+
+  .application-tracker-container .tracker-table-wrapper .tracker-table {
+    min-width: 1000px !important;
+  }
+
+  .application-tracker-container .pagination {
+    flex-direction: column !important;
+    gap: 15px !important;
+  }
+
+  .application-tracker-container .stats-card {
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+}
+

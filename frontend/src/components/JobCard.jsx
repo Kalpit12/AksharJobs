@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt,
@@ -9,13 +9,69 @@ import {
   faPaperPlane,
   faEye,
   faStar,
-  faClock
+  faClock,
+  faCheck
 } from '@fortawesome/free-solid-svg-icons';
 
-const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
+const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false, isAlreadyApplied = false }) => {
+  const [isApplying, setIsApplying] = useState(false);
+  const [isApplied, setIsApplied] = useState(isAlreadyApplied);
+  
+  // Sync isApplied state with isAlreadyApplied prop
+  React.useEffect(() => {
+    if (isAlreadyApplied) {
+      setIsApplied(true);
+      console.log('🟢 Job already applied:', job.title || job.jobTitle, 'ID:', job._id || job.id);
+    }
+  }, [isAlreadyApplied, job]);
+
   const sanitizeJobTitle = (title) => {
     if (!title) return title;
     return String(title).replace(/^Updated\s*[-:]?\s*/i, "");
+  };
+
+  const handleApplyClick = async () => {
+    if (isApplied || isApplying || isAlreadyApplied) return;
+    
+    setIsApplying(true);
+    
+    if (onApply) {
+      try {
+        await onApply(job);
+        // After successful application, set to applied permanently
+        // The parent will update isAlreadyApplied prop, which will be picked up by useEffect
+        setTimeout(() => {
+          setIsApplying(false);
+          setIsApplied(true); // Keep it applied permanently
+        }, 1000);
+      } catch (error) {
+        console.error('Apply error:', error);
+        setIsApplying(false);
+        return;
+      }
+    } else {
+      // No onApply handler - just show animation
+      setTimeout(() => {
+        setIsApplying(false);
+        setIsApplied(true);
+      }, 1000);
+    }
+  };
+
+  const formatSalary = (salary) => {
+    if (!salary) return 'Competitive';
+    
+    // If it's already a string, return it
+    if (typeof salary === 'string') return salary;
+    
+    // If it's an object with min/max
+    if (typeof salary === 'object' && salary.min !== undefined && salary.max !== undefined) {
+      const currency = salary.currency || 'USD';
+      const symbol = currency === 'USD' ? '$' : currency;
+      return `${symbol}${salary.min} - ${symbol}${salary.max}`;
+    }
+    
+    return 'Competitive';
   };
 
   return (
@@ -39,15 +95,15 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
               </span>
               <span className="new-job-card-meta-item">
                 <FontAwesomeIcon icon={faBriefcase} className="fa-icon" /> 
-                {job.job_type || 'Full-time'}
+                {job.job_type || job.remote_option || 'Full-time'}
               </span>
               <span className="new-job-card-meta-item">
                 <FontAwesomeIcon icon={faLayerGroup} className="fa-icon" /> 
-                {job.experience_level || 'Mid Level'}
+                {job.experience_level || job.experience_required || 'Entry Level'}
               </span>
               <span className="new-job-card-meta-item">
                 <FontAwesomeIcon icon={faDollarSign} className="fa-icon" /> 
-                {job.salary_range || 'Competitive'}
+                {formatSalary(job.salary_range || job.salary)}
               </span>
             </div>
           </div>
@@ -64,6 +120,36 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
       </div>
       
       <div className="new-job-card-tags">
+        {/* Remote/Hybrid/On-site tag */}
+        {(job.remote_option || job.remoteOption) && (
+          <span 
+            className="new-job-card-tag" 
+            style={{ 
+              background: (job.remote_option === 'Remote' || job.remoteOption === 'Remote') ? '#dbeafe' : '#fed7aa',
+              color: (job.remote_option === 'Remote' || job.remoteOption === 'Remote') ? '#1e40af' : '#c2410c',
+              fontWeight: '600',
+              border: `1px solid ${(job.remote_option === 'Remote' || job.remoteOption === 'Remote') ? '#93c5fd' : '#fdba74'}`
+            }}
+          >
+            {job.remote_option || job.remoteOption}
+          </span>
+        )}
+        
+        {/* Paid tag if salary exists */}
+        {(job.salary_range || job.salary) && (
+          <span 
+            className="new-job-card-tag" 
+            style={{ 
+              background: '#d1fae5',
+              color: '#065f46',
+              fontWeight: '600',
+              border: '1px solid #86efac'
+            }}
+          >
+            💰 Paid
+          </span>
+        )}
+        
         {job.match_score > 0 && (
           <span 
             className="new-job-card-tag" 
@@ -86,6 +172,11 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
             ✓ {job.match_reasons[0]}
           </span>
         )}
+        {job.required_skills && job.required_skills.slice(0, 3).map((skill, skillIdx) => (
+          <span key={skillIdx} className="new-job-card-tag">
+            {skill}
+          </span>
+        ))}
         {job.skills && job.skills.slice(0, 3).map((skill, skillIdx) => (
           <span key={skillIdx} className="new-job-card-tag">
             {skill}
@@ -99,10 +190,16 @@ const JobCard = ({ job, onApply, onSave, onViewDetails, isSaved = false }) => {
       
       <div className="new-job-card-buttons">
         <button 
-          className="new-job-card-apply-btn"
-          onClick={() => onApply && onApply(job)}
+          className={`modern-apply-btn ${isApplying ? 'applying' : ''} ${isApplied ? 'applied' : ''}`}
+          onClick={handleApplyClick}
+          disabled={isApplying || isApplied}
         >
-          <FontAwesomeIcon icon={faPaperPlane} /> Apply Now
+          <span className="apply-btn-icon">
+            <FontAwesomeIcon icon={isApplied ? faCheck : faPaperPlane} />
+          </span>
+          <span className="apply-btn-text">
+            {isApplied ? 'Applied!' : isApplying ? 'Applying...' : 'Apply Now'}
+          </span>
         </button>
         <button 
           className="new-job-card-view-btn"

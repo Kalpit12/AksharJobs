@@ -3,8 +3,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from services.job_service import get_all_jobs, get_jobs_by_user,get_job_by_id,update_job
 from models.job_model import jobs_collection
-from datetime import datetime
 from utils.db import get_db
+from datetime import datetime
 import json
 import random
 
@@ -223,6 +223,37 @@ def fetch_all_jobs():
     except Exception as e:
         print(f"Error fetching jobs: {e}")
         return jsonify({"error": "Failed to fetch jobs", "details": str(e)}), 500
+
+@job_routes.route("/get_internships", methods=["GET"])
+def fetch_internships():
+    """
+    Fetches only internship listings.
+
+    Returns:
+        JSON response containing a list of internships only.
+    """
+    try:
+        db = get_db()
+        if db is None:
+            print("ERROR: No database connection")
+            return jsonify({"error": "Database connection failed"}), 500
+        
+        # Filter for internships only
+        internships = db.jobs.find({
+            "$or": [
+                {"job_type": "Internship"},
+                {"type": "Internship"},
+                {"jobType": "Internship"}
+            ]
+        })
+        
+        # Convert ObjectIds to strings for JSON serialization
+        serializable_internships = convert_objectids_to_strings(list(internships))
+        print(f"🎯 Found {len(serializable_internships)} internships")
+        return jsonify(serializable_internships), 200
+    except Exception as e:
+        print(f"Error fetching internships: {e}")
+        return jsonify({"error": "Failed to fetch internships", "details": str(e)}), 500
 
 @job_routes.route("/get_jobs_for_user", methods=["GET"])
 def fetch_jobs_for_user():

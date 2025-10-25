@@ -28,6 +28,9 @@ def get_messages():
             ]
         }).sort("created_at", -1).limit(50))
         
+        # Get user collection for names/avatars
+        users = db["users"]
+        
         # Convert ObjectId to string and format response
         formatted_messages = []
         for message in user_messages:
@@ -42,9 +45,21 @@ def get_messages():
             if message['sender_id'] == user_id:
                 message['is_sent'] = True
                 message['other_user_id'] = message['recipient_id']
+                # Get recipient info
+                other_user = users.find_one({'_id': ObjectId(message['recipient_id'])})
             else:
                 message['is_sent'] = False
                 message['other_user_id'] = message['sender_id']
+                # Get sender info
+                other_user = users.find_one({'_id': ObjectId(message['sender_id'])})
+            
+            # Add other user's name and avatar
+            if other_user:
+                message['other_user_name'] = f"{other_user.get('firstName', '')} {other_user.get('lastName', '')}".strip() or 'User'
+                message['other_user_avatar'] = other_user.get('profileImage') or other_user.get('companyLogo')
+            else:
+                message['other_user_name'] = 'User'
+                message['other_user_avatar'] = None
             
             formatted_messages.append(message)
         
