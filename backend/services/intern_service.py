@@ -168,7 +168,8 @@ class InternService:
                     # Internship Preferences
                     'internshipDuration': comp_profile.get('internshipDuration'),
                     'availability': comp_profile.get('availability'),
-                    'internshipTiming': comp_profile.get('internshipTiming'),
+                    'internshipStartMonthYear': comp_profile.get('internshipStartMonthYear') or comp_profile.get('internshipTiming'),
+                    'internshipTiming': comp_profile.get('internshipTiming'),  # Kept for backward compatibility
                     'expectedStipend': comp_profile.get('expectedStipend'),
                     'currencyPreference': comp_profile.get('currencyPreference', 'USD'),
                     'unpaidWilling': comp_profile.get('unpaidWilling'),

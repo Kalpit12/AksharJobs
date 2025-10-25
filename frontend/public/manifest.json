@@ -1,6 +1,6 @@
 {
-  "short_name": "RocketJobs",
-  "name": "RocketJobs - Where Talent Meets Opportunity",
+  "short_name": "AksharJobs",
+  "name": "AksharJobs - Where Talent Meets Opportunity",
   "icons": [
     {
       "src": "favicon.ico",
@@ -8,9 +8,9 @@
       "type": "image/x-icon"
     },
     {
-      "src": "RocketJobs_Logo.jpg",
-      "type": "image/jpeg",
-      "sizes": "200x200"
+      "src": "FINAL_LOGO_AK.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
   "start_url": ".",

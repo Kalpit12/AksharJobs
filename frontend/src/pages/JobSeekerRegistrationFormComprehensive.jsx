@@ -177,6 +177,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
       altPhone: existingData?.altPhone || userProfileData?.altPhone || '',
       dateOfBirth: existingData?.dateOfBirth || '',
       gender: existingData?.gender || '',
+      genderOther: existingData?.genderOther || '',
       bloodGroup: existingData?.bloodGroup || '',
       community: existingData?.community || '',
       profilePhoto: existingData?.profilePhoto || null,
@@ -203,6 +204,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
       yearsExperience: existingData?.yearsExperience || '',
       careerLevel: existingData?.careerLevel || '',
       industry: existingData?.industry || '',
+      industryOther: existingData?.industryOther || '',
       summary: existingData?.summary || '',
       
       // Work Experience (Array)
@@ -212,6 +214,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
         companyLocation: '',
         employmentType: 'full-time',
         jobIndustry: '',
+        jobIndustryOther: '',
         startDate: '',
         endDate: '',
         currentJob: false,
@@ -271,6 +274,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
       currentSalary: existingData?.currentSalary || '',
       expectedSalary: existingData?.expectedSalary || '',
       currencyPreference: existingData?.currencyPreference || 'USD',
+      currencyPreferenceOther: existingData?.currencyPreferenceOther || '',
       travelAvailability: existingData?.travelAvailability || '',
       
       // Additional Information
@@ -278,7 +282,8 @@ const JobSeekerRegistrationFormComprehensive = () => {
       hobbies: existingData?.hobbies || '',
       additionalComments: existingData?.additionalComments || '',
       agreeTerms: existingData?.agreeTerms || false,
-      allowContact: existingData?.allowContact || false
+      allowContact: existingData?.allowContact || false,
+      accurateInfo: existingData?.accurateInfo || false
     },
     AUTOSAVE_KEY,
     1000, // Debounce delay (1 second)
@@ -1060,6 +1065,11 @@ const JobSeekerRegistrationFormComprehensive = () => {
       return;
     }
 
+    if (!formData.accurateInfo) {
+      alert('Please confirm that all information provided is accurate and truthful');
+      return;
+    }
+
     setIsLoading(true);
     setSubmitError('');
 
@@ -1734,6 +1744,16 @@ const JobSeekerRegistrationFormComprehensive = () => {
                 <option value="other">Other</option>
                 <option value="prefer-not-to-say">Prefer not to say</option>
               </select>
+              {formData.gender === 'other' && (
+                <input
+                  type="text"
+                  name="genderOther"
+                  placeholder="Please specify"
+                  value={formData.genderOther}
+                  onChange={handleInputChange}
+                  style={{ marginTop: '10px' }}
+                />
+              )}
             </div>
             <div className="form-group-comprehensive">
               <label>Blood Group</label>
@@ -1946,7 +1966,19 @@ const JobSeekerRegistrationFormComprehensive = () => {
                   checked={formData.workPermit === 'citizen'}
                   onChange={handleInputChange}
                 />
-                <label htmlFor="workPermitCitizen">Citizen/Not Required</label>
+                <label htmlFor="workPermitCitizen">Citizen</label>
+              </div>
+              <div className="radio-option-comprehensive">
+                <input 
+                  type="radio" 
+                  id="workPermitNotRequired" 
+                  name="workPermit" 
+                  value="not_required" 
+                  required
+                  checked={formData.workPermit === 'not_required'}
+                  onChange={handleInputChange}
+                />
+                <label htmlFor="workPermitNotRequired">Not Required</label>
               </div>
             </div>
             <div className="validation-message">Please select one of these options.</div>
@@ -2171,6 +2203,16 @@ const JobSeekerRegistrationFormComprehensive = () => {
               <option value="logistics">Logistics & Transportation</option>
               <option value="other">Other</option>
             </select>
+            {formData.industry === 'other' && (
+              <input
+                type="text"
+                name="industryOther"
+                placeholder="Please specify industry"
+                value={formData.industryOther}
+                onChange={handleInputChange}
+                style={{ marginTop: '10px' }}
+              />
+            )}
           </div>
 
           <div className="form-group-comprehensive">
@@ -2290,6 +2332,15 @@ const JobSeekerRegistrationFormComprehensive = () => {
                       <option value="customerservice">Customer Service & Support</option>
                       <option value="other">Other</option>
                     </select>
+                    {experience.jobIndustry === 'other' && (
+                      <input
+                        type="text"
+                        placeholder="Please specify industry"
+                        value={experience.jobIndustryOther || ''}
+                        onChange={(e) => handleExperienceChange(index, 'jobIndustryOther', e.target.value)}
+                        style={{ marginTop: '10px' }}
+                      />
+                    )}
                   </div>
                 </div>
                 
@@ -3161,6 +3212,16 @@ const JobSeekerRegistrationFormComprehensive = () => {
               <option value="INR">INR - Indian Rupee</option>
               <option value="other">Other</option>
             </select>
+            {formData.currencyPreference === 'other' && (
+              <input
+                type="text"
+                name="currencyPreferenceOther"
+                placeholder="Please specify currency"
+                value={formData.currencyPreferenceOther}
+                onChange={handleInputChange}
+                style={{ marginTop: '10px' }}
+              />
+            )}
           </div>
 
           <div className="form-group-comprehensive">
@@ -3217,7 +3278,7 @@ const JobSeekerRegistrationFormComprehensive = () => {
             />
           </div>
 
-          <div className="checkbox-group-comprehensive">
+          <div className="checkbox-group-comprehensive" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
             <input 
               type="checkbox" 
               id="agreeTerms" 
@@ -3225,19 +3286,34 @@ const JobSeekerRegistrationFormComprehensive = () => {
               required
               checked={formData.agreeTerms}
               onChange={handleInputChange}
+              style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
             />
-            <label htmlFor="agreeTerms">I agree to the Terms of Service and Privacy Policy <span className="required-comprehensive">*</span></label>
+            <label htmlFor="agreeTerms" style={{ cursor: 'pointer', margin: 0 }}>I agree to the Terms of Service and Privacy Policy <span className="required-comprehensive">*</span></label>
           </div>
 
-          <div className="checkbox-group-comprehensive">
+          <div className="checkbox-group-comprehensive" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
             <input 
               type="checkbox" 
               id="allowContact" 
               name="allowContact"
               checked={formData.allowContact}
               onChange={handleInputChange}
+              style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
             />
-            <label htmlFor="allowContact">I agree to be contacted by employers and recruiters</label>
+            <label htmlFor="allowContact" style={{ cursor: 'pointer', margin: 0 }}>I agree to be contacted by employers and recruiters</label>
+          </div>
+
+          <div className="checkbox-group-comprehensive" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
+            <input 
+              type="checkbox" 
+              id="accurateInfo" 
+              name="accurateInfo" 
+              required
+              checked={formData.accurateInfo}
+              onChange={handleInputChange}
+              style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
+            />
+            <label htmlFor="accurateInfo" style={{ cursor: 'pointer', margin: 0 }}>I confirm all information provided is accurate and truthful <span className="required-comprehensive">*</span></label>
           </div>
         </div>
 

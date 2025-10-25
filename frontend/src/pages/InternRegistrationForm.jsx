@@ -148,6 +148,7 @@ const InternRegistrationForm = () => {
     altPhone: existingData?.altPhone || userProfileData?.altPhone || '',
     dateOfBirth: existingData?.dateOfBirth || '',
     gender: existingData?.gender || '',
+    genderOther: existingData?.genderOther || '',
     profilePhoto: existingData?.profilePhoto || null,
     
     // Nationality & Residency
@@ -185,6 +186,7 @@ const InternRegistrationForm = () => {
     // Internship Objective
     objective: existingData?.objective || '',
     industryInterest: existingData?.industryInterest || '',
+    industryInterestOther: existingData?.industryInterestOther || '',
     preferredRole: existingData?.preferredRole || '',
     careerInterests: existingData?.careerInterests || [],
     
@@ -247,10 +249,13 @@ const InternRegistrationForm = () => {
     
     // Internship Preferences
     internshipDuration: existingData?.internshipDuration || '',
+    internshipDurationOther: existingData?.internshipDurationOther || '',
     availability: existingData?.availability || '',
-    internshipTiming: existingData?.internshipTiming || '',
+    availabilityOther: existingData?.availabilityOther || '',
+    internshipStartMonthYear: existingData?.internshipStartMonthYear || existingData?.internshipTiming || '',
     expectedStipend: existingData?.expectedStipend || '',
     currencyPreference: existingData?.currencyPreference || 'USD',
+    currencyPreferenceOther: existingData?.currencyPreferenceOther || '',
     unpaidWilling: existingData?.unpaidWilling || '',
     academicCredit: existingData?.academicCredit || '',
     
@@ -433,7 +438,7 @@ const InternRegistrationForm = () => {
       'nationality', 'residentCountry', 'currentCity', 'validDocs',
       'preferredLocation1', 'willingToRelocate', 'internshipMode',
       'academicLevel', 'objective', 'industryInterest', 'preferredRole',
-      'internshipDuration', 'availability', 'internshipTiming',
+      'internshipDuration', 'availability', 'internshipStartMonthYear',
       'agreeTerms', 'accurateInfo'
     ];
 
@@ -1052,6 +1057,16 @@ const InternRegistrationForm = () => {
                         <option value="other">Other</option>
                         <option value="prefer-not-to-say">Prefer not to say</option>
                       </select>
+                      {formData.gender === 'other' && (
+                        <input
+                          type="text"
+                          name="genderOther"
+                          placeholder="Please specify"
+                          value={formData.genderOther}
+                          onChange={handleInputChange}
+                          style={{ marginTop: '10px' }}
+                        />
+                      )}
                     </div>
                   </div>
 
@@ -1216,7 +1231,17 @@ const InternRegistrationForm = () => {
                           checked={formData.validDocs === 'citizen'}
                           onChange={handleInputChange}
                         />
-                        <span>Citizen/Not Required</span>
+                        <span>Citizen</span>
+                      </label>
+                      <label className="radio-option-comprehensive">
+                        <input 
+                          type="radio" 
+                          name="validDocs" 
+                          value="not_required"
+                          checked={formData.validDocs === 'not_required'}
+                          onChange={handleInputChange}
+                        />
+                        <span>Not Required</span>
                       </label>
                     </div>
                   </div>
@@ -1554,6 +1579,16 @@ const InternRegistrationForm = () => {
                         <option value="manufacturing">Manufacturing</option>
                         <option value="other">Other</option>
                       </select>
+                      {formData.industryInterest === 'other' && (
+                        <input
+                          type="text"
+                          name="industryInterestOther"
+                          placeholder="Please specify industry"
+                          value={formData.industryInterestOther}
+                          onChange={handleInputChange}
+                          style={{ marginTop: '10px' }}
+                        />
+                      )}
                     </div>
                     <div className="form-group-comprehensive">
                       <label>Preferred Internship Role <span className="required-comprehensive">*</span></label>
@@ -2294,8 +2329,20 @@ const InternRegistrationForm = () => {
                         <option value="3-months">3 months</option>
                         <option value="4-6-months">4-6 months</option>
                         <option value="6-12-months">6-12 months</option>
+                        <option value="12-months-plus">12+ months</option>
                         <option value="flexible">Flexible</option>
+                        <option value="other">Other</option>
                       </select>
+                      {formData.internshipDuration === 'other' && (
+                        <input
+                          type="text"
+                          name="internshipDurationOther"
+                          placeholder="Please specify duration"
+                          value={formData.internshipDurationOther}
+                          onChange={handleInputChange}
+                          style={{ marginTop: '10px' }}
+                        />
+                      )}
                     </div>
                     <div className="form-group-comprehensive">
                       <label>Availability to Start <span className="required-comprehensive">*</span></label>
@@ -2310,27 +2357,37 @@ const InternRegistrationForm = () => {
                         <option value="1-week">Within 1 week</option>
                         <option value="2-weeks">Within 2 weeks</option>
                         <option value="1-month">Within 1 month</option>
+                        <option value="2-months">Within 2 months</option>
+                        <option value="3-months">Within 3 months</option>
                         <option value="summer">Summer Break</option>
                         <option value="semester">Next Semester</option>
                         <option value="specific-date">Specific Date (add in comments)</option>
+                        <option value="other">Other</option>
                       </select>
+                      {formData.availability === 'other' && (
+                        <input
+                          type="text"
+                          name="availabilityOther"
+                          placeholder="Please specify availability"
+                          value={formData.availabilityOther}
+                          onChange={handleInputChange}
+                          style={{ marginTop: '10px' }}
+                        />
+                      )}
                     </div>
                   </div>
 
                   <div className="form-row-comprehensive">
                     <div className="form-group-comprehensive">
-                      <label>Internship Timing Preference <span className="required-comprehensive">*</span></label>
-                      <select 
-                        name="internshipTiming" 
+                      <label>Start From: Month Year <span className="required-comprehensive">*</span></label>
+                      <input
+                        type="text"
+                        name="internshipStartMonthYear"
                         required
-                        value={formData.internshipTiming}
+                        placeholder="e.g., January 2025"
+                        value={formData.internshipStartMonthYear || ''}
                         onChange={handleInputChange}
-                      >
-                        <option value="">Select timing</option>
-                        <option value="full-time">Full-time (during break)</option>
-                        <option value="part-time">Part-time (during semester)</option>
-                        <option value="flexible">Flexible</option>
-                      </select>
+                      />
                     </div>
                     <div className="form-group-comprehensive">
                       <label>Expected Stipend/Allowance (Monthly)</label>
@@ -2366,6 +2423,16 @@ const InternRegistrationForm = () => {
                       <option value="INR">INR - Indian Rupee</option>
                       <option value="other">Other</option>
                     </select>
+                    {formData.currencyPreference === 'other' && (
+                      <input
+                        type="text"
+                        name="currencyPreferenceOther"
+                        placeholder="Please specify currency"
+                        value={formData.currencyPreferenceOther}
+                        onChange={handleInputChange}
+                        style={{ marginTop: '10px' }}
+                      />
+                    )}
                   </div>
 
                   <div className="form-group-comprehensive">
@@ -2478,7 +2545,7 @@ const InternRegistrationForm = () => {
                     />
                   </div>
 
-                  <div className="checkbox-group-comprehensive">
+                  <div className="checkbox-group-comprehensive" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
                     <input 
                       type="checkbox" 
                       id="agreeTerms" 
@@ -2486,22 +2553,24 @@ const InternRegistrationForm = () => {
                       required
                       checked={formData.agreeTerms}
                       onChange={handleInputChange}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
                     />
-                    <label htmlFor="agreeTerms">I agree to the Terms of Service and Privacy Policy <span className="required-comprehensive">*</span></label>
+                    <label htmlFor="agreeTerms" style={{ cursor: 'pointer', margin: 0 }}>I agree to the Terms of Service and Privacy Policy <span className="required-comprehensive">*</span></label>
                   </div>
 
-                  <div className="checkbox-group-comprehensive">
+                  <div className="checkbox-group-comprehensive" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
                     <input 
                       type="checkbox" 
                       id="allowContact" 
                       name="allowContact"
                       checked={formData.allowContact}
                       onChange={handleInputChange}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
                     />
-                    <label htmlFor="allowContact">I agree to be contacted by employers and recruiters for internship opportunities</label>
+                    <label htmlFor="allowContact" style={{ cursor: 'pointer', margin: 0 }}>I agree to be contacted by employers and recruiters for internship opportunities</label>
                   </div>
 
-                  <div className="checkbox-group-comprehensive">
+                  <div className="checkbox-group-comprehensive" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '15px' }}>
                     <input 
                       type="checkbox" 
                       id="accurateInfo" 
@@ -2509,8 +2578,9 @@ const InternRegistrationForm = () => {
                       required
                       checked={formData.accurateInfo}
                       onChange={handleInputChange}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', flexShrink: 0 }}
                     />
-                    <label htmlFor="accurateInfo">I confirm that all information provided is accurate and truthful <span className="required-comprehensive">*</span></label>
+                    <label htmlFor="accurateInfo" style={{ cursor: 'pointer', margin: 0 }}>I confirm that all information provided is accurate and truthful <span className="required-comprehensive">*</span></label>
                   </div>
                 </div>
 

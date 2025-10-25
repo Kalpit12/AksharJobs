@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMapMarkerAlt,
@@ -13,7 +14,9 @@ import {
   faCertificate,
   faLanguage,
   faLink,
-  faCheckCircle
+  faCheckCircle,
+  faPlus,
+  faArrowLeft
 } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { buildApiUrl } from '../config/api';
@@ -21,11 +24,14 @@ import { useAuth } from '../context/AuthContext';
 
 const MyProfile = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [editingSections, setEditingSections] = useState({});
   const [skillsDropdownOpen, setSkillsDropdownOpen] = useState(false);
+  const [skillInputValue, setSkillInputValue] = useState('');
+  const [profileCompletionPercentage, setProfileCompletionPercentage] = useState(0);
   
   // Common skills for dropdown
   const commonSkills = [
@@ -184,6 +190,160 @@ const MyProfile = () => {
 
   const authHeaders = () => ({ 'Authorization': `Bearer ${localStorage.getItem('token') || ''}` });
 
+  // Calculate profile completion percentage - counting ALL 52+ fields
+  const calculateProfileCompletion = () => {
+    let totalFields = 0;
+    let filledFields = 0;
+    
+    // Very strict helper to check if field has meaningful value
+    const hasValue = (value) => {
+      if (value === null || value === undefined || value === '') return false;
+      if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '' || trimmed === 'undefined' || trimmed === 'null') return false;
+        return trimmed.length > 0;
+      }
+      if (Array.isArray(value)) return value.length > 0;
+      if (typeof value === 'object') {
+        return Object.values(value).some(v => v && typeof v === 'string' && v.trim().length > 0);
+      }
+      return false;
+    };
+    
+    console.log(`📊 Checking Profile Completion (ALL 52+ Fields)...`);
+    
+    // Basic Personal Info (9 fields)
+    const basicFields = {
+      firstName: profileForm.firstName,
+      middleName: profileForm.middleName,
+      lastName: profileForm.lastName,
+      email: profileForm.email,
+      phone: profileForm.phoneNumber || profileForm.phone,
+      altPhone: profileForm.altPhone,
+      dateOfBirth: profileForm.dateOfBirth,
+      gender: profileForm.gender,
+      bloodGroup: profileForm.bloodGroup
+    };
+    totalFields += 9;
+    Object.entries(basicFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Location & Residency (10 fields)
+    const locationFields = {
+      nationality: profileForm.nationality,
+      residentCountry: profileForm.residentCountry,
+      currentCity: profileForm.currentCity,
+      postalCode: profileForm.postalCode,
+      address: profileForm.address,
+      latitude: profileForm.latitude,
+      longitude: profileForm.longitude,
+      workPermit: profileForm.workPermit,
+      preferredLocation1: profileForm.preferredLocation1,
+      preferredLocation2: profileForm.preferredLocation2
+    };
+    totalFields += 10;
+    Object.entries(locationFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Preferred Locations & Work Settings (5 fields)
+    const workLocationFields = {
+      preferredLocation3: profileForm.preferredLocation3,
+      willingToRelocate: profileForm.willingToRelocate,
+      workLocation: profileForm.workLocation,
+      travelAvailability: profileForm.travelAvailability,
+      availability: profileForm.availability
+    };
+    totalFields += 5;
+    Object.entries(workLocationFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Professional Info (6 fields)
+    const professionalFields = {
+      professionalTitle: profileForm.professionalTitle,
+      professionalSummary: profileForm.professionalSummary,
+      yearsExperience: profileForm.yearsExperience || profileForm.yearsOfExperience,
+      careerLevel: profileForm.careerLevel,
+      industry: profileForm.industry,
+      community: profileForm.community
+    };
+    totalFields += 6;
+    Object.entries(professionalFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Job Preferences (6 fields)
+    const jobPrefFields = {
+      preferredJobTitles: profileForm.preferredJobTitles,
+      jobType: profileForm.jobType,
+      noticePeriod: profileForm.noticePeriod,
+      currentSalary: profileForm.currentSalary,
+      expectedSalary: profileForm.expectedSalary,
+      currencyPreference: profileForm.currencyPreference
+    };
+    totalFields += 6;
+    Object.entries(jobPrefFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Skills & Tools (2 fields)
+    totalFields += 2;
+    if (hasValue(profileForm.skills)) filledFields++;
+    if (hasValue(profileForm.tools)) filledFields++;
+    
+    // Professional Memberships (3 fields)
+    const membershipFields = {
+      membershipOrg: profileForm.membershipOrg,
+      membershipType: profileForm.membershipType,
+      membershipDate: profileForm.membershipDate
+    };
+    totalFields += 3;
+    Object.entries(membershipFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Additional Info (3 fields)
+    const additionalFields = {
+      careerObjectives: profileForm.careerObjectives,
+      hobbies: profileForm.hobbies,
+      additionalComments: profileForm.additionalComments
+    };
+    totalFields += 3;
+    Object.entries(additionalFields).forEach(([key, value]) => {
+      if (hasValue(value)) filledFields++;
+    });
+    
+    // Array Sections (4 sections - count if they have entries)
+    totalFields += 4;
+    if (education && education.length > 0) filledFields++;
+    if (experience && experience.length > 0) filledFields++;
+    if (languages && languages.length > 0) filledFields++;
+    if (certifications && certifications.length > 0) filledFields++;
+    
+    // Professional Links (4 fields - individual links)
+    totalFields += 4;
+    if (professionalLinks.linkedin && professionalLinks.linkedin.trim()) filledFields++;
+    if (professionalLinks.github && professionalLinks.github.trim()) filledFields++;
+    if (professionalLinks.portfolio && professionalLinks.portfolio.trim()) filledFields++;
+    if (professionalLinks.website && professionalLinks.website.trim()) filledFields++;
+    
+    // References (1 section)
+    totalFields += 1;
+    if (references && references.length > 0) filledFields++;
+    
+    // Calculate percentage (Total: 53 fields)
+    const percentage = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
+    
+    console.log(`\n📊 Profile Completion Summary:`);
+    console.log(`   Total Fields: ${totalFields}`);
+    console.log(`   Filled Fields: ${filledFields}`);
+    console.log(`   Percentage: ${percentage}%\n`);
+    
+    return percentage;
+  };
+
   // Section editing functions
   const toggleSectionEdit = async (section) => {
     const isCurrentlyEditing = editingSections[section];
@@ -289,7 +449,9 @@ const MyProfile = () => {
       setExperience(Array.isArray(p.experienceEntries) ? p.experienceEntries : (Array.isArray(p.experience) ? p.experience : (Array.isArray(p.workExperience) ? p.workExperience : [])));
       setLanguages(Array.isArray(p.languages) ? p.languages.map(l => (typeof l === 'string' ? { language: l, proficiency: '' } : l)) : []);
       setCertifications(Array.isArray(p.certificationEntries) ? p.certificationEntries : (Array.isArray(p.certifications) ? p.certifications : []));
-      setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
+      const refreshedReferencesData = Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []);
+      setReferences(refreshedReferencesData);
+      console.log(`📞 Refreshed References: ${refreshedReferencesData.length} items`, refreshedReferencesData);
       
       // Update professional links
       const links = p.professionalLinks || {};
@@ -506,16 +668,8 @@ const MyProfile = () => {
       });
       console.log(`🔗 Professional links in payload:`, finalPayload.professionalLinks);
       
-      // Validate data before sending
-      const validation = validateProfileData(finalPayload);
-      if (!validation.isValid) {
-        console.error('❌ Data validation failed:', validation.errors);
-        alert(`Please fill in required fields: ${validation.errors.join(', ')}`);
-        return;
-      }
-      if (validation.warnings.length > 0) {
-        console.warn('⚠️ Data validation warnings:', validation.warnings);
-      }
+      // No validation - allow saving with any fields filled or empty
+      console.log('💾 Saving profile without validation checks...');
       
       const response = await axios.put(buildApiUrl('/api/profile/profile'), finalPayload, { 
         headers: { 
@@ -525,6 +679,10 @@ const MyProfile = () => {
       });
       
       console.log(`✅ ${section} section saved successfully:`, response.data);
+      console.log(`🔍 Saved data - References:`, response.data?.references || response.data?.referenceEntries);
+      console.log(`🔍 Saved data - Certifications:`, response.data?.certifications || response.data?.certificationEntries);
+      console.log(`🔍 Saved data - Experience:`, response.data?.experience || response.data?.experienceEntries);
+      console.log(`🔍 Saved data - Education:`, response.data?.education || response.data?.educationEntries);
       
       // IMPORTANT: Clear cache to force fresh data fetch on next load
       sessionStorage.removeItem('myProfileData');
@@ -534,7 +692,12 @@ const MyProfile = () => {
       alert(`${section.charAt(0).toUpperCase() + section.slice(1)} section saved successfully!`);
       
       // Refresh data immediately to ensure we see the saved data
+      console.log(`🔄 Refreshing data after save to verify persistence...`);
       await refreshDataAfterEdit();
+      
+      // Verify data was actually saved
+      console.log(`✅ After refresh - References count:`, references.length);
+      console.log(`✅ After refresh - Certifications count:`, certifications.length);
       
       // Update AuthContext user data if firstName or lastName changed
       if (user && (finalPayload.firstName !== user.firstName || finalPayload.lastName !== user.lastName)) {
@@ -565,13 +728,17 @@ const MyProfile = () => {
   };
 
   const addSkill = (skill) => {
+    const trimmedSkill = skill.trim();
+    if (!trimmedSkill) return;
+    
     const currentSkills = profileForm.skills ? profileForm.skills.split(',').map(s => s.trim()).filter(Boolean) : [];
-    if (!currentSkills.includes(skill)) {
+    if (!currentSkills.includes(trimmedSkill)) {
       setProfileForm(prev => ({
         ...prev,
-        skills: [...currentSkills, skill].join(', ')
+        skills: [...currentSkills, trimmedSkill].join(', ')
       }));
     }
+    setSkillInputValue('');
     setSkillsDropdownOpen(false);
   };
 
@@ -588,6 +755,8 @@ const MyProfile = () => {
     const handleClickOutside = (event) => {
       if (skillsDropdownOpen && !event.target.closest('.skills-dropdown-container')) {
         setSkillsDropdownOpen(false);
+        // Optionally clear input when clicking outside - comment out if you want to keep the typed text
+        // setSkillInputValue('');
       }
     };
 
@@ -596,6 +765,15 @@ const MyProfile = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [skillsDropdownOpen]);
+
+  // Recalculate profile completion when data changes
+  useEffect(() => {
+    if (!loading) {
+      const completion = calculateProfileCompletion();
+      setProfileCompletionPercentage(completion);
+      console.log(`📊 Profile Completion Updated: ${completion}%`);
+    }
+  }, [profileForm, education, experience, languages, certifications, professionalLinks, references, loading]);
 
   useEffect(() => {
     let isMounted = true; // Prevent state updates after component unmount
@@ -687,7 +865,9 @@ const MyProfile = () => {
           setExperience(Array.isArray(p.experienceEntries) ? p.experienceEntries : (Array.isArray(p.experience) ? p.experience : []));
           setLanguages(Array.isArray(p.languages) ? p.languages : []);
           setCertifications(Array.isArray(p.certificationEntries) ? p.certificationEntries : (Array.isArray(p.certifications) ? p.certifications : []));
-          setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
+          const referencesData = Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []);
+          setReferences(referencesData);
+          console.log(`📞 Loading References from cache: ${referencesData.length} items`, referencesData);
           
           const links = p.professionalLinks || {};
           setProfessionalLinks({
@@ -696,6 +876,11 @@ const MyProfile = () => {
             portfolio: links.portfolio || links.portfolioUrl || '',
             website: links.website || links.websiteUrl || ''
           });
+          
+          // Calculate profile completion from cached data
+          const completion = calculateProfileCompletion();
+          setProfileCompletionPercentage(completion);
+          console.log(`📊 Profile Completion (from cache): ${completion}%`);
           
           setLoading(false);
           console.log('✅ Cached data loaded successfully');
@@ -823,7 +1008,9 @@ const MyProfile = () => {
           portfolio: links.portfolio || links.portfolioUrl || '',
           website: links.website || links.websiteUrl || ''
         });
-        setReferences(Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []));
+        const freshReferencesData = Array.isArray(p.referenceEntries) ? p.referenceEntries : (Array.isArray(p.references) ? p.references : []);
+        setReferences(freshReferencesData);
+        console.log(`📞 Loading References from fresh data: ${freshReferencesData.length} items`, freshReferencesData);
         
         console.log('\n' + '='.repeat(80));
         console.log('✅ PROFILE DATA SUCCESSFULLY LOADED AND STATE UPDATED');
@@ -852,9 +1039,20 @@ const MyProfile = () => {
         console.log(`  Experience Entries: ${Array.isArray(p.experienceEntries) ? p.experienceEntries.length : 0} items`);
         console.log(`  Languages: ${Array.isArray(p.languages) ? p.languages.length : 0} items`);
         console.log(`  Certifications: ${Array.isArray(p.certificationEntries) ? p.certificationEntries.length : 0} items`);
+        console.log(`  References: ${Array.isArray(p.referenceEntries) ? p.referenceEntries.length : (Array.isArray(p.references) ? p.references.length : 0)} items`);
         console.log(`  Core Skills: ${Array.isArray(p.coreSkills) ? p.coreSkills.length : 0} items`);
         console.log(`  Tools: ${Array.isArray(p.tools) ? p.tools.length : 0} items`);
+        if (Array.isArray(p.referenceEntries) || Array.isArray(p.references)) {
+          const refs = p.referenceEntries || p.references;
+          console.log(`  📞 References Details:`, refs);
+        }
         console.log('='.repeat(80) + '\n');
+        
+        // Calculate profile completion after data is loaded
+        const completion = calculateProfileCompletion();
+        setProfileCompletionPercentage(completion);
+        console.log(`📊 Profile Completion: ${completion}%`);
+        
         setLoading(false);
       } catch (error) {
         if (!isMounted) return;
@@ -992,16 +1190,8 @@ const MyProfile = () => {
       });
       console.log('🔗 Professional links in payload:', finalPayload.professionalLinks);
       
-      // Validate data before sending
-      const validation = validateProfileData(finalPayload);
-      if (!validation.isValid) {
-        console.error('❌ Data validation failed:', validation.errors);
-        alert(`Please fill in required fields: ${validation.errors.join(', ')}`);
-        return;
-      }
-      if (validation.warnings.length > 0) {
-        console.warn('⚠️ Data validation warnings:', validation.warnings);
-      }
+      // No validation - allow saving with any fields filled or empty
+      console.log('💾 Saving profile without validation checks...');
       
       const response = await axios.put(buildApiUrl('/api/profile/profile'), finalPayload, { 
         headers: { 
@@ -1529,7 +1719,7 @@ const MyProfile = () => {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
               <span style={{ color: '#ffffff !important', fontSize: '0.9rem', fontWeight: '700', textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>Completion</span>
-              <span style={{ color: '#ffffff !important', fontWeight: '800', fontSize: '1rem', textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>85%</span>
+              <span style={{ color: '#ffffff !important', fontWeight: '800', fontSize: '1rem', textShadow: '0 2px 4px rgba(0,0,0,0.7)' }}>{profileCompletionPercentage}%</span>
             </div>
             <div style={{ 
               background: 'rgba(0,0,0,0.3)', 
@@ -1541,9 +1731,10 @@ const MyProfile = () => {
               <div style={{ 
                 background: 'linear-gradient(90deg, #ffffff 0%, #f0f0f0 100%)', 
                 height: '100%', 
-                width: '85%',
+                width: `${profileCompletionPercentage}%`,
                 borderRadius: '4px',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                transition: 'width 0.5s ease'
               }}></div>
             </div>
           </div>
@@ -1619,27 +1810,61 @@ const MyProfile = () => {
                 color: '#ffffff !important'
               }}><FontAwesomeIcon icon={faMapMarkerAlt} /> <span style={{ color: '#ffffff !important' }}>{profileForm.location || '—'}</span></p>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {!editMode && (
-                <button className="btn btn-primary btn-sm" onClick={() => setEditMode(true)}>
-                  <FontAwesomeIcon icon={faEdit} /> Edit Profile
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {!editMode && (
+                  <button className="btn btn-primary btn-sm" onClick={() => setEditMode(true)}>
+                    <FontAwesomeIcon icon={faEdit} /> Edit Profile
+                  </button>
+                )}
+                {editMode && (
+                  <>
+                    <button className="btn btn-success btn-sm" onClick={saveProfile} disabled={saving}>
+                      <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button 
+                      className="cancel-btn-fixed" 
+                      onClick={() => setEditMode(false)}
+                    >
+                      <FontAwesomeIcon icon={faTimes} /> Cancel
+                    </button>
+                  </>
+                )}
+                <button className="btn btn-complete btn-sm" onClick={saveProfile} disabled={saving}>
+                  <FontAwesomeIcon icon={faCheckCircle} /> {saving ? 'Saving...' : 'Complete Profile'}
                 </button>
-              )}
-              {editMode && (
-                <>
-                  <button className="btn btn-success btn-sm" onClick={saveProfile} disabled={saving}>
-                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save Changes'}
-                  </button>
-                  <button 
-                    className="cancel-btn-fixed" 
-                    onClick={() => setEditMode(false)}
-                  >
-                    <FontAwesomeIcon icon={faTimes} /> Cancel
-                  </button>
-                </>
-              )}
-              <button className="btn btn-complete btn-sm" onClick={saveProfile} disabled={saving}>
-                <FontAwesomeIcon icon={faCheckCircle} /> {saving ? 'Saving...' : 'Complete Profile'}
+              </div>
+              <button 
+                onClick={() => navigate('/jobseeker-dashboard')}
+                style={{
+                  background: '#f97316',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
+                  transition: 'all 0.3s ease',
+                  width: '100%'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = '#ea580c';
+                  e.target.style.transform = 'translateY(-2px)';
+                  e.target.style.boxShadow = '0 6px 16px rgba(249, 115, 22, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = '#f97316';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(249, 115, 22, 0.3)';
+                }}
+              >
+                <FontAwesomeIcon icon={faArrowLeft} /> Back to Dashboard
               </button>
             </div>
           </div>
@@ -2026,7 +2251,19 @@ const MyProfile = () => {
                     onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}
                     style={{ cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}
                   />
-                  <span>Citizen/Not Required</span>
+                  <span>Citizen</span>
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}>
+                  <input 
+                    type="radio" 
+                    name="workPermit" 
+                    value="not_required" 
+                    checked={profileForm.workPermit === 'not_required'}
+                    disabled={!editingSections.residency}
+                    onChange={(e) => setProfileForm(p => ({ ...p, workPermit: e.target.value }))}
+                    style={{ cursor: editingSections.residency ? 'pointer' : 'not-allowed' }}
+                  />
+                  <span>Not Required</span>
                 </label>
               </div>
             </div>
@@ -2618,7 +2855,7 @@ const MyProfile = () => {
               <input style={{ ...formInputBase, ...viewModeField }} value={profileForm.membershipType || ''} disabled={!editingSections.memberships} onChange={(e) => setProfileForm(p => ({ ...p, membershipType: e.target.value }))} placeholder="e.g., Student, Professional, Fellow" />
             </div>
             <div className="form-group">
-              <label className="form-label">Membership Date</label>
+              <label className="form-label">Membership Since</label>
               <input type="date" style={{ ...formInputBase, ...viewModeField }} value={profileForm.membershipDate || ''} disabled={!editingSections.memberships} onChange={(e) => setProfileForm(p => ({ ...p, membershipDate: e.target.value }))} />
             </div>
           </div>
@@ -2738,7 +2975,82 @@ const MyProfile = () => {
             <h4 style={{ marginBottom: '15px', color: '#666' }}>Technical Skills</h4>
             {editingSections.skills ? (
               <div className="skills-dropdown-container" style={{ position: 'relative' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '15px' }}>
+                <div style={{ position: 'relative', marginBottom: '15px' }}>
+                  <input
+                    type="text"
+                    placeholder="Add skills... (Type and press Enter)"
+                    value={skillInputValue}
+                    onChange={(e) => setSkillInputValue(e.target.value)}
+                    onFocus={() => setSkillsDropdownOpen(true)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && skillInputValue.trim()) {
+                        e.preventDefault();
+                        addSkill(skillInputValue);
+                      }
+                    }}
+                    style={{
+                      ...formInputBase,
+                      width: '100%',
+                      padding: '10px 15px',
+                      border: '2px solid #f97316',
+                      borderRadius: '8px'
+                    }}
+                  />
+                  {skillsDropdownOpen && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '2px solid #f97316',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
+                      zIndex: 1000,
+                      maxHeight: '200px',
+                      overflowY: 'auto'
+                    }}>
+                      {commonSkills
+                        .filter(skill => skill.toLowerCase().includes(skillInputValue.toLowerCase()))
+                        .map((skill, index) => (
+                          <div
+                            key={index}
+                            onClick={() => addSkill(skill)}
+                            style={{
+                              padding: '10px 15px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #f0f0f0',
+                              fontSize: '14px',
+                              color: '#333'
+                            }}
+                            onMouseEnter={(e) => e.target.style.background = '#f8f9fa'}
+                            onMouseLeave={(e) => e.target.style.background = 'white'}
+                          >
+                            {skill}
+                          </div>
+                        ))}
+                      {skillInputValue.trim() && !commonSkills.some(s => s.toLowerCase() === skillInputValue.toLowerCase()) && (
+                        <div
+                          onClick={() => addSkill(skillInputValue)}
+                          style={{
+                            padding: '10px 15px',
+                            cursor: 'pointer',
+                            borderTop: '2px solid #f97316',
+                            fontSize: '14px',
+                            color: '#f97316',
+                            fontWeight: '600',
+                            background: '#fff7ed'
+                          }}
+                          onMouseEnter={(e) => e.target.style.background = '#ffedd5'}
+                          onMouseLeave={(e) => e.target.style.background = '#fff7ed'}
+                        >
+                          + Add "{skillInputValue}"
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '15px' }}>
                   {(profileForm.skills || '').split(',').filter(Boolean).map((s, i) => (
                     <span key={i} style={{
                       ...pillTagStyle,
@@ -2775,55 +3087,6 @@ const MyProfile = () => {
                       </button>
                     </span>
                   ))}
-                </div>
-                <div style={{ position: 'relative' }}>
-                  <input
-                    type="text"
-                    placeholder="Add skills..."
-                    value=""
-                    onFocus={() => setSkillsDropdownOpen(true)}
-                    style={{
-                      ...formInputBase,
-                      width: '100%',
-                      padding: '10px 15px',
-                      border: '2px solid #f97316',
-                      borderRadius: '8px'
-                    }}
-                    readOnly
-                  />
-                  {skillsDropdownOpen && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      right: 0,
-                      background: 'white',
-                      border: '2px solid #f97316',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
-                      zIndex: 1000,
-                      maxHeight: '200px',
-                      overflowY: 'auto'
-                    }}>
-                      {commonSkills.map((skill, index) => (
-                        <div
-                          key={index}
-                          onClick={() => addSkill(skill)}
-                          style={{
-                            padding: '10px 15px',
-                            cursor: 'pointer',
-                            borderBottom: '1px solid #f0f0f0',
-                            fontSize: '14px',
-                            color: '#333'
-                          }}
-                          onMouseEnter={(e) => e.target.style.background = '#f8f9fa'}
-                          onMouseLeave={(e) => e.target.style.background = 'white'}
-                        >
-                          {skill}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             ) : (
@@ -2970,18 +3233,227 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faUser} /> Professional References</h3>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.references ? (
+                <button 
+                  onClick={() => setEditingSections(prev => ({ ...prev, references: true }))}
+                  className="edit-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => {
+                      saveSection('references');
+                      setEditingSections(prev => ({ ...prev, references: false }));
+                    }}
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed"
+                    onClick={() => setEditingSections(prev => ({ ...prev, references: false }))}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           {(references || []).map((rf, idx) => (
-            <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', marginBottom: '12px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '12px' }}>
-                <div><strong>{rf.name || rf.referenceName || 'Name'}</strong></div>
-                <div>{rf.relation || rf.referenceRelationship || ''}</div>
-                <div>{rf.contact || rf.referenceEmail || ''}</div>
-                <div>{rf.referencePhone || ''}</div>
-              </div>
+            <div key={idx} style={{ padding: '15px', background: '#f9fafb', borderRadius: '8px', marginBottom: '12px', position: 'relative' }}>
+              {editingSections.references && (
+                <button
+                  onClick={() => {
+                    setReferences(prev => prev.filter((_, i) => i !== idx));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    background: '#dc2626',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    color: 'white',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    zIndex: 10
+                  }}
+                >
+                  ×
+                </button>
+              )}
+              {editingSections.references ? (
+                <div style={{ display: 'grid', gap: '15px', paddingRight: '40px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Reference Name</label>
+                      <input
+                        type="text"
+                        value={rf.referenceName || rf.name || ''}
+                        onChange={(e) => {
+                          const newRef = [...references];
+                          newRef[idx] = { ...newRef[idx], referenceName: e.target.value, name: e.target.value };
+                          setReferences(newRef);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="Full name"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Job Title</label>
+                      <input
+                        type="text"
+                        value={rf.referenceJobTitle || rf.jobTitle || ''}
+                        onChange={(e) => {
+                          const newRef = [...references];
+                          newRef[idx] = { ...newRef[idx], referenceJobTitle: e.target.value, jobTitle: e.target.value };
+                          setReferences(newRef);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="Position"
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Company/Organization</label>
+                      <input
+                        type="text"
+                        value={rf.referenceCompany || rf.company || ''}
+                        onChange={(e) => {
+                          const newRef = [...references];
+                          newRef[idx] = { ...newRef[idx], referenceCompany: e.target.value, company: e.target.value };
+                          setReferences(newRef);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="Company name"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Relationship</label>
+                      <input
+                        type="text"
+                        value={rf.referenceRelationship || rf.relation || ''}
+                        onChange={(e) => {
+                          const newRef = [...references];
+                          newRef[idx] = { ...newRef[idx], referenceRelationship: e.target.value, relation: e.target.value };
+                          setReferences(newRef);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="e.g., Former Manager, Colleague"
+                      />
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Email</label>
+                      <input
+                        type="email"
+                        value={rf.referenceEmail || rf.contact || ''}
+                        onChange={(e) => {
+                          const newRef = [...references];
+                          newRef[idx] = { ...newRef[idx], referenceEmail: e.target.value, contact: e.target.value };
+                          setReferences(newRef);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '5px', fontWeight: '600' }}>Phone</label>
+                      <input
+                        type="tel"
+                        value={rf.referencePhone || ''}
+                        onChange={(e) => {
+                          const newRef = [...references];
+                          newRef[idx] = { ...newRef[idx], referencePhone: e.target.value };
+                          setReferences(newRef);
+                        }}
+                        style={{ ...formInputBase, width: '100%' }}
+                        placeholder="+1 234 567 8900"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
+                  <div>
+                    <strong style={{ color: '#333', fontSize: '15px' }}>{rf.referenceName || rf.name || 'Name'}</strong>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{rf.referenceJobTitle || rf.jobTitle || 'Job Title'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#666', fontSize: '14px' }}>{rf.referenceCompany || rf.company || 'Company'}</p>
+                    <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{rf.referenceRelationship || rf.relation || 'Relationship'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#3b82f6', fontSize: '14px' }}>{rf.referenceEmail || rf.contact || 'Email'}</p>
+                  </div>
+                  <div>
+                    <p style={{ color: '#666', fontSize: '14px' }}>{rf.referencePhone || 'Phone'}</p>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
           {(references || []).length === 0 && <div style={{ color: '#999' }}>No references added</div>}
+          {editingSections.references && (
+            <button
+              onClick={() => {
+                setReferences(prev => [
+                  ...prev,
+                  {
+                    referenceName: '',
+                    referenceJobTitle: '',
+                    referenceCompany: '',
+                    referenceRelationship: '',
+                    referenceEmail: '',
+                    referencePhone: ''
+                  }
+                ]);
+              }}
+              style={{
+                background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '15px'
+              }}
+            >
+              <FontAwesomeIcon icon={faPlus} /> Add Reference
+            </button>
+          )}
         </div>
 
         {/* Work Experience Section */}
@@ -3612,6 +4084,13 @@ const MyProfile = () => {
                       onChange={(e) => {
                         const newCert = [...certifications];
                         newCert[idx] = { ...newCert[idx], certificationName: e.target.value, name: e.target.value };
+                        // Auto-verify if all fields are filled (optional)
+                        const updatedCert = { ...newCert[idx], certificationName: e.target.value };
+                        if (updatedCert.certificationName && updatedCert.certIssuer && updatedCert.certIssueDate && updatedCert.credentialId) {
+                          newCert[idx].verificationStatus = 'Verified';
+                        } else {
+                          newCert[idx].verificationStatus = 'Pending Verification';
+                        }
                         setCertifications(newCert);
                       }}
                       style={{ ...formInputBase, width: '100%' }}
@@ -3626,6 +4105,13 @@ const MyProfile = () => {
                       onChange={(e) => {
                         const newCert = [...certifications];
                         newCert[idx] = { ...newCert[idx], certIssuer: e.target.value, issuer: e.target.value };
+                        // Auto-verify if all fields are filled (optional)
+                        const updatedCert = { ...newCert[idx], certIssuer: e.target.value };
+                        if (updatedCert.certificationName && updatedCert.certIssuer && updatedCert.certIssueDate && updatedCert.credentialId) {
+                          newCert[idx].verificationStatus = 'Verified';
+                        } else {
+                          newCert[idx].verificationStatus = 'Pending Verification';
+                        }
                         setCertifications(newCert);
                       }}
                       style={{ ...formInputBase, width: '100%' }}
@@ -3641,6 +4127,13 @@ const MyProfile = () => {
                         onChange={(e) => {
                           const newCert = [...certifications];
                           newCert[idx] = { ...newCert[idx], certIssueDate: e.target.value, date: e.target.value };
+                          // Auto-verify if all fields are filled (optional)
+                          const updatedCert = { ...newCert[idx], certIssueDate: e.target.value };
+                          if (updatedCert.certificationName && updatedCert.certIssuer && updatedCert.certIssueDate && updatedCert.credentialId) {
+                            newCert[idx].verificationStatus = 'Verified';
+                          } else {
+                            newCert[idx].verificationStatus = 'Pending Verification';
+                          }
                           setCertifications(newCert);
                         }}
                         style={{ ...formInputBase, width: '100%' }}
@@ -3667,12 +4160,24 @@ const MyProfile = () => {
                         onChange={(e) => {
                           const newCert = [...certifications];
                           newCert[idx] = { ...newCert[idx], credentialId: e.target.value };
+                          // Auto-verify if all fields are filled (optional)
+                          const updatedCert = { ...newCert[idx], credentialId: e.target.value };
+                          if (updatedCert.certificationName && updatedCert.certIssuer && updatedCert.certIssueDate && updatedCert.credentialId) {
+                            newCert[idx].verificationStatus = 'Verified';
+                          } else {
+                            newCert[idx].verificationStatus = 'Pending Verification';
+                          }
                           setCertifications(newCert);
                         }}
                         style={{ ...formInputBase, width: '100%' }}
-                        placeholder="Certificate number/ID"
+                        placeholder="Certificate number/ID (optional)"
                       />
                     </div>
+                  </div>
+                  <div style={{ marginTop: '15px', padding: '12px', background: '#fef3c7', borderRadius: '8px', border: '1px solid #f59e0b' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#92400e' }}>
+                      <strong>📋 To verify your certificate:</strong> Fill in all fields (Certification Name, Issuing Organization, Issue Date, and Credential ID). Your certificate will be automatically verified once all details are provided.
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -3681,7 +4186,9 @@ const MyProfile = () => {
                     <h4>{ct.certificationName || ct.name || 'Certification'}</h4>
                     <p style={{ color: '#666', fontSize: '14px', marginTop: '5px' }}>{(ct.certIssuer || ct.issuer || '') + (ct.certIssueDate || ct.date ? ` - ${ct.certIssueDate || ct.date}` : '')}</p>
                   </div>
-                  <span className="status-badge status-offered">Verified</span>
+                  <span className={`status-badge ${(ct.verificationStatus || 'pending verification').toLowerCase() === 'verified' ? 'status-offered' : 'status-pending'}`}>
+                    {ct.verificationStatus || 'Pending Verification'}
+                  </span>
                 </div>
               )}
             </div>
@@ -3696,7 +4203,8 @@ const MyProfile = () => {
                     certificationName: '',
                     certIssuer: '',
                     certIssueDate: '',
-                    certExpiryDate: ''
+                    certExpiryDate: '',
+                    verificationStatus: 'Pending Verification'
                   }
                 ]);
               }}
@@ -3872,31 +4380,118 @@ const MyProfile = () => {
         <div className="card" style={{ ...elevatedCardStyle, padding: '25px' }}>
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px solid #f0f0f0' }}>
             <h3 className="card-title"><FontAwesomeIcon icon={faLink} /> Professional Online Presence</h3>
-            {!editingSections.socialLinks && (
-              <button 
-                onClick={() => setEditingSections(prev => ({ ...prev, socialLinks: true }))}
-                className="edit-btn"
-              >
-                <FontAwesomeIcon icon={faEdit} /> Edit
-              </button>
-            )}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {!editingSections.socialLinks ? (
+                <button 
+                  onClick={() => setEditingSections(prev => ({ ...prev, socialLinks: true }))}
+                  className="edit-btn"
+                  style={{ 
+                    background: 'linear-gradient(135deg, #f97316 0%, #0d9488 100%)', 
+                    color: 'white', 
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontSize: '14px',
+                    fontWeight: '600'
+                  }}
+                >
+                  <FontAwesomeIcon icon={faEdit} /> Edit
+                </button>
+              ) : (
+                <>
+                  <button 
+                    className="btn btn-success btn-sm" 
+                    onClick={() => {
+                      saveSection('socialLinks');
+                      setEditingSections(prev => ({ ...prev, socialLinks: false }));
+                    }}
+                    disabled={saving}
+                    style={{ 
+                      background: '#10b981', 
+                      color: 'white', 
+                      border: 'none',
+                      padding: '8px 16px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      fontWeight: '600'
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faSave} /> {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button 
+                    className="cancel-btn-fixed"
+                    onClick={() => setEditingSections(prev => ({ ...prev, socialLinks: false }))}
+                  >
+                    <FontAwesomeIcon icon={faTimes} /> Cancel
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-            {professionalLinks && typeof professionalLinks === 'object' && Object.entries(professionalLinks).map(([key, url]) => {
-              if (!url) return null;
-              const labels = {
-                linkedin: 'LinkedIn',
-                github: 'GitHub', 
-                portfolio: 'Portfolio',
-                website: 'Website'
-              };
-              return (
-                <a href={url} key={key} className="social-link" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 15px', background: '#f5f7fa', borderRadius: '8px', color: '#3b82f6', textDecoration: 'none' }}>
-                  <FontAwesomeIcon icon={faLink} /> <span>{labels[key] || key}</span>
-                </a>
-              );
-            })}
-          </div>
+          {editingSections.socialLinks ? (
+            <div style={{ display: 'grid', gap: '15px' }}>
+              <div className="form-group">
+                <label className="form-label"><FontAwesomeIcon icon={faLink} /> LinkedIn Profile URL</label>
+                <input 
+                  type="url"
+                  style={{ ...formInputBase, width: '100%' }} 
+                  value={professionalLinks.linkedin || ''} 
+                  onChange={(e) => setProfessionalLinks(prev => ({ ...prev, linkedin: e.target.value }))}
+                  placeholder="https://linkedin.com/in/your-profile"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label"><FontAwesomeIcon icon={faLink} /> GitHub Profile URL</label>
+                <input 
+                  type="url"
+                  style={{ ...formInputBase, width: '100%' }} 
+                  value={professionalLinks.github || ''} 
+                  onChange={(e) => setProfessionalLinks(prev => ({ ...prev, github: e.target.value }))}
+                  placeholder="https://github.com/your-username"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label"><FontAwesomeIcon icon={faLink} /> Portfolio URL</label>
+                <input 
+                  type="url"
+                  style={{ ...formInputBase, width: '100%' }} 
+                  value={professionalLinks.portfolio || ''} 
+                  onChange={(e) => setProfessionalLinks(prev => ({ ...prev, portfolio: e.target.value }))}
+                  placeholder="https://your-portfolio.com"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label"><FontAwesomeIcon icon={faLink} /> Personal Website URL</label>
+                <input 
+                  type="url"
+                  style={{ ...formInputBase, width: '100%' }} 
+                  value={professionalLinks.website || ''} 
+                  onChange={(e) => setProfessionalLinks(prev => ({ ...prev, website: e.target.value }))}
+                  placeholder="https://your-website.com"
+                />
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+              {professionalLinks && typeof professionalLinks === 'object' && Object.entries(professionalLinks).map(([key, url]) => {
+                if (!url) return null;
+                const labels = {
+                  linkedin: 'LinkedIn',
+                  github: 'GitHub', 
+                  portfolio: 'Portfolio',
+                  website: 'Website'
+                };
+                return (
+                  <a href={url} key={key} className="social-link" target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 15px', background: '#f5f7fa', borderRadius: '8px', color: '#3b82f6', textDecoration: 'none' }}>
+                    <FontAwesomeIcon icon={faLink} /> <span>{labels[key] || key}</span>
+                  </a>
+                );
+              })}
+              {(!professionalLinks || Object.values(professionalLinks).every(v => !v)) && (
+                <div style={{ color: '#999' }}>No professional links added</div>
+              )}
+            </div>
+          )}
         </div>
         </div>
       </div>

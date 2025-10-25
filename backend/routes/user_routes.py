@@ -35,6 +35,43 @@ def get_users():
         print(f"Error getting users: {e}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@user_bp.route('/profile/<user_id>', methods=['GET'])
+@jwt_required()
+def get_user_profile(user_id):
+    """Get a specific user's profile by ID"""
+    try:
+        db = get_db()
+        
+        if db is None:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        users = db["users"]
+        
+        # Validate and convert user_id to ObjectId
+        if not ObjectId.is_valid(user_id):
+            return jsonify({'error': 'Invalid user ID format'}), 400
+        
+        # Find user by ID
+        user = users.find_one(
+            {"_id": ObjectId(user_id)},
+            {"password": 0, "passwordHash": 0}  # Exclude password fields
+        )
+        
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+        
+        # Convert ObjectId to string
+        user['_id'] = str(user['_id'])
+        user['id'] = str(user['_id'])
+        
+        return jsonify(user), 200
+        
+    except Exception as e:
+        print(f"Error getting user profile: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': 'Internal server error', 'details': str(e)}), 500
+
 @user_bp.route('/<user_id>', methods=['GET'])
 @jwt_required()
 def get_user_by_id(user_id):

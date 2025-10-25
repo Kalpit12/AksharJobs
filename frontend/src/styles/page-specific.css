@@ -142,7 +142,7 @@
   height: 18px;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--primary-teal);
+  accent-color: #374151;
 }
 
 .radio-option-comprehensive label {

@@ -52,7 +52,7 @@ const InternMyProfile = () => {
     preferredRole: '',
     internshipDuration: '',
     availability: '',
-    internshipTiming: '',
+    internshipStartMonthYear: '',
     expectedStipend: '',
     currencyPreference: 'USD',
     unpaidWilling: '',
@@ -199,7 +199,7 @@ const InternMyProfile = () => {
         preferredRole: p.preferredRole || '',
         internshipDuration: p.internshipDuration || '',
         availability: p.availability || '',
-        internshipTiming: p.internshipTiming || '',
+        internshipStartMonthYear: p.internshipStartMonthYear || p.internshipTiming || '',
         expectedStipend: p.expectedStipend || '',
         currencyPreference: p.currencyPreference || 'USD',
         unpaidWilling: p.unpaidWilling || '',
@@ -962,22 +962,21 @@ const InternMyProfile = () => {
             </div>
             <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)' }}>
               <div className="form-group">
-                <label className="form-label">Willing to Relocate</label>
+                <label className="form-label">Willing to Relocate for Internship?</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.willingToRelocate || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, willingToRelocate: e.target.value }))}>
                   <option value="">Select...</option>
-                  <option value="Yes">Yes, anywhere</option>
-                  <option value="Within Country">Within my country</option>
-                  <option value="No">No, local only</option>
+                  <option value="yes">Yes, anywhere</option>
+                  <option value="within-country">Within my country only</option>
+                  <option value="no">No, local only</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Internship Mode</label>
+                <label className="form-label">Internship Mode Preference</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.internshipMode || ''} disabled={!editingSections.locations} onChange={(e) => setProfileForm(p => ({ ...p, internshipMode: e.target.value }))}>
-                  <option value="">Select...</option>
-                  <option value="On-site">On-site</option>
-                  <option value="Remote">Remote</option>
-                  <option value="Hybrid">Hybrid</option>
-                  <option value="Flexible">Flexible</option>
+                  <option value="">Select preference</option>
+                  <option value="onsite">On-site</option>
+                  <option value="remote">Remote</option>
+                  <option value="hybrid">Hybrid</option>
                 </select>
               </div>
             </div>
@@ -1612,39 +1611,44 @@ const InternMyProfile = () => {
             </div>
             <div style={{ ...gridStyle, gridTemplateColumns: 'repeat(2, 1fr)' }}>
               <div className="form-group">
-                <label className="form-label">Duration Preference</label>
+                <label className="form-label">Internship Duration Preference</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.internshipDuration || ''} disabled={!editingSections.preferences} onChange={(e) => setProfileForm(p => ({ ...p, internshipDuration: e.target.value }))}>
-                  <option value="">Select...</option>
-                  <option value="1-2 months">1-2 months</option>
-                  <option value="3 months">3 months</option>
-                  <option value="3-6 months">3-6 months</option>
-                  <option value="6-12 months">6-12 months</option>
-                  <option value="Flexible">Flexible</option>
+                  <option value="">Select preferred duration</option>
+                  <option value="1-2-months">1-2 months</option>
+                  <option value="3-months">3 months</option>
+                  <option value="4-6-months">4-6 months</option>
+                  <option value="6-12-months">6-12 months</option>
+                  <option value="12-months-plus">12+ months</option>
+                  <option value="flexible">Flexible</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Availability to Start</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.availability || ''} disabled={!editingSections.preferences} onChange={(e) => setProfileForm(p => ({ ...p, availability: e.target.value }))}>
-                  <option value="">Select...</option>
-                  <option value="Immediate">Immediate</option>
-                  <option value="Within 1 week">Within 1 week</option>
-                  <option value="Within 2 weeks">Within 2 weeks</option>
-                  <option value="Within 1 month">Within 1 month</option>
-                  <option value="Summer Break">Summer Break</option>
-                  <option value="Next Semester">Next Semester</option>
+                  <option value="">Select availability</option>
+                  <option value="immediate">Immediately Available</option>
+                  <option value="1-week">Within 1 week</option>
+                  <option value="2-weeks">Within 2 weeks</option>
+                  <option value="1-month">Within 1 month</option>
+                  <option value="2-months">Within 2 months</option>
+                  <option value="3-months">Within 3 months</option>
+                  <option value="summer">Summer Break</option>
+                  <option value="semester">Next Semester</option>
+                  <option value="specific-date">Specific Date (add in comments)</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Timing Preference</label>
-                <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.internshipTiming || ''} disabled={!editingSections.preferences} onChange={(e) => setProfileForm(p => ({ ...p, internshipTiming: e.target.value }))}>
-                  <option value="">Select...</option>
-                  <option value="Summer 2025">Summer 2025</option>
-                  <option value="Fall 2025">Fall 2025</option>
-                  <option value="Spring 2025">Spring 2025</option>
-                  <option value="Full-time">Full-time (during break)</option>
-                  <option value="Part-time">Part-time (during semester)</option>
-                  <option value="Flexible">Flexible</option>
-                </select>
+                <label className="form-label">Start From: Month Year</label>
+                <input 
+                  type="text" 
+                  style={{ ...formInputBase, ...viewModeField }} 
+                  value={profileForm.internshipStartMonthYear || ''} 
+                  disabled={!editingSections.preferences} 
+                  onChange={(e) => setProfileForm(p => ({ ...p, internshipStartMonthYear: e.target.value }))} 
+                  placeholder="e.g., January 2025" 
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Expected Stipend</label>
@@ -1653,29 +1657,38 @@ const InternMyProfile = () => {
               <div className="form-group">
                 <label className="form-label">Currency Preference</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.currencyPreference || 'USD'} disabled={!editingSections.preferences} onChange={(e) => setProfileForm(p => ({ ...p, currencyPreference: e.target.value }))}>
-                  <option value="USD">USD</option>
-                  <option value="EUR">EUR</option>
-                  <option value="GBP">GBP</option>
-                  <option value="KES">KES</option>
-                  <option value="INR">INR</option>
+                  <option value="USD">USD - US Dollar</option>
+                  <option value="EUR">EUR - Euro</option>
+                  <option value="GBP">GBP - British Pound</option>
+                  <option value="KES">KES - Kenyan Shilling</option>
+                  <option value="ZAR">ZAR - South African Rand</option>
+                  <option value="NGN">NGN - Nigerian Naira</option>
+                  <option value="GHS">GHS - Ghanaian Cedi</option>
+                  <option value="UGX">UGX - Ugandan Shilling</option>
+                  <option value="TZS">TZS - Tanzanian Shilling</option>
+                  <option value="AED">AED - UAE Dirham</option>
+                  <option value="CAD">CAD - Canadian Dollar</option>
+                  <option value="AUD">AUD - Australian Dollar</option>
+                  <option value="INR">INR - Indian Rupee</option>
+                  <option value="other">Other</option>
                 </select>
               </div>
               <div className="form-group">
-                <label className="form-label">Unpaid Willing?</label>
+                <label className="form-label">Willing to Accept Unpaid Internship?</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.unpaidWilling || ''} disabled={!editingSections.preferences} onChange={(e) => setProfileForm(p => ({ ...p, unpaidWilling: e.target.value }))}>
                   <option value="">Select...</option>
-                  <option value="Yes">Yes</option>
-                  <option value="Prefer Paid">Prefer paid</option>
-                  <option value="No">No, paid only</option>
+                  <option value="yes">Yes</option>
+                  <option value="prefer-paid">Prefer paid but open</option>
+                  <option value="no">No, paid only</option>
                 </select>
               </div>
               <div className="form-group">
                 <label className="form-label">Academic Credit Required?</label>
                 <select style={{ ...formInputBase, ...viewModeField }} value={profileForm.academicCredit || ''} disabled={!editingSections.preferences} onChange={(e) => setProfileForm(p => ({ ...p, academicCredit: e.target.value }))}>
                   <option value="">Select...</option>
-                  <option value="Yes">Yes, required</option>
-                  <option value="Preferred">Preferred</option>
-                  <option value="No">No</option>
+                  <option value="yes">Yes, required</option>
+                  <option value="preferred">Preferred but not required</option>
+                  <option value="no">No</option>
                 </select>
               </div>
             </div>

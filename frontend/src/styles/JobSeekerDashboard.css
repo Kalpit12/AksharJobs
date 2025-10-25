@@ -1592,11 +1592,12 @@
 }
 
 .btn-complete {
-  background: var(--gradient-main);
+  background: #0d9488;
   color: white;
 }
 
 .btn-complete:hover {
+  background: #0f766e;
   transform: translateY(-2px);
   box-shadow: var(--shadow-lg);
 }
@@ -1723,6 +1724,11 @@ tr:hover {
 .status-interview {
   background: rgba(245, 158, 11, 0.1);
   color: var(--status-warning);
+}
+
+.status-pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
 }
 
 .status-offered {

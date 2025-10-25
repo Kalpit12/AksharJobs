@@ -144,25 +144,6 @@ const LocationMap = ({ latitude, longitude, onLocationChange, address, onAddress
         </button>
       </div>
       
-      <div style={{ margin: '10px 0', padding: '8px', backgroundColor: '#f0f8ff', borderRadius: '6px', border: '1px solid #b3d9ff' }}>
-        <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
-          <input 
-            type="checkbox" 
-            checked={autoUpdateAddress}
-            onChange={(e) => setAutoUpdateAddress(e.target.checked)}
-            style={{ marginRight: '8px', cursor: 'pointer' }}
-          />
-          <span style={{ fontWeight: '500' }}>
-            📍 Automatically update address field when clicking on map
-          </span>
-        </label>
-        <p style={{ margin: '5px 0 0 28px', fontSize: '12px', color: '#666' }}>
-          {autoUpdateAddress 
-            ? '✓ Address will be updated based on map location' 
-            : '✗ Your manual address will be preserved'}
-        </p>
-      </div>
-      
       <div 
         ref={mapRef} 
         className="leaflet-map"
